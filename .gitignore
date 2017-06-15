@@ -1,2 +1,2 @@
-/distance/__init__.pyc
-/distance/__pycache__
+*.pyc
+__pycache__
