@@ -18,13 +18,30 @@ class Level(object):
         self.unknown_3 = dbytes.read_n(24)
 
     @staticmethod
-    def read_all(dbytes):
-        levels = []
+    def iter_all(dbytes):
         try:
             while True:
-                levels.append(Level(dbytes))
+                yield Level(dbytes)
         except EOFError:
-            return levels
+            pass
+
+
+class LevelInfos(object):
+
+    def __init__(self, dbytes, read_levels=True):
+        magic = dbytes.read_fixed_number(4)
+        if magic != 66666666:
+            raise IOError(f"invalid magic: {magic}")
+        self.unknown_1 = dbytes.read_n(8)
+        type_ident = dbytes.read_string()
+        if type_ident != "WorkshopLevelInfos":
+            raise IOError(f"invalid bytes filetype: {type_ident!r}")
+        self.unknown_2 = dbytes.read_n(65)
+        if read_levels:
+            self.read_levels()
+
+    def read_levels(self):
+        self.levels = list(Level.iter_all(dbytes))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

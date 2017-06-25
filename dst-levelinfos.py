@@ -8,7 +8,7 @@ import os
 import argparse
 
 from distance.bytes import DstBytes
-import distance.levelinfos as infos
+from distance.levelinfos import LevelInfos, Level
 from distance.levelids import LevelIds
 
 
@@ -54,10 +54,10 @@ def main():
     # with open(os.path.expanduser(PATH_WS_XML), 'r', encoding='utf-16-le') as wsxml:
     #     levelids.parse(wsxml)
 
-    dbytes.find_long_long(LID_LOST_FORTRESS)
-    pos = dbytes.pos
-    dump_infos()
-    dbytes.pos = pos
+    # dbytes.find_long_long(LID_LOST_FORTRESS)
+    # pos = dbytes.pos
+    # dump_infos()
+    # dbytes.pos = pos
 
     # try:
     #     while True:
@@ -65,12 +65,27 @@ def main():
     # except EOFError:
     #     pass
 
-    levels = infos.Level.read_all(dbytes)
+    # levels = infos.Level.read_all(dbytes)
 
-    print(levels[-1].title)
-    print(levels[-1].author)
-    print(levels[-1].path)
-    print(len(levels))
+    infos = LevelInfos(dbytes, read_levels=False)
+
+    # print(levels[-1].title)
+    # print(levels[-1].author)
+    # print(levels[-1].path)
+
+    total = 0
+    for level in Level.iter_all(dbytes):
+        print(f"{level.title} by {level.author}")
+        total += 1
+    print(f"total: {total} levels")
+
+    # n = len(levels)
+    # s = ""
+    # while n > 0x7f:
+    #     s += f"{0x80 | (n & 0x7f):02x}"
+    #     n >>= 7
+    # s += f"{n:02x}"
+    # print(s)
 
     return 0
 
