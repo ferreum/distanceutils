@@ -11,7 +11,7 @@ class Level(object):
         self.title = dbytes.read_string()
         self.description = dbytes.read_string()
         self.unknown_1 = dbytes.read_n(8)
-        self.flags = dbytes.read_string()
+        self.tags = dbytes.read_string()
         self.unknown_2 = dbytes.read_n(8)
         self.author = dbytes.read_string()
         self.path = dbytes.read_string()
@@ -39,9 +39,13 @@ class LevelInfos(object):
         self.unknown_2 = dbytes.read_n(65)
         if read_levels:
             self.read_levels()
+        self.dbytes = dbytes
+
+    def iter_levels(self):
+        return Level.iter_all(self.dbytes)
 
     def read_levels(self):
-        self.levels = list(Level.iter_all(dbytes))
+        self.levels = list(Level.iter_all(self.dbytes))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
