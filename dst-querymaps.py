@@ -10,11 +10,24 @@ import re
 
 from distance.common import get_cache_filename
 
+
+def format_bytes(data):
+    return ' '.join(b.__format__('02x') for b in data)
+
+
+def format_col(col):
+    if isinstance(col, bytes):
+        return format_bytes(col)
+    else:
+        return repr(col)
+
+
 def main(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", help="map database filename.")
     parser.add_argument("--stdin-paths", action='store_true',
                         help="filter by path read from stdin.")
+    parser.add_argument("--cols", help='comma-separated list of columns')
     parser.add_argument("--ids", action='store_true',
                         help="print IDs of matching levels.")
     parser.add_argument("--where", nargs='*', metavar=('COND', 'ARG'),
@@ -44,7 +57,9 @@ def main(argv):
     if not cond_parts:
         cond_parts += "1"
 
-    if args.ids:
+    if args.cols:
+        fields = args.cols
+    elif args.ids:
         fields = "id"
     else:
         fields = "title, path"
@@ -57,9 +72,9 @@ def main(argv):
     conn = sqlite3.connect(args.db)
     try:
         found = False
-        if args.ids:
+        if args.cols or args.ids:
             for row in conn.execute(query, params):
-                sys.stdout.write(f"{row[0]}\n")
+                sys.stdout.write('|'.join(format_col(col) for col in row) + "\n")
                 found = True
         else:
             for row in conn.execute(query, params):
