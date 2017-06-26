@@ -7,6 +7,7 @@
 import argparse
 import re
 import sqlite3
+from datetime import datetime
 
 from distance.levelinfos import LevelInfos
 from distance.bytes import DstBytes
@@ -27,29 +28,26 @@ def main(argv):
 
     c = conn.cursor()
     try:
-        c.execute("""CREATE TABLE IF NOT EXISTS level(
-                  id, title, description, tags, author, authorid, path)""")
-        c.execute("CREATE INDEX IF NOT EXISTS lvl_id_path ON level(id, path)")
-        c.execute("CREATE INDEX IF NOT EXISTS lvl_path ON level(path)")
-        c.execute("CREATE INDEX IF NOT EXISTS lvl_author ON level(author)")
-
-        c.execute("DELETE FROM level")
+        c.execute("DROP TABLE level")
+        c.execute("""CREATE TABLE level(
+                  id, title, description, updated_date, tags, author, authorid,
+                  path, upvotes, downvotes, rating, unknown)""")
+        c.execute("CREATE INDEX lvl_id_path ON level(id, path)")
+        c.execute("CREATE INDEX lvl_path ON level(path)")
+        c.execute("CREATE INDEX lvl_author ON level(author)")
 
         dbytes = DstBytes(args.FILE)
-        infos = LevelInfos(dbytes, read_levels=False)
+        infos = LevelInfos(dbytes, False)
         count = 0
         for level in infos.iter_levels():
-            values = [level.id, level.title, level.description, level.tags, level.author]
-            path = level.path
-            match = re.search(r"WorkshopLevels/+([0-9]+)/+", path)
-            if match:
-                values.append(int(match.group(1)))
-            else:
-                values.append(None)
-            values.append(path)
+            values = [level.id, level.title, level.description, level.updated_date,
+                      level.tags, level.author, level.authorid, level.path,
+                      level.upvotes, level.downvotes, level.rating]
+            values.append(b''.join(getattr(level, f'unknown_{i}') for i in range(1, 4)))
             c.execute("""INSERT INTO level
-                      (id, title, description, tags, author, authorid, path)
-                      VALUES (?, ?, ?, ?, ?, ?, ?)""", values)
+                      (id, title, description, updated_date, tags, author, authorid,
+                      path, upvotes, downvotes, rating, unknown)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
             count += 1
 
         conn.commit()

@@ -3,6 +3,10 @@
 # Description: levelinfos
 # Created:     2017-06-24
 
+RATING_NONE = 0
+RATING_POSITIVE = 1
+RATING_NEGATIVE = 2
+
 
 class Level(object):
 
@@ -10,12 +14,18 @@ class Level(object):
         self.id = dbytes.read_fixed_number(8)
         self.title = dbytes.read_string()
         self.description = dbytes.read_string()
-        self.unknown_1 = dbytes.read_n(8)
+        self.updated_date = dbytes.read_fixed_number(8)
         self.tags = dbytes.read_string()
-        self.unknown_2 = dbytes.read_n(8)
+        self.authorid = dbytes.read_fixed_number(8)
         self.author = dbytes.read_string()
         self.path = dbytes.read_string()
-        self.unknown_3 = dbytes.read_n(24)
+        self.published_by_user = dbytes.read_byte()
+        self.unknown_1 = dbytes.read_n(7)
+        self.upvotes = dbytes.read_fixed_number(4)
+        self.downvotes = dbytes.read_fixed_number(4)
+        self.unknown_2 = dbytes.read_n(4)
+        self.rating = dbytes.read_byte()
+        self.unknown_3 = dbytes.read_n(3)
 
     @staticmethod
     def iter_all(dbytes):
