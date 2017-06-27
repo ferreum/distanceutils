@@ -31,7 +31,7 @@ def format_duration(msec):
     msec %= 60000
     sec = msec // 1000
     msec %= 1000
-    return f"{hours}{mins:02}:{sec:02}.{msec:03}"
+    return f"{'-' if negative else ''}{hours}{mins:02}:{sec:02}.{msec:03}"
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
