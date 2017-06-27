@@ -29,7 +29,6 @@ class Section(object):
             unknown.append(dbytes.read_n(15))
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
-        print(self.__dict__)
 
     @staticmethod
     def iter_to(dbytes, to):
