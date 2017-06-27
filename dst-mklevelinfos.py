@@ -31,7 +31,8 @@ def main(argv):
         c.execute("DROP TABLE level")
         c.execute("""CREATE TABLE level(
                   id, title, description, updated_date, published_date, tags,
-                  author, authorid, path, upvotes, downvotes, rating, unknown)""")
+                  author, authorid, path, published_by_user, upvotes, downvotes,
+                  rating, unknown)""")
         c.execute("CREATE INDEX lvl_id_path ON level(id, path)")
         c.execute("CREATE INDEX lvl_path ON level(path)")
         c.execute("CREATE INDEX lvl_author ON level(author)")
@@ -42,12 +43,14 @@ def main(argv):
         for level in infos.iter_levels():
             values = [level.id, level.title, level.description, level.updated_date,
                       level.published_date, level.tags, level.author, level.authorid,
-                      level.path, level.upvotes, level.downvotes, level.rating]
+                      level.path, level.published_by_user, level.upvotes,
+                      level.downvotes, level.rating]
             values.append(b''.join(getattr(level, f'unknown_{i}') for i in range(1, 4)))
             c.execute("""INSERT INTO level
                       (id, title, description, updated_date, published_date,
-                      tags, author, authorid, path, upvotes, downvotes, rating, unknown)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+                      tags, author, authorid, path, published_by_user, upvotes, downvotes,
+                      rating, unknown)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
             count += 1
 
         conn.commit()
