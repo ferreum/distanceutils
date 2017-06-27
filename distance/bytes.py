@@ -47,7 +47,7 @@ class DstBytes(object):
     def read_string(self):
         length = self.read_number()
         data = self.read_n(length)
-        return data.decode('utf-16')
+        return data.decode('utf-16', 'surrogateescape')
 
     def find_long_long(self, number):
         import struct
