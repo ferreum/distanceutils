@@ -15,13 +15,6 @@ class Entry(object):
         self.unknown = unknown = []
         if version >= 1:
             unknown.append(dbytes.read_n(4))
-            if unknown[0] == b'\x01\x00\x00\x00':
-                try:
-                    b = dbytes.read_n(1)
-                except EOFError:
-                    raise
-                else:
-                    raise IOError(f"expected EOF but got {b!r}")
         else:
             unknown.append(b'')
         self.playername = dbytes.read_string()
@@ -55,7 +48,7 @@ class Leaderboard(object):
         if ts.filetype != "LocalLeaderboard":
             raise IOError(f"Invalid bytes filetype: {ts.filetype!r}")
         self.unknown = unknown = []
-        self.version = version = sections[SECTION_UNK_2].version
+        self.version = sections[SECTION_UNK_2].version
 
     def iter_entries(self):
         return Entry.iter_all(self.dbytes, self.version)
