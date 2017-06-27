@@ -38,14 +38,14 @@ def main(argv):
         c.execute("CREATE INDEX lvl_author ON level(author)")
 
         dbytes = DstBytes(args.FILE)
-        infos = LevelInfos(dbytes, False)
+        infos = LevelInfos(dbytes)
         count = 0
         for level in infos.iter_levels():
             values = [level.id, level.title, level.description, level.updated_date,
                       level.published_date, level.tags, level.author, level.authorid,
                       level.path, level.published_by_user, level.upvotes,
                       level.downvotes, level.rating]
-            values.append(b''.join(getattr(level, f'unknown_{i}') for i in range(1, 4)))
+            values.append(b''.join(level.unknown))
             c.execute("""INSERT INTO level
                       (id, title, description, updated_date, published_date,
                       tags, author, authorid, path, published_by_user, upvotes, downvotes,

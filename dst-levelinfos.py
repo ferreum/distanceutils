@@ -10,16 +10,13 @@ import argparse
 from distance.bytes import DstBytes
 from distance.levelinfos import LevelInfos, Level
 from distance.levelids import LevelIds
+from distance.common import format_bytes
 
 
 LID_LOST_FORTRESS = 469806096
 LID_MAINMENU_DATASTREAM = 822049253
 
 PATH_WS_XML = "~/.config/refract/Distance/Levels/WorkshopLevels/WorkshopPublishedFileIDs.xml"
-
-
-def format_bytes(data):
-    return ' '.join(b.__format__('02x') for b in data)
 
 
 def main():
@@ -67,16 +64,23 @@ def main():
 
     # levels = infos.Level.read_all(dbytes)
 
-    infos = LevelInfos(dbytes, read_levels=False)
+    infos = LevelInfos(dbytes)
 
     # print(levels[-1].title)
     # print(levels[-1].author)
     # print(levels[-1].path)
 
     total = 0
-    for level in Level.iter_all(dbytes):
-        print(f"{level.title} by {level.author}")
-        total += 1
+    prevpos = dbytes.pos
+    for level in infos.iter_levels():
+        if level.title in {"Red", "Blue", "Yellow", "White", "Main Menu Datastream"}:
+            # print(f"{level.title} by {level.author}; pos: {prevpos:08x}")
+            savedpos = dbytes.pos
+            dbytes.pos -= 8
+            print(f"{prevpos:08x} number: {format_bytes(level.unknown[0])} {format_bytes(level.unknown[0], '08b')} {dbytes.read_fixed_number(2)} {level.tags} {level.title}")
+            dbytes.pos = savedpos
+            total += 1
+        prevpos = dbytes.pos
     print(f"total: {total} levels")
 
     # n = len(levels)
