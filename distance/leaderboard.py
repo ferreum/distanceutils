@@ -49,6 +49,7 @@ class Leaderboard(object):
             raise IOError(f"Invalid bytes filetype: {ts.filetype!r}")
         self.unknown = unknown = []
         self.version = sections[SECTION_UNK_2].version
+        self.unknown.append(dbytes.read_n(12))
 
     def iter_entries(self):
         return Entry.iter_all(self.dbytes, self.version)

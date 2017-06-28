@@ -26,7 +26,7 @@ class Section(object):
         elif ident == SECTION_UNK_2:
             unknown.append(dbytes.read_n(12))
             self.version = ver = dbytes.read_byte()
-            unknown.append(dbytes.read_n(15))
+            unknown.append(dbytes.read_n(3))
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
 

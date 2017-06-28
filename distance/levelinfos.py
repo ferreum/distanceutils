@@ -52,6 +52,8 @@ class LevelInfos(object):
             raise IOError("Missing type information")
         if ts.filetype != "WorkshopLevelInfos":
             raise IOError("Invalid bytes filetype: {ts.filetype!r}")
+        self.unknwon = unknown = []
+        unknown.append(dbytes.read_n(12))
 
     def iter_levels(self):
         return Level.iter_all(self.dbytes)
