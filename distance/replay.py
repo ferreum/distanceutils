@@ -4,6 +4,7 @@
 # Created:     2017-06-28
 
 
+from .bytes import S_COLOR_RGBA
 from .section import Section, SECTION_TYPE, SECTION_UNK_2
 
 
@@ -27,10 +28,10 @@ class Replay(object):
         self.replay_duration = dbytes.read_fixed_number(4)
         unknown.append(dbytes.read_n(4))
         self.car_name = dbytes.read_string()
-        self.car_color_primary = dbytes.read_struct("4f")
-        self.car_color_secondary = dbytes.read_struct("4f")
-        self.car_color_glow = dbytes.read_struct("4f")
-        self.car_color_sparkle = dbytes.read_struct("4f")
+        self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
+        self.car_color_secondary = dbytes.read_struct(S_COLOR_RGBA)
+        self.car_color_glow = dbytes.read_struct(S_COLOR_RGBA)
+        self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

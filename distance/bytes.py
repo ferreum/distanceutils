@@ -4,6 +4,12 @@
 # Created:     2017-06-24
 
 
+import struct
+
+
+S_COLOR_RGBA = struct.Struct("4f")
+
+
 class DstBytes(object):
 
     def __init__(self, source):
@@ -45,7 +51,6 @@ class DstBytes(object):
         return n
 
     def read_struct(self, st):
-        import struct
         if isinstance(st, str):
             st = struct.Struct(st)
         data = self.read_n(st.size)
@@ -57,7 +62,6 @@ class DstBytes(object):
         return data.decode('utf-16', 'surrogateescape')
 
     def find_long_long(self, number):
-        import struct
         data = struct.pack('q', number)
         return self.find_bytes(data)
 
