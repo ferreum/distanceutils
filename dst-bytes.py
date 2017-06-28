@@ -15,26 +15,26 @@ from distance.detect import Leaderboard, LevelInfos, Replay, detect
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("FILE", nargs='+', type=argparse.FileType('rb'),
-                        help="Replay filename.")
+    parser.add_argument("FILE", nargs='+', help=".bytes filename")
     parser.add_argument("--unknown", action='store_true',
                         help="Print unknown data too.")
     args = parser.parse_args()
 
     have_error = False
-    for f in args.FILE:
-        try:
-            if len(args.FILE) > 1:
-                print()
-                print(f.name)
-            dbytes = DstBytes(f)
-            obj = detect(dbytes)
-            print(f"Type: {type(obj).__name__}")
-            obj.print_data(sys.stdout, unknown=args.unknown)
-        except:
-            import traceback
-            traceback.print_exc()
-            have_error = True
+    for fname in args.FILE:
+        with open(fname, 'rb') as f:
+            try:
+                if len(args.FILE) > 1:
+                    print()
+                    print(f.name)
+                dbytes = DstBytes(f)
+                obj = detect(dbytes)
+                print(f"Type: {type(obj).__name__}")
+                obj.print_data(sys.stdout, unknown=args.unknown)
+            except:
+                import traceback
+                traceback.print_exc()
+                have_error = True
     return 1 if have_error else 0
 
 
