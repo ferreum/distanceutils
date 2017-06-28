@@ -20,13 +20,8 @@ class Replay(BytesModel):
     finish_time = None
 
     def parse(self, dbytes):
-        sections = self.read_sections_to(SECTION_UNK_2)
-        ts = sections.get(SECTION_TYPE, ())
-        if not ts:
-            raise IOError("Missing type information")
-        if not ts[0].filetype.startswith(FTYPE_REPLAY_PREFIX):
-            raise IOError(f"Invalid bytes filetype: {ts.filetype}")
-        self.version = version = sections[SECTION_UNK_2][0].version
+        self.require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+        self.version = version = self.require_section(SECTION_UNK_2).version
         self.add_unknown(4)
         self.player_name = dbytes.read_string()
         if version >= 2:

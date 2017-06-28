@@ -43,11 +43,39 @@ class BytesModel(object):
             if self.unknown:
                 print(f"Unknown: {format_bytes(self.unknown)}", file=file)
 
-    def read_sections_to(self, to):
+    def read_sections_to(self, to, index=None):
         sections = self.sections
         if sections is None:
             self.sections = sections = {}
-        return Section.read_to_map(self.dbytes, to, dest=sections)
+        return Section.read_to_map(self.dbytes, to, index=index, dest=sections)
+
+    def get_section(self, ident, index=0):
+        sections = self.sections
+        if sections is None:
+            return None
+        s_list = self.sections.get(ident, ())
+        if index <= len(s_list) - 1:
+            return s_list[index]
+        return None
+
+    def require_type(self, expect):
+        ts = self.require_section(SECTION_TYPE)
+        if not ts:
+            raise IOError("Missing type information")
+        if isinstance(expect, str):
+            if ts.filetype != expect:
+                raise IOError(f"Invalid bytes filetype: {ts.filetype}")
+        else:
+            if not expect(ts.filetype):
+                raise IOError(f"Invalid bytes filetype: {ts.filetype}")
+        return ts
+
+    def require_section(self, ident, index=0):
+        s = self.get_section(ident, index)
+        if s is not None:
+            return s
+        self.read_sections_to(ident, index)
+        return self.get_section(ident, index)
 
     def add_unknown(self, n):
         unknown = self.unknown
@@ -84,19 +112,19 @@ class Section(BytesModel):
         return self
 
     @staticmethod
-    def iter_to(dbytes, to):
+    def iter_all(dbytes):
         while True:
-            section = Section(dbytes)
-            yield section
-            if section.ident == to:
-                break
+            yield Section(dbytes)
 
     @staticmethod
-    def read_to_map(dbytes, to, dest=None):
+    def read_to_map(dbytes, to, index=None, dest=None):
         if dest is None:
             dest = {}
-        for section in Section.iter_to(dbytes, to):
+        for section in Section.iter_all(dbytes):
             section.put_into(dest)
+            if section.ident == to:
+                if index is None or len(dest[section.ident]) >= index:
+                    return dest
         return dest
 
 

@@ -48,12 +48,8 @@ class Level(BytesModel):
 class LevelInfos(BytesModel):
 
     def parse(self, dbytes):
-        sections = self.read_sections_to(SECTION_UNK_2)
-        ts = sections.get(SECTION_TYPE, ())
-        if not ts:
-            raise IOError("Missing type information")
-        if ts[0].filetype != FTYPE_LEVELINFOS:
-            raise IOError("Invalid bytes filetype: {ts.filetype!r}")
+        self.require_type(FTYPE_LEVELINFOS)
+        self.version = self.require_section(SECTION_UNK_2).version
         self.add_unknown(12)
 
     def iter_levels(self):

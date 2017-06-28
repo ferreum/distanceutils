@@ -46,13 +46,8 @@ class Entry(BytesModel):
 class Leaderboard(BytesModel):
 
     def parse(self, dbytes):
-        sections = self.read_sections_to(SECTION_UNK_2)
-        ts = sections.get(SECTION_TYPE, ())
-        if not ts:
-            raise IOError("Missing type information")
-        if ts[0].filetype != FTYPE_LEADERBOARD:
-            raise IOError(f"Invalid bytes filetype: {ts.filetype!r}")
-        self.version = sections[SECTION_UNK_2][0].version
+        self.require_type(FTYPE_LEADERBOARD)
+        self.version = self.require_section(SECTION_UNK_2).version
         self.add_unknown(12)
 
     def iter_entries(self):
