@@ -22,10 +22,10 @@ def detect(dbytes):
         elif filetype.startswith(FTYPE_REPLAY_PREFIX):
             cls = Replay
         else:
-            raise IOError("Unknown filetype: {filetype!r}")
+            raise IOError(f"Unknown filetype: {filetype!r}")
         return cls(dbytes, sections=sections)
     else:
-        raise IOError("Unknown initial section: {section.ident}")
+        raise IOError(f"Unknown initial section: {section.ident}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
