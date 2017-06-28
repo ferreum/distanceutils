@@ -31,8 +31,9 @@ def main():
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
             if args.unknown:
-                for section in lb.sections.values():
-                    print(f"section {section.ident} unknown: {format_bytes(section.unknown)}")
+                for s_list in lb.sections.values():
+                    for section in s_list:
+                        print(f"section {section.ident} unknown: {format_bytes(section.unknown)}")
             if args.nosort:
                 entries = lb.iter_entries()
             else:

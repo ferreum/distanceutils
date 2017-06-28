@@ -29,8 +29,10 @@ def main():
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
             if args.unknown:
-                for section in replay.sections.values():
-                    print(f"section {section.ident} unknown: {format_bytes(section.unknown)}")
+                for s_list in replay.sections.values():
+                    for section in s_list:
+                        print(f"section {section.ident} unknown: {format_bytes(section.unknown)}")
+                print(f"Unknown: {format_bytes(replay.unknown)}")
             print(f"Version: {replay.version}")
             print(f"Player name: {replay.player_name!r}")
             print(f"Player name: {replay.player_name_2!r}")
