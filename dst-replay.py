@@ -40,7 +40,6 @@ def main():
             print(f"Car name: {replay.car_name!r}")
             print(f"Finish time: {format_duration(replay.finish_time)}")
             print(f"Replay duration: {format_duration(replay.replay_duration)}")
-            print()
         except:
             import traceback
             traceback.print_exc()
