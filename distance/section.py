@@ -10,6 +10,7 @@ from .common import format_bytes
 SECTION_TYPE = 66666666
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
+SECTION_UNK_1 = 11111111
 
 
 class Section(object):

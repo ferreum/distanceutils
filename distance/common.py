@@ -20,6 +20,8 @@ def format_bytes(data, fmt='02x'):
 
 
 def format_duration(msec):
+    if msec is None:
+        return "None"
     negative = msec < 0
     if negative:
         msec = -msec

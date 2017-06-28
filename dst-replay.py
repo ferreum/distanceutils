@@ -20,23 +20,23 @@ def main():
                         help="Print unknown data too.")
     args = parser.parse_args()
 
-    for filenr, f in enumerate(args.FILE):
+    for f in args.FILE:
         try:
             if len(args.FILE) > 1:
-                if filenr > 0:
-                    print()
                 print(f.name)
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
             if args.unknown:
                 for section in replay.sections.values():
                     print(f"section {section.ident} unknown: {format_bytes(section.unknown)}")
+            print(f"Version: {replay.version}")
             print(f"Player name: {replay.player_name!r}")
             print(f"Player name: {replay.player_name_2!r}")
             print(f"Player ID: {replay.player_id}")
             print(f"Car name: {replay.car_name!r}")
             print(f"Finish time: {format_duration(replay.finish_time)}")
             print(f"Replay duration: {format_duration(replay.replay_duration)}")
+            print()
         except:
             import traceback
             traceback.print_exc()

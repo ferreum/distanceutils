@@ -15,9 +15,49 @@ from distance.bytes import DstBytes
 
 
 def assertColor(first, second):
+    if len(first) != len(second):
+        raise AssertionError(f"different number of channels: {first} {second}")
     for a, b in zip(first, second):
         if abs(a - b) > 0.001:
             raise AssertionError(f"colors don't match: {first} {second}")
+
+
+class Version1Test(unittest.TestCase):
+
+    def test_version1(self):
+        with open("in/replay/version_1.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            replay = Replay(dbytes)
+            self.assertEqual(replay.player_name, "Ferreus")
+            self.assertEqual(replay.player_name_2, None)
+            self.assertEqual(replay.player_id, None)
+            self.assertEqual(replay.finish_time, 104370)
+            self.assertEqual(replay.replay_duration, None)
+            self.assertEqual(replay.car_name, "Refractor")
+            assertColor(replay.car_color_primary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_secondary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
+            assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
+            self.assertEqual(replay.version, 1)
+
+
+class Version2Test(unittest.TestCase):
+
+    def test_version2(self):
+        with open("in/replay/version_2.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            replay = Replay(dbytes)
+            self.assertEqual(replay.player_name, "Ferreus")
+            self.assertEqual(replay.player_name_2, "Ferreus")
+            self.assertEqual(replay.player_id, 76561198040630941)
+            self.assertEqual(replay.finish_time, None)
+            self.assertEqual(replay.replay_duration, None)
+            self.assertEqual(replay.car_name, "Refractor")
+            assertColor(replay.car_color_primary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_secondary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
+            assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
+            self.assertEqual(replay.version, 2)
 
 
 class Version3Test(unittest.TestCase):
@@ -30,12 +70,32 @@ class Version3Test(unittest.TestCase):
             self.assertEqual(replay.player_name_2, "Ferreus")
             self.assertEqual(replay.player_id, 76561198040630941)
             self.assertEqual(replay.finish_time, 4650)
+            self.assertEqual(replay.replay_duration, 4649)
             self.assertEqual(replay.car_name, "Refractor")
             assertColor(replay.car_color_primary, (0.193919882, 0, 0.0355945863, 1))
             assertColor(replay.car_color_secondary, (0.193919882, 0, 0.0355945863, 1))
             assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
             assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
             self.assertEqual(replay.version, 3)
+
+
+class Version4Test(unittest.TestCase):
+
+    def test_version4(self):
+        with open("in/replay/version_4.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            replay = Replay(dbytes)
+            self.assertEqual(replay.player_name, "Ferreus")
+            self.assertEqual(replay.player_name_2, "Ferreus")
+            self.assertEqual(replay.player_id, 76561198040630941)
+            self.assertEqual(replay.finish_time, 9570)
+            self.assertEqual(replay.replay_duration, 9576)
+            self.assertEqual(replay.car_name, "Refractor")
+            assertColor(replay.car_color_primary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_secondary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
+            assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
+            self.assertEqual(replay.version, 4)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
