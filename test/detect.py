@@ -44,5 +44,12 @@ class DetectTest(unittest.TestCase):
                     result = detect(dbytes)
                     self.assertEqual("Replay", type(result).__name__)
 
+    def test_level(self):
+        for levelfile in ("test-straightroad",):
+            with self.subTest(levelfile=levelfile):
+                with bytes_from(f"in/level/{levelfile}.bytes") as dbytes:
+                    result = detect(dbytes)
+                    self.assertEqual("Level", type(result).__name__)
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

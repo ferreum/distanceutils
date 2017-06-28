@@ -12,6 +12,7 @@ from .common import format_bytes
 S_COLOR_RGBA = struct.Struct("4f")
 
 
+SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
@@ -99,6 +100,10 @@ class Section(BytesModel):
             self.add_unknown(12)
             self.version = dbytes.read_byte()
             self.add_unknown(3)
+        elif ident == SECTION_LEVEL:
+            self.add_unknown(8)
+            self.level_name = dbytes.read_string()
+            self.add_unknown(8)
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
 
