@@ -4,6 +4,7 @@
 # Created:     2017-06-24
 
 
+from .bytes import BytesModel
 from .section import Section, SECTION_TYPE, SECTION_UNK_2
 
 
@@ -12,9 +13,9 @@ RATING_POSITIVE = 1
 RATING_NEGATIVE = 2
 
 
-class Level(object):
+class Level(BytesModel):
 
-    def __init__(self, dbytes):
+    def parse(self, dbytes):
         self.unknown = unknown = []
         self.id = dbytes.read_fixed_number(8)
         self.title = dbytes.read_string()
@@ -26,12 +27,12 @@ class Level(object):
         self.author = dbytes.read_string()
         self.path = dbytes.read_string()
         self.published_by_user = dbytes.read_byte()
-        unknown.append(dbytes.read_n(7))
+        self.add_unknown(7)
         self.upvotes = dbytes.read_fixed_number(4)
         self.downvotes = dbytes.read_fixed_number(4)
-        unknown.append(dbytes.read_n(4))
+        self.add_unknown(4)
         self.rating = dbytes.read_byte()
-        unknown.append(dbytes.read_n(3))
+        self.add_unknown(3)
 
     @staticmethod
     def iter_all(dbytes):
@@ -42,18 +43,16 @@ class Level(object):
             pass
 
 
-class LevelInfos(object):
+class LevelInfos(BytesModel):
 
-    def __init__(self, dbytes):
-        self.dbytes = dbytes
-        self.sections = sections = Section.read_to_map(dbytes, SECTION_UNK_2)
-        ts = sections.get(SECTION_TYPE)
-        if ts is None:
+    def parse(self, dbytes):
+        sections = self.read_sections_to(SECTION_UNK_2)
+        ts = sections.get(SECTION_TYPE, ())
+        if not ts:
             raise IOError("Missing type information")
-        if ts.filetype != "WorkshopLevelInfos":
+        if ts[0].filetype != "WorkshopLevelInfos":
             raise IOError("Invalid bytes filetype: {ts.filetype!r}")
-        self.unknwon = unknown = []
-        unknown.append(dbytes.read_n(12))
+        self.add_unknown(12)
 
     def iter_levels(self):
         return Level.iter_all(self.dbytes)

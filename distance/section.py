@@ -4,9 +4,6 @@
 # Created:     2017-06-27
 
 
-from .common import format_bytes
-
-
 SECTION_TYPE = 66666666
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
@@ -26,7 +23,7 @@ class Section(object):
             unknown.append(dbytes.read_n(20))
         elif ident == SECTION_UNK_2:
             unknown.append(dbytes.read_n(12))
-            self.version = ver = dbytes.read_byte()
+            self.version = dbytes.read_byte()
             unknown.append(dbytes.read_n(3))
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
@@ -40,8 +37,17 @@ class Section(object):
                 break
 
     @staticmethod
-    def read_to_map(dbytes, to):
-        return {s.ident: s for s in Section.iter_to(dbytes, to)}
+    def read_to_map(dbytes, to, dest=None):
+        if dest is None:
+            dest = {}
+        for section in Section.iter_to(dbytes, to):
+            try:
+                prev = dest[section.ident]
+            except KeyError:
+                dest[section.ident] = [section]
+            else:
+                prev.append(section)
+        return dest
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

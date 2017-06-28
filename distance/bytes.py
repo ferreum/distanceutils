@@ -6,8 +6,35 @@
 
 import struct
 
+from .section import Section
 
 S_COLOR_RGBA = struct.Struct("4f")
+
+
+class BytesModel(object):
+
+    unknown = ()
+    sections = None
+
+    def __init__(self, dbytes, **kw):
+        self.dbytes = dbytes
+        self.parse(dbytes, **kw)
+
+    def parse(self, dbytes):
+        raise NotImplementedError(
+            "Subclass needs to override parse(self, dbytes)")
+
+    def read_sections_to(self, to):
+        sections = self.sections
+        if sections is None:
+            self.sections = sections = {}
+        return Section.read_to_map(self.dbytes, to, dest=sections)
+
+    def add_unknown(self, n):
+        unknown = self.unknown
+        if unknown is ():
+            self.unknown = unknown = []
+        unknown.append(self.dbytes.read_n(n))
 
 
 class DstBytes(object):
