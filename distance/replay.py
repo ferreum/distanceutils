@@ -4,8 +4,11 @@
 # Created:     2017-06-28
 
 
-from .bytes import BytesModel, S_COLOR_RGBA
-from .section import Section, SECTION_TYPE, SECTION_UNK_2, SECTION_UNK_1
+from .bytes import (BytesModel, S_COLOR_RGBA,
+                    SECTION_TYPE, SECTION_UNK_2, SECTION_UNK_1)
+
+
+FTYPE_REPLAY_PREFIX = "Replay: "
 
 
 class Replay(BytesModel):
@@ -20,7 +23,7 @@ class Replay(BytesModel):
         ts = sections.get(SECTION_TYPE, ())
         if not ts:
             raise IOError("Missing type information")
-        if not ts[0].filetype.startswith("Replay: "):
+        if not ts[0].filetype.startswith(FTYPE_REPLAY_PREFIX):
             raise IOError(f"Invalid bytes filetype: {ts.filetype}")
         self.version = version = sections[SECTION_UNK_2][0].version
         self.add_unknown(4)

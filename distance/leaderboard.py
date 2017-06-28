@@ -4,11 +4,12 @@
 # Created:     2017-06-27
 
 
-from .bytes import BytesModel
-from .section import Section, SECTION_TYPE, SECTION_UNK_2
+from .bytes import BytesModel, SECTION_TYPE, SECTION_UNK_2
 
 
 NO_REPLAY = 0xffffffffffffffff
+
+FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
 class Entry(BytesModel):
@@ -46,7 +47,7 @@ class Leaderboard(BytesModel):
         ts = sections.get(SECTION_TYPE, ())
         if not ts:
             raise IOError("Missing type information")
-        if ts[0].filetype != "LocalLeaderboard":
+        if ts[0].filetype != FTYPE_LEADERBOARD:
             raise IOError(f"Invalid bytes filetype: {ts.filetype!r}")
         self.version = sections[SECTION_UNK_2][0].version
         self.add_unknown(12)

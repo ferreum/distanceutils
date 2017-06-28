@@ -4,13 +4,14 @@
 # Created:     2017-06-24
 
 
-from .bytes import BytesModel
-from .section import Section, SECTION_TYPE, SECTION_UNK_2
+from .bytes import BytesModel, SECTION_TYPE, SECTION_UNK_2
 
 
 RATING_NONE = 0
 RATING_POSITIVE = 1
 RATING_NEGATIVE = 2
+
+FTYPE_LEVELINFOS = "WorkshopLevelInfos"
 
 
 class Level(BytesModel):
@@ -50,7 +51,7 @@ class LevelInfos(BytesModel):
         ts = sections.get(SECTION_TYPE, ())
         if not ts:
             raise IOError("Missing type information")
-        if ts[0].filetype != "WorkshopLevelInfos":
+        if ts[0].filetype != FTYPE_LEVELINFOS:
             raise IOError("Invalid bytes filetype: {ts.filetype!r}")
         self.add_unknown(12)
 

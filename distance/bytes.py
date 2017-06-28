@@ -6,9 +6,14 @@
 
 import struct
 
-from .section import Section
 
 S_COLOR_RGBA = struct.Struct("4f")
+
+
+SECTION_TYPE = 66666666
+SECTION_UNK_3 = 33333333
+SECTION_UNK_2 = 22222222
+SECTION_UNK_1 = 11111111
 
 
 class BytesModel(object):
@@ -16,7 +21,9 @@ class BytesModel(object):
     unknown = ()
     sections = None
 
-    def __init__(self, dbytes, **kw):
+    def __init__(self, dbytes, sections=None, **kw):
+        if sections is not None:
+            self.sections = sections
         self.dbytes = dbytes
         self.parse(dbytes, **kw)
 
@@ -35,6 +42,50 @@ class BytesModel(object):
         if unknown is ():
             self.unknown = unknown = []
         unknown.append(self.dbytes.read_n(n))
+
+
+class Section(BytesModel):
+
+    def parse(self, dbytes):
+        self.ident = ident = dbytes.read_fixed_number(4)
+        self.unknown = unknown = []
+        if ident == SECTION_TYPE:
+            self.add_unknown(8)
+            self.filetype = dbytes.read_string()
+            self.add_unknown(9)
+        elif ident == SECTION_UNK_3:
+            self.add_unknown(20)
+        elif ident == SECTION_UNK_2:
+            self.add_unknown(12)
+            self.version = dbytes.read_byte()
+            self.add_unknown(3)
+        else:
+            raise IOError(f"unknown section: {ident} (0x{ident:08x})")
+
+    def put_into(self, dest):
+        try:
+            prev = dest[self.ident]
+        except KeyError:
+            dest[self.ident] = [self]
+        else:
+            prev.append(self)
+        return self
+
+    @staticmethod
+    def iter_to(dbytes, to):
+        while True:
+            section = Section(dbytes)
+            yield section
+            if section.ident == to:
+                break
+
+    @staticmethod
+    def read_to_map(dbytes, to, dest=None):
+        if dest is None:
+            dest = {}
+        for section in Section.iter_to(dbytes, to):
+            section.put_into(dest)
+        return dest
 
 
 class DstBytes(object):
