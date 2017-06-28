@@ -44,6 +44,13 @@ class DstBytes(object):
             n |= b << (i * 8)
         return n
 
+    def read_struct(self, st):
+        import struct
+        if isinstance(st, str):
+            st = struct.Struct(st)
+        data = self.read_n(st.size)
+        return st.unpack(data)
+
     def read_string(self):
         length = self.read_number()
         data = self.read_n(length)
