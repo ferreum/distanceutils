@@ -24,7 +24,7 @@ def main():
 
     for filenr, f in enumerate(args.FILE):
         try:
-            if len(args.FILE) > 0:
+            if len(args.FILE) > 1:
                 if filenr > 0:
                     print()
                 print(f.name)
