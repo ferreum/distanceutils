@@ -7,7 +7,8 @@
 import unittest
 import sys
 
-sys.path.append('../')
+if '../' not in sys.path:
+    sys.path.append('../')
 
 from distance.leaderboard import Leaderboard
 from distance.bytes import DstBytes

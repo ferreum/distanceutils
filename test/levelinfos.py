@@ -6,7 +6,8 @@
 import unittest
 import sys
 
-sys.path.append('../')
+if '../' not in sys.path:
+    sys.path.append('../')
 
 from distance.levelinfos import LevelInfos
 from distance.bytes import DstBytes
