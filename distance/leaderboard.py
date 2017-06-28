@@ -7,6 +7,9 @@
 from .section import Section, SECTION_TYPE, SECTION_UNK_2
 
 
+NO_REPLAY = 0xffffffffffffffff
+
+
 class Entry(object):
 
     replay = None

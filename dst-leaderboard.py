@@ -9,7 +9,7 @@ from operator import attrgetter
 
 from distance.common import format_bytes, format_duration
 from distance.bytes import DstBytes
-from distance.leaderboard import Leaderboard
+from distance.leaderboard import Leaderboard, NO_REPLAY
 
 
 def main():
@@ -22,11 +22,11 @@ def main():
                         help="Print unknown data too.")
     args = parser.parse_args()
 
+    have_error = False
     for filenr, f in enumerate(args.FILE):
         try:
             if len(args.FILE) > 1:
-                if filenr > 0:
-                    print()
+                print()
                 print(f.name)
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
@@ -41,7 +41,7 @@ def main():
             unknown = ""
             for i, entry in enumerate(entries, 1):
                 replay = ""
-                if entry.replay is not None and entry.replay != 0xffffffffffffffff:
+                if entry.replay is not None and entry.replay != NO_REPLAY:
                     replay = f" Replay: {entry.replay:X}"
                 if args.unknown:
                     unknown = f"{format_bytes(entry.unknown)} "
@@ -49,7 +49,8 @@ def main():
         except:
             import traceback
             traceback.print_exc()
-    return 0
+            have_error = True
+    return 1 if have_error else 0
 
 
 if __name__ == '__main__':

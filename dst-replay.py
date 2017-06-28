@@ -20,9 +20,11 @@ def main():
                         help="Print unknown data too.")
     args = parser.parse_args()
 
+    have_error = False
     for f in args.FILE:
         try:
             if len(args.FILE) > 1:
+                print()
                 print(f.name)
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
@@ -40,7 +42,8 @@ def main():
         except:
             import traceback
             traceback.print_exc()
-    return 0
+            have_error = True
+    return 1 if have_error else 0
 
 
 if __name__ == '__main__':
