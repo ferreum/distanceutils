@@ -5,6 +5,7 @@
 
 
 from .bytes import BytesModel, SECTION_TYPE, SECTION_UNK_2
+from .common import format_bytes
 
 
 RATING_NONE = 0
@@ -60,6 +61,24 @@ class LevelInfos(BytesModel):
 
     def read_levels(self):
         self.levels = list(Level.iter_all(self.dbytes))
+
+    def print_data(self, file, unknown=False):
+        BytesModel.print_data(self, file, unknown=unknown)
+        def p(*args):
+            print(*args, file=file)
+        unk_str = ""
+        for level in self.iter_levels():
+            if unknown:
+                unk_str = f"Unknown: {format_bytes(level.unknown)} "
+            if level.rating == RATING_POSITIVE:
+                rate_str = " Rating: +"
+            elif level.rating == RATING_NEGATIVE:
+                rate_str = " Rating: -"
+            elif level.rating == RATING_NONE:
+                rate_str = ""
+            else:
+                rate_str = " Rating: Unknown ({level.rating})"
+            p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

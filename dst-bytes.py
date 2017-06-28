@@ -4,6 +4,7 @@
 # Created:     2017-06-28
 
 
+import sys
 import argparse
 from operator import attrgetter
 
@@ -29,6 +30,7 @@ def main():
             dbytes = DstBytes(f)
             obj = detect(dbytes)
             print(f"Type: {type(obj).__name__}")
+            obj.print_data(sys.stdout, unknown=args.unknown)
         except:
             import traceback
             traceback.print_exc()

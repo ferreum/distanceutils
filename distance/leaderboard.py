@@ -4,7 +4,10 @@
 # Created:     2017-06-27
 
 
+from operator import attrgetter
+
 from .bytes import BytesModel, SECTION_TYPE, SECTION_UNK_2
+from .common import format_bytes, format_duration
 
 
 NO_REPLAY = 0xffffffffffffffff
@@ -57,6 +60,22 @@ class Leaderboard(BytesModel):
 
     def read_entries(self):
         return list(self.iter_entries())
+
+    def print_data(self, file, unknown=False):
+        BytesModel.print_data(self, file, unknown=unknown)
+        def p(*args):
+            print(*args, file=file)
+        p(f"Version: {self.version}")
+        entries = self.read_entries()
+        entries.sort(key=attrgetter('time'))
+        unk_str = ""
+        for i, entry in enumerate(entries, 1):
+            rep_str = ""
+            if entry.replay is not None and entry.replay != NO_REPLAY:
+                rep_str = f" Replay: {entry.replay:X}"
+            if unknown:
+                unk_str = f"Unknown: {format_bytes(entry.unknown)} "
+            p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -5,6 +5,7 @@
 
 import os
 
+
 CACHE_PATH = os.path.expanduser('~/.cache/dst')
 
 
@@ -34,6 +35,10 @@ def format_duration(msec):
     sec = msec // 1000
     msec %= 1000
     return f"{'-' if negative else ''}{hours}{mins:02}:{sec:02}.{msec:03}"
+
+
+def format_color(color):
+    return ', '.join(f"{round(c * 100)}%" for c in color)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

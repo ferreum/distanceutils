@@ -6,6 +6,7 @@
 
 from .bytes import (BytesModel, S_COLOR_RGBA,
                     SECTION_TYPE, SECTION_UNK_2, SECTION_UNK_1)
+from .common import format_bytes, format_duration, format_color
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
@@ -53,6 +54,22 @@ class Replay(BytesModel):
             section_size = dbytes.read_fixed_number(4)
             dbytes.pos += section_size - 8
             self.finish_time = dbytes.read_fixed_number(4)
+
+    def print_data(self, file, unknown=False):
+        BytesModel.print_data(self, file, unknown=unknown)
+        def p(*args):
+            print(*args, file=file)
+        p(f"Version: {self.version}")
+        p(f"Player name: {self.player_name!r}")
+        p(f"Player name: {self.player_name_2!r}")
+        p(f"Player ID: {self.player_id}")
+        p(f"Finish time: {format_duration(self.finish_time)}")
+        p(f"Replay duration: {format_duration(self.replay_duration)}")
+        p(f"Car name: {self.car_name!r}")
+        p(f"Car color primary: {format_color(self.car_color_primary)}")
+        p(f"Car color secondary: {format_color(self.car_color_secondary)}")
+        p(f"Car color glow: {format_color(self.car_color_glow)}")
+        p(f"Car color sparkle: {format_color(self.car_color_sparkle)}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

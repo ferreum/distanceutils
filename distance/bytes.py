@@ -6,6 +6,8 @@
 
 import struct
 
+from .common import format_bytes
+
 
 S_COLOR_RGBA = struct.Struct("4f")
 
@@ -31,6 +33,16 @@ class BytesModel(object):
         raise NotImplementedError(
             "Subclass needs to override parse(self, dbytes)")
 
+    def print_data(self, file, unknown=False):
+        if unknown:
+            for s_list in self.sections.values():
+                for i, s in enumerate(s_list):
+                    if s.unknown:
+                        print(f"Section {s.ident}-{i} unknown: {format_bytes(s.unknown)}",
+                              file=file)
+            if self.unknown:
+                print(f"Unknown: {format_bytes(self.unknown)}", file=file)
+
     def read_sections_to(self, to):
         sections = self.sections
         if sections is None:
@@ -48,7 +60,7 @@ class Section(BytesModel):
 
     def parse(self, dbytes):
         self.ident = ident = dbytes.read_fixed_number(4)
-        self.unknown = unknown = []
+        self.unknown = []
         if ident == SECTION_TYPE:
             self.add_unknown(8)
             self.filetype = dbytes.read_string()
