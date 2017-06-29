@@ -68,6 +68,8 @@ class Level(BytesModel):
             for i, (obj, sane, exc) in enumerate(self.iter_objects()):
                 p(f"Level object: {i}")
                 obj.print_data(file, unknown=unknown)
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
             print_exception(sys.exc_info(), file, p)
 

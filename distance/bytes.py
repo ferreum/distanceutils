@@ -45,6 +45,8 @@ class BytesModel(object):
     def maybe_partial(clazz, *args, **kw):
         try:
             return clazz(*args, **kw), True, None
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
             try:
                 return e.partial_object, e.sane_final_pos, sys.exc_info()
@@ -69,6 +71,8 @@ class BytesModel(object):
                 if not sane:
                     break
             return entries, sane, None
+        except KeyboardInterrupt:
+            raise
         except:
             return entries, False, sys.exc_info()
 
@@ -80,6 +84,8 @@ class BytesModel(object):
         try:
             self.parse(dbytes, **kw)
             self.apply_end_pos(dbytes)
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
             orig_e = e
             exc_pos = dbytes.pos

@@ -92,6 +92,8 @@ class LevelInfos(BytesModel):
                     print_exception(exc, file, p)
                 if not sane:
                     break
+        except KeyboardInterrupt:
+            raise
         except Exception as e:
             print_exception(sys.exc_info(), file, p)
 

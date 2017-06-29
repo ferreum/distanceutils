@@ -32,6 +32,8 @@ def main():
                 obj, _, exception = parse_maybe_partial(dbytes)
                 print(f"Type: {type(obj).__name__}")
                 obj.print_data(sys.stdout, unknown=args.unknown)
+            except KeyboardInterrupt:
+                raise
             except:
                 traceback.print_exc()
                 have_error = True
