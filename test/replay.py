@@ -97,5 +97,39 @@ class Version4Test(unittest.TestCase):
             assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
             self.assertEqual(replay.version, 4)
 
+    def test_partial(self):
+        with open("in/replay/version_4_truncated.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            replay, sane, exception = Replay.maybe_partial(dbytes)
+            self.assertEqual(replay.player_name, "Ferreus")
+            self.assertEqual(replay.player_name_2, "Ferreus")
+            self.assertEqual(replay.player_id, 76561198040630941)
+            self.assertEqual(replay.finish_time, 9570)
+            self.assertEqual(replay.replay_duration, 9576)
+            self.assertEqual(replay.car_name, "Refractor")
+            assertColor(replay.car_color_primary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_secondary, (0.193919882, 0, 0.0355945863, 1))
+            assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
+            self.assertIsNone(replay.car_color_sparkle)
+            self.assertEqual(replay.version, 4)
+            self.assertIsNotNone(exception)
+
+    def test_partial_2(self):
+        with open("in/replay/version_4_truncated_2.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            replay, sane, exception = Replay.maybe_partial(dbytes)
+            self.assertEqual(replay.player_name, "Ferreus")
+            self.assertEqual(replay.player_name_2, "Ferreus")
+            self.assertEqual(replay.player_id, 76561198040630941)
+            self.assertEqual(replay.finish_time, 9570)
+            self.assertEqual(replay.replay_duration, 9576)
+            self.assertIsNone(replay.car_name)
+            self.assertIsNone(replay.car_color_primary)
+            self.assertIsNone(replay.car_color_secondary)
+            self.assertIsNone(replay.car_color_glow)
+            self.assertIsNone(replay.car_color_sparkle)
+            self.assertEqual(replay.version, 4)
+            self.assertIsNotNone(exception)
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

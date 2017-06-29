@@ -44,6 +44,8 @@ def format_duration(msec):
 
 
 def format_color(color):
+    if color is None:
+        return "None"
     return ', '.join(f"{round(c * 100)}%" for c in color)
 
 

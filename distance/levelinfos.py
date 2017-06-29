@@ -58,10 +58,7 @@ class LevelInfos(BytesModel):
     def read_levels(self):
         self.levels = list(Level.iter_all(self.dbytes))
 
-    def print_data(self, file, unknown=False):
-        BytesModel.print_data(self, file, unknown=unknown)
-        def p(*args):
-            print(*args, file=file)
+    def _print_data(self, file, unknown, p):
         unk_str = ""
         for level in self.iter_levels():
             if unknown:

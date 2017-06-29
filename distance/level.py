@@ -38,7 +38,7 @@ class LevelObject(BytesModel):
                     times.append(dbytes.read_struct("f")[0])
                     self.add_unknown(4)
 
-    def _print_data(self, p, unknown=False):
+    def _print_data(self, file, unknown, p):
         p(f"Object type: {self.type!r}")
         if self.version is not None:
             p(f"Object version: {self.version!r}")
@@ -73,10 +73,7 @@ class Level(BytesModel):
         except EOFError:
             pass
 
-    def print_data(self, file, unknown=False):
-        BytesModel.print_data(self, file, unknown=unknown)
-        def p(*args):
-            print(*args, file=file)
+    def _print_data(self, file, unknown, p):
         p(f"Level name: {self.level_name!r}")
         for i, obj in enumerate(self.iter_objects()):
             p(f"Level object: {i}")

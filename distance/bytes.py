@@ -22,6 +22,17 @@ SECTION_UNK_2 = 22222222
 SECTION_UNK_1 = 11111111
 
 
+class UnexpectedEOFError(Exception):
+    pass
+
+
+def print_exception(exc_info, file, p):
+    traceback.print_exception(*exc_info, file=file)
+    e = exc_info[1]
+    p(f"Exception start: 0x{e.start_pos:08x}")
+    p(f"Exception pos:   0x{e.exc_pos:08x}")
+
+
 class BytesModel(object):
 
     unknown = ()
@@ -36,7 +47,7 @@ class BytesModel(object):
             return clazz(dbytes, *args, **kw), True, None
         except Exception as e:
             try:
-                return e.partial_object, e.sane_final_pos, e
+                return e.partial_object, e.sane_final_pos, sys.exc_info()
             except AttributeError:
                 pass
             raise e
@@ -46,16 +57,22 @@ class BytesModel(object):
             self.sections = sections
         start_pos = dbytes.pos
         self.dbytes = dbytes
-        e = None
         try:
             self.parse(dbytes, **kw)
         except Exception as e:
+            orig_e = e
+            exc_pos = dbytes.pos
+            if exc_pos != start_pos and isinstance(e, EOFError):
+                e = UnexpectedEOFError(e)
+            e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
+            e.start_pos = start_pos
+            e.exc_pos = exc_pos
             if self.recoverable:
                 e.partial_object = self
-                self.exception_info = (start_pos, dbytes.pos)
-                self.exception = sys.exc_info()
+                self.exception_info = (start_pos, exc_pos)
+                self.exception = type(e), e, sys.exc_info()[2]
             e.sane_final_pos = self.apply_end_pos(dbytes)
-            raise e
+            raise e from orig_e
         else:
             self.apply_end_pos(dbytes)
 
@@ -87,14 +104,11 @@ class BytesModel(object):
                             p(f"Section {s.ident}-{i} unknown: {format_unknown(s.unknown)}")
             if self.unknown:
                 p(f"Unknown: {format_unknown(self.unknown)}")
-        self._print_data(p, unknown)
+        self._print_data(file, unknown, p)
         if self.exception:
-            traceback.print_exception(*self.exception, file=file)
-            start_pos, exc_pos = self.exception_info
-            p(f"Exception start: 0x{start_pos:08x}")
-            p(f"Exception pos:   0x{exc_pos:08x}")
+            print_exception(self.exception, file, p)
 
-    def _print_data(self, p, unknown):
+    def _print_data(self, file, unknown, p):
         pass
 
     def read_sections_to(self, to, index=None):

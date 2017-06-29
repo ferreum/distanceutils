@@ -5,8 +5,10 @@
 
 
 from operator import attrgetter
+import sys
 
-from .bytes import BytesModel, SECTION_TYPE, SECTION_UNK_2
+from .bytes import (BytesModel, SECTION_TYPE, SECTION_UNK_2,
+                    print_exception)
 from .common import format_bytes, format_duration
 
 
@@ -17,20 +19,19 @@ FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 class Entry(BytesModel):
 
+    playername = None
+    time = None
     replay = None
 
     def parse(self, dbytes, version=None):
-        if version >= 1:
-            self.add_unknown(4)
-        else:
-            self.add_unknown(0)
         self.playername = dbytes.read_string()
+        self.recoverable = True
         self.time = dbytes.read_fixed_number(4)
         if version == 0:
             self.add_unknown(4)
         elif version == 1:
             self.replay = dbytes.read_fixed_number(8)
-            self.add_unknown(8)
+            self.add_unknown(12)
         else:
             raise IOError(f"unknown version: {version}")
 
@@ -47,22 +48,37 @@ class Leaderboard(BytesModel):
 
     def parse(self, dbytes):
         self.require_type(FTYPE_LEADERBOARD)
-        self.version = self.require_section(SECTION_UNK_2).version
+        self.version = version = self.require_section(SECTION_UNK_2).version
         self.add_unknown(12)
+        if version >= 1:
+            self.add_unknown(4)
 
     def iter_entries(self):
-        return Entry.iter_all(self.dbytes, self.version)
+        try:
+            while True:
+                entry, sane, exc = Entry.maybe_partial(self.dbytes, version=self.version)
+                yield entry
+                if not sane:
+                    break
+        except EOFError:
+            pass
 
     def read_entries(self):
-        return list(self.iter_entries())
+        entries = []
+        try:
+            for entry in self.iter_entries():
+                entries.append(entry)
+            return entries, None
+        except:
+            return entries, sys.exc_info()
 
-    def print_data(self, file, unknown=False):
-        BytesModel.print_data(self, file, unknown=unknown)
-        def p(*args):
-            print(*args, file=file)
+    def _print_data(self, file, unknown, p):
         p(f"Version: {self.version}")
-        entries = self.read_entries()
+        entries, exception = self.read_entries()
+        nones = [e for e in entries if e.time is None]
+        entries = [e for e in entries if e.time is not None]
         entries.sort(key=attrgetter('time'))
+        entries.extend(nones)
         unk_str = ""
         for i, entry in enumerate(entries, 1):
             rep_str = ""
@@ -71,6 +87,11 @@ class Leaderboard(BytesModel):
             if unknown:
                 unk_str = f"Unknown: {format_bytes(entry.unknown)} "
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
+            if entry.exception:
+                print_exception(entry.exception, file, p)
+        if exception:
+            print_exception(exception, file, p)
+
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

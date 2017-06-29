@@ -14,13 +14,21 @@ FTYPE_REPLAY_PREFIX = "Replay: "
 
 class Replay(BytesModel):
 
+    version = None
+    player_name = None
     player_name_2 = None
     player_id = None
-    replay_duration = None
     finish_time = None
+    replay_duration = None
+    car_name = None
+    car_color_primary = None
+    car_color_secondary = None
+    car_color_glow = None
+    car_color_sparkle = None
 
     def parse(self, dbytes):
         self.require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+        self.recoverable = True
         self.version = version = self.require_section(SECTION_UNK_2).version
         self.add_unknown(4)
         self.player_name = dbytes.read_string()
@@ -50,10 +58,7 @@ class Replay(BytesModel):
             dbytes.pos += section_size - 8
             self.finish_time = dbytes.read_fixed_number(4)
 
-    def print_data(self, file, unknown=False):
-        BytesModel.print_data(self, file, unknown=unknown)
-        def p(*args):
-            print(*args, file=file)
+    def _print_data(self, file, unknown, p):
         p(f"Version: {self.version}")
         p(f"Player name: {self.player_name!r}")
         p(f"Player name: {self.player_name_2!r}")
