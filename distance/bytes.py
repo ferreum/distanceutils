@@ -277,11 +277,15 @@ class DstBytes(object):
             else:
                 return n | (b << bits)
 
-    def read_fixed_number(self, length):
+    def read_fixed_number(self, length, signed=False):
         data = self.read_n(length)
         n = 0
         for i, b in enumerate(data):
             n |= b << (i * 8)
+        if signed:
+            bit = 1 << (length * 8 - 1)
+            if n & bit:
+                n -= (bit << 1)
         return n
 
     def read_struct(self, st):

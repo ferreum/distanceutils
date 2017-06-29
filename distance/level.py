@@ -20,6 +20,7 @@ class LevelObject(BytesModel):
     name = None
     skybox_name = None
     medal_times = ()
+    medal_scores = ()
 
     def parse(self, dbytes, shared_info=None):
         ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
@@ -49,9 +50,10 @@ class LevelObject(BytesModel):
             elif version >= 9:
                 self.add_unknown(213) # confirmed only for v9
             self.medal_times = times = []
+            self.medal_scores = scores = []
             for i in range(4):
                 times.append(dbytes.read_struct("f")[0])
-                self.add_unknown(4)
+                scores.append(dbytes.read_fixed_number(4, signed=True))
 
     def _print_data(self, file, unknown, p):
         p(f"Object type: {self.type!r}")
@@ -62,6 +64,9 @@ class LevelObject(BytesModel):
         if self.medal_times:
             medal_str = ', '.join(format_duration(t) for t in self.medal_times)
             p(f"Medal times: {medal_str}")
+        if self.medal_scores:
+            medal_str = ', '.join(str(s) for s in self.medal_scores)
+            p(f"Medal scores: {medal_str}")
 
 
 class Level(BytesModel):

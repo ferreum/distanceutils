@@ -40,6 +40,9 @@ class BaseTest(unittest.TestCase):
             return int(value)
         self.assertEqual(tuple(map(normalize, self.objects[0].medal_times)), times)
 
+    def assertScores(self, *scores):
+        self.assertEqual(tuple(self.objects[0].medal_scores), scores)
+
 
 class Version0Test(BaseTest):
 
@@ -47,12 +50,14 @@ class Version0Test(BaseTest):
         level, objects = self.getLevel("in/level-not-included/v0/brutal minimalism.bytes")
         self.assertEqual(level.level_name, "Brutal Minimalism")
         self.assertTimes(19149, 31916, 47874, 63832)
+        self.assertScores(664, 591, 419, 199)
         self.assertEqual(len(objects), 33)
 
     def test_the_stretch(self):
         level, objects = self.getLevel("in/level-not-included/v0/the stretch.bytes")
         self.assertEqual(level.level_name, "The Stretch")
         self.assertTimes(105244, 175407, 263111, 350815)
+        self.assertScores(3654, 3248, 2307, 1096)
         self.assertEqual(len(objects), 148)
 
 
@@ -152,12 +157,14 @@ class Version9Test(BaseTest):
         level, objects = self.getLevel("in/level-not-included/v9/sector 6624.bytes")
         self.assertEqual(level.level_name, "Sector 6624")
         self.assertTimes(180000, 249000, 324000, 498000)
+        self.assertScores(10400, 6900, 5200, 4200)
         self.assertEqual(len(objects), 627)
 
     def test_sector_flower(self):
         level, objects = self.getLevel("in/level-not-included/v9/flower.bytes")
         self.assertEqual(level.level_name, "Flower")
         self.assertTimes(-1, -1, -1, -1)
+        self.assertScores(-1, -1, -1, -1)
         self.assertEqual(len(objects), 102)
 
 
