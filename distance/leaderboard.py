@@ -54,23 +54,10 @@ class Leaderboard(BytesModel):
             self.add_unknown(4)
 
     def iter_entries(self):
-        try:
-            while True:
-                entry, sane, exc = Entry.maybe_partial(self.dbytes, version=self.version)
-                yield entry
-                if not sane:
-                    break
-        except EOFError:
-            pass
+        return Entry.iter_maybe_partial(self.dbytes, version=self.version)
 
     def read_entries(self):
-        entries = []
-        try:
-            for entry in self.iter_entries():
-                entries.append(entry)
-            return entries, None
-        except:
-            return entries, sys.exc_info()
+        return Entry.read_all_maybe_partial(self.dbytes, version=self.version)
 
     def _print_data(self, file, unknown, p):
         p(f"Version: {self.version}")
