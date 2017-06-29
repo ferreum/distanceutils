@@ -142,11 +142,11 @@ class BytesModel(object):
     def _print_data(self, file, unknown, p):
         pass
 
-    def read_sections_to(self, to, index=None):
+    def read_sections_to(self, to, index=None, **kw):
         sections = self.sections
         if sections is None:
             self.sections = sections = {}
-        return Section.read_to_map(self.dbytes, to, index=index, dest=sections)
+        return Section.read_to_map(self.dbytes, to, index=index, dest=sections, **kw)
 
     def get_section(self, ident, index=0):
         sections = self.sections
@@ -169,11 +169,11 @@ class BytesModel(object):
                 raise IOError(f"Invalid bytes filetype: {ts.filetype}")
         return ts
 
-    def require_section(self, ident, index=0):
+    def require_section(self, ident, index=0, **kw):
         s = self.get_section(ident, index)
         if s is not None:
             return s
-        self.read_sections_to(ident, index)
+        self.read_sections_to(ident, index, **kw)
         return self.get_section(ident, index)
 
     def add_unknown(self, nbytes=None, value=None, or_to_eof=False):
@@ -188,7 +188,7 @@ class BytesModel(object):
 
 class Section(BytesModel):
 
-    def parse(self, dbytes):
+    def parse(self, dbytes, shared_info=None):
         self.ident = ident = dbytes.read_fixed_number(4)
         self.recoverable = True
         self.unknown = []
@@ -206,8 +206,11 @@ class Section(BytesModel):
         elif ident == SECTION_UNK_7:
             self.add_unknown(8)
             self.add_unknown(value=dbytes.read_string())
-            if self.add_unknown(11)[4] != 0:
-                self.add_unknown(1)
+            if shared_info is not None and shared_info.get('version', None) == 0:
+                self.add_unknown(4)
+            else:
+                if self.add_unknown(11)[4] != 0:
+                    self.add_unknown(1)
         elif ident == SECTION_LEVEL:
             self.add_unknown(8)
             self.level_name = dbytes.read_string()
@@ -225,15 +228,15 @@ class Section(BytesModel):
         return self
 
     @staticmethod
-    def iter_all(dbytes):
+    def iter_all(*args, **kw):
         while True:
-            yield Section(dbytes)
+            yield Section(*args, **kw)
 
     @staticmethod
-    def read_to_map(dbytes, to, index=None, dest=None):
+    def read_to_map(dbytes, to, index=None, dest=None, **kw):
         if dest is None:
             dest = {}
-        for section in Section.iter_all(dbytes):
+        for section in Section.iter_all(dbytes, **kw):
             section.put_into(dest)
             if section.ident == to:
                 if index is None or len(dest[section.ident]) >= index:
