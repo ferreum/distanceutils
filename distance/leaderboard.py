@@ -61,7 +61,7 @@ class Leaderboard(BytesModel):
 
     def _print_data(self, file, unknown, p):
         p(f"Version: {self.version}")
-        entries, exception = self.read_entries()
+        entries, sane, exception = self.read_entries()
         nones = [e for e in entries if e.time is None]
         entries = [e for e in entries if e.time is not None]
         entries.sort(key=attrgetter('time'))
@@ -78,7 +78,6 @@ class Leaderboard(BytesModel):
                 print_exception(entry.exception, file, p)
         if exception:
             print_exception(exception, file, p)
-
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

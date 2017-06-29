@@ -20,13 +20,14 @@ class Version0Test(unittest.TestCase):
         with open("in/leaderboard/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries, exception = lb.read_entries()
+            entries, sane, exception = lb.read_entries()
             self.assertEqual([e.time for e in entries],
                              [162468, 152668, 135258, 581374, 127799, 182704, 517334])
             self.assertEqual([e.playername for e in entries],
                              ['\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7fFerreus'] * 6
                              + ['Ferreus'])
             self.assertEqual(lb.version, 0)
+            self.assertTrue(sane)
 
 
 class Version1Test(unittest.TestCase):
@@ -35,7 +36,7 @@ class Version1Test(unittest.TestCase):
         with open("in/leaderboard/version_1.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries, exception = lb.read_entries()
+            entries, sane, exception = lb.read_entries()
             self.assertEqual([e.time for e in entries],
                              [57400, 57570, 58110, 58470, 58820, 58840, 59180,
                               59720, 62060, 73060, 86260, 2017828, 213099,
@@ -44,26 +45,29 @@ class Version1Test(unittest.TestCase):
                              ['Ferreus'] * 13 + ['\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7fFerreus'] + ['Ferreus'] * 3
                              + ['\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7fFerreus'] + ['Ferreus'] * 2)
             self.assertEqual(lb.version, 1)
+            self.assertTrue(sane)
 
     def test_truncated(self):
         with open("in/leaderboard/version_1_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries, exception = lb.read_entries()
+            entries, sane, exception = lb.read_entries()
             self.assertEqual([e.time for e in entries],
                              [57400, 57570, 58110, 58470, 58820])
             self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5)
             self.assertEqual(lb.version, 1)
+            self.assertFalse(sane)
 
     def test_truncated2(self):
         with open("in/leaderboard/version_1_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries, exception = lb.read_entries()
+            entries, sane, exception = lb.read_entries()
             self.assertEqual([e.time for e in entries],
                              [57400, 57570, 58110, 58470, None])
             self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5)
             self.assertEqual(lb.version, 1)
+            self.assertFalse(sane)
 
 
 if __name__ == '__main__':

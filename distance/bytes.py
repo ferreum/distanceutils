@@ -56,10 +56,7 @@ class BytesModel(object):
     def iter_maybe_partial(clazz, *args, **kw):
         try:
             while True:
-                obj, sane, exc = clazz.maybe_partial(*args, **kw)
-                yield obj
-                if not sane:
-                    break
+                yield clazz.maybe_partial(*args, **kw)
         except EOFError:
             pass
 
@@ -67,11 +64,13 @@ class BytesModel(object):
     def read_all_maybe_partial(clazz, *args, **kw):
         entries = []
         try:
-            for entry in clazz.iter_maybe_partial(*args, **kw):
+            for entry, sane, exc in clazz.iter_maybe_partial(*args, **kw):
                 entries.append(entry)
-            return entries, None
+                if not sane:
+                    break
+            return entries, sane, None
         except:
-            return entries, sys.exc_info()
+            return entries, False, sys.exc_info()
 
     def __init__(self, dbytes, sections=None, **kw):
         if sections is not None:
