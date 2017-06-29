@@ -4,7 +4,9 @@
 # Created:     2017-06-24
 
 
-from .bytes import BytesModel, SECTION_TYPE, SECTION_UNK_2
+import sys
+
+from .bytes import BytesModel, print_exception, SECTION_TYPE, SECTION_UNK_2
 from .common import format_bytes
 
 
@@ -17,9 +19,23 @@ FTYPE_LEVELINFOS = "WorkshopLevelInfos"
 
 class Level(BytesModel):
 
+    id = None
+    title = None
+    description = None
+    updated_date = None
+    published_date = None
+    tags = None
+    authorid = None
+    author = None
+    path = None
+    published_by_user = None
+    upvotes = None
+    downvotes = None
+    rating = None
+
     def parse(self, dbytes):
-        self.unknown = unknown = []
         self.id = dbytes.read_fixed_number(8)
+        self.recoverable = True
         self.title = dbytes.read_string()
         self.description = dbytes.read_string()
         self.updated_date = dbytes.read_fixed_number(4)
@@ -53,25 +69,31 @@ class LevelInfos(BytesModel):
         self.add_unknown(12)
 
     def iter_levels(self):
-        return Level.iter_all(self.dbytes)
-
-    def read_levels(self):
-        self.levels = list(Level.iter_all(self.dbytes))
+        return Level.iter_maybe_partial(self.dbytes)
 
     def _print_data(self, file, unknown, p):
         unk_str = ""
-        for level in self.iter_levels():
-            if unknown:
-                unk_str = f"Unknown: {format_bytes(level.unknown)} "
-            if level.rating == RATING_POSITIVE:
-                rate_str = " Rating: +"
-            elif level.rating == RATING_NEGATIVE:
-                rate_str = " Rating: -"
-            elif level.rating == RATING_NONE:
-                rate_str = ""
-            else:
-                rate_str = " Rating: Unknown ({level.rating})"
-            p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
+        try:
+            for level, sane, exc in self.iter_levels():
+                if unknown:
+                    unk_str = f"Unknown: {format_bytes(level.unknown)} "
+                if level.rating is None:
+                    rate_str = " Rating: None"
+                elif level.rating == RATING_POSITIVE:
+                    rate_str = " Rating: +"
+                elif level.rating == RATING_NEGATIVE:
+                    rate_str = " Rating: -"
+                elif level.rating == RATING_NONE:
+                    rate_str = ""
+                else:
+                    rate_str = " Rating: Unknown ({level.rating})"
+                p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
+                if exc:
+                    print_exception(exc, file, p)
+                if not sane:
+                    break
+        except Exception as e:
+            print_exception(sys.exc_info(), file, p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

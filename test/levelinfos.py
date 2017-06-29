@@ -10,7 +10,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.levelinfos import LevelInfos
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, UnexpectedEOFError
 
 
 class Version0Test(unittest.TestCase):
@@ -22,7 +22,8 @@ class Version0Test(unittest.TestCase):
         with open("in/levelinfos/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = LevelInfos(dbytes)
-            levels = list(infos.iter_levels())
+            results = list(infos.iter_levels())
+            levels = [l for l, _, _ in results]
             self.assertEqual([l.id for l in levels],
                              Version0Test.LEVEL_IDS)
             self.assertEqual([l.title for l in levels],
@@ -53,6 +54,34 @@ class Version0Test(unittest.TestCase):
             self.assertEqual([l.rating for l in levels][:9],
                              [1, 0, 0, 1, 2, 0, 0, 0, 1])
             self.assertEqual(39, len(levels))
+            self.assertEqual([(s, e) for _, s, e in results], [(True, None)] * 39)
+
+    def test_truncated(self):
+        with open("in/levelinfos/version_0_truncated.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            infos = LevelInfos(dbytes)
+            gen = infos.iter_levels()
+            level, sane, exc = next(gen)
+            self.assertEqual(level.id, 469806096)
+            self.assertIsNone(exc)
+            self.assertTrue(sane)
+            level, sane, exc = next(gen)
+            self.assertEqual(level.id, 822049253)
+            self.assertIsNone(level.author)
+            self.assertIsNone(level.authorid)
+            self.assertIs(exc[0], UnexpectedEOFError)
+            self.assertFalse(sane)
+            self.assertIsNotNone(level.exception)
+
+    def test_truncated_2(self):
+        with open("in/levelinfos/version_0_truncated_2.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            infos = LevelInfos(dbytes)
+            gen = infos.iter_levels()
+            level, sane, exc = next(gen)
+            self.assertIsNone(exc)
+            with self.assertRaises(UnexpectedEOFError):
+                raise AssertionError(next(gen))
 
 
 if __name__ == '__main__':
