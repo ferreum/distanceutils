@@ -79,11 +79,12 @@ class BytesModel(object):
         self.dbytes = dbytes
         try:
             self.parse(dbytes, **kw)
+            self.apply_end_pos(dbytes)
         except Exception as e:
             orig_e = e
             exc_pos = dbytes.pos
             if exc_pos != start_pos and isinstance(e, EOFError):
-                e = UnexpectedEOFError(e)
+                e = UnexpectedEOFError()
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
@@ -91,10 +92,13 @@ class BytesModel(object):
                 e.partial_object = self
                 self.exception_info = (start_pos, exc_pos)
                 self.exception = type(e), e, sys.exc_info()[2]
-            e.sane_final_pos = self.apply_end_pos(dbytes)
+            else:
+                try:
+                    del e.partial_object
+                except AttributeError:
+                    pass
+            e.sane_final_pos = self.apply_end_pos(dbytes, or_to_eof=True)
             raise e from orig_e
-        else:
-            self.apply_end_pos(dbytes)
 
     def parse(self, dbytes):
         raise NotImplementedError(
@@ -104,13 +108,13 @@ class BytesModel(object):
         self.recoverable = True
         self.__end_pos = pos
 
-    def apply_end_pos(self, dbytes):
+    def apply_end_pos(self, dbytes, or_to_eof=False):
         end_pos = self.__end_pos
         if end_pos is not None:
             current_pos = dbytes.pos
             if current_pos != end_pos:
-                self.add_unknown(self.__end_pos - current_pos)
-                return True
+                remain = self.add_unknown(end_pos - current_pos, or_to_eof=or_to_eof)
+                return len(remain) == current_pos
         return False
 
     def print_data(self, file, unknown=False):
@@ -126,6 +130,7 @@ class BytesModel(object):
                 p(f"Unknown: {format_unknown(self.unknown)}")
         self._print_data(file, unknown, p)
         if self.exception:
+            p(f"Error when parsing:")
             print_exception(self.exception, file, p)
 
     def _print_data(self, file, unknown, p):
@@ -165,12 +170,12 @@ class BytesModel(object):
         self.read_sections_to(ident, index)
         return self.get_section(ident, index)
 
-    def add_unknown(self, nbytes=None, value=None):
+    def add_unknown(self, nbytes=None, value=None, or_to_eof=False):
         unknown = self.unknown
         if unknown is ():
             self.unknown = unknown = []
         if value is None:
-            value = self.dbytes.read_n(nbytes)
+            value = self.dbytes.read_n(nbytes, or_to_eof=or_to_eof)
         unknown.append(value)
         return value
 
@@ -243,9 +248,9 @@ class DstBytes(object):
     def pos(self, newpos):
         self.source.seek(newpos)
 
-    def read_n(self, n):
+    def read_n(self, n, or_to_eof=False):
         result = self.source.read(n)
-        if len(result) != n:
+        if not or_to_eof and len(result) != n:
             raise EOFError
         return result
 
