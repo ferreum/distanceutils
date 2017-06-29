@@ -4,8 +4,49 @@
 # Created:     2017-06-28
 
 
-from .bytes import (BytesModel, S_COLOR_RGBA, SECTION_LEVEL)
-from .common import format_bytes
+from struct import Struct
+
+from .bytes import (BytesModel, S_COLOR_RGBA, SECTION_LEVEL,
+                    SECTION_TYPE, SECTION_UNK_2, SECTION_UNK_3)
+from .common import format_bytes, format_duration
+
+
+class LevelObject(BytesModel):
+
+    type = None
+    version = None
+    name = None
+    skybox_name = None
+    medal_times = ()
+
+    def parse(self, dbytes):
+        ts = self.require_section(SECTION_TYPE)
+        self.report_end_pos(ts.data_start + ts.size)
+        self.type = type = ts.filetype
+        self.require_section(SECTION_UNK_3)
+        if type == 'LevelSettings':
+            self.version = version = self.require_section(SECTION_UNK_2).version
+            self.add_unknown(12)
+            self.name = dbytes.read_string()
+            if version == 3:
+                self.add_unknown(42)
+                self.skybox_name = dbytes.read_string()
+            elif version == 8:
+                self.add_unknown(223)
+                self.medal_times = times = []
+                for i in range(4):
+                    times.append(dbytes.read_struct("f")[0])
+                    self.add_unknown(4)
+
+    def _print_data(self, p, unknown=False):
+        p(f"Object type: {self.type!r}")
+        if self.version is not None:
+            p(f"Object version: {self.version!r}")
+        if self.skybox_name is not None:
+            p(f"Skybox name: {self.skybox_name!r}")
+        if self.medal_times:
+            medal_str = ', '.join(format_duration(t) for t in self.medal_times)
+            p(f"Medal times: {medal_str}")
 
 
 class Level(BytesModel):
@@ -16,11 +57,30 @@ class Level(BytesModel):
             raise IOError("No level section")
         self.level_name = ls.level_name
 
+    def iter_objects(self):
+        dbytes = self.dbytes
+        try:
+            pos = dbytes.pos
+            while True:
+                prevpos = pos
+                obj, sane, _ = LevelObject.maybe_partial(dbytes)
+                yield obj
+                if not sane:
+                    break
+                pos = dbytes.pos
+                if pos == prevpos:
+                    break
+        except EOFError:
+            pass
+
     def print_data(self, file, unknown=False):
         BytesModel.print_data(self, file, unknown=unknown)
         def p(*args):
             print(*args, file=file)
         p(f"Level name: {self.level_name!r}")
+        for i, obj in enumerate(self.iter_objects()):
+            p(f"Level object: {i}")
+            obj.print_data(file, unknown=unknown)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

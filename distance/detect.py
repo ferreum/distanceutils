@@ -11,7 +11,7 @@ from .levelinfos import LevelInfos, FTYPE_LEVELINFOS
 from .level import Level
 
 
-def detect(dbytes):
+def detect_class(dbytes):
     sections = {}
     section = Section(dbytes).put_into(sections)
     if section.ident == SECTION_TYPE:
@@ -28,7 +28,15 @@ def detect(dbytes):
         cls = Level
     else:
         raise IOError(f"Unknown initial section: {section.ident}")
+    return cls, sections
+
+def parse(dbytes):
+    cls, sections = detect_class(dbytes)
     return cls(dbytes, sections=sections)
+
+def parse_maybe_partial(dbytes):
+    cls, sections = detect_class(dbytes)
+    return cls.maybe_partial(dbytes, sections=sections)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

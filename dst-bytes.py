@@ -7,10 +7,11 @@
 import sys
 import argparse
 from operator import attrgetter
+import traceback
 
 from distance.common import format_bytes, format_duration
 from distance.bytes import DstBytes
-from distance.detect import Leaderboard, LevelInfos, Replay, detect
+from distance.detect import Leaderboard, LevelInfos, Replay, parse_maybe_partial
 
 
 def main():
@@ -28,11 +29,10 @@ def main():
                     print()
                     print(f.name)
                 dbytes = DstBytes(f)
-                obj = detect(dbytes)
+                obj, _, exception = parse_maybe_partial(dbytes)
                 print(f"Type: {type(obj).__name__}")
                 obj.print_data(sys.stdout, unknown=args.unknown)
             except:
-                import traceback
                 traceback.print_exc()
                 have_error = True
     return 1 if have_error else 0

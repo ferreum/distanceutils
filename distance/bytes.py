@@ -5,8 +5,10 @@
 
 
 import struct
+import traceback
+import sys
 
-from .common import format_bytes
+from .common import format_unknown
 
 
 S_COLOR_RGBA = struct.Struct("4f")
@@ -14,6 +16,7 @@ S_COLOR_RGBA = struct.Struct("4f")
 
 SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666
+SECTION_UNK_7 = 77777777
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
 SECTION_UNK_1 = 11111111
@@ -23,26 +26,76 @@ class BytesModel(object):
 
     unknown = ()
     sections = None
+    exception = None
+    __end_pos = None
+    recoverable = False
+
+    @classmethod
+    def maybe_partial(clazz, dbytes, *args, **kw):
+        try:
+            return clazz(dbytes, *args, **kw), True, None
+        except Exception as e:
+            try:
+                return e.partial_object, e.sane_final_pos, e
+            except AttributeError:
+                pass
+            raise e
 
     def __init__(self, dbytes, sections=None, **kw):
         if sections is not None:
             self.sections = sections
+        start_pos = dbytes.pos
         self.dbytes = dbytes
-        self.parse(dbytes, **kw)
+        e = None
+        try:
+            self.parse(dbytes, **kw)
+        except Exception as e:
+            if self.recoverable:
+                e.partial_object = self
+                self.exception_info = (start_pos, dbytes.pos)
+                self.exception = sys.exc_info()
+            e.sane_final_pos = self.apply_end_pos(dbytes)
+            raise e
+        else:
+            self.apply_end_pos(dbytes)
 
     def parse(self, dbytes):
         raise NotImplementedError(
             "Subclass needs to override parse(self, dbytes)")
 
+    def report_end_pos(self, pos):
+        self.recoverable = True
+        self.__end_pos = pos
+
+    def apply_end_pos(self, dbytes):
+        end_pos = self.__end_pos
+        if end_pos is not None:
+            current_pos = dbytes.pos
+            if current_pos != end_pos:
+                self.add_unknown(self.__end_pos - current_pos)
+                return True
+        return False
+
     def print_data(self, file, unknown=False):
+        def p(*args, **kwargs):
+            print(*args, file=file, **kwargs)
         if unknown:
-            for s_list in self.sections.values():
-                for i, s in enumerate(s_list):
-                    if s.unknown:
-                        print(f"Section {s.ident}-{i} unknown: {format_bytes(s.unknown)}",
-                              file=file)
+            if self.sections is not None:
+                for s_list in self.sections.values():
+                    for i, s in enumerate(s_list):
+                        if s.unknown:
+                            p(f"Section {s.ident}-{i} unknown: {format_unknown(s.unknown)}")
             if self.unknown:
-                print(f"Unknown: {format_bytes(self.unknown)}", file=file)
+                p(f"Unknown: {format_unknown(self.unknown)}")
+        self._print_data(p, unknown)
+        if self.exception:
+            traceback.print_exception(*self.exception, file=file)
+            start_pos, exc_pos = self.exception_info
+            p(f"Exception start: 0x{start_pos:08x}")
+            p(f"Exception pos:   0x{exc_pos:08x}")
+
+    def _print_data(self, p, unknown):
+        pass
 
     def read_sections_to(self, to, index=None):
         sections = self.sections
@@ -78,20 +131,25 @@ class BytesModel(object):
         self.read_sections_to(ident, index)
         return self.get_section(ident, index)
 
-    def add_unknown(self, n):
+    def add_unknown(self, nbytes=None, value=None):
         unknown = self.unknown
         if unknown is ():
             self.unknown = unknown = []
-        unknown.append(self.dbytes.read_n(n))
+        if value is None:
+            value = self.dbytes.read_n(nbytes)
+        unknown.append(value)
+        return value
 
 
 class Section(BytesModel):
 
     def parse(self, dbytes):
         self.ident = ident = dbytes.read_fixed_number(4)
+        self.recoverable = True
         self.unknown = []
         if ident == SECTION_TYPE:
-            self.add_unknown(8)
+            self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
             self.filetype = dbytes.read_string()
             self.add_unknown(9)
         elif ident == SECTION_UNK_3:
@@ -100,6 +158,11 @@ class Section(BytesModel):
             self.add_unknown(12)
             self.version = dbytes.read_byte()
             self.add_unknown(3)
+        elif ident == SECTION_UNK_7:
+            self.add_unknown(8)
+            self.add_unknown(value=dbytes.read_string())
+            if self.add_unknown(11)[4] != 0:
+                self.add_unknown(1)
         elif ident == SECTION_LEVEL:
             self.add_unknown(8)
             self.level_name = dbytes.read_string()

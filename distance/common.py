@@ -3,7 +3,9 @@
 # Description: common
 # Created:     2017-06-15
 
+
 import os
+import math
 
 
 CACHE_PATH = os.path.expanduser('~/.cache/dst')
@@ -23,6 +25,10 @@ def format_bytes(data, fmt='02x'):
 def format_duration(msec):
     if msec is None:
         return "None"
+    if math.isnan(msec):
+        return "NaN"
+    if not isinstance(msec, int):
+        msec = int(msec)
     negative = msec < 0
     if negative:
         msec = -msec
@@ -39,6 +45,17 @@ def format_duration(msec):
 
 def format_color(color):
     return ', '.join(f"{round(c * 100)}%" for c in color)
+
+
+def format_unknown_value(value):
+    if isinstance(value, (bytes, bytearray)):
+        return format_bytes(value)
+    else:
+        return repr(value)
+
+
+def format_unknown(unknown):
+    return ', '.join(format_unknown_value(v) for v in unknown)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
