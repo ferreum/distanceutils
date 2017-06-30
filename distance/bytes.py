@@ -16,7 +16,8 @@ S_COLOR_RGBA = struct.Struct("4f")
 
 SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666
-SECTION_UNK_7 = 77777777
+SECTION_LAYER = 77777777
+SECTION_LEVEL_INFO = 88888888
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
 SECTION_UNK_1 = 11111111
@@ -55,10 +56,10 @@ class BytesModel(object):
             raise e
 
     @classmethod
-    def iter_maybe_partial(clazz, *args, **kw):
+    def iter_maybe_partial(clazz, dbytes, *args, max_pos=None, **kw):
         try:
-            while True:
-                yield clazz.maybe_partial(*args, **kw)
+            while max_pos is None or dbytes.pos < max_pos:
+                yield clazz.maybe_partial(dbytes, *args, **kw)
         except EOFError:
             pass
 
@@ -189,6 +190,9 @@ class BytesModel(object):
 
 class Section(BytesModel):
 
+    layer_name = None
+    num_objects = None
+
     def parse(self, dbytes, shared_info=None):
         self.ident = ident = dbytes.read_fixed_number(4)
         self.recoverable = True
@@ -200,21 +204,30 @@ class Section(BytesModel):
         elif ident == SECTION_UNK_3:
             self.add_unknown(20)
         elif ident == SECTION_UNK_2:
-            self.add_unknown(12)
+            self.size = dbytes.read_fixed_number(8)
+            self.add_unknown(4)
             self.version = dbytes.read_byte()
             self.add_unknown(3)
-        elif ident == SECTION_UNK_7:
-            self.add_unknown(8)
-            self.add_unknown(value=dbytes.read_string())
-            if shared_info is not None and shared_info.get('version', None) == 0:
-                self.add_unknown(4)
+        elif ident == SECTION_LAYER:
+            self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
+            self.layer_name = dbytes.read_string()
+            self.num_objects = dbytes.read_fixed_number(4)
+            tmp = dbytes.read_fixed_number(4)
+            dbytes.pos -= 4
+            if tmp == 0:
+                self.add_unknown(7)
+            elif tmp == 1:
+                self.add_unknown(8)
             else:
-                if self.add_unknown(11)[4] != 0:
-                    self.add_unknown(1)
+                self.add_unknown(value=b'')
         elif ident == SECTION_LEVEL:
             self.add_unknown(8)
             self.level_name = dbytes.read_string()
             self.add_unknown(8)
+        elif ident == SECTION_LEVEL_INFO:
+            self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
 
@@ -242,6 +255,11 @@ class Section(BytesModel):
                 if index is None or len(dest[section.ident]) >= index:
                     return dest
         return dest
+
+    def _print_data(self, file, p):
+        if self.ident == SECTION_LAYER:
+            p(f"Layer name: {self.layer_name}")
+            p(f"Layer object count: {self.num_objects}")
 
 
 class DstBytes(object):

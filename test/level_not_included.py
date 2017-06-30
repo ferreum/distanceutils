@@ -21,15 +21,18 @@ class BaseTest(unittest.TestCase):
         self.files = []
 
     def tearDown(self):
+        self.close_files()
+
+    def close_files(self):
         for f in self.files:
             f.close()
+        self.files = []
 
     def getLevel(self, filename):
         f = open(filename, 'rb')
         self.files.append(f)
         self.level = level = Level(DstBytes(f))
-        objs = level.iter_objects()
-        self.results = results = list(objs)
+        self.results = results = list(level.iter_objects())
         self.objects = objects = [o for o, _, _ in results]
         return level, objects
 
@@ -74,6 +77,25 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "Building hop")
         self.assertTimes(30302, 50504, 75756, 101009)
         self.assertEqual(len(objects), 69)
+
+    def test_city_of_gold(self):
+        level, objects = self.getLevel("in/level-not-included/v1/roller coaster ride.bytes")
+        self.assertEqual(level.level_name, "A City Of Gold")
+        self.assertTimes(73501, 122502, 183753, 245005)
+        self.assertEqual(len(objects), 128)
+
+    def test_many_success(self):
+        for name in ("attempt", "car crusher", "city", "construction zone", "contraband delivery", "entanglement",
+                     "escape the core", "flashback", "giant butts", "hardcore black", "hexopolis", "hextreme",
+                     "optimal routing", "qwe", "racingcars", "returnofandy", "saw ride", "scratchdisk", "solid",
+                     "spectagular", "storm belt", "the virus begins", "traps", "upandup", "vertical king"):
+            with self.subTest(name=name):
+                level, objects = self.getLevel(f"in/level-not-included/v1/{name}.bytes")
+                for obj, sane, exc in self.results:
+                    self.assertIsNone(exc)
+                    self.assertIsNone(obj.exception)
+                    self.assertTrue(sane)
+            self.close_files()
 
 
 class Version3Test(BaseTest):
@@ -134,6 +156,12 @@ class Version7Test(BaseTest):
         self.assertEqual(level.level_name, "Neon Fury")
         self.assertTimes(63000, 80000, 150000, 180000)
         self.assertEqual(len(objects), 293)
+
+    def test_salvation(self):
+        level, objects = self.getLevel("in/level-not-included/v7/salvation.bytes")
+        self.assertEqual(level.level_name, "Salvation")
+        self.assertTimes(120000, 180000, 300000, 488700)
+        self.assertEqual(len(objects), 565)
 
 
 class Version8Test(BaseTest):
