@@ -18,6 +18,7 @@ MODE_SPRINT = 1
 MODE_STUNT = 2
 MODE_TAG = 5
 MODE_CHALLENGE = 8
+MODE_SPEED_AND_STYLE = 10
 MODE_MAIN_MENU = 13
 
 MODE_NAMES = {
@@ -25,6 +26,7 @@ MODE_NAMES = {
     MODE_STUNT: "Stunt",
     MODE_TAG: "Reverse Tag",
     MODE_CHALLENGE: "Challenge",
+    MODE_SPEED_AND_STYLE: "Speed and Style",
     MODE_MAIN_MENU: "Main Menu",
 }
 
