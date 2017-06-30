@@ -14,12 +14,28 @@ from .bytes import (BytesModel, Section, S_COLOR_RGBA,
 from .common import format_bytes, format_duration
 
 
+MODE_SPRINT = 1
+MODE_STUNT = 2
+MODE_TAG = 5
+MODE_CHALLENGE = 8
+MODE_MAIN_MENU = 13
+
+MODE_NAMES = {
+    MODE_SPRINT: "Sprint",
+    MODE_STUNT: "Stunt",
+    MODE_TAG: "Reverse Tag",
+    MODE_CHALLENGE: "Challenge",
+    MODE_MAIN_MENU: "Main Menu",
+}
+
+
 class LevelObject(BytesModel):
 
     type = None
     version = None
     name = None
     skybox_name = None
+    modes = ()
     medal_times = ()
     medal_scores = ()
 
@@ -54,14 +70,18 @@ class LevelObject(BytesModel):
                 self.add_unknown(57)
             elif version == 4:
                 self.add_unknown(183)
-            elif version == 5 or version == 6:
+            elif version == 5:
                 self.add_unknown(214) # confirmed only for v5
-            elif version == 7:
-                self.add_unknown(218)
-            elif version == 8:
-                self.add_unknown(223)
-            elif version >= 9:
-                self.add_unknown(213) # confirmed only for v9
+            elif 6 <= version:
+                # confirmed only for v6..v9
+                self.modes = modes = {}
+                self.add_unknown(4)
+                num_modes = dbytes.read_fixed_number(4)
+                for i in range(num_modes):
+                    mode = dbytes.read_fixed_number(4)
+                    self.modes[mode] = dbytes.read_byte()
+                self.music_id = dbytes.read_fixed_number(4)
+                self.add_unknown(176)
             self.medal_times = times = []
             self.medal_scores = scores = []
             for i in range(4):
@@ -83,6 +103,11 @@ class LevelObject(BytesModel):
         if self.medal_scores:
             medal_str = ', '.join(str(s) for s in self.medal_scores)
             p(f"Medal scores: {medal_str}")
+        if self.modes:
+            modes_str = ', '.join(MODE_NAMES.get(mode, f"Unknown({mode})")
+                                  for mode, value in sorted(self.modes.items())
+                                  if value)
+            p(f"Level modes: {modes_str}")
 
 
 class Level(BytesModel):
