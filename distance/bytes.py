@@ -5,14 +5,16 @@
 
 
 import struct
+from struct import Struct
 import traceback
 import sys
 
 from .common import format_unknown
 
 
-S_COLOR_RGBA = struct.Struct("4f")
+S_COLOR_RGBA = Struct("4f")
 
+S_FLOAT = Struct("f")
 
 SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666

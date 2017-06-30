@@ -5,10 +5,8 @@
 
 
 from operator import attrgetter
-import sys
 
-from .bytes import (BytesModel, SECTION_TYPE, SECTION_UNK_2,
-                    print_exception)
+from .bytes import (BytesModel, SECTION_UNK_2, print_exception)
 from .common import format_bytes, format_duration
 
 

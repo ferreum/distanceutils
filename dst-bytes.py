@@ -6,12 +6,10 @@
 
 import sys
 import argparse
-from operator import attrgetter
 import traceback
 
-from distance.common import format_bytes, format_duration
 from distance.bytes import DstBytes
-from distance.detect import Leaderboard, LevelInfos, Replay, parse_maybe_partial
+from distance.detect import parse_maybe_partial
 
 
 def main():

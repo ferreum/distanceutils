@@ -5,8 +5,8 @@
 
 
 from .bytes import (BytesModel, S_COLOR_RGBA,
-                    SECTION_TYPE, SECTION_UNK_2, SECTION_UNK_1)
-from .common import format_bytes, format_duration, format_color
+                    SECTION_UNK_2, SECTION_UNK_1)
+from .common import format_duration, format_color
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "

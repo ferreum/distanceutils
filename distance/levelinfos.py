@@ -6,7 +6,7 @@
 
 import sys
 
-from .bytes import BytesModel, print_exception, SECTION_TYPE, SECTION_UNK_2
+from .bytes import BytesModel, print_exception, SECTION_UNK_2
 from .common import format_bytes
 
 

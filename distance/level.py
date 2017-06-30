@@ -7,11 +7,11 @@
 from struct import Struct
 import sys
 
-from .bytes import (BytesModel, Section, S_COLOR_RGBA,
+from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
                     SECTION_UNK_2, SECTION_UNK_3, SECTION_LEVEL_INFO,
                     print_exception)
-from .common import format_bytes, format_duration
+from .common import format_duration
 
 
 MODE_SPRINT = 1
@@ -48,6 +48,8 @@ DIFFICULTY_NAMES = {
     4: "Nightmare",
     5: "None",
 }
+
+S_ABILITIES = Struct("5b")
 
 
 class LevelObject(BytesModel):
@@ -89,7 +91,7 @@ class LevelObject(BytesModel):
             num_modes = dbytes.read_fixed_number(4)
             for i in range(num_modes):
                 mode = dbytes.read_fixed_number(4)
-                self.modes[mode] = dbytes.read_byte()
+                modes[mode] = dbytes.read_byte()
             self.music_id = dbytes.read_fixed_number(4)
             if version <= 3:
                 self.skybox_name = dbytes.read_string()
@@ -104,10 +106,10 @@ class LevelObject(BytesModel):
             self.medal_times = times = []
             self.medal_scores = scores = []
             for i in range(4):
-                times.append(dbytes.read_struct("f")[0])
+                times.append(dbytes.read_struct(S_FLOAT)[0])
                 scores.append(dbytes.read_fixed_number(4, signed=True))
             if version >= 1:
-                self.abilities = dbytes.read_struct("bbbbb")
+                self.abilities = dbytes.read_struct(S_ABILITIES)
             if version >= 2:
                 self.difficulty = dbytes.read_fixed_number(4)
 
