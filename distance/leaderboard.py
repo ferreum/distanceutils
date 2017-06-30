@@ -59,19 +59,20 @@ class Leaderboard(BytesModel):
     def read_entries(self):
         return Entry.read_all_maybe_partial(self.dbytes, version=self.version)
 
-    def _print_data(self, file, unknown, p):
+    def _print_data(self, file, p):
         p(f"Version: {self.version}")
         entries, sane, exception = self.read_entries()
-        nones = [e for e in entries if e.time is None]
-        entries = [e for e in entries if e.time is not None]
-        entries.sort(key=attrgetter('time'))
-        entries.extend(nones)
+        if 'nosort' not in p.flags:
+            nones = [e for e in entries if e.time is None]
+            entries = [e for e in entries if e.time is not None]
+            entries.sort(key=attrgetter('time'))
+            entries.extend(nones)
         unk_str = ""
         for i, entry in enumerate(entries, 1):
             rep_str = ""
             if entry.replay is not None and entry.replay != NO_REPLAY:
                 rep_str = f" Replay: {entry.replay:X}"
-            if unknown:
+            if 'unknown' in p.flags:
                 unk_str = f"Unknown: {format_bytes(entry.unknown)} "
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:

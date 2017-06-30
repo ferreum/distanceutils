@@ -71,11 +71,11 @@ class LevelInfos(BytesModel):
     def iter_levels(self):
         return Level.iter_maybe_partial(self.dbytes)
 
-    def _print_data(self, file, unknown, p):
+    def _print_data(self, file, p):
         unk_str = ""
         try:
             for level, sane, exc in self.iter_levels():
-                if unknown:
+                if 'unknown' in p.flags:
                     unk_str = f"Unknown: {format_bytes(level.unknown)} "
                 if level.rating is None:
                     rate_str = " Rating: None"

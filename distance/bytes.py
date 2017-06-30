@@ -123,10 +123,11 @@ class BytesModel(object):
                 return len(remain) == current_pos
         return False
 
-    def print_data(self, file, unknown=False):
+    def print_data(self, file, flags=()):
         def p(*args, **kwargs):
             print(*args, file=file, **kwargs)
-        if unknown:
+        p.flags = flags
+        if 'unknown' in flags:
             if self.sections is not None:
                 for s_list in self.sections.values():
                     for i, s in enumerate(s_list):
@@ -134,12 +135,12 @@ class BytesModel(object):
                             p(f"Section {s.ident}-{i} unknown: {format_unknown(s.unknown)}")
             if self.unknown:
                 p(f"Unknown: {format_unknown(self.unknown)}")
-        self._print_data(file, unknown, p)
+        self._print_data(file, p)
         if self.exception:
             p(f"Error when parsing:")
             print_exception(self.exception, file, p)
 
-    def _print_data(self, file, unknown, p):
+    def _print_data(self, file, p):
         pass
 
     def read_sections_to(self, to, index=None, **kw):
@@ -191,7 +192,6 @@ class Section(BytesModel):
     def parse(self, dbytes, shared_info=None):
         self.ident = ident = dbytes.read_fixed_number(4)
         self.recoverable = True
-        self.unknown = []
         if ident == SECTION_TYPE:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos

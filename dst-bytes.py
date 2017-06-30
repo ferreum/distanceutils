@@ -17,9 +17,14 @@ from distance.detect import Leaderboard, LevelInfos, Replay, parse_maybe_partial
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("FILE", nargs='+', help=".bytes filename")
-    parser.add_argument("--unknown", action='store_true',
-                        help="Print unknown data too.")
+    parser.add_argument("--unknown", action='append_const', const='unknown', dest='flags',
+                        help="Print unknown data too (same as -f unknown).")
+    parser.add_argument("-f", "--flags", action='append',
+                        help="Add flags.")
+    parser.set_defaults(flags=[])
     args = parser.parse_args()
+
+    flags = [flag.strip() for arg in args.flags for flag in arg.split(',')]
 
     have_error = False
     for fname in args.FILE:
@@ -31,7 +36,7 @@ def main():
                 dbytes = DstBytes(f)
                 obj, _, exception = parse_maybe_partial(dbytes)
                 print(f"Type: {type(obj).__name__}")
-                obj.print_data(sys.stdout, unknown=args.unknown)
+                obj.print_data(sys.stdout, flags=flags)
             except KeyboardInterrupt:
                 raise
             except:

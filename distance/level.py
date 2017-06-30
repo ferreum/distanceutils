@@ -55,8 +55,9 @@ class LevelObject(BytesModel):
                 times.append(dbytes.read_struct("f")[0])
                 scores.append(dbytes.read_fixed_number(4, signed=True))
 
-    def _print_data(self, file, unknown, p):
-        p(f"Object type: {self.type!r}")
+    def _print_data(self, file, p):
+        if 'noobjlist' not in p.flags:
+            p(f"Object type: {self.type!r}")
         if self.version is not None:
             p(f"Object version: {self.version!r}")
         if self.skybox_name is not None:
@@ -81,12 +82,13 @@ class Level(BytesModel):
         return LevelObject.iter_maybe_partial(
             self.dbytes, shared_info={})
 
-    def _print_data(self, file, unknown, p):
+    def _print_data(self, file, p):
         p(f"Level name: {self.level_name!r}")
         try:
             for i, (obj, sane, exc) in enumerate(self.iter_objects()):
-                p(f"Level object: {i}")
-                obj.print_data(file, unknown=unknown)
+                if 'noobjlist' not in p.flags:
+                    p(f"Level object: {i}")
+                obj.print_data(file, flags=p.flags)
         except KeyboardInterrupt:
             raise
         except Exception as e:
