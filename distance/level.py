@@ -16,6 +16,7 @@ from .common import format_bytes, format_duration
 
 MODE_SPRINT = 1
 MODE_STUNT = 2
+MODE_FREE_ROAM = 4
 MODE_TAG = 5
 MODE_CHALLENGE = 8
 MODE_SPEED_AND_STYLE = 10
@@ -24,6 +25,7 @@ MODE_MAIN_MENU = 13
 MODE_NAMES = {
     MODE_SPRINT: "Sprint",
     MODE_STUNT: "Stunt",
+    MODE_FREE_ROAM: "Free Roam",
     MODE_TAG: "Reverse Tag",
     MODE_CHALLENGE: "Challenge",
     MODE_SPEED_AND_STYLE: "Speed and Style",
