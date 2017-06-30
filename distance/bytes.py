@@ -192,6 +192,11 @@ class Section(BytesModel):
 
     layer_name = None
     num_objects = None
+    layer_flags = ()
+
+    layer_flag_names = ({0: "Inactive", 1: "Active"},
+                        {0: "Unfrozen", 1: "Frozen"},
+                        {0: "Invisible", 1: "Visible"})
 
     def parse(self, dbytes, shared_info=None):
         self.ident = ident = dbytes.read_fixed_number(4)
@@ -221,12 +226,11 @@ class Section(BytesModel):
                 return
             tmp = dbytes.read_fixed_number(4)
             dbytes.pos = pos
-            if tmp == 0:
-                self.add_unknown(7)
-            elif tmp == 1:
-                self.add_unknown(8)
-            else:
-                self.add_unknown(value=b'')
+            if tmp == 0 or tmp == 1:
+                self.add_unknown(4)
+                self.layer_flags = dbytes.read_struct("bbb")
+                if tmp == 1:
+                    self.add_unknown(1)
         elif ident == SECTION_LEVEL:
             self.add_unknown(8)
             self.level_name = dbytes.read_string()
@@ -266,6 +270,11 @@ class Section(BytesModel):
         if self.ident == SECTION_LAYER:
             p(f"Layer name: {self.layer_name}")
             p(f"Layer object count: {self.num_objects}")
+            if self.layer_flags:
+                flag_str = ', '.join(names.get(f, f"Unknown({f})") for f, names
+                                     in zip(self.layer_flags,
+                                            self.layer_flag_names))
+                p(f"Layer flags: {flag_str}")
 
 
 class DstBytes(object):
