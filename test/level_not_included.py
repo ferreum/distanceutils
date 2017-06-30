@@ -28,12 +28,15 @@ class BaseTest(unittest.TestCase):
             f.close()
         self.files = []
 
-    def getLevel(self, filename):
+    def getLevel(self, filename, with_layers=False):
         f = open(filename, 'rb')
         self.files.append(f)
         self.level = level = Level(DstBytes(f))
-        self.results = results = list(level.iter_objects())
+        self.results = results = list(level.iter_objects(with_layers=with_layers))
         self.objects = objects = [o for o, _, _ in results]
+        for _, sane, exc in results:
+            if exc:
+                raise exc[1]
         return level, objects
 
     def assertTimes(self, *times):
@@ -83,6 +86,13 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "A City Of Gold")
         self.assertTimes(73501, 122502, 183753, 245005)
         self.assertEqual(len(objects), 128)
+
+    def test_dark_generator(self):
+        filename = "in/level-not-included/v1/dark generator.bytes"
+        level, objects = self.getLevel("in/level-not-included/v1/dark generator.bytes", with_layers=True)
+        self.assertEqual(level.level_name, "Dark Generator")
+        self.assertTimes(-1, -1, -1, -1)
+        self.assertEqual(len(objects), 79)
 
     def test_many_success(self):
         for name in ("attempt", "car crusher", "city", "construction zone", "contraband delivery", "entanglement",

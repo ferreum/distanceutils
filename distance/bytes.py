@@ -209,12 +209,18 @@ class Section(BytesModel):
             self.version = dbytes.read_byte()
             self.add_unknown(3)
         elif ident == SECTION_LAYER:
-            self.size = dbytes.read_fixed_number(8)
-            self.data_start = dbytes.pos
+            self.size = size = dbytes.read_fixed_number(8)
+            self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
             self.num_objects = dbytes.read_fixed_number(4)
+
+            pos = dbytes.pos
+            if pos + 4 >= data_start + size:
+                # Happens with empty old layer sections, this prevents error
+                # with empty layer at end of file.
+                return
             tmp = dbytes.read_fixed_number(4)
-            dbytes.pos -= 4
+            dbytes.pos = pos
             if tmp == 0:
                 self.add_unknown(7)
             elif tmp == 1:
