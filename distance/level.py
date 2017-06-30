@@ -32,6 +32,23 @@ MODE_NAMES = {
     MODE_MAIN_MENU: "Main Menu",
 }
 
+ABILITY_NAMES = (
+    {0: "", 1: "Infinite Cooldown"},
+    {0: "", 1: "Disable Flying"},
+    {0: "", 1: "Disable Jumping"},
+    {0: "", 1: "Disable Boosting"},
+    {0: "", 1: "Disable Jet Rotation"},
+)
+
+DIFFICULTY_NAMES = {
+    0: "Casual",
+    1: "Normal",
+    2: "Advanced",
+    3: "Expert",
+    4: "Nightmare",
+    5: "None",
+}
+
 
 class LevelObject(BytesModel):
 
@@ -42,6 +59,8 @@ class LevelObject(BytesModel):
     modes = ()
     medal_times = ()
     medal_scores = ()
+    abilities = ()
+    difficulty = None
 
     def parse(self, dbytes, shared_info=None):
         next_section = dbytes.read_fixed_number(4)
@@ -65,32 +84,32 @@ class LevelObject(BytesModel):
             shared_info['version'] = version
             self.add_unknown(12)
             self.name = dbytes.read_string()
+            self.add_unknown(4)
+            self.modes = modes = {}
+            num_modes = dbytes.read_fixed_number(4)
+            for i in range(num_modes):
+                mode = dbytes.read_fixed_number(4)
+                self.modes[mode] = dbytes.read_byte()
+            self.music_id = dbytes.read_fixed_number(4)
             if version <= 3:
-                if 0 <= version <= 2:
-                    self.add_unknown(47) # confirmed only for v0 & v1
-                elif version == 3:
-                    self.add_unknown(42)
                 self.skybox_name = dbytes.read_string()
                 self.add_unknown(57)
             elif version == 4:
-                self.add_unknown(183)
+                self.add_unknown(141)
             elif version == 5:
-                self.add_unknown(214) # confirmed only for v5
+                self.add_unknown(172) # confirmed only for v5
             elif 6 <= version:
                 # confirmed only for v6..v9
-                self.modes = modes = {}
-                self.add_unknown(4)
-                num_modes = dbytes.read_fixed_number(4)
-                for i in range(num_modes):
-                    mode = dbytes.read_fixed_number(4)
-                    self.modes[mode] = dbytes.read_byte()
-                self.music_id = dbytes.read_fixed_number(4)
                 self.add_unknown(176)
             self.medal_times = times = []
             self.medal_scores = scores = []
             for i in range(4):
                 times.append(dbytes.read_struct("f")[0])
                 scores.append(dbytes.read_fixed_number(4, signed=True))
+            if version >= 1:
+                self.abilities = dbytes.read_struct("bbbbb")
+            if version >= 2:
+                self.difficulty = dbytes.read_fixed_number(4)
 
     def _print_data(self, file, p):
         if 'noobjlist' not in p.flags:
@@ -112,6 +131,17 @@ class LevelObject(BytesModel):
                                   for mode, value in sorted(self.modes.items())
                                   if value)
             p(f"Level modes: {modes_str}")
+        if self.abilities:
+            ab_str = ', '.join(names.get(value, f"Unknown({value})")
+                               for value, names in zip(self.abilities, ABILITY_NAMES)
+                               if names.get(value, True))
+            if not ab_str:
+                ab_str = "All"
+            p(f"Abilities: {ab_str}")
+        if self.difficulty is not None:
+            diff_str = (DIFFICULTY_NAMES.get(self.difficulty, None)
+                        or f"Unknown({self.difficulty})")
+            p(f"Difficulty: {diff_str}")
 
 
 class Level(BytesModel):
