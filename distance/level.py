@@ -148,9 +148,9 @@ class Level(BytesModel):
                                     with_objects='noobjlist' not in p.flags)
             for obj, sane, exc in gen:
                 if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
+                    p(f"Layer: {num_layers}")
                     num_layers += 1
                     layer_objects += obj.num_objects
-                    p(f"Layer: {num_layers}")
                 else:
                     num_objects += 1
                     if 'noobjlist' not in p.flags:
