@@ -29,8 +29,8 @@ class UnexpectedEOFError(Exception):
     pass
 
 
-def print_exception(exc, file, p):
-    traceback.print_exception(type(exc), exc, exc.__traceback__, file=file)
+def print_exception(exc, p):
+    traceback.print_exception(type(exc), exc, exc.__traceback__, file=p.file)
     try:
         p(f"Exception start: 0x{exc.start_pos:08x}")
         p(f"Exception pos:   0x{exc.exc_pos:08x}")
@@ -124,11 +124,19 @@ class BytesModel(object):
                 return len(remain) == current_pos
         return False
 
-    def print_data(self, file, flags=(), p=None):
+    def print_data(self, file=None, flags=(), p=None):
         if p is None:
             def p(*args, **kwargs):
-                print(*args, file=file, **kwargs)
-        p.flags = flags
+                print(*args, file=p.file, **kwargs)
+            def print_data_of(obj):
+                obj.print_data(p=p)
+            p.print_data_of = print_data_of
+            p.file = file
+            p.flags = flags
+        else:
+            if file or flags:
+                raise TypeError("p must be the single argument")
+
         if 'unknown' in flags:
             if self.sections is not None:
                 for s_list in self.sections.values():
@@ -137,16 +145,16 @@ class BytesModel(object):
                             p(f"Section {s.ident}-{i} unknown: {format_unknown(s.unknown)}")
             if self.unknown:
                 p(f"Unknown: {format_unknown(self.unknown)}")
-        self._print_data(file, p)
+        self._print_data(p)
         if self.exception:
             p(f"Error when parsing:")
-            print_exception(self.exception, file, p)
+            print_exception(self.exception, p)
         if 'offset' in flags:
             start = self.start_pos
             end = self.end_pos
             p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         pass
 
     def read_sections_to(self, to, index=None, **kw):
@@ -277,7 +285,7 @@ class Section(BytesModel):
                     return dest
         return dest
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         if self.ident == SECTION_LAYER:
             p(f"Layer name: {self.layer_name}")
             p(f"Layer object count: {self.num_objects}")

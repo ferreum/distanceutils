@@ -57,7 +57,7 @@ class Leaderboard(BytesModel):
     def read_entries(self):
         return Entry.read_all_maybe_partial(self.dbytes, version=self.version)
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         p(f"Version: {self.version}")
         entries, sane, exception = self.read_entries()
         if 'nosort' not in p.flags:
@@ -74,9 +74,9 @@ class Leaderboard(BytesModel):
                 unk_str = f"Unknown: {format_bytes(entry.unknown)} "
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:
-                print_exception(entry.exception, file, p)
+                print_exception(entry.exception, p)
         if exception:
-            print_exception(exception, file, p)
+            print_exception(exception, p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

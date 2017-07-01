@@ -69,7 +69,7 @@ class LevelInfos(BytesModel):
     def iter_levels(self):
         return Level.iter_maybe_partial(self.dbytes)
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         unk_str = ""
         try:
             for level, sane, exc in self.iter_levels():
@@ -87,11 +87,11 @@ class LevelInfos(BytesModel):
                     rate_str = " Rating: Unknown ({level.rating})"
                 p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
                 if exc:
-                    print_exception(exc, file, p)
+                    print_exception(exc, p)
                 if not sane:
                     break
         except Exception as e:
-            print_exception(e, file, p)
+            print_exception(e, p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

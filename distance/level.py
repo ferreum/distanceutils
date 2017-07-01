@@ -110,20 +110,20 @@ def need_counters(p):
     del p.counters
 
 
-def _print_objects(file, p, gen):
+def _print_objects(p, gen):
     counters = p.counters
     for obj, sane, exc in gen:
         if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
             p(f"Layer: {counters.num_layers}")
             counters.num_layers += 1
             counters.layer_objects += obj.num_objects
-            obj.print_data(file, flags=p.flags, p=p)
+            p.print_data_of(obj)
         else:
             counters.num_objects += 1
             if 'noobjlist' not in p.flags:
                 p(f"Level object: {counters.num_objects}")
-            obj.print_data(file, flags=p.flags, p=p)
-            if 'groups' in p.flags and obj.has_children:
+            p.print_data_of(obj)
+            if obj.has_children and 'groups' in p.flags:
                 child_gen = obj.iter_children()
                 counters.grouped_objects += obj.num_children
 
@@ -137,7 +137,7 @@ class LevelObject(BytesModel):
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         if 'noobjlist' not in p.flags:
             p(f"Object type: {self.type!r}")
 
@@ -210,8 +210,8 @@ class LevelSettings(LevelObject):
         if version >= 2:
             self.difficulty = dbytes.read_fixed_number(4)
 
-    def _print_data(self, file, p):
-        LevelObject._print_data(self, file, p)
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
         if self.version is not None:
             p(f"Object version: {self.version!r}")
         if self.name is not None:
@@ -275,13 +275,13 @@ class Group(LevelObject):
                     break
         dbytes.pos = self.end_pos
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         with need_counters(p) as counters:
-            LevelObject._print_data(self, file, p)
+            LevelObject._print_data(self, p)
             p(f"Transform: {self.transform}")
             p(f"Grouped objects: {self.num_children}")
             if 'groups' in p.flags:
-                _print_objects(file, p, self.iter_children())
+                _print_objects(p, self.iter_children())
             if counters:
                 counters.print_data(p)
 
@@ -313,17 +313,17 @@ class Level(BytesModel):
                         break
             dbytes.pos = layer_end
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
         try:
             with need_counters(p) as counters:
                 gen = self.iter_objects(with_layers='nolayers' not in p.flags,
                                         with_objects='noobjlist' not in p.flags)
-                _print_objects(file, p, gen)
+                _print_objects(p, gen)
                 if counters:
                     counters.print_data(p)
         except Exception as e:
-            print_exception(e, file, p)
+            print_exception(e, p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

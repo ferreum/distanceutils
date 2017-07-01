@@ -58,7 +58,7 @@ class Replay(BytesModel):
             dbytes.pos += section_size - 8
             self.finish_time = dbytes.read_fixed_number(4)
 
-    def _print_data(self, file, p):
+    def _print_data(self, p):
         p(f"Version: {self.version}")
         p(f"Player name: {self.player_name!r}")
         p(f"Player name: {self.player_name_2!r}")
