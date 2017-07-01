@@ -76,11 +76,12 @@ class BytesModel(object):
     def __init__(self, dbytes, sections=None, **kw):
         if sections is not None:
             self.sections = sections
-        start_pos = dbytes.pos
+        self.start_pos = start_pos = dbytes.pos
         self.dbytes = dbytes
         try:
             self.parse(dbytes, **kw)
             self.apply_end_pos(dbytes)
+            self.end_pos = dbytes.pos
         except Exception as e:
             orig_e = e
             exc_pos = dbytes.pos
@@ -99,6 +100,7 @@ class BytesModel(object):
                 except AttributeError:
                     pass
             e.sane_final_pos = self.apply_end_pos(dbytes, or_to_eof=True)
+            self.end_pos = exc_pos
             raise e from orig_e
 
     def parse(self, dbytes):
@@ -134,6 +136,10 @@ class BytesModel(object):
         if self.exception:
             p(f"Error when parsing:")
             print_exception(self.exception, file, p)
+        if 'offset' in flags:
+            start = self.start_pos
+            end = self.end_pos
+            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
 
     def _print_data(self, file, p):
         pass
