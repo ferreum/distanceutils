@@ -124,9 +124,10 @@ class BytesModel(object):
                 return len(remain) == current_pos
         return False
 
-    def print_data(self, file, flags=()):
-        def p(*args, **kwargs):
-            print(*args, file=file, **kwargs)
+    def print_data(self, file, flags=(), p=None):
+        if p is None:
+            def p(*args, **kwargs):
+                print(*args, file=file, **kwargs)
         p.flags = flags
         if 'unknown' in flags:
             if self.sections is not None:

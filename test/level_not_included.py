@@ -15,6 +15,13 @@ from distance.level import Level
 from distance.bytes import DstBytes
 
 
+def results_with_groups(gen):
+    for obj, sane, exc in gen:
+        yield obj, sane, exc
+        if obj.has_children:
+            yield from results_with_groups(obj.iter_children())
+
+
 class BaseTest(unittest.TestCase):
 
     def setUp(self):
@@ -28,11 +35,14 @@ class BaseTest(unittest.TestCase):
             f.close()
         self.files = []
 
-    def getLevel(self, filename, with_layers=False):
+    def getLevel(self, filename, with_layers=False, with_groups=False):
         f = open(filename, 'rb')
         self.files.append(f)
         self.level = level = Level(DstBytes(f))
-        self.results = results = list(level.iter_objects(with_layers=with_layers))
+        gen = level.iter_objects(with_layers=with_layers)
+        if with_groups:
+            gen = results_with_groups(gen)
+        self.results = results = list(gen)
         self.objects = objects = [o for o, _, _ in results]
         for _, sane, exc in results:
             if exc:
@@ -120,6 +130,12 @@ class Version3Test(BaseTest):
         self.assertEqual(level.level_name, "[STE] Greenhouse")
         self.assertTimes(0, 0, 0, 0)
         self.assertEqual(len(objects), 359)
+
+    def test_fullpipe_with_groups(self):
+        level, objects = self.getLevel("in/level-not-included/v3/fullpipe.bytes", with_groups=True)
+        self.assertEqual(level.level_name, "FullPipeTag")
+        self.assertTimes(0, 0, 0, 0)
+        self.assertEqual(len(objects), 5874)
 
 
 class Version4Test(BaseTest):

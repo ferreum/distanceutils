@@ -24,6 +24,9 @@ def main():
 
     flags = [flag.strip() for arg in args.flags for flag in arg.split(',')]
 
+    if not 'nogroups' in flags:
+        flags.append('groups')
+
     have_error = False
     for fname in args.FILE:
         with open(fname, 'rb') as f:

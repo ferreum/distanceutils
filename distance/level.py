@@ -6,6 +6,7 @@
 
 from struct import Struct
 import math
+from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
@@ -76,11 +77,65 @@ def parse_transform(dbytes):
     return pos, rot, scale
 
 
+class Counters(object):
+
+    num_objects = 0
+    num_layers = 0
+    layer_objects = 0
+    grouped_objects = 0
+
+    def print_data(self, p):
+        if 'nolayers' not in p.flags:
+            p(f"Total layers: {self.num_layers}")
+            p(f"Total objects in layers: {self.layer_objects}")
+        if self.grouped_objects:
+            p(f"Total objects in groups: {self.grouped_objects}")
+        if 'noobjlist' not in p.flags:
+            if self.num_objects != self.layer_objects:
+                p(f"Total objects: {self.num_objects}")
+
+
+@contextmanager
+def need_counters(p):
+    try:
+        p.counters
+    except AttributeError:
+        pass
+    else:
+        yield None
+        return
+    c = Counters()
+    p.counters = c
+    yield c
+    del p.counters
+
+
+def _print_objects(file, p, gen):
+    counters = p.counters
+    for obj, sane, exc in gen:
+        if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
+            p(f"Layer: {counters.num_layers}")
+            counters.num_layers += 1
+            counters.layer_objects += obj.num_objects
+            obj.print_data(file, flags=p.flags, p=p)
+        else:
+            counters.num_objects += 1
+            if 'noobjlist' not in p.flags:
+                p(f"Level object: {counters.num_objects}")
+            obj.print_data(file, flags=p.flags, p=p)
+            if 'groups' in p.flags and obj.has_children:
+                child_gen = obj.iter_children()
+                counters.grouped_objects += obj.num_children
+
+
 class LevelObject(BytesModel):
 
     has_children = False
 
     def parse(self, dbytes, shared_info=None):
+        if shared_info is None:
+            shared_info = {}
+        self.shared_info = shared_info
         ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
@@ -209,13 +264,13 @@ class Group(LevelObject):
         self.children_end = s5.data_start + s5.size
         self.num_children = s5.num_objects
 
-    def iter_children(self, shared_info=None):
+    def iter_children(self):
         dbytes = self.dbytes
         num = self.num_children
         if num is not None:
             dbytes.pos = self.children_start
             gen = PROBER.iter_maybe_partial(dbytes, max_pos=self.children_end,
-                                            shared_info=shared_info)
+                                            shared_info=self.shared_info)
             for obj, sane, exc in gen:
                 yield obj, sane, exc
                 if not sane:
@@ -226,80 +281,53 @@ class Group(LevelObject):
         dbytes.pos = self.end_pos
 
     def _print_data(self, file, p):
-        LevelObject._print_data(self, file, p)
-        p(f"Transform: {self.transform}")
-        p(f"Grouped objects: {self.num_children}")
-
-
-class Counters(object):
-
-    num_objects = 0
-    num_layers = 0
-    layer_objects = 0
-    grouped_objects = 0
+        with need_counters(p) as counters:
+            LevelObject._print_data(self, file, p)
+            p(f"Transform: {self.transform}")
+            p(f"Grouped objects: {self.num_children}")
+            if 'groups' in p.flags:
+                _print_objects(file, p, self.iter_children())
+            if counters:
+                counters.print_data(p)
 
 
 class Level(BytesModel):
 
     def parse(self, dbytes):
+        self.shared_info = {}
         ls = self.require_section(SECTION_LEVEL, 0)
         if not ls:
             raise IOError("No level section")
         self.level_name = ls.level_name
 
-    def iter_objects(self, with_layers=False, with_objects=True, shared_info=None):
-        if shared_info is None:
-            shared_info = {}
+    def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
-        settings, sane, exc = LevelSettings.maybe_partial(dbytes, shared_info=shared_info)
+        settings, sane, exc = LevelSettings.maybe_partial(dbytes, shared_info=self.shared_info)
         yield settings, sane, exc
         if not sane:
             return
-        for layer, sane, exc in Section.iter_maybe_partial(dbytes, shared_info=shared_info):
+        for layer, sane, exc in Section.iter_maybe_partial(dbytes, shared_info=self.shared_info):
             layer_end = layer.size + layer.data_start
             if with_layers:
                 yield layer, sane, exc
             if not sane:
                 return
             if with_objects:
-                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=shared_info):
+                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=self.shared_info):
                     yield obj, True, exc
                     if not sane:
                         break
             dbytes.pos = layer_end
 
-    def _print_objects(self, file, p, gen, counters, shared_info=None):
-        for obj, sane, exc in gen:
-            if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
-                p(f"Layer: {counters.num_layers}")
-                counters.num_layers += 1
-                counters.layer_objects += obj.num_objects
-                obj.print_data(file, flags=p.flags)
-            else:
-                counters.num_objects += 1
-                if 'noobjlist' not in p.flags:
-                    p(f"Level object: {counters.num_objects}")
-                obj.print_data(file, flags=p.flags)
-                if 'groups' in p.flags and obj.has_children:
-                    child_gen = obj.iter_children(shared_info=shared_info)
-                    counters.grouped_objects += obj.num_children
-                    self._print_objects(file, p, child_gen, counters)
-
     def _print_data(self, file, p):
         p(f"Level name: {self.level_name!r}")
         try:
-            counters = Counters()
-            gen = self.iter_objects(with_layers='nolayers' not in p.flags,
-                                    with_objects='noobjlist' not in p.flags,
-                                    shared_info={})
-            self._print_objects(file, p, gen, counters)
-            if 'nolayers' not in p.flags:
-                p(f"Total layers: {counters.num_layers}")
-                p(f"Total objects in layers: {counters.layer_objects}")
-                if counters.grouped_objects:
-                    p(f"Total objects in groups: {counters.grouped_objects}")
-                if counters.num_objects != counters.layer_objects:
-                    p(f"Total objects: {counters.num_objects}")
+            with need_counters(p) as counters:
+                gen = self.iter_objects(with_layers='nolayers' not in p.flags,
+                                        with_objects='noobjlist' not in p.flags)
+                _print_objects(file, p, gen)
+                if counters:
+                    counters.print_data(p)
         except Exception as e:
             print_exception(e, file, p)
 
