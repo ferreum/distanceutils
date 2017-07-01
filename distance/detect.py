@@ -19,6 +19,22 @@ class BytesProber(object):
     def add_func(self, func):
         self._funcs.append(func)
 
+    def func(self, func):
+
+        """Decorator for conveniently adding a function."""
+
+        self.add_func(func)
+        return func
+
+    def for_type(self, type):
+
+        """Decorator for conveniently adding a class for a type."""
+
+        def decorate(cls):
+            self.add_type(type, cls)
+            return cls
+        return decorate
+
     def _get_from_funcs(self, section):
         for func in self._funcs:
             cls = func(section)
@@ -42,13 +58,20 @@ class BytesProber(object):
             raise IOError(f"Unknown initial section: {section.ident}")
         return cls, sections
 
-    def parse(self, dbytes):
+    def parse(self, dbytes, **kw):
         cls, sections = self.detect_class(dbytes)
-        return cls(dbytes, sections=sections)
+        return cls(dbytes, sections=sections, **kw)
 
-    def parse_maybe_partial(self, dbytes):
+    def parse_maybe_partial(self, dbytes, **kw):
         cls, sections = self.detect_class(dbytes)
-        return cls.maybe_partial(dbytes, sections=sections)
+        return cls.maybe_partial(dbytes, sections=sections, **kw)
+
+    def iter_maybe_partial(self, dbytes, *args, max_pos=None, **kw):
+        try:
+            while max_pos is None or dbytes.pos < max_pos:
+                yield self.parse_maybe_partial(dbytes, *args, **kw)
+        except EOFError:
+            pass
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -12,6 +12,7 @@ from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_UNK_2, SECTION_UNK_3, SECTION_LEVEL_INFO,
                     print_exception)
 from .common import format_duration
+from .detect import BytesProber
 
 
 MODE_SPRINT = 1
@@ -51,8 +52,30 @@ DIFFICULTY_NAMES = {
 
 S_ABILITIES = Struct("5b")
 
+PROBER = BytesProber()
+
 
 class LevelObject(BytesModel):
+
+    def parse(self, dbytes, shared_info=None):
+        ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
+        self.report_end_pos(ts.data_start + ts.size)
+        self.type = ts.filetype
+
+    def _print_data(self, file, p):
+        if 'noobjlist' not in p.flags:
+            p(f"Object type: {self.type!r}")
+
+
+@PROBER.func
+def _fallback_object(section):
+    if section.ident == SECTION_TYPE:
+        return LevelObject
+    return None
+
+
+@PROBER.for_type('LevelSettings')
+class LevelSettings(LevelObject):
 
     type = None
     version = None
@@ -79,43 +102,42 @@ class LevelObject(BytesModel):
             return
         ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
         self.report_end_pos(ts.data_start + ts.size)
-        self.type = type = ts.filetype
+        self.type = ts.filetype
         self.require_section(SECTION_UNK_3)
-        if type == 'LevelSettings':
-            self.version = version = self.require_section(SECTION_UNK_2).version
-            shared_info['version'] = version
-            self.add_unknown(12)
-            self.name = dbytes.read_string()
-            self.add_unknown(4)
-            self.modes = modes = {}
-            num_modes = dbytes.read_fixed_number(4)
-            for i in range(num_modes):
-                mode = dbytes.read_fixed_number(4)
-                modes[mode] = dbytes.read_byte()
-            self.music_id = dbytes.read_fixed_number(4)
-            if version <= 3:
-                self.skybox_name = dbytes.read_string()
-                self.add_unknown(57)
-            elif version == 4:
-                self.add_unknown(141)
-            elif version == 5:
-                self.add_unknown(172) # confirmed only for v5
-            elif 6 <= version:
-                # confirmed only for v6..v9
-                self.add_unknown(176)
-            self.medal_times = times = []
-            self.medal_scores = scores = []
-            for i in range(4):
-                times.append(dbytes.read_struct(S_FLOAT)[0])
-                scores.append(dbytes.read_fixed_number(4, signed=True))
-            if version >= 1:
-                self.abilities = dbytes.read_struct(S_ABILITIES)
-            if version >= 2:
-                self.difficulty = dbytes.read_fixed_number(4)
+        self.version = version = self.require_section(SECTION_UNK_2).version
+        shared_info['version'] = version
+
+        self.add_unknown(12)
+        self.name = dbytes.read_string()
+        self.add_unknown(4)
+        self.modes = modes = {}
+        num_modes = dbytes.read_fixed_number(4)
+        for i in range(num_modes):
+            mode = dbytes.read_fixed_number(4)
+            modes[mode] = dbytes.read_byte()
+        self.music_id = dbytes.read_fixed_number(4)
+        if version <= 3:
+            self.skybox_name = dbytes.read_string()
+            self.add_unknown(57)
+        elif version == 4:
+            self.add_unknown(141)
+        elif version == 5:
+            self.add_unknown(172) # confirmed only for v5
+        elif 6 <= version:
+            # confirmed only for v6..v9
+            self.add_unknown(176)
+        self.medal_times = times = []
+        self.medal_scores = scores = []
+        for i in range(4):
+            times.append(dbytes.read_struct(S_FLOAT)[0])
+            scores.append(dbytes.read_fixed_number(4, signed=True))
+        if version >= 1:
+            self.abilities = dbytes.read_struct(S_ABILITIES)
+        if version >= 2:
+            self.difficulty = dbytes.read_fixed_number(4)
 
     def _print_data(self, file, p):
-        if 'noobjlist' not in p.flags:
-            p(f"Object type: {self.type!r}")
+        LevelObject._print_data(self, file, p)
         if self.version is not None:
             p(f"Object version: {self.version!r}")
         if self.name is not None:
@@ -157,7 +179,7 @@ class Level(BytesModel):
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
         info = {}
-        settings, sane, exc = LevelObject.maybe_partial(dbytes, shared_info=info)
+        settings, sane, exc = LevelSettings.maybe_partial(dbytes, shared_info=info)
         yield settings, sane, exc
         if not sane:
             return
@@ -168,7 +190,7 @@ class Level(BytesModel):
             if not sane:
                 return
             if with_objects:
-                for obj, sane, exc in LevelObject.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=info):
+                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=info):
                     yield obj, sane, exc
                     if not sane:
                         return
