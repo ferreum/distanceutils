@@ -55,7 +55,7 @@ S_ABILITIES = Struct("5b")
 PROBER = BytesProber()
 
 
-def parse_positioning(dbytes):
+def parse_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
     f = read_float()
@@ -196,15 +196,15 @@ class Group(LevelObject):
 
     children_start = None
     children_end = None
-    positioning = None
+    transform = None
     num_children = None
     has_children = True
 
     def parse(self, dbytes, shared_info=None):
         LevelObject.parse(self, dbytes, shared_info=shared_info)
         s3 = self.require_section(SECTION_UNK_3)
-        self.positioning = parse_positioning(dbytes)
-        s5 = Section(dbytes, shared_info=shared_info)
+        self.transform = parse_transform(dbytes)
+        s5 = Section(dbytes, shared_info=self.shared_info)
         self.children_start = dbytes.pos
         self.children_end = s5.data_start + s5.size
         self.num_children = s5.num_objects
@@ -227,7 +227,7 @@ class Group(LevelObject):
 
     def _print_data(self, file, p):
         LevelObject._print_data(self, file, p)
-        p(f"Positioning: {self.positioning}")
+        p(f"Transform: {self.transform}")
         p(f"Grouped objects: {self.num_children}")
 
 
