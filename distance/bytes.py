@@ -188,8 +188,8 @@ class Section(BytesModel):
     num_objects = None
     layer_flags = ()
 
-    layer_flag_names = ({0: "Inactive", 1: "Active"},
-                        {0: "Unfrozen", 1: "Frozen"},
+    layer_flag_names = ({0: "Frozen", 1: "Unfrozen"},
+                        {0: "Inactive", 1: "Active"},
                         {0: "Invisible", 1: "Visible"})
 
     def parse(self, dbytes, shared_info=None):
