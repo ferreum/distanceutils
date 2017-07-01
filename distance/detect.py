@@ -51,16 +51,16 @@ class BytesProber(object):
         sections = {}
         section = Section(dbytes).put_into(sections)
         if section.ident == SECTION_TYPE:
-            filetype = section.filetype
-            cls = self._types.get(filetype, None)
+            ty = section.type
+            cls = self._types.get(ty, None)
             if cls is None:
                 cls = self._get_from_funcs(section)
             if cls is None:
-                raise IOError(f"Unknown filetype: {filetype!r}")
+                raise IOError(f"Unknown object type: {ty!r}")
         else:
             cls = self._get_from_funcs(section)
         if cls is None:
-            raise IOError(f"Unknown initial section: {section.ident}")
+            raise IOError(f"Unknown object section: {section.ident}")
         return cls, sections
 
     def parse(self, dbytes, **kw):

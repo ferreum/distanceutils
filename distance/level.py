@@ -60,7 +60,7 @@ class LevelObject(BytesModel):
     def parse(self, dbytes, shared_info=None):
         ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
         self.report_end_pos(ts.data_start + ts.size)
-        self.type = ts.filetype
+        self.type = ts.type
 
     def _print_data(self, file, p):
         if 'noobjlist' not in p.flags:
@@ -102,7 +102,7 @@ class LevelSettings(LevelObject):
             return
         ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
         self.report_end_pos(ts.data_start + ts.size)
-        self.type = ts.filetype
+        self.type = ts.type
         self.require_section(SECTION_UNK_3)
         self.version = version = self.require_section(SECTION_UNK_2).version
         shared_info['version'] = version

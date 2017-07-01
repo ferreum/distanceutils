@@ -22,7 +22,7 @@ PROBER = BytesProber({
 @PROBER.func
 def _detect_other(section):
     if section.ident == SECTION_TYPE:
-        if section.filetype.startswith(FTYPE_REPLAY_PREFIX):
+        if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
     if section.ident == SECTION_LEVEL:
         return Level

@@ -166,11 +166,11 @@ class BytesModel(object):
         if not ts:
             raise IOError("Missing type information")
         if isinstance(expect, str):
-            if ts.filetype != expect:
-                raise IOError(f"Invalid bytes filetype: {ts.filetype}")
+            if ts.type != expect:
+                raise IOError(f"Invalid object type: {ts.type}")
         else:
-            if not expect(ts.filetype):
-                raise IOError(f"Invalid bytes filetype: {ts.filetype}")
+            if not expect(ts.type):
+                raise IOError(f"Invalid object type: {ts.type}")
         return ts
 
     def require_section(self, ident, index=0, **kw):
@@ -206,7 +206,7 @@ class Section(BytesModel):
         if ident == SECTION_TYPE:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
-            self.filetype = dbytes.read_string()
+            self.type = dbytes.read_string()
             self.add_unknown(9)
         elif ident == SECTION_UNK_3:
             self.add_unknown(20)
