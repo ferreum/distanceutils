@@ -132,11 +132,8 @@ class LevelObject(BytesModel):
 
     has_children = False
 
-    def parse(self, dbytes, shared_info=None):
-        if shared_info is None:
-            shared_info = {}
-        self.shared_info = shared_info
-        ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
+    def parse(self, dbytes):
+        ts = self.require_section(SECTION_TYPE)
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
 
@@ -165,7 +162,7 @@ class LevelSettings(LevelObject):
     abilities = ()
     difficulty = None
 
-    def parse(self, dbytes, shared_info=None):
+    def parse(self, dbytes):
         next_section = dbytes.read_fixed_number(4)
         dbytes.pos -= 4
         if next_section == SECTION_LEVEL_INFO:
@@ -178,12 +175,11 @@ class LevelSettings(LevelObject):
             self.add_unknown(143)
             self.name = dbytes.read_string()
             return
-        ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
+        ts = self.require_section(SECTION_TYPE)
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
         self.require_section(SECTION_UNK_3)
         self.version = version = self.require_section(SECTION_UNK_2).version
-        shared_info['version'] = version
 
         self.add_unknown(12)
         self.name = dbytes.read_string()
@@ -255,11 +251,11 @@ class Group(LevelObject):
     num_children = None
     has_children = True
 
-    def parse(self, dbytes, shared_info=None):
-        LevelObject.parse(self, dbytes, shared_info=shared_info)
+    def parse(self, dbytes):
+        LevelObject.parse(self, dbytes)
         s3 = self.require_section(SECTION_UNK_3)
         self.transform = parse_transform(dbytes)
-        s5 = Section(dbytes, shared_info=self.shared_info)
+        s5 = Section(dbytes)
         self.children_start = dbytes.pos
         self.children_end = s5.data_start + s5.size
         self.num_children = s5.num_objects
@@ -269,8 +265,7 @@ class Group(LevelObject):
         num = self.num_children
         if num is not None:
             dbytes.pos = self.children_start
-            gen = PROBER.iter_maybe_partial(dbytes, max_pos=self.children_end,
-                                            shared_info=self.shared_info)
+            gen = PROBER.iter_maybe_partial(dbytes, max_pos=self.children_end)
             for obj, sane, exc in gen:
                 yield obj, sane, exc
                 if not sane:
@@ -294,7 +289,6 @@ class Group(LevelObject):
 class Level(BytesModel):
 
     def parse(self, dbytes):
-        self.shared_info = {}
         ls = self.require_section(SECTION_LEVEL, 0)
         if not ls:
             raise IOError("No level section")
@@ -302,18 +296,18 @@ class Level(BytesModel):
 
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
-        settings, sane, exc = LevelSettings.maybe_partial(dbytes, shared_info=self.shared_info)
+        settings, sane, exc = LevelSettings.maybe_partial(dbytes)
         yield settings, sane, exc
         if not sane:
             return
-        for layer, sane, exc in Section.iter_maybe_partial(dbytes, shared_info=self.shared_info):
+        for layer, sane, exc in Section.iter_maybe_partial(dbytes):
             layer_end = layer.size + layer.data_start
             if with_layers:
                 yield layer, sane, exc
             if not sane:
                 return
             if with_objects:
-                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=self.shared_info):
+                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end):
                     yield obj, True, exc
                     if not sane:
                         break

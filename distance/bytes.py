@@ -203,7 +203,7 @@ class Section(BytesModel):
                         {0: "Inactive", 1: "Active"},
                         {0: "Invisible", 1: "Visible"})
 
-    def parse(self, dbytes, shared_info=None):
+    def parse(self, dbytes):
         self.ident = ident = dbytes.read_fixed_number(4)
         self.recoverable = True
         if ident == SECTION_TYPE:
