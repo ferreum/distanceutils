@@ -9,7 +9,7 @@ import argparse
 import traceback
 
 from distance.bytes import DstBytes
-from distance.detect import parse_maybe_partial
+from distance.knowntypes import parse_maybe_partial
 
 
 def main():

@@ -12,7 +12,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.bytes import DstBytes
-from distance.detect import parse
+from distance.knowntypes import parse
 
 
 @contextmanager
