@@ -5,7 +5,6 @@
 
 
 from struct import Struct
-import sys
 
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
@@ -217,10 +216,8 @@ class Level(BytesModel):
             if 'nolayers' not in p.flags:
                 p(f"Total layers: {num_layers}")
                 p(f"Total objects in layers: {layer_objects}")
-        except KeyboardInterrupt:
-            raise
         except Exception as e:
-            print_exception(sys.exc_info(), file, p)
+            print_exception(e, file, p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

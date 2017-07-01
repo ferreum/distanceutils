@@ -7,7 +7,6 @@
 import struct
 from struct import Struct
 import traceback
-import sys
 
 from .common import format_unknown
 
@@ -29,11 +28,10 @@ class UnexpectedEOFError(Exception):
     pass
 
 
-def print_exception(exc_info, file, p):
-    traceback.print_exception(*exc_info, file=file)
-    e = exc_info[1]
-    p(f"Exception start: 0x{e.start_pos:08x}")
-    p(f"Exception pos:   0x{e.exc_pos:08x}")
+def print_exception(exc, file, p):
+    traceback.print_exception(type(exc), exc, exc.__traceback__, file=file)
+    p(f"Exception start: 0x{exc.start_pos:08x}")
+    p(f"Exception pos:   0x{exc.exc_pos:08x}")
 
 
 class BytesModel(object):
@@ -48,11 +46,9 @@ class BytesModel(object):
     def maybe_partial(clazz, *args, **kw):
         try:
             return clazz(*args, **kw), True, None
-        except KeyboardInterrupt:
-            raise
         except Exception as e:
             try:
-                return e.partial_object, e.sane_final_pos, sys.exc_info()
+                return e.partial_object, e.sane_final_pos, e
             except AttributeError:
                 pass
             raise e
@@ -74,10 +70,8 @@ class BytesModel(object):
                 if not sane:
                     break
             return entries, sane, None
-        except KeyboardInterrupt:
-            raise
-        except:
-            return entries, False, sys.exc_info()
+        except Exception as e:
+            return entries, False, e
 
     def __init__(self, dbytes, sections=None, **kw):
         if sections is not None:
@@ -87,20 +81,18 @@ class BytesModel(object):
         try:
             self.parse(dbytes, **kw)
             self.apply_end_pos(dbytes)
-        except KeyboardInterrupt:
-            raise
         except Exception as e:
             orig_e = e
             exc_pos = dbytes.pos
             if exc_pos != start_pos and isinstance(e, EOFError):
-                e = UnexpectedEOFError()
+                e = UnexpectedEOFError().with_traceback(e.__traceback__)
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
             if self.recoverable:
                 e.partial_object = self
                 self.exception_info = (start_pos, exc_pos)
-                self.exception = type(e), e, sys.exc_info()[2]
+                self.exception = e
             else:
                 try:
                     del e.partial_object

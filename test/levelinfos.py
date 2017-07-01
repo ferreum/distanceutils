@@ -69,7 +69,7 @@ class Version0Test(unittest.TestCase):
             self.assertEqual(level.id, 822049253)
             self.assertIsNone(level.author)
             self.assertIsNone(level.authorid)
-            self.assertIs(exc[0], UnexpectedEOFError)
+            self.assertIsInstance(exc, UnexpectedEOFError)
             self.assertFalse(sane)
             self.assertIsNotNone(level.exception)
 

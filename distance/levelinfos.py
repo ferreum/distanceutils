@@ -4,8 +4,6 @@
 # Created:     2017-06-24
 
 
-import sys
-
 from .bytes import BytesModel, print_exception, SECTION_UNK_2
 from .common import format_bytes
 
@@ -92,10 +90,8 @@ class LevelInfos(BytesModel):
                     print_exception(exc, file, p)
                 if not sane:
                     break
-        except KeyboardInterrupt:
-            raise
         except Exception as e:
-            print_exception(sys.exc_info(), file, p)
+            print_exception(e, file, p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
