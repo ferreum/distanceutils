@@ -229,6 +229,7 @@ class Section(BytesModel):
             self.add_unknown(12)
         elif ident == SECTION_UNK_2:
             self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
             self.add_unknown(4)
             self.version = dbytes.read_byte()
             self.add_unknown(3)
@@ -310,6 +311,10 @@ class DstBytes(object):
         self.source.seek(newpos)
 
     def read_n(self, n, or_to_eof=False):
+        if n == 0:
+            return b''
+        if n < 0:
+            raise ValueError("n must be positive")
         result = self.source.read(n)
         if not or_to_eof and len(result) != n:
             raise EOFError

@@ -250,6 +250,7 @@ class Group(LevelObject):
     transform = None
     num_children = None
     has_children = True
+    group_name = None
 
     def parse(self, dbytes):
         LevelObject.parse(self, dbytes)
@@ -257,8 +258,15 @@ class Group(LevelObject):
         self.transform = parse_transform(dbytes)
         s5 = Section(dbytes)
         self.children_start = dbytes.pos
-        self.children_end = s5.data_start + s5.size
+        self.children_end = children_end = s5.data_start + s5.size
         self.num_children = s5.num_objects
+        dbytes.pos = children_end
+        s2 = Section(dbytes)
+        dbytes.pos = s2.size + s2.data_start
+        s2 = Section(dbytes)
+        if s2.size > 12:
+            self.add_unknown(s2.data_start + 12 - dbytes.pos)
+            self.group_name = dbytes.read_string()
 
     def iter_children(self):
         dbytes = self.dbytes
@@ -278,6 +286,8 @@ class Group(LevelObject):
     def _print_data(self, p):
         with need_counters(p) as counters:
             LevelObject._print_data(self, p)
+            if self.group_name is not None:
+                p(f"Custom name: {self.group_name!r}")
             p(f"Transform: {self.transform}")
             p(f"Grouped objects: {self.num_children}")
             if 'groups' in p.flags:
