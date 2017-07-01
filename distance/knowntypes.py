@@ -30,7 +30,7 @@ def _detect_other(section):
 
 detect_class = PROBER.detect_class
 parse = PROBER.parse
-parse_maybe_partial = PROBER.parse_maybe_partial
+maybe_partial = PROBER.maybe_partial
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

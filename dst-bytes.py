@@ -9,7 +9,7 @@ import argparse
 import traceback
 
 from distance.bytes import DstBytes
-from distance.knowntypes import parse_maybe_partial
+from distance.knowntypes import maybe_partial
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
                     print()
                     print(f.name)
                 dbytes = DstBytes(f)
-                obj, _, exception = parse_maybe_partial(dbytes)
+                obj, _, exception = maybe_partial(dbytes)
                 print(f"Type: {type(obj).__name__}")
                 obj.print_data(sys.stdout, flags=flags)
             except KeyboardInterrupt:
