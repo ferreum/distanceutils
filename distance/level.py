@@ -5,6 +5,7 @@
 
 
 from struct import Struct
+import math
 
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
@@ -54,7 +55,30 @@ S_ABILITIES = Struct("5b")
 PROBER = BytesProber()
 
 
+def parse_positioning(dbytes):
+    def read_float():
+        return dbytes.read_struct(S_FLOAT)[0]
+    f = read_float()
+    if math.isnan(f):
+        pos = (0.0, 0.0, 0.0)
+    else:
+        pos = (f, read_float(), read_float())
+    f = read_float()
+    if math.isnan(f):
+        rot = (0.0, 0.0, 0.0, 0.0)
+    else:
+        rot = (f, read_float(), read_float(), read_float())
+    f = read_float()
+    if math.isnan(f):
+        scale = (1.0, 1.0, 1.0)
+    else:
+        scale = (f, read_float(), read_float())
+    return pos, rot, scale
+
+
 class LevelObject(BytesModel):
+
+    has_children = False
 
     def parse(self, dbytes, shared_info=None):
         ts = self.require_section(SECTION_TYPE, shared_info=shared_info)
@@ -167,6 +191,54 @@ class LevelSettings(LevelObject):
             p(f"Difficulty: {diff_str}")
 
 
+@PROBER.for_type('Group')
+class Group(LevelObject):
+
+    children_start = None
+    children_end = None
+    positioning = None
+    num_children = None
+    has_children = True
+
+    def parse(self, dbytes, shared_info=None):
+        LevelObject.parse(self, dbytes, shared_info=shared_info)
+        s3 = self.require_section(SECTION_UNK_3)
+        self.positioning = parse_positioning(dbytes)
+        s5 = Section(dbytes, shared_info=shared_info)
+        self.children_start = dbytes.pos
+        self.children_end = s5.data_start + s5.size
+        self.num_children = s5.num_objects
+
+    def iter_children(self, shared_info=None):
+        dbytes = self.dbytes
+        num = self.num_children
+        if num is not None:
+            dbytes.pos = self.children_start
+            gen = PROBER.iter_maybe_partial(dbytes, max_pos=self.children_end,
+                                            shared_info=shared_info)
+            for obj, sane, exc in gen:
+                yield obj, sane, exc
+                if not sane:
+                    break
+                num -= 1
+                if num <= 0:
+                    break
+        dbytes.pos = self.end_pos
+
+    def _print_data(self, file, p):
+        LevelObject._print_data(self, file, p)
+        p(f"Positioning: {self.positioning}")
+        p(f"Grouped objects: {self.num_children}")
+
+
+class Counters(object):
+
+    num_objects = 0
+    num_layers = 0
+    layer_objects = 0
+    grouped_objects = 0
+
+
 class Level(BytesModel):
 
     def parse(self, dbytes):
@@ -175,47 +247,59 @@ class Level(BytesModel):
             raise IOError("No level section")
         self.level_name = ls.level_name
 
-    def iter_objects(self, with_layers=False, with_objects=True):
+    def iter_objects(self, with_layers=False, with_objects=True, shared_info=None):
+        if shared_info is None:
+            shared_info = {}
         dbytes = self.dbytes
-        info = {}
-        settings, sane, exc = LevelSettings.maybe_partial(dbytes, shared_info=info)
+        settings, sane, exc = LevelSettings.maybe_partial(dbytes, shared_info=shared_info)
         yield settings, sane, exc
         if not sane:
             return
-        for layer, sane, exc in Section.iter_maybe_partial(dbytes, shared_info=info):
+        for layer, sane, exc in Section.iter_maybe_partial(dbytes, shared_info=shared_info):
             layer_end = layer.size + layer.data_start
             if with_layers:
                 yield layer, sane, exc
             if not sane:
                 return
             if with_objects:
-                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=info):
-                    yield obj, sane, exc
+                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end, shared_info=shared_info):
+                    yield obj, True, exc
                     if not sane:
-                        return
+                        break
             dbytes.pos = layer_end
+
+    def _print_objects(self, file, p, gen, counters, shared_info=None):
+        for obj, sane, exc in gen:
+            if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
+                p(f"Layer: {counters.num_layers}")
+                counters.num_layers += 1
+                counters.layer_objects += obj.num_objects
+                obj.print_data(file, flags=p.flags)
+            else:
+                counters.num_objects += 1
+                if 'noobjlist' not in p.flags:
+                    p(f"Level object: {counters.num_objects}")
+                obj.print_data(file, flags=p.flags)
+                if 'groups' in p.flags and obj.has_children:
+                    child_gen = obj.iter_children(shared_info=shared_info)
+                    counters.grouped_objects += obj.num_children
+                    self._print_objects(file, p, child_gen, counters)
 
     def _print_data(self, file, p):
         p(f"Level name: {self.level_name!r}")
         try:
-            num_objects = 0
-            layer_objects = 0
-            num_layers = 0
+            counters = Counters()
             gen = self.iter_objects(with_layers='nolayers' not in p.flags,
-                                    with_objects='noobjlist' not in p.flags)
-            for obj, sane, exc in gen:
-                if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
-                    p(f"Layer: {num_layers}")
-                    num_layers += 1
-                    layer_objects += obj.num_objects
-                else:
-                    num_objects += 1
-                    if 'noobjlist' not in p.flags:
-                        p(f"Level object: {num_objects}")
-                obj.print_data(file, flags=p.flags)
+                                    with_objects='noobjlist' not in p.flags,
+                                    shared_info={})
+            self._print_objects(file, p, gen, counters)
             if 'nolayers' not in p.flags:
-                p(f"Total layers: {num_layers}")
-                p(f"Total objects in layers: {layer_objects}")
+                p(f"Total layers: {counters.num_layers}")
+                p(f"Total objects in layers: {counters.layer_objects}")
+                if counters.grouped_objects:
+                    p(f"Total objects in groups: {counters.grouped_objects}")
+                if counters.num_objects != counters.layer_objects:
+                    p(f"Total objects: {counters.num_objects}")
         except Exception as e:
             print_exception(e, file, p)
 

@@ -19,6 +19,7 @@ SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666
 SECTION_LAYER = 77777777
 SECTION_LEVEL_INFO = 88888888
+SECTION_UNK_5 = 55555555
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
 SECTION_UNK_1 = 11111111
@@ -30,8 +31,11 @@ class UnexpectedEOFError(Exception):
 
 def print_exception(exc, file, p):
     traceback.print_exception(type(exc), exc, exc.__traceback__, file=file)
-    p(f"Exception start: 0x{exc.start_pos:08x}")
-    p(f"Exception pos:   0x{exc.exc_pos:08x}")
+    try:
+        p(f"Exception start: 0x{exc.start_pos:08x}")
+        p(f"Exception pos:   0x{exc.exc_pos:08x}")
+    except AttributeError:
+        pass
 
 
 class BytesModel(object):
@@ -206,8 +210,14 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
             self.add_unknown(9)
+        elif ident == SECTION_UNK_5:
+            self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
+            self.num_objects = dbytes.read_fixed_number(4)
         elif ident == SECTION_UNK_3:
-            self.add_unknown(20)
+            self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
+            self.add_unknown(12)
         elif ident == SECTION_UNK_2:
             self.size = dbytes.read_fixed_number(8)
             self.add_unknown(4)

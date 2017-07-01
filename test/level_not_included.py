@@ -36,7 +36,7 @@ class BaseTest(unittest.TestCase):
         self.objects = objects = [o for o, _, _ in results]
         for _, sane, exc in results:
             if exc:
-                raise exc[1]
+                raise exc
         return level, objects
 
     def assertTimes(self, *times):
