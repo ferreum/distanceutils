@@ -12,7 +12,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.level import Level
-from distance.bytes import DstBytes, UnexpectedEOFError
+from distance.bytes import DstBytes
 
 
 class BaseTest(unittest.TestCase):
@@ -88,7 +88,6 @@ class Version1Test(BaseTest):
         self.assertEqual(len(objects), 128)
 
     def test_dark_generator(self):
-        filename = "in/level-not-included/v1/dark generator.bytes"
         level, objects = self.getLevel("in/level-not-included/v1/dark generator.bytes", with_layers=True)
         self.assertEqual(level.level_name, "Dark Generator")
         self.assertTimes(-1, -1, -1, -1)
