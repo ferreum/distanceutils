@@ -10,6 +10,7 @@ from .replay import Replay, FTYPE_REPLAY_PREFIX
 from .leaderboard import Leaderboard, FTYPE_LEADERBOARD
 from .levelinfos import LevelInfos, FTYPE_LEVELINFOS
 from .level import Level
+from .level import PROBER as LEVEL_PROBER
 
 
 PROBER = BytesProber({
@@ -26,6 +27,9 @@ def _detect_other(section):
     if section.ident == SECTION_LEVEL:
         return Level
     return None
+
+
+PROBER.extend(LEVEL_PROBER)
 
 
 detect_class = PROBER.detect_class

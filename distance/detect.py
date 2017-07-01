@@ -35,6 +35,11 @@ class BytesProber(object):
             return cls
         return decorate
 
+    def extend(self, other):
+        self._types.update(((k, v) for k, v in other._types.items()
+                            if k not in self._types))
+        self._funcs.extend(other._funcs)
+
     def _get_from_funcs(self, section):
         for func in self._funcs:
             cls = func(section)
