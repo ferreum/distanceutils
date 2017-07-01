@@ -294,12 +294,11 @@ class Level(BytesModel):
             raise IOError("No level section")
         self.level_name = ls.level_name
 
+    def read_settings(self):
+        return LevelSettings.maybe_partial(self.dbytes)
+
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
-        settings, sane, exc = LevelSettings.maybe_partial(dbytes)
-        yield settings, sane, exc
-        if not sane:
-            return
         for layer, sane, exc in Section.iter_maybe_partial(dbytes):
             layer_end = layer.size + layer.data_start
             if with_layers:
@@ -316,6 +315,10 @@ class Level(BytesModel):
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
         try:
+            settings, sane, exc = self.read_settings()
+            p.print_data_of(settings)
+            if not sane:
+                return
             with need_counters(p) as counters:
                 gen = self.iter_objects(with_layers='nolayers' not in p.flags,
                                         with_objects='noobjlist' not in p.flags)

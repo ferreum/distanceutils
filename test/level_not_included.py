@@ -39,10 +39,11 @@ class BaseTest(unittest.TestCase):
         f = open(filename, 'rb')
         self.files.append(f)
         self.level = level = Level(DstBytes(f))
+        settings_res = level.read_settings()
         gen = level.iter_objects(with_layers=with_layers)
         if with_groups:
             gen = results_with_groups(gen)
-        self.results = results = list(gen)
+        self.results = results = [settings_res] + list(gen)
         self.objects = objects = [o for o, _, _ in results]
         for _, sane, exc in results:
             if exc:
