@@ -4,7 +4,7 @@
 # Created:     2017-06-24
 
 
-from .bytes import BytesModel, print_exception, SECTION_UNK_2
+from .bytes import BytesModel, SECTION_UNK_2
 from .common import format_bytes
 
 
@@ -87,11 +87,11 @@ class LevelInfos(BytesModel):
                     rate_str = " Rating: Unknown ({level.rating})"
                 p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
                 if exc:
-                    print_exception(exc, p)
+                    p.print_exception(exc)
                 if not sane:
                     break
         except Exception as e:
-            print_exception(e, p)
+            p.print_exception(e)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

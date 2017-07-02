@@ -6,7 +6,7 @@
 
 from operator import attrgetter
 
-from .bytes import (BytesModel, SECTION_UNK_2, print_exception)
+from .bytes import BytesModel, SECTION_UNK_2
 from .common import format_bytes, format_duration
 
 
@@ -74,9 +74,9 @@ class Leaderboard(BytesModel):
                 unk_str = f"Unknown: {format_bytes(entry.unknown)} "
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:
-                print_exception(entry.exception, p)
+                p.print_exception(entry.exception)
         if exception:
-            print_exception(exception, p)
+            p.print_exception(exception)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

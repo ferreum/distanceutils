@@ -30,15 +30,6 @@ class UnexpectedEOFError(Exception):
     pass
 
 
-def print_exception(exc, p):
-    traceback.print_exception(type(exc), exc, exc.__traceback__, file=p.file)
-    try:
-        p(f"Exception start: 0x{exc.start_pos:08x}")
-        p(f"Exception pos:   0x{exc.exc_pos:08x}")
-    except AttributeError:
-        pass
-
-
 class PrintContext(object):
 
     num_tree_children = None
@@ -89,6 +80,19 @@ class PrintContext(object):
 
     def print_data_of(self, obj):
         obj.print_data(p=self)
+
+    def print_exception(self, exc):
+        exc_str = traceback.format_exception(type(exc), exc, exc.__traceback__)
+        for part in exc_str:
+            if part.endswith('\n'):
+                part = part[:-1]
+            for line in part.split('\n'):
+                self(line)
+        try:
+            self(f"Exception start: 0x{exc.start_pos:08x}")
+            self(f"Exception pos:   0x{exc.exc_pos:08x}")
+        except AttributeError:
+            pass
 
 
 class BytesModel(object):
@@ -195,7 +199,7 @@ class BytesModel(object):
         self._print_data(p)
         if self.exception:
             p(f"Error when parsing:")
-            print_exception(self.exception, p)
+            p.print_exception(self.exception)
         if 'offset' in p.flags:
             start = self.start_pos
             end = self.end_pos

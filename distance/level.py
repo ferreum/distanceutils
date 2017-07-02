@@ -10,8 +10,7 @@ from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
-                    SECTION_UNK_2, SECTION_UNK_3, SECTION_LEVEL_INFO,
-                    print_exception)
+                    SECTION_UNK_2, SECTION_UNK_3, SECTION_LEVEL_INFO)
 from .common import format_duration
 from .detect import BytesProber
 
@@ -350,7 +349,7 @@ class Level(BytesModel):
                 if counters:
                     counters.print_data(p)
         except Exception as e:
-            print_exception(e, p)
+            p.print_exception(e)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
