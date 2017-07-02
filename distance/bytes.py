@@ -252,15 +252,20 @@ class BytesModel(object):
         return value
 
 
+LAYER_FLAG_NAMES = {}
+LAYER_FLAG_NAMES[0] = ({0: "Frozen", 1: "Unfrozen"},
+                       {0: "Inactive", 1: "Active"},
+                       {0: "Invisible", 1: "Visible"})
+LAYER_FLAG_NAMES[1] = ({0: "Inactive", 1: "Active"},
+                       {0: "Unfrozen", 1: "Frozen"},
+                       {0: "Invisible", 1: "Visible"})
+
+
 class Section(BytesModel):
 
     layer_name = None
     num_objects = None
     layer_flags = ()
-
-    layer_flag_names = ({0: "Frozen", 1: "Unfrozen"},
-                        {0: "Inactive", 1: "Active"},
-                        {0: "Invisible", 1: "Visible"})
 
     def parse(self, dbytes):
         self.ident = ident = dbytes.read_fixed_number(4)
@@ -297,6 +302,7 @@ class Section(BytesModel):
             tmp = dbytes.read_fixed_number(4)
             dbytes.pos = pos
             if tmp == 0 or tmp == 1:
+                self.layer_flag_names = LAYER_FLAG_NAMES[tmp]
                 self.add_unknown(4)
                 self.layer_flags = dbytes.read_struct("bbb")
                 if tmp == 1:
@@ -338,7 +344,7 @@ class Section(BytesModel):
 
     def _print_data(self, p):
         if self.ident == SECTION_LAYER:
-            p(f"Layer name: {self.layer_name}")
+            p(f"Layer name: {self.layer_name!r}")
             p(f"Layer object count: {self.num_objects}")
             if self.layer_flags:
                 flag_str = ', '.join(names.get(f, f"Unknown({f})") for f, names
