@@ -90,9 +90,8 @@ class Counters(object):
             p(f"Total objects in layers: {self.layer_objects}")
         if self.grouped_objects:
             p(f"Total objects in groups: {self.grouped_objects}")
-        if 'noobjlist' not in p.flags:
-            if self.num_objects != self.layer_objects:
-                p(f"Total objects: {self.num_objects}")
+        if self.num_objects != self.layer_objects:
+            p(f"Total objects: {self.num_objects}")
 
 
 @contextmanager
@@ -115,7 +114,7 @@ def _print_objects(p, gen):
     for obj, sane, exc in gen:
         p.tree_next_child()
         counters.num_objects += 1
-        if 'noobjlist' not in p.flags:
+        if 'numbers' in p.flags:
             p(f"Level object: {counters.num_objects}")
         p.print_data_of(obj)
         if obj.has_children and 'groups' in p.flags:
@@ -133,8 +132,7 @@ class LevelObject(BytesModel):
         self.type = ts.type
 
     def _print_data(self, p):
-        if 'noobjlist' not in p.flags:
-            p(f"Object type: {self.type!r}")
+        p(f"Object type: {self.type!r}")
 
 
 @PROBER.func
