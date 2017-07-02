@@ -59,10 +59,16 @@ SUBOBJ_PROBER = BytesProber()
 
 
 @PROBER.func
-@SUBOBJ_PROBER.func
 def _fallback_object(section):
     if section.ident == SECTION_TYPE:
         return LevelObject
+    return None
+
+
+@SUBOBJ_PROBER.func
+def _fallback_subobject(section):
+    if section.ident == SECTION_TYPE:
+        return SubObject
     return None
 
 
