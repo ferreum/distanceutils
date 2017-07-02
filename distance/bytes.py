@@ -184,7 +184,7 @@ class BytesModel(object):
             if file or flags:
                 raise TypeError("p must be the single argument")
 
-        if 'unknown' in flags:
+        if 'unknown' in p.flags:
             if self.sections is not None:
                 for s_list in self.sections.values():
                     for i, s in enumerate(s_list):
@@ -196,7 +196,7 @@ class BytesModel(object):
         if self.exception:
             p(f"Error when parsing:")
             print_exception(self.exception, p)
-        if 'offset' in flags:
+        if 'offset' in p.flags:
             start = self.start_pos
             end = self.end_pos
             p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
