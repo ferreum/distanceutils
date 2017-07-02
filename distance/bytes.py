@@ -208,14 +208,16 @@ class BytesModel(object):
                             p(f"Section {s.ident}-{i} unknown: {format_unknown(s.unknown)}")
             if self.unknown:
                 p(f"Unknown: {format_unknown(self.unknown)}")
-        self._print_data(p)
-        if self.exception:
-            p(f"Error when parsing:")
-            p.print_exception(self.exception)
         if 'offset' in p.flags:
             start = self.start_pos
             end = self.end_pos
             p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+        if 'size' in p.flags:
+            p(f"Data size: 0x{self.end_pos - self.start_pos:x}")
+        self._print_data(p)
+        if self.exception:
+            p(f"Error when parsing:")
+            p.print_exception(self.exception)
 
     def _print_data(self, p):
         pass
