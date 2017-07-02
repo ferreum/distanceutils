@@ -135,18 +135,31 @@ def _print_objects(p, gen):
 class LevelObject(BytesModel):
 
     has_children = False
+    transform = None
+
+    def parse(self, dbytes):
+        ts = self.require_section(SECTION_TYPE)
+        self.type = ts.type
+        self.report_end_pos(ts.data_start + ts.size)
+        self.require_section(SECTION_UNK_3)
+        self.transform = parse_transform(dbytes)
+
+    def _print_data(self, p):
+        p(f"Object type: {self.type!r}")
+        if 'transform' in p.flags:
+            p(f"Transform: {self.transform}")
+
+
+class SubObject(BytesModel):
 
     def parse(self, dbytes):
         ts = self.require_section(SECTION_TYPE)
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
 
-    def _print_data(self, p):
-        p(f"Object type: {self.type!r}")
-
 
 @PROBER.for_type('LevelSettings')
-class LevelSettings(LevelObject):
+class LevelSettings(BytesModel):
 
     type = None
     version = None
@@ -207,7 +220,7 @@ class LevelSettings(LevelObject):
             self.difficulty = dbytes.read_fixed_number(4)
 
     def _print_data(self, p):
-        LevelObject._print_data(self, p)
+        p(f"Object type: {self.type!r}")
         if self.version is not None:
             p(f"Object version: {self.version!r}")
         if self.name is not None:
@@ -243,17 +256,14 @@ class Group(LevelObject):
 
     children_start = None
     children_end = None
-    transform = None
     num_children = None
     has_children = True
     group_name = None
 
     def parse(self, dbytes):
         LevelObject.parse(self, dbytes)
-        s3 = self.require_section(SECTION_UNK_3)
-        self.transform = parse_transform(dbytes)
-        s5 = Section(dbytes)
-        self.children_start = dbytes.pos
+        s5 = self.require_section(SECTION_UNK_5)
+        self.children_start = s5.end_pos
         self.children_end = children_end = s5.data_start + s5.size
         self.num_children = s5.num_objects
         dbytes.pos = children_end
@@ -284,7 +294,6 @@ class Group(LevelObject):
             LevelObject._print_data(self, p)
             if self.group_name is not None:
                 p(f"Custom name: {self.group_name!r}")
-            p(f"Transform: {self.transform}")
             p(f"Grouped objects: {self.num_children}")
             if 'groups' in p.flags:
                 with p.tree_children(self.num_children):
@@ -294,13 +303,13 @@ class Group(LevelObject):
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
-class SubTeleporter(LevelObject):
+class SubTeleporter(SubObject):
 
     destination = None
     link_id = None
 
     def parse(self, dbytes):
-        LevelObject.parse(self, dbytes)
+        SubObject.parse(self, dbytes)
         for section, sane, exc in Section.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos):
             if section.ident == SECTION_UNK_2:
                 if section.value_id == 0x3E:
@@ -327,8 +336,6 @@ class Teleporter(LevelObject):
 
     def parse(self, dbytes):
         LevelObject.parse(self, dbytes)
-        self.require_section(SECTION_UNK_3)
-        self.transform = parse_transform(dbytes)
         self.require_section(SECTION_UNK_5)
         gen = SUBOBJ_PROBER.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos)
         for obj, sane, exc in gen:
