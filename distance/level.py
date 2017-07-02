@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
-                    SECTION_UNK_2, SECTION_UNK_3, SECTION_LEVEL_INFO)
+                    SECTION_UNK_2, SECTION_UNK_3, SECTION_UNK_5, SECTION_LEVEL_INFO)
 from .common import format_duration
 from .detect import BytesProber
 
@@ -301,37 +301,35 @@ class SubTeleporter(LevelObject):
 
     def parse(self, dbytes):
         LevelObject.parse(self, dbytes)
-        index = 0
         for section, sane, exc in Section.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos):
             if section.ident == SECTION_UNK_2:
-                dbytes.pos = section.data_start + 12
-                value = dbytes.read_fixed_number(4)
-                if index == 0:
+                if section.value_id == 0x3E:
+                    dbytes.pos = section.data_start + 12
+                    value = dbytes.read_fixed_number(4)
                     self.destination = value
-                elif index == 1:
+                elif section.value_id == 0x3F:
+                    dbytes.pos = section.data_start + 12
+                    value = dbytes.read_fixed_number(4)
                     self.link_id = value
-                    break
-                index += 1
             dbytes.pos = section.data_start + section.size
 
     def _print_data(self, p):
-        p(f"Teleports to: {self.destination}")
-        p(f"Link ID: {self.link_id}")
+        if self.destination is not None:
+            p(f"Teleports to: {self.destination}")
+        if self.link_id is not None:
+            p(f"Link ID: {self.link_id}")
 
 
-@PROBER.for_type('Teleporter', 'TeleporterVirus')
+@PROBER.for_type('Teleporter', 'TeleporterVirus', 'TeleporterExit')
 class Teleporter(LevelObject):
 
     sub_teleporter = None
 
     def parse(self, dbytes):
         LevelObject.parse(self, dbytes)
-        s3 = self.require_section(SECTION_UNK_3)
-        if self.type == 'TeleporterVirus':
-            dbytes.pos = s3.data_start + 12
+        self.require_section(SECTION_UNK_3)
         self.transform = parse_transform(dbytes)
-        s5 = Section(dbytes)
-
+        self.require_section(SECTION_UNK_5)
         gen = SUBOBJ_PROBER.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos)
         for obj, sane, exc in gen:
             if isinstance(obj, SubTeleporter):

@@ -281,9 +281,8 @@ class Section(BytesModel):
         elif ident == SECTION_UNK_2:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
-            self.add_unknown(4)
-            self.version = dbytes.read_byte()
-            self.add_unknown(3)
+            self.value_id = dbytes.read_fixed_number(4)
+            self.version = dbytes.read_fixed_number(4)
         elif ident == SECTION_LAYER:
             self.size = size = dbytes.read_fixed_number(8)
             self.data_start = data_start = dbytes.pos
