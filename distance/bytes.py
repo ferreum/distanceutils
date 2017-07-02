@@ -26,6 +26,18 @@ SECTION_UNK_2 = 22222222
 SECTION_UNK_1 = 11111111
 
 
+LAYER_FLAG_NAMES = ({0: "", 1: "Active"},
+                    {0: "", 1: "Frozen"},
+                    {0: "Invisible", 1: ""})
+
+
+def format_flag(gen):
+    for flag, names in gen:
+        name = names.get(flag, f"Unknown({flag})")
+        if name:
+            yield name
+
+
 class UnexpectedEOFError(Exception):
     pass
 
@@ -252,15 +264,6 @@ class BytesModel(object):
         return value
 
 
-LAYER_FLAG_NAMES = {}
-LAYER_FLAG_NAMES[0] = ({0: "Frozen", 1: "Unfrozen"},
-                       {0: "Inactive", 1: "Active"},
-                       {0: "Invisible", 1: "Visible"})
-LAYER_FLAG_NAMES[1] = ({0: "Inactive", 1: "Active"},
-                       {0: "Unfrozen", 1: "Frozen"},
-                       {0: "Invisible", 1: "Visible"})
-
-
 class Section(BytesModel):
 
     layer_name = None
@@ -302,10 +305,13 @@ class Section(BytesModel):
             tmp = dbytes.read_fixed_number(4)
             dbytes.pos = pos
             if tmp == 0 or tmp == 1:
-                self.layer_flag_names = LAYER_FLAG_NAMES[tmp]
                 self.add_unknown(4)
-                self.layer_flags = dbytes.read_struct("bbb")
-                if tmp == 1:
+                flags = dbytes.read_struct("bbb")
+                if tmp == 0:
+                    frozen = 1 if flags[0] == 0 else 0
+                    self.layer_flags = (flags[1], frozen, flags[2])
+                else:
+                    self.layer_flags = flags
                     self.add_unknown(1)
         elif ident == SECTION_LEVEL:
             self.add_unknown(8)
@@ -347,9 +353,10 @@ class Section(BytesModel):
             p(f"Layer name: {self.layer_name!r}")
             p(f"Layer object count: {self.num_objects}")
             if self.layer_flags:
-                flag_str = ', '.join(names.get(f, f"Unknown({f})") for f, names
-                                     in zip(self.layer_flags,
-                                            self.layer_flag_names))
+                flag_str = ', '.join(
+                    format_flag(zip(self.layer_flags, LAYER_FLAG_NAMES)))
+                if not flag_str:
+                    flag_str = "None"
                 p(f"Layer flags: {flag_str}")
 
 
