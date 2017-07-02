@@ -26,12 +26,13 @@ class BytesProber(object):
         self.add_func(func)
         return func
 
-    def for_type(self, type):
+    def for_type(self, *types):
 
         """Decorator for conveniently adding a class for a type."""
 
         def decorate(cls):
-            self.add_type(type, cls)
+            for t in types:
+                self.add_type(t, cls)
             return cls
         return decorate
 

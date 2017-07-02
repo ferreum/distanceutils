@@ -100,7 +100,7 @@ class BytesModel(object):
     unknown = ()
     sections = None
     exception = None
-    __end_pos = None
+    reported_end_pos = None
     recoverable = False
 
     @classmethod
@@ -170,10 +170,10 @@ class BytesModel(object):
 
     def report_end_pos(self, pos):
         self.recoverable = True
-        self.__end_pos = pos
+        self.reported_end_pos = pos
 
     def apply_end_pos(self, dbytes, or_to_eof=False):
-        end_pos = self.__end_pos
+        end_pos = self.reported_end_pos
         if end_pos is not None:
             current_pos = dbytes.pos
             if current_pos != end_pos:

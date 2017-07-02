@@ -52,7 +52,18 @@ DIFFICULTY_NAMES = {
 
 S_ABILITIES = Struct("5b")
 
+
 PROBER = BytesProber()
+
+SUBOBJ_PROBER = BytesProber()
+
+
+@PROBER.func
+@SUBOBJ_PROBER.func
+def _fallback_object(section):
+    if section.ident == SECTION_TYPE:
+        return LevelObject
+    return None
 
 
 def parse_transform(dbytes):
@@ -132,13 +143,6 @@ class LevelObject(BytesModel):
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
-
-
-@PROBER.func
-def _fallback_object(section):
-    if section.ident == SECTION_TYPE:
-        return LevelObject
-    return None
 
 
 @PROBER.for_type('LevelSettings')
@@ -287,6 +291,59 @@ class Group(LevelObject):
                     _print_objects(p, self.iter_children())
             if counters:
                 counters.print_data(p)
+
+
+@SUBOBJ_PROBER.for_type('Teleporter')
+class SubTeleporter(LevelObject):
+
+    destination = None
+    link_id = None
+
+    def parse(self, dbytes):
+        LevelObject.parse(self, dbytes)
+        index = 0
+        for section, sane, exc in Section.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos):
+            if section.ident == SECTION_UNK_2:
+                dbytes.pos = section.data_start + 12
+                value = dbytes.read_fixed_number(4)
+                if index == 0:
+                    self.destination = value
+                elif index == 1:
+                    self.link_id = value
+                    break
+                index += 1
+            dbytes.pos = section.data_start + section.size
+
+    def _print_data(self, p):
+        p(f"Teleports to: {self.destination}")
+        p(f"Link ID: {self.link_id}")
+
+
+@PROBER.for_type('Teleporter', 'TeleporterVirus')
+class Teleporter(LevelObject):
+
+    sub_teleporter = None
+
+    def parse(self, dbytes):
+        LevelObject.parse(self, dbytes)
+        s3 = self.require_section(SECTION_UNK_3)
+        if self.type == 'TeleporterVirus':
+            dbytes.pos = s3.data_start + 12
+        self.transform = parse_transform(dbytes)
+        s5 = Section(dbytes)
+
+        gen = SUBOBJ_PROBER.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos)
+        for obj, sane, exc in gen:
+            if isinstance(obj, SubTeleporter):
+                self.sub_teleporter = obj
+                break
+            if not sane:
+                break
+
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
+        if self.sub_teleporter:
+            p.print_data_of(self.sub_teleporter)
 
 
 class Level(BytesModel):
