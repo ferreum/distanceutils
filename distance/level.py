@@ -113,20 +113,14 @@ def need_counters(p):
 def _print_objects(p, gen):
     counters = p.counters
     for obj, sane, exc in gen:
-        if isinstance(obj, Section) and obj.ident == SECTION_LAYER:
-            p(f"Layer: {counters.num_layers}")
-            counters.num_layers += 1
-            counters.layer_objects += obj.num_objects
-            p.print_data_of(obj)
-        else:
-            p.tree_next_child()
-            counters.num_objects += 1
-            if 'noobjlist' not in p.flags:
-                p(f"Level object: {counters.num_objects}")
-            p.print_data_of(obj)
-            if obj.has_children and 'groups' in p.flags:
-                child_gen = obj.iter_children()
-                counters.grouped_objects += obj.num_children
+        p.tree_next_child()
+        counters.num_objects += 1
+        if 'noobjlist' not in p.flags:
+            p(f"Level object: {counters.num_objects}")
+        p.print_data_of(obj)
+        if obj.has_children and 'groups' in p.flags:
+            child_gen = obj.iter_children()
+            counters.grouped_objects += obj.num_children
 
 
 class LevelObject(BytesModel):
@@ -324,6 +318,22 @@ class Level(BytesModel):
                         break
             dbytes.pos = layer_end
 
+    def iter_layers(self):
+        dbytes = self.dbytes
+        for layer, sane, exc in Section.iter_maybe_partial(dbytes):
+            layer_end = layer.size + layer.data_start
+            yield layer, sane, exc
+            if not sane:
+                return
+            dbytes.pos = layer_end
+
+    def iter_layer_objects(self, layer):
+        layer_end = layer.size + layer.data_start
+        for obj, sane, exc in PROBER.iter_maybe_partial(self.dbytes, max_pos=layer_end):
+            yield obj, sane, exc
+            if not sane:
+                break
+
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
         try:
@@ -332,9 +342,13 @@ class Level(BytesModel):
             if not sane:
                 return
             with need_counters(p) as counters:
-                gen = self.iter_objects(with_layers='nolayers' not in p.flags,
-                                        with_objects='noobjlist' not in p.flags)
-                _print_objects(p, gen)
+                for layer, sane, exc in self.iter_layers():
+                    p(f"Layer: {counters.num_layers}")
+                    counters.num_layers += 1
+                    counters.layer_objects += layer.num_objects
+                    p.print_data_of(layer)
+                    with p.tree_children(layer.num_objects):
+                        _print_objects(p, self.iter_layer_objects(layer))
                 if counters:
                     counters.print_data(p)
         except Exception as e:
