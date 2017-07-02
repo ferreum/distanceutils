@@ -119,6 +119,7 @@ def _print_objects(p, gen):
             counters.layer_objects += obj.num_objects
             p.print_data_of(obj)
         else:
+            p.tree_next_child()
             counters.num_objects += 1
             if 'noobjlist' not in p.flags:
                 p(f"Level object: {counters.num_objects}")
@@ -291,7 +292,8 @@ class Group(LevelObject):
             p(f"Transform: {self.transform}")
             p(f"Grouped objects: {self.num_children}")
             if 'groups' in p.flags:
-                _print_objects(p, self.iter_children())
+                with p.tree_children(self.num_children):
+                    _print_objects(p, self.iter_children())
             if counters:
                 counters.print_data(p)
 

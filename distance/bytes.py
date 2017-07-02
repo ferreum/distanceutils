@@ -7,6 +7,7 @@
 import struct
 from struct import Struct
 import traceback
+from contextlib import contextmanager
 
 from .common import format_unknown
 
@@ -40,12 +41,51 @@ def print_exception(exc, p):
 
 class PrintContext(object):
 
+    num_tree_children = None
+    printed_child = True
+    tree_prefix = ""
+
     def __init__(self, file, flags):
         self.file = file
         self.flags = flags
 
+    def get_tree_prefix(self):
+        if not self.printed_child:
+            if self.num_tree_children > 0:
+                return "├─"
+            else:
+                return "└─"
+        else:
+            if self.num_tree_children > 0:
+                return "│ "
+            else:
+                return "  "
+
     def __call__(self, *args, **kwargs):
+        if self.num_tree_children is not None:
+            prefix = self.tree_prefix + self.get_tree_prefix()
+            self.printed_child = True
+            args = (prefix,) + args
         print(*args, file=self.file, **kwargs)
+
+    @contextmanager
+    def tree_children(self, num_children):
+        old_num = self.num_tree_children
+        old_prefix = self.tree_prefix
+
+        if old_num is not None:
+            self.tree_prefix = old_prefix + self.get_tree_prefix() + " "
+        self.num_tree_children = num_children
+        try:
+            yield
+        finally:
+            self.num_tree_children = old_num
+            self.tree_prefix = old_prefix
+
+    def tree_next_child(self):
+        if self.num_tree_children is not None:
+            self.num_tree_children -= 1
+            self.printed_child = False
 
     def print_data_of(self, obj):
         obj.print_data(p=self)
