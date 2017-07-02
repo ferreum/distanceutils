@@ -38,6 +38,19 @@ def print_exception(exc, p):
         pass
 
 
+class PrintContext(object):
+
+    def __init__(self, file, flags):
+        self.file = file
+        self.flags = flags
+
+    def __call__(self, *args, **kwargs):
+        print(*args, file=self.file, **kwargs)
+
+    def print_data_of(self, obj):
+        obj.print_data(p=self)
+
+
 class BytesModel(object):
 
     unknown = ()
@@ -126,13 +139,7 @@ class BytesModel(object):
 
     def print_data(self, file=None, flags=(), p=None):
         if p is None:
-            def p(*args, **kwargs):
-                print(*args, file=p.file, **kwargs)
-            def print_data_of(obj):
-                obj.print_data(p=p)
-            p.print_data_of = print_data_of
-            p.file = file
-            p.flags = flags
+            p = PrintContext(file, flags)
         else:
             if file or flags:
                 raise TypeError("p must be the single argument")
