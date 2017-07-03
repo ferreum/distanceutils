@@ -384,6 +384,36 @@ class WorldText(LevelObject):
             p(f"World text: {self.text!r}")
 
 
+@PROBER.for_type('InfoDisplayBox')
+class InfoDisplayBox(LevelObject):
+
+    texts = ()
+
+    def parse(self, dbytes):
+        LevelObject.parse(self, dbytes)
+        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
+        texts = ()
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            end = section.data_end
+            if section.ident == SECTION_UNK_2:
+                if section.value_id == 0x4A:
+                    self.add_unknown(4)
+                    self.fadeout_time = dbytes.read_struct(S_FLOAT)
+                    for i in range(5):
+                        self.add_unknown(4) # f32 delay
+                        if texts is ():
+                            self.texts = texts = []
+                        texts.append(dbytes.read_string())
+            dbytes.pos = end
+
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
+        for i, text in enumerate(self.texts):
+            if text:
+                p(f"Text {i}: {text!r}")
+
+
 class Level(BytesModel):
 
     def parse(self, dbytes):

@@ -350,6 +350,10 @@ class Section(BytesModel):
                     return dest
         return dest
 
+    @property
+    def data_end(self):
+        return self.data_start + self.size
+
     def _print_data(self, p):
         if self.ident == SECTION_LAYER:
             p(f"Layer name: {self.layer_name!r}")
