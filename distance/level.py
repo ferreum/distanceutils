@@ -316,7 +316,8 @@ class SubTeleporter(SubObject):
 
     def parse(self, dbytes):
         SubObject.parse(self, dbytes)
-        for section, sane, exc in Section.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos):
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
             if section.ident == SECTION_UNK_2:
                 if section.value_id == 0x3E:
                     dbytes.pos = section.data_start + 12
