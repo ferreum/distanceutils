@@ -36,7 +36,10 @@ class BaseTest(unittest.TestCase):
         self.files = []
 
     def getLevel(self, filename, with_layers=False, with_groups=False):
-        f = open(filename, 'rb')
+        try:
+            f = open(filename, 'rb')
+        except FileNotFoundError:
+            raise unittest.SkipTest(f"Test file {filename} does not exist")
         self.files.append(f)
         self.level = level = Level(DstBytes(f))
         settings_res = level.read_settings()
