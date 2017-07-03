@@ -357,6 +357,32 @@ class Teleporter(LevelObject):
             p.print_data_of(self.sub_teleporter)
 
 
+@PROBER.for_type('WorldText')
+class WorldText(LevelObject):
+
+    text = None
+
+    def parse(self, dbytes):
+        LevelObject.parse(self, dbytes)
+        index = 0
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            if section.ident == SECTION_UNK_3:
+                if index == 0:
+                    index += 1
+                else:
+                    dbytes.pos = section.data_start + 12
+                    self.text = dbytes.read_string()
+                    self.add_unknown(value=dbytes.read_struct("fff"))
+                    break
+            dbytes.pos = section.data_start + section.size
+
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
+        if self.text is not None:
+            p(f"World text: {self.text!r}")
+
+
 class Level(BytesModel):
 
     def parse(self, dbytes):

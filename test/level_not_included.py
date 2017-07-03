@@ -192,6 +192,12 @@ class Version7Test(BaseTest):
         self.assertTimes(120000, 180000, 300000, 488700)
         self.assertEqual(len(objects), 565)
 
+    def test_brief_chaos(self):
+        level, objects = self.getLevel("in/level-not-included/v7/brief chaos.bytes")
+        self.assertEqual(level.level_name, "Brief Chaos")
+        self.assertTimes(0, 0, 0, 0)
+        self.assertEqual(len(objects), 112)
+
 
 class Version8Test(BaseTest):
 
