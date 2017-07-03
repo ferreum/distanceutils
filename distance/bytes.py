@@ -188,6 +188,9 @@ class BytesModel(object):
         end_pos = self.reported_end_pos
         if end_pos is not None:
             current_pos = dbytes.pos
+            if current_pos > end_pos:
+                dbytes.pos = end_pos
+                return True
             if current_pos != end_pos:
                 remain = self.add_unknown(end_pos - current_pos, or_to_eof=or_to_eof)
                 return len(remain) == current_pos
