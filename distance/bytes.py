@@ -290,7 +290,8 @@ class Section(BytesModel):
         elif ident == SECTION_UNK_3:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
-            self.add_unknown(12)
+            self.value_id = dbytes.read_fixed_number(4)
+            self.add_unknown(8)
         elif ident == SECTION_UNK_2:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos

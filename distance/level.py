@@ -147,8 +147,9 @@ class LevelObject(BytesModel):
         ts = self.require_section(SECTION_TYPE)
         self.type = ts.type
         self.report_end_pos(ts.data_start + ts.size)
-        self.require_section(SECTION_UNK_3)
-        self.transform = parse_transform(dbytes)
+        s3 = self.require_section(SECTION_UNK_3)
+        if dbytes.pos + 12 < s3.data_end:
+            self.transform = parse_transform(dbytes)
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
@@ -365,16 +366,17 @@ class WorldText(LevelObject):
 
     def parse(self, dbytes):
         LevelObject.parse(self, dbytes)
-        index = 0
         while dbytes.pos < self.reported_end_pos:
             section = Section(dbytes)
             if section.ident == SECTION_UNK_3:
-                if index == 0:
-                    index += 1
-                else:
-                    dbytes.pos = section.data_start + 12
-                    self.text = dbytes.read_string()
-                    self.add_unknown(value=dbytes.read_struct("fff"))
+                if section.value_id == 0x07:
+                    pos = section.data_start + 12
+                    if pos < section.data_end:
+                        dbytes.pos = pos
+                        self.text = dbytes.read_string()
+                        self.add_unknown(value=dbytes.read_struct("fff"))
+                    else:
+                        self.text = f"Hello World"
                     break
             dbytes.pos = section.data_start + section.size
 

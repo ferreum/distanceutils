@@ -35,6 +35,19 @@ class InfoDisplayBoxTest(unittest.TestCase):
             self.assertEqual(obj.texts, ["Test_2", "", "", "", ""])
 
 
+class WorldTextTest(unittest.TestCase):
+
+    def test_parse(self):
+        with open("in/customobject/worldtext 1.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.text, "Test text")
+
+    def test_parse_2(self):
+        with open("in/customobject/worldtext helloworld.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.text, "Hello World")
+
+
 if __name__ == '__main__':
     unittest.main()
 
