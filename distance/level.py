@@ -133,9 +133,6 @@ def _print_objects(p, gen):
         if 'numbers' in p.flags:
             p(f"Level object: {counters.num_objects}")
         p.print_data_of(obj)
-        if obj.has_children and 'groups' in p.flags:
-            child_gen = obj.iter_children()
-            counters.grouped_objects += obj.num_children
 
 
 class LevelObject(BytesModel):
@@ -313,7 +310,9 @@ class Group(LevelObject):
                 p(f"Custom name: {self.group_name!r}")
             p(f"Grouped objects: {self.num_children}")
             if 'groups' in p.flags:
-                with p.tree_children(self.num_children):
+                num = self.num_children
+                p.counters.grouped_objects += num
+                with p.tree_children(num):
                     _print_objects(p, self.iter_children())
             if counters:
                 counters.print_data(p)
