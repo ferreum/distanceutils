@@ -372,6 +372,8 @@ class Section(BytesModel):
 
 class DstBytes(object):
 
+    max_pos = None
+
     def __init__(self, source):
         self.source = source
 
@@ -383,11 +385,25 @@ class DstBytes(object):
     def pos(self, newpos):
         self.source.seek(newpos)
 
+    @contextmanager
+    def limit(self, max_pos):
+        old_max = self.max_pos
+        if old_max is not None and max_pos > old_max:
+            raise IOError("cannot extend max_pos")
+        self.max_pos = max_pos
+        try:
+            yield
+        finally:
+            self.max_pos = old_max
+
     def read_n(self, n, or_to_eof=False):
         if n == 0:
             return b''
         if n < 0:
             raise ValueError("n must be positive")
+        max_pos = self.max_pos
+        if max_pos is not None and self.pos + n > max_pos:
+            raise EOFError
         result = self.source.read(n)
         if not or_to_eof and len(result) != n:
             raise EOFError

@@ -150,6 +150,11 @@ class LevelObject(BytesModel):
         s3 = self.require_section(SECTION_UNK_3)
         if dbytes.pos + 12 < s3.data_end:
             self.transform = parse_transform(dbytes)
+        with dbytes.limit(ts.data_end):
+            self._parse_sub(dbytes)
+
+    def _parse_sub(self, dbytes):
+        pass
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
@@ -163,6 +168,11 @@ class SubObject(BytesModel):
         ts = self.require_section(SECTION_TYPE)
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
+        with dbytes.limit(ts.data_end):
+            self._parse_sub(dbytes)
+
+    def _parse_sub(self, dbytes):
+        pass
 
 
 @PROBER.for_type('LevelSettings')
@@ -194,37 +204,38 @@ class LevelSettings(BytesModel):
         ts = self.require_section(SECTION_TYPE)
         self.report_end_pos(ts.data_start + ts.size)
         self.type = ts.type
-        self.require_section(SECTION_UNK_3)
-        self.version = version = self.require_section(SECTION_UNK_2).version
+        with dbytes.limit(ts.data_end):
+            self.require_section(SECTION_UNK_3)
+            self.version = version = self.require_section(SECTION_UNK_2).version
 
-        self.add_unknown(12)
-        self.name = dbytes.read_string()
-        self.add_unknown(4)
-        self.modes = modes = {}
-        num_modes = dbytes.read_fixed_number(4)
-        for i in range(num_modes):
-            mode = dbytes.read_fixed_number(4)
-            modes[mode] = dbytes.read_byte()
-        self.music_id = dbytes.read_fixed_number(4)
-        if version <= 3:
-            self.skybox_name = dbytes.read_string()
-            self.add_unknown(57)
-        elif version == 4:
-            self.add_unknown(141)
-        elif version == 5:
-            self.add_unknown(172) # confirmed only for v5
-        elif 6 <= version:
-            # confirmed only for v6..v9
-            self.add_unknown(176)
-        self.medal_times = times = []
-        self.medal_scores = scores = []
-        for i in range(4):
-            times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_fixed_number(4, signed=True))
-        if version >= 1:
-            self.abilities = dbytes.read_struct(S_ABILITIES)
-        if version >= 2:
-            self.difficulty = dbytes.read_fixed_number(4)
+            self.add_unknown(12)
+            self.name = dbytes.read_string()
+            self.add_unknown(4)
+            self.modes = modes = {}
+            num_modes = dbytes.read_fixed_number(4)
+            for i in range(num_modes):
+                mode = dbytes.read_fixed_number(4)
+                modes[mode] = dbytes.read_byte()
+            self.music_id = dbytes.read_fixed_number(4)
+            if version <= 3:
+                self.skybox_name = dbytes.read_string()
+                self.add_unknown(57)
+            elif version == 4:
+                self.add_unknown(141)
+            elif version == 5:
+                self.add_unknown(172) # confirmed only for v5
+            elif 6 <= version:
+                # confirmed only for v6..v9
+                self.add_unknown(176)
+            self.medal_times = times = []
+            self.medal_scores = scores = []
+            for i in range(4):
+                times.append(dbytes.read_struct(S_FLOAT)[0])
+                scores.append(dbytes.read_fixed_number(4, signed=True))
+            if version >= 1:
+                self.abilities = dbytes.read_struct(S_ABILITIES)
+            if version >= 2:
+                self.difficulty = dbytes.read_fixed_number(4)
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
@@ -267,8 +278,7 @@ class Group(LevelObject):
     has_children = True
     group_name = None
 
-    def parse(self, dbytes):
-        LevelObject.parse(self, dbytes)
+    def _parse_sub(self, dbytes):
         s5 = self.require_section(SECTION_UNK_5)
         self.children_start = s5.end_pos
         self.children_end = children_end = s5.data_start + s5.size
@@ -316,8 +326,7 @@ class SubTeleporter(SubObject):
     link_id = None
     trigger_checkpoint = None
 
-    def parse(self, dbytes):
-        SubObject.parse(self, dbytes)
+    def _parse_sub(self, dbytes):
         while dbytes.pos < self.reported_end_pos:
             section = Section(dbytes)
             if section.ident == SECTION_UNK_2:
@@ -353,8 +362,7 @@ class Teleporter(LevelObject):
 
     sub_teleporter = None
 
-    def parse(self, dbytes):
-        LevelObject.parse(self, dbytes)
+    def _parse_sub(self, dbytes):
         self.require_section(SECTION_UNK_5)
         gen = SUBOBJ_PROBER.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos)
         for obj, sane, exc in gen:
@@ -375,8 +383,7 @@ class WorldText(LevelObject):
 
     text = None
 
-    def parse(self, dbytes):
-        LevelObject.parse(self, dbytes)
+    def _parse_sub(self, dbytes):
         while dbytes.pos < self.reported_end_pos:
             section = Section(dbytes)
             if section.ident == SECTION_UNK_3:
@@ -402,8 +409,7 @@ class InfoDisplayBox(LevelObject):
 
     texts = ()
 
-    def parse(self, dbytes):
-        LevelObject.parse(self, dbytes)
+    def _parse_sub(self, dbytes):
         dbytes.pos = self.require_section(SECTION_UNK_3).data_end
         texts = ()
         while dbytes.pos < self.reported_end_pos:
