@@ -48,6 +48,19 @@ class WorldTextTest(unittest.TestCase):
             self.assertEqual(obj.text, "Hello World")
 
 
+class TeleExitTest(unittest.TestCase):
+
+    def test_with_checkpoint(self):
+        with open("in/customobject/tele exit checkpoint.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.sub_teleporter.trigger_checkpoint, 1)
+
+    def test_without_checkpoint(self):
+        with open("in/customobject/tele exit nocheckpoint.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.sub_teleporter.trigger_checkpoint, 0)
+
+
 if __name__ == '__main__':
     unittest.main()
 

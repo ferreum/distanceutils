@@ -314,6 +314,7 @@ class SubTeleporter(SubObject):
 
     destination = None
     link_id = None
+    trigger_checkpoint = None
 
     def parse(self, dbytes):
         SubObject.parse(self, dbytes)
@@ -328,6 +329,14 @@ class SubTeleporter(SubObject):
                     dbytes.pos = section.data_start + 12
                     value = dbytes.read_fixed_number(4)
                     self.link_id = value
+                elif section.value_id == 0x51:
+                    if section.size > 12:
+                        dbytes.pos = section.data_start + 12
+                        check = dbytes.read_byte()
+                    else:
+                        # if section is too short, the checkpoint is enabled
+                        check = 1
+                    self.trigger_checkpoint = check
             dbytes.pos = section.data_start + section.size
 
     def _print_data(self, p):
@@ -335,6 +344,8 @@ class SubTeleporter(SubObject):
             p(f"Teleports to: {self.destination}")
         if self.link_id is not None:
             p(f"Link ID: {self.link_id}")
+        if self.trigger_checkpoint is not None:
+            p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
 
 
 @PROBER.for_type('Teleporter', 'TeleporterVirus', 'TeleporterExit')
