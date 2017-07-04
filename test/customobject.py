@@ -47,6 +47,11 @@ class WorldTextTest(unittest.TestCase):
             obj = PROBER.parse(DstBytes(f))
             self.assertEqual(obj.text, "Hello World")
 
+    def test_parse_3(self):
+        with open("in/customobject/worldtext weird.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.text, "Zero-G")
+
 
 class TeleExitTest(unittest.TestCase):
 
