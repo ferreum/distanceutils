@@ -98,8 +98,10 @@ class ProfileProgress(BytesModel):
         if self.level_s2:
             p(f"Level progress version: {self.level_s2.version}")
             p(f"Level count: {self.num_levels}")
-            for level, sane, exc in self.iter_levels():
-                p.print_data_of(level)
+            with p.tree_children(self.num_levels):
+                for level, sane, exc in self.iter_levels():
+                    p.tree_next_child()
+                    p.print_data_of(level)
         else:
             p("No level progress")
 
