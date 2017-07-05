@@ -37,6 +37,9 @@ class Mode(FancyEnum):
     }
 
 
+TIMED_MODES = {Mode.SPRINT, Mode.SPEED_AND_STYLE, Mode.CHALLENGE}
+
+
 class Completion(FancyEnum):
 
     UNPLAYED = 0

@@ -7,12 +7,10 @@
 from .bytes import (BytesModel, S_COLOR_RGBA,
                     SECTION_TYPE, SECTION_UNK_1, SECTION_UNK_2, SECTION_UNK_3)
 from .common import format_duration
-from .constants import Completion, Mode
+from .constants import Completion, Mode, TIMED_MODES
 
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
-
-TIMED_MODES = {1, 8}
 
 
 def format_score(mode, score, comp):
