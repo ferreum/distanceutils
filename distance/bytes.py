@@ -268,6 +268,12 @@ class BytesModel(object):
         unknown.append(value)
         return value
 
+    def require_equal(self, expect, nbytes=None, value=None):
+        if nbytes is not None:
+            value = self.dbytes.read_fixed_number(nbytes)
+        if value != expect:
+            raise IOError(f"Unexpected data: {value!r}")
+
 
 class Section(BytesModel):
 

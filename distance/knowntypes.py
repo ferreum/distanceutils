@@ -9,6 +9,7 @@ from .detect import BytesProber
 from .replay import Replay, FTYPE_REPLAY_PREFIX
 from .leaderboard import Leaderboard, FTYPE_LEADERBOARD
 from .levelinfos import LevelInfos, FTYPE_LEVELINFOS
+from .profileprogress import ProfileProgress, FTYPE_PROFILEPROGRESS
 from .level import Level
 from .level import PROBER as LEVEL_PROBER
 
@@ -16,6 +17,7 @@ from .level import PROBER as LEVEL_PROBER
 PROBER = BytesProber({
     FTYPE_LEADERBOARD: Leaderboard,
     FTYPE_LEVELINFOS: LevelInfos,
+    FTYPE_PROFILEPROGRESS: ProfileProgress,
 })
 
 
