@@ -21,6 +21,7 @@ class Mode(FancyEnum):
     FREE_ROAM = 4
     TAG = 5
     CHALLENGE = 8
+    ADVENTURE = 9
     SPEED_AND_STYLE = 10
     MAIN_MENU = 13
 
@@ -30,6 +31,7 @@ class Mode(FancyEnum):
         FREE_ROAM: "Free Roam",
         TAG: "Reverse Tag",
         CHALLENGE: "Challenge",
+        ADVENTURE: "Adventure",
         SPEED_AND_STYLE: "Speed and Style",
         MAIN_MENU: "Main Menu",
     }
