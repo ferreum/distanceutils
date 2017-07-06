@@ -270,7 +270,7 @@ class PlayerStats(BytesModel):
             p(f"Found trackmogrify mods: {len(mods)}")
             with p.tree_children((len(mods) + 4) // 5):
                 for i in range(0, len(mods), 5):
-                    mods_str = ', '.join(repr(m) for m in mods[i:i+5])
+                    mods_str = ', '.join(repr(m) for m in islice(mods, i, i + 5))
                     p.tree_next_child()
                     p(f"Found: {mods_str}")
 
