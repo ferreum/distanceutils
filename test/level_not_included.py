@@ -12,7 +12,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.level import Level
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, PrintContext
 
 
 def results_with_groups(gen):
@@ -64,6 +64,21 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(tuple(self.objects[0].medal_scores), scores)
 
 
+class Base(object):
+
+    class PrintTest(unittest.TestCase):
+
+        def test_print(self):
+            for f in self.files:
+                with self.subTest(file=f):
+                    p = PrintContext(file=None, flags=())
+                    def print_exc(e):
+                        raise e
+                    p.print_exception = print_exc
+                    with open(f"in/level-not-included/{f}.bytes", 'rb') as f:
+                        p.print_data_of(Level(DstBytes(f)))
+
+
 class Version0Test(BaseTest):
 
     def test_brutal_minimalism(self):
@@ -82,6 +97,11 @@ class Version0Test(BaseTest):
 
 
 class Version1Test(BaseTest):
+
+    MANY_LEVELS = ("attempt", "car crusher", "city", "construction zone", "contraband delivery", "entanglement",
+                   "escape the core", "flashback", "giant butts", "hardcore black", "hexopolis", "hextreme",
+                   "optimal routing", "qwe", "racingcars", "returnofandy", "saw ride", "scratchdisk", "solid",
+                   "spectagular", "storm belt", "the virus begins", "traps", "upandup", "vertical king")
 
     def test_magi(self):
         level, objects = self.getLevel("in/level-not-included/v1/magi.bytes")
@@ -108,10 +128,7 @@ class Version1Test(BaseTest):
         self.assertEqual(len(objects), 79)
 
     def test_many_success(self):
-        for name in ("attempt", "car crusher", "city", "construction zone", "contraband delivery", "entanglement",
-                     "escape the core", "flashback", "giant butts", "hardcore black", "hexopolis", "hextreme",
-                     "optimal routing", "qwe", "racingcars", "returnofandy", "saw ride", "scratchdisk", "solid",
-                     "spectagular", "storm belt", "the virus begins", "traps", "upandup", "vertical king"):
+        for name in self.MANY_LEVELS:
             with self.subTest(name=name):
                 level, objects = self.getLevel(f"in/level-not-included/v1/{name}.bytes")
                 for obj, sane, exc in self.results:
@@ -119,6 +136,11 @@ class Version1Test(BaseTest):
                     self.assertIsNone(obj.exception)
                     self.assertTrue(sane)
             self.close_files()
+
+
+class Version1PrintTest(Base.PrintTest):
+
+    files = ["v1/" + n for n in Version1Test.MANY_LEVELS]
 
 
 class Version3Test(BaseTest):
@@ -229,6 +251,11 @@ class Version9Test(BaseTest):
         self.assertTimes(-1, -1, -1, -1)
         self.assertScores(-1, -1, -1, -1)
         self.assertEqual(len(objects), 102)
+
+
+class Version9PrintTest(Base.PrintTest):
+
+    files = ("v9/sector 6624", "v9/flower")
 
 
 if __name__ == '__main__':
