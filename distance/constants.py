@@ -23,6 +23,7 @@ class Mode(FancyEnum):
     CHALLENGE = 8
     ADVENTURE = 9
     SPEED_AND_STYLE = 10
+    TRACKMOGRIFY = 11
     MAIN_MENU = 13
 
     Names = {
@@ -33,6 +34,7 @@ class Mode(FancyEnum):
         CHALLENGE: "Challenge",
         ADVENTURE: "Adventure",
         SPEED_AND_STYLE: "Speed and Style",
+        TRACKMOGRIFY: "Trackmogrify",
         MAIN_MENU: "Main Menu",
     }
 
