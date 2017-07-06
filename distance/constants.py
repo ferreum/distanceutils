@@ -108,4 +108,17 @@ class AbilityToggle(FancyEnum):
         return f"Unknown({toggle}, {value})"
 
 
+class Rating(FancyEnum):
+
+    NONE = 0
+    POSITIVE = 1
+    NEGATIVE = 2
+
+    Names = {
+        NONE: "None",
+        POSITIVE: "Positive",
+        NEGATIVE: "Negative",
+    }
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

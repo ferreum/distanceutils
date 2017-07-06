@@ -6,11 +6,8 @@
 
 from .bytes import BytesModel, SECTION_UNK_2
 from .common import format_bytes
+from .constants import Rating
 
-
-RATING_NONE = 0
-RATING_POSITIVE = 1
-RATING_NEGATIVE = 2
 
 FTYPE_LEVELINFOS = "WorkshopLevelInfos"
 
@@ -77,14 +74,10 @@ class LevelInfos(BytesModel):
                     unk_str = f"Unknown: {format_bytes(level.unknown)} "
                 if level.rating is None:
                     rate_str = " Rating: None"
-                elif level.rating == RATING_POSITIVE:
-                    rate_str = " Rating: +"
-                elif level.rating == RATING_NEGATIVE:
-                    rate_str = " Rating: -"
-                elif level.rating == RATING_NONE:
+                elif level.rating == Rating.NONE:
                     rate_str = ""
                 else:
-                    rate_str = " Rating: Unknown ({level.rating})"
+                    rate_str = " Rating: " + Rating.to_name(level.rating)
                 p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
                 if exc:
                     p.print_exception(exc)
