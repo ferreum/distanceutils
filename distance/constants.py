@@ -18,6 +18,7 @@ class Mode(FancyEnum):
 
     SPRINT = 1
     STUNT = 2
+    SOCCER = 3
     FREE_ROAM = 4
     TAG = 5
     CHALLENGE = 8
@@ -29,6 +30,7 @@ class Mode(FancyEnum):
     Names = {
         SPRINT: "Sprint",
         STUNT: "Stunt",
+        SOCCER: "Soccer",
         FREE_ROAM: "Free Roam",
         TAG: "Reverse Tag",
         CHALLENGE: "Challenge",
