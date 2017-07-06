@@ -41,7 +41,7 @@ class ProfileProgressTest(unittest.TestCase):
                 raise exc
             self.assertEqual(13, stats.stats['impacts'])
 
-    def test_print(self):
+    def test_print_data(self):
         p = PrintContext.for_test()
         with open("in/profileprogress/diamond acclivity.bytes", 'rb') as f:
             p.print_data_of(ProfileProgress(DstBytes(f)))

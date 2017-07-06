@@ -11,7 +11,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.leaderboard import Leaderboard
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, PrintContext
 
 
 class Version0Test(unittest.TestCase):
@@ -28,6 +28,11 @@ class Version0Test(unittest.TestCase):
                              + ['Ferreus'])
             self.assertEqual(lb.version, 0)
             self.assertTrue(sane)
+
+    def test_print_data(self):
+        p = PrintContext.for_test()
+        with open("in/leaderboard/version_0.bytes", 'rb') as f:
+            p.print_data_of(Leaderboard(DstBytes(f)))
 
 
 class Version1Test(unittest.TestCase):
@@ -68,6 +73,11 @@ class Version1Test(unittest.TestCase):
             self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5)
             self.assertEqual(lb.version, 1)
             self.assertFalse(sane)
+
+    def test_print_data(self):
+        p = PrintContext.for_test()
+        with open("in/leaderboard/version_1.bytes", 'rb') as f:
+            p.print_data_of(Leaderboard(DstBytes(f)))
 
 
 if __name__ == '__main__':

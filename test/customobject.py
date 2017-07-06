@@ -12,7 +12,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.level import PROBER
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, PrintContext
 
 
 def results_with_groups(gen):
@@ -34,6 +34,11 @@ class InfoDisplayBoxTest(unittest.TestCase):
             obj = PROBER.parse(DstBytes(f))
             self.assertEqual(obj.texts, ["Test_2", "", "", "", ""])
 
+    def test_print_data(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/infodisplaybox 1.bytes", 'rb') as f:
+            p.print_data_of(PROBER.parse(DstBytes(f)))
+
 
 class WorldTextTest(unittest.TestCase):
 
@@ -52,6 +57,11 @@ class WorldTextTest(unittest.TestCase):
             obj = PROBER.parse(DstBytes(f))
             self.assertEqual(obj.text, "Zero-G")
 
+    def test_print_data(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/worldtext helloworld.bytes", 'rb') as f:
+            p.print_data_of(PROBER.parse(DstBytes(f)))
+
 
 class TeleExitTest(unittest.TestCase):
 
@@ -64,6 +74,11 @@ class TeleExitTest(unittest.TestCase):
         with open("in/customobject/tele exit nocheckpoint.bytes", 'rb') as f:
             obj = PROBER.parse(DstBytes(f))
             self.assertEqual(obj.sub_teleporter.trigger_checkpoint, 0)
+
+    def test_print_data(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/tele exit nocheckpoint.bytes", 'rb') as f:
+            p.print_data_of(PROBER.parse(DstBytes(f)))
 
 
 if __name__ == '__main__':
