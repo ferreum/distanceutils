@@ -10,7 +10,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.levelinfos import LevelInfos
-from distance.bytes import DstBytes, UnexpectedEOFError
+from distance.bytes import DstBytes, PrintContext, UnexpectedEOFError
 
 
 class Version0Test(unittest.TestCase):
@@ -82,6 +82,11 @@ class Version0Test(unittest.TestCase):
             self.assertIsNone(exc)
             with self.assertRaises(UnexpectedEOFError):
                 raise AssertionError(next(gen))
+
+    def test_print(self):
+        p = PrintContext.for_test()
+        with open("in/levelinfos/version_0.bytes", 'rb') as f:
+            p.print_data_of(LevelInfos(DstBytes(f)))
 
 
 if __name__ == '__main__':

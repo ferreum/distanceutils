@@ -53,6 +53,14 @@ class PrintContext(object):
         self.file = file
         self.flags = flags
 
+    @classmethod
+    def for_test(clazz, file=None, flags=()):
+        p = PrintContext(file=file, flags=flags)
+        def print_exc(e):
+            raise e
+        p.print_exception = print_exc
+        return p
+
     def get_tree_prefix(self):
         if not self.printed_child:
             if self.num_tree_children > 0:

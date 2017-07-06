@@ -71,10 +71,7 @@ class Base(object):
         def test_print(self):
             for f in self.files:
                 with self.subTest(file=f):
-                    p = PrintContext(file=None, flags=())
-                    def print_exc(e):
-                        raise e
-                    p.print_exception = print_exc
+                    p = PrintContext.for_test()
                     with open(f"in/level-not-included/{f}.bytes", 'rb') as f:
                         p.print_data_of(Level(DstBytes(f)))
 
