@@ -16,14 +16,6 @@ from .common import format_duration
 from .detect import BytesProber
 
 
-ABILITY_NAMES = (
-    {0: "", 1: "Infinite Cooldown"},
-    {0: "", 1: "Disable Flying"},
-    {0: "", 1: "Disable Jumping"},
-    {0: "", 1: "Disable Boosting"},
-    {0: "", 1: "Disable Jet Rotation"},
-)
-
 S_ABILITIES = Struct("5b")
 
 
