@@ -46,14 +46,10 @@ class Replay(BytesModel):
         self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
 
         if version <= 1:
-            ident = dbytes.read_fixed_number(4)
-            if ident != SECTION_UNK_1:
-                raise IOError(f"unexpected section: {ident}")
+            self.require_equal(SECTION_UNK_1, 4)
             section_size = dbytes.read_fixed_number(4) * 4
             dbytes.pos += section_size
-            ident = dbytes.read_fixed_number(4)
-            if ident != SECTION_UNK_1:
-                raise IOError(f"unexpected section: {ident}")
+            self.require_equal(SECTION_UNK_1, 4)
             section_size = dbytes.read_fixed_number(4)
             dbytes.pos += section_size - 8
             self.finish_time = dbytes.read_fixed_number(4)
