@@ -315,6 +315,39 @@ class ProfileProgress(BytesModel):
                     num -= 1
                     if num <= 0:
                         break
+        self.off_mapname_start = dbytes.pos
+
+    def iter_official_levels(self):
+        dbytes = self.dbytes
+        dbytes.pos = self.off_mapname_start
+        self.require_equal(SECTION_UNK_1, 4)
+        num_maps = dbytes.read_fixed_number(4)
+        def gen():
+            for i in range(num_maps):
+                yield dbytes.read_string()
+            self.found_tricks_start = dbytes.pos + 36
+        return gen(), num_maps
+
+    def iter_tricks(self):
+        dbytes = self.dbytes
+        dbytes.pos = self.found_tricks_start
+        self.require_equal(SECTION_UNK_1, 4)
+        num_tricks = dbytes.read_fixed_number(4)
+        def gen():
+            for i in range(num_tricks):
+                yield dbytes.read_string()
+            self.somelevel_list_start = start = dbytes.pos + 18
+        return gen(), num_tricks
+
+    def iter_somelevels(self):
+        dbytes = self.dbytes
+        dbytes.pos = self.somelevel_list_start
+        self.require_equal(SECTION_UNK_1, 4)
+        num_somelevels = dbytes.read_fixed_number(4)
+        def gen():
+            for i in range(num_somelevels):
+                yield dbytes.read_string()
+        return gen(), num_somelevels
 
     def read_stats(self):
         s2 = self.stats_s2
@@ -333,6 +366,27 @@ class ProfileProgress(BytesModel):
                 for level, sane, exc in self.iter_levels():
                     p.tree_next_child()
                     p.print_data_of(level)
+            gen, length = self.iter_official_levels()
+            if length:
+                p(f"Unlocked levels: {length}")
+            with p.tree_children(length):
+                for name in gen:
+                    p.tree_next_child()
+                    p(f"Level: {name!r}")
+            gen, length = self.iter_tricks()
+            if length:
+                p(f"Found tricks: {length}")
+            with p.tree_children(length):
+                for trick in gen:
+                    p.tree_next_child()
+                    p(f"Trick: {trick!r}")
+            gen, length = self.iter_somelevels()
+            if length:
+                p(f"Some levels: {length}")
+            with p.tree_children(length):
+                for somelevel in gen:
+                    p.tree_next_child()
+                    p(f"Level: {somelevel!r}")
             stats, sane, exc = self.read_stats()
             if stats:
                 p.print_data_of(stats)
