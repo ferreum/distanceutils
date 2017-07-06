@@ -212,16 +212,16 @@ class PlayerStats(BytesModel):
             total_online = sum(self.modes_online)
             p.tree_next_child()
             p(f"Total time in offline modes: {format_duration_dhms(total_offline * 1000)}")
-            with p.tree_children(sum(1 for t in self.modes_offline if t)):
+            with p.tree_children(sum(1 for t in self.modes_offline if t >= 0.001)):
                 for mode, time in enumerate(self.modes_offline):
-                    if time > 0:
+                    if time >= 0.001:
                         p.tree_next_child()
                         p(f"Time playing {Mode.to_name(mode)} offline: {format_duration_dhms(time * 1000)}")
             p.tree_next_child()
             p(f"Total time in online modes: {format_duration_dhms(total_online * 1000)}")
-            with p.tree_children(sum(1 for t in self.modes_offline if t)):
+            with p.tree_children(sum(1 for t in self.modes_online if t >= 0.001)):
                 for mode, time in enumerate(self.modes_online):
-                    if time > 0:
+                    if time >= 0.001:
                         p.tree_next_child()
                         p(f"Time playing {Mode.to_name(mode)} online: {format_duration_dhms(time * 1000)}")
             ps(s.editor_working, "Time working in editor")
