@@ -15,6 +15,7 @@ from .common import format_unknown
 S_COLOR_RGBA = Struct("4f")
 
 S_FLOAT = Struct("f")
+S_DOUBLE = Struct("d")
 
 SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666
@@ -69,7 +70,9 @@ class PrintContext(object):
             prefix = self.tree_prefix + self.get_tree_prefix()
             self.printed_child = True
             args = (prefix,) + args
-        print(*args, file=self.file, **kwargs)
+        f = self.file
+        if f is not None:
+            print(*args, file=f, **kwargs)
 
     @contextmanager
     def tree_children(self, num_children):

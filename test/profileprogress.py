@@ -12,7 +12,7 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.profileprogress import ProfileProgress
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, PrintContext
 from distance.constants import Completion, Mode
 
 
@@ -36,6 +36,19 @@ class ProfileProgressTest(unittest.TestCase):
             levels = list(obj.iter_levels())
             self.assertEqual(len(levels), 1)
             self.assertEqual(levels[0][0].completion[Mode.SPRINT], Completion.DIAMOND)
+            stats, sane, exc = obj.read_stats()
+            if exc:
+                raise exc
+            self.assertEqual(13, stats.stats['impacts'])
+
+    def test_print(self):
+        p = PrintContext(None, ())
+        def p_exc(e):
+            raise e
+        p.print_exception = p_exc
+        with open("in/profileprogress/diamond acclivity.bytes", 'rb') as f:
+            obj = ProfileProgress(DstBytes(f))
+            p.print_data_of(obj)
 
 
 if __name__ == '__main__':

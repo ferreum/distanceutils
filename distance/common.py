@@ -43,6 +43,32 @@ def format_duration(msec):
     return f"{'-' if negative else ''}{hours}{mins:02}:{sec:02}.{msec:03}"
 
 
+def format_duration_dhms(msec):
+    if msec is None:
+        return "None"
+    if math.isnan(msec):
+        return "NaN"
+    if not isinstance(msec, int):
+        msec = int(msec)
+    if msec == 0:
+        return "0"
+    result = []
+    if msec < 0:
+        msec = -msec
+        result.append("-")
+    for n, unit in ("d", 86400000), ("h", 3600000), ("m", 60000), ("s", 1000), ("ms", 1):
+        v = msec // unit
+        msec %= unit
+        if v:
+            result.append(f"{v}{n}")
+    return ' '.join(result)
+
+
+def format_distance(meters):
+    km = int(meters) / 1000.0
+    return f"{km} km"
+
+
 def format_color(color):
     if color is None:
         return "None"
