@@ -11,27 +11,10 @@ from contextlib import contextmanager
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
                     SECTION_UNK_2, SECTION_UNK_3, SECTION_UNK_5, SECTION_LEVEL_INFO)
+from .constants import Difficulty, Mode, AbilityToggle
 from .common import format_duration
 from .detect import BytesProber
 
-
-MODE_SPRINT = 1
-MODE_STUNT = 2
-MODE_FREE_ROAM = 4
-MODE_TAG = 5
-MODE_CHALLENGE = 8
-MODE_SPEED_AND_STYLE = 10
-MODE_MAIN_MENU = 13
-
-MODE_NAMES = {
-    MODE_SPRINT: "Sprint",
-    MODE_STUNT: "Stunt",
-    MODE_FREE_ROAM: "Free Roam",
-    MODE_TAG: "Reverse Tag",
-    MODE_CHALLENGE: "Challenge",
-    MODE_SPEED_AND_STYLE: "Speed and Style",
-    MODE_MAIN_MENU: "Main Menu",
-}
 
 ABILITY_NAMES = (
     {0: "", 1: "Infinite Cooldown"},
@@ -40,15 +23,6 @@ ABILITY_NAMES = (
     {0: "", 1: "Disable Boosting"},
     {0: "", 1: "Disable Jet Rotation"},
 )
-
-DIFFICULTY_NAMES = {
-    0: "Casual",
-    1: "Normal",
-    2: "Advanced",
-    3: "Expert",
-    4: "Nightmare",
-    5: "None",
-}
 
 S_ABILITIES = Struct("5b")
 
@@ -249,21 +223,19 @@ class LevelSettings(BytesModel):
             medal_str = ', '.join(str(s) for s in self.medal_scores)
             p(f"Medal scores: {medal_str}")
         if self.modes:
-            modes_str = ', '.join(MODE_NAMES.get(mode, f"Unknown({mode})")
+            modes_str = ', '.join(Mode.to_name(mode)
                                   for mode, value in sorted(self.modes.items())
                                   if value)
             p(f"Level modes: {modes_str}")
         if self.abilities:
-            ab_str = ', '.join(names.get(value, f"Unknown({value})")
-                               for value, names in zip(self.abilities, ABILITY_NAMES)
-                               if names.get(value, True))
+            ab_str = ', '.join(AbilityToggle.to_name_for_value(toggle, value)
+                               for toggle, value in enumerate(self.abilities)
+                               if value != 0)
             if not ab_str:
                 ab_str = "All"
             p(f"Abilities: {ab_str}")
         if self.difficulty is not None:
-            diff_str = (DIFFICULTY_NAMES.get(self.difficulty, None)
-                        or f"Unknown({self.difficulty})")
-            p(f"Difficulty: {diff_str}")
+            p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
 
 
 @PROBER.for_type('Group')

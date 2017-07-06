@@ -63,4 +63,49 @@ class Completion(FancyEnum):
     }
 
 
+class Difficulty(FancyEnum):
+
+    CASUAL = 0
+    NORMAL = 1
+    ADVANCED = 2
+    EXPERT = 3
+    NIGHTMARE = 4
+    NONE = 5
+
+    Names = {
+        0: "Casual",
+        1: "Normal",
+        2: "Advanced",
+        3: "Expert",
+        4: "Nightmare",
+        5: "None",
+    }
+
+
+class AbilityToggle(FancyEnum):
+
+    INF_COOLDOWN = 0
+    NO_WINGS = 1
+    NO_JUMP = 2
+    NO_BOOST = 3
+    NO_JETS = 4
+
+    Names = {
+        INF_COOLDOWN: "Infinite Cooldown",
+        NO_WINGS: "Disable Flying",
+        NO_JUMP: "Disable Jumping",
+        NO_BOOST: "Disable Boosting",
+        NO_JETS: "Disable Jet Rotation",
+    }
+
+    @classmethod
+    def to_name_for_value(clazz, toggle, value):
+        try:
+            if value == 0 or value == 1:
+                return clazz.Names[toggle]
+        except KeyError:
+            pass
+        return f"Unknown({toggle}, {value})"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
