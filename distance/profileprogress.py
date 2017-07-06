@@ -5,6 +5,7 @@
 
 
 from collections import OrderedDict
+from itertools import islice
 
 from .bytes import (BytesModel, Section, S_DOUBLE,
                     SECTION_UNK_1, SECTION_UNK_2, SECTION_UNK_3)
@@ -336,7 +337,7 @@ class ProfileProgress(BytesModel):
         def gen():
             for i in range(num_tricks):
                 yield dbytes.read_string()
-            self.somelevel_list_start = start = dbytes.pos + 18
+            self.somelevel_list_start = dbytes.pos + 18
         return gen(), num_tricks
 
     def iter_somelevels(self):
@@ -369,17 +370,23 @@ class ProfileProgress(BytesModel):
             gen, length = self.iter_official_levels()
             if length:
                 p(f"Unlocked levels: {length}")
-            with p.tree_children(length):
-                for name in gen:
+            with p.tree_children((length + 4) // 5):
+                # need to ensure that gen is exhausted
+                gen = iter(list(gen))
+                for _ in range(0, length, 5):
                     p.tree_next_child()
-                    p(f"Level: {name!r}")
+                    l_str = ', '.join(repr(n) for n in islice(gen, 5))
+                    p(f"Levels: {l_str}")
             gen, length = self.iter_tricks()
             if length:
                 p(f"Found tricks: {length}")
-            with p.tree_children(length):
-                for trick in gen:
+            with p.tree_children((length + 4) // 5):
+                # need to ensure that gen is exhausted
+                gen = iter(list(gen))
+                for _ in range(0, length, 5):
                     p.tree_next_child()
-                    p(f"Trick: {trick!r}")
+                    t_str = ', '.join(repr(t) for t in islice(gen, 5))
+                    p(f"Tricks: {t_str}")
             gen, length = self.iter_somelevels()
             if length:
                 p(f"Some levels: {length}")
