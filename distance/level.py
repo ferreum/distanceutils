@@ -38,6 +38,16 @@ def _fallback_subobject(section):
     return None
 
 
+def parse_transform_pos(dbytes):
+    def read_float():
+        return dbytes.read_struct(S_FLOAT)[0]
+    f = read_float()
+    if math.isnan(f):
+        return (0.0, 0.0, 0.0)
+    else:
+        return (f, read_float(), read_float())
+
+
 def parse_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
@@ -396,6 +406,77 @@ class InfoDisplayBox(LevelObject):
         for i, text in enumerate(self.texts):
             if text:
                 p(f"Text {i}: {text!r}")
+
+
+@PROBER.for_type('GravityTrigger')
+class GravityTrigger(LevelObject):
+
+    trigger_center = (0.0, 0.0, 0.0)
+    trigger_radius = 50.0
+    disable_gravity = None
+    drag_scale = None
+    drag_scale_angular = None
+    trigger_center = ()
+    trigger_radius = None
+    music_id = None
+    one_time_trigger = None
+    reset_before_trigger = None
+    disable_music_trigger = None
+
+    def _parse_sub(self, dbytes):
+        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            end = section.data_end
+            if section.ident == SECTION_UNK_3:
+                if section.value_id == 0x0e:
+                    # SphereCollider
+                    self.trigger_center = (0.0, 0.0, 0.0)
+                    self.trigger_radius = 50.0
+                    with dbytes.limit(section.data_end, True):
+                        self.trigger_center = parse_transform_pos(dbytes)
+                        self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
+            elif section.ident == SECTION_UNK_2:
+                if section.value_id == 0x45:
+                    # GravityTrigger
+                    self.add_unknown(4)
+                    self.disable_gravity = 1
+                    self.drag_scale = 1.0
+                    self.drag_scale_angular = 1.0
+                    with dbytes.limit(section.data_end, True):
+                        self.disable_gravity = dbytes.read_byte()
+                        self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
+                        self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
+                elif section.value_id == 0x4b:
+                    # MusicTrigger
+                    self.add_unknown(4)
+                    self.music_id = 19
+                    self.one_time_trigger = 1
+                    self.reset_before_trigger = 0
+                    self.disable_music_trigger = 0
+                    with dbytes.limit(section.data_end, True):
+                        self.music_id = dbytes.read_fixed_number(4)
+                        self.one_time_trigger = dbytes.read_byte()
+                        self.reset_before_trigger = dbytes.read_byte()
+                        self.disable_music_trigger = dbytes.read_byte()
+            dbytes.pos = end
+
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
+        if self.disable_gravity is not None:
+            p(f"Disable gravity: {self.disable_gravity and 'yes' or 'no'}")
+        if self.drag_scale is not None:
+            p(f"Drag scale: {self.drag_scale}")
+        if self.drag_scale_angular is not None:
+            p(f"Angular drag scale: {self.drag_scale_angular}")
+        if self.music_id is not None:
+            p(f"Music ID: {self.music_id}")
+        if self.one_time_trigger is not None:
+            p(f"One time trigger: {self.one_time_trigger and 'yes' or 'no'}")
+        if self.reset_before_trigger is not None:
+            p(f"Reset before trigger: {self.reset_before_trigger and 'yes' or 'no'}")
+        if self.disable_music_trigger is not None:
+            p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
 class Level(BytesModel):

@@ -390,6 +390,7 @@ class Section(BytesModel):
 class DstBytes(object):
 
     max_pos = None
+    expect_overread = False
 
     def __init__(self, source):
         self.source = source
@@ -403,13 +404,17 @@ class DstBytes(object):
         self.source.seek(newpos)
 
     @contextmanager
-    def limit(self, max_pos):
+    def limit(self, max_pos, expect_overread=False):
         old_max = self.max_pos
         if old_max is not None and max_pos > old_max:
             raise IOError("cannot extend max_pos")
+        self.expect_overread = expect_overread
         self.max_pos = max_pos
         try:
             yield
+        except EOFError:
+            if not self.expect_overread:
+                raise
         finally:
             self.max_pos = old_max
 

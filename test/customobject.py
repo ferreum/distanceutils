@@ -81,6 +81,35 @@ class TeleExitTest(unittest.TestCase):
             p.print_data_of(PROBER.parse(DstBytes(f)))
 
 
+class GravityTriggerTest(unittest.TestCase):
+
+    def test_default(self):
+        with open("in/customobject/gravtrigger default.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.disable_gravity, True)
+            self.assertEqual(obj.music_id, 19)
+            self.assertEqual(obj.one_time_trigger, True)
+            self.assertEqual(obj.disable_music_trigger, False)
+
+    def test_changed(self):
+        with open("in/customobject/gravtrigger changed.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.disable_gravity, False)
+            self.assertEqual(obj.music_id, 3)
+            self.assertEqual(obj.one_time_trigger, False)
+            self.assertEqual(obj.disable_music_trigger, True)
+
+    def test_print_default(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/gravtrigger default.bytes", 'rb') as f:
+            p.print_data_of(PROBER.parse(DstBytes(f)))
+
+    def test_print_changed(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/gravtrigger changed.bytes", 'rb') as f:
+            p.print_data_of(PROBER.parse(DstBytes(f)))
+
+
 if __name__ == '__main__':
     unittest.main()
 
