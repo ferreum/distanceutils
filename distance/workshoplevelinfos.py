@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        levelinfos.py
-# Description: levelinfos
+# File:        workshoplevelinfos.py
+# Description: workshoplevelinfos
 # Created:     2017-06-24
 
 
@@ -9,7 +9,7 @@ from .common import format_bytes
 from .constants import Rating
 
 
-FTYPE_LEVELINFOS = "WorkshopLevelInfos"
+FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
 
 class Level(BytesModel):
@@ -56,10 +56,10 @@ class Level(BytesModel):
             pass
 
 
-class LevelInfos(BytesModel):
+class WorkshopLevelInfos(BytesModel):
 
     def parse(self, dbytes):
-        self.require_type(FTYPE_LEVELINFOS)
+        self.require_type(FTYPE_WSLEVELINFOS)
         self.version = self.require_section(SECTION_UNK_2).version
         self.add_unknown(12)
 
