@@ -18,7 +18,7 @@ from distance.bytes import DstBytes, PrintContext
 def results_with_groups(gen):
     for obj, sane, exc in gen:
         yield obj, sane, exc
-        if obj.has_children:
+        if getattr(obj, 'has_children', False):
             yield from results_with_groups(obj.iter_children())
 
 
@@ -98,7 +98,8 @@ class Version1Test(BaseTest):
     MANY_LEVELS = ("attempt", "car crusher", "city", "construction zone", "contraband delivery", "entanglement",
                    "escape the core", "flashback", "giant butts", "hardcore black", "hexopolis", "hextreme",
                    "optimal routing", "qwe", "racingcars", "returnofandy", "saw ride", "scratchdisk", "solid",
-                   "spectagular", "storm belt", "the virus begins", "traps", "upandup", "vertical king")
+                   "spectagular", "storm belt", "the virus begins", "traps", "upandup", "vertical king",
+                   "damnation")
 
     def test_magi(self):
         level, objects = self.getLevel("in/level-not-included/v1/magi.bytes")
@@ -123,6 +124,13 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "Dark Generator")
         self.assertTimes(-1, -1, -1, -1)
         self.assertEqual(len(objects), 79)
+
+    def test_damnation(self):
+        level, objects = self.getLevel("in/level-not-included/v1/damnation.bytes",
+                                       with_layers=True, with_groups=True)
+        self.assertEqual(level.level_name, "Damnation")
+        self.assertTimes(89421, 149035, 223552, 298070)
+        self.assertEqual(len(objects), 608)
 
     def test_many_success(self):
         for name in self.MANY_LEVELS:

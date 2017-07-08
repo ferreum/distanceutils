@@ -25,6 +25,7 @@ SECTION_UNK_5 = 55555555
 SECTION_UNK_3 = 33333333
 SECTION_UNK_2 = 22222222
 SECTION_UNK_1 = 11111111
+SECTION_UNK_32 = 32323232
 
 
 LAYER_FLAG_NAMES = ({0: "", 1: "Active"},
@@ -342,6 +343,9 @@ class Section(BytesModel):
             self.level_name = dbytes.read_string()
             self.add_unknown(8)
         elif ident == SECTION_LEVEL_INFO:
+            self.size = dbytes.read_fixed_number(8)
+            self.data_start = dbytes.pos
+        elif ident == SECTION_UNK_32:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
         else:

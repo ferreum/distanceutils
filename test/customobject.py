@@ -100,6 +100,12 @@ class GravityTriggerTest(unittest.TestCase):
             self.assertEqual(obj.one_time_trigger, False)
             self.assertEqual(obj.disable_music_trigger, True)
 
+    def test_old(self):
+        with open("in/customobject/gravtrigger old.bytes", 'rb') as f:
+            # only verify we don't error here
+            PROBER.parse(DstBytes(f))
+            # TODO update when we parse old format
+
     def test_print_default(self):
         p = PrintContext.for_test()
         with open("in/customobject/gravtrigger default.bytes", 'rb') as f:
