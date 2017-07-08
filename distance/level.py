@@ -394,8 +394,22 @@ class InfoDisplayBox(LevelObject):
             if section.ident == SECTION_UNK_2:
                 if section.value_id == 0x4A:
                     self.version = version = section.version
-                    # TODO other versions
-                    if version >= 2:
+                    if version == 0:
+                        self.add_unknown(4)
+                        num_props = dbytes.read_fixed_number(4)
+                        self.texts = texts = [None] * 5
+                        for i in range(num_props):
+                            propname = dbytes.read_string()
+                            if propname.startswith("InfoText"):
+                                dbytes.pos = value_start = dbytes.pos + 8
+                                if not math.isnan(dbytes.read_struct(S_FLOAT)[0]):
+                                    dbytes.pos = value_start
+                                    index = int(propname[-1])
+                                    texts[index] = dbytes.read_string()
+                            else:
+                                dbytes.pos += 12
+                    else:
+                        # only verified in v2
                         self.add_unknown(4)
                         self.fadeout_time = dbytes.read_struct(S_FLOAT)
                         for i in range(5):
