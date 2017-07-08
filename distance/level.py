@@ -564,6 +564,47 @@ class ForceZoneBox(LevelObject):
             p(f"Drag multiplier: {self.drag_multiplier}")
 
 
+@PROBER.for_type('EnableAbilitiesBox')
+class EnableAbilitiesBox(LevelObject):
+
+    abilities = {}
+    KNOWN_ABILITIES = {'EnableFlying', 'EnableJumping',
+                       'EnableBoosting', 'EnableJetRotating'}
+
+    def _parse_sub(self, dbytes):
+        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            if section.ident == SECTION_UNK_3:
+                if section.value_id == 0x0f:
+                    pass # BoxCollider
+            elif section.ident == SECTION_UNK_2:
+                if section.value_id == 0x5e:
+                    if section.size > 16:
+                        self.add_unknown(4)
+                        self.abilities = abilities = {}
+                        num_props = dbytes.read_fixed_number(4)
+                        for i in range(num_props):
+                            propname = dbytes.read_string()
+                            dbytes.pos = value_start = dbytes.pos + 8
+                            byte = dbytes.read_byte()
+                            if byte not in (0, 1): # probably NaN
+                                value = 0
+                                dbytes.pos = value_start + 4
+                            else:
+                                value = byte
+                            if propname in self.KNOWN_ABILITIES:
+                                abilities[propname] = value
+            dbytes.pos = section.data_end
+
+    def print_data(self, p):
+        LevelObject._print_data(self, p)
+        ab_str = ', '.join(k for k, v in self.abilities.items() if v)
+        if not ab_str:
+            ab_str = "None"
+        p(f"Abilities: {ab_str}")
+
+
 class Level(BytesModel):
 
     def parse(self, dbytes):

@@ -148,6 +148,24 @@ class ForceZoneBoxTest(unittest.TestCase):
                     p.print_data_of(PROBER.parse(DstBytes(f)))
 
 
+class EnableAbilitiesBoxTest(unittest.TestCase):
+
+    def test_default(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/enableabilitiesbox default.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.abilities.get('EnableFlying', 0), 0)
+            p.print_data_of(obj)
+
+    def test_flyboost(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/enableabilitiesbox flyboost.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.abilities['EnableFlying'], 1)
+            self.assertEqual(obj.abilities['EnableBoosting'], 1)
+            p.print_data_of(obj)
+
+
 if __name__ == '__main__':
     unittest.main()
 
