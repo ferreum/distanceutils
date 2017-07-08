@@ -382,6 +382,7 @@ class WorldText(LevelObject):
 @PROBER.for_type('InfoDisplayBox')
 class InfoDisplayBox(LevelObject):
 
+    version = None
     texts = ()
 
     def _parse_sub(self, dbytes):
@@ -392,17 +393,21 @@ class InfoDisplayBox(LevelObject):
             end = section.data_end
             if section.ident == SECTION_UNK_2:
                 if section.value_id == 0x4A:
-                    self.add_unknown(4)
-                    self.fadeout_time = dbytes.read_struct(S_FLOAT)
-                    for i in range(5):
-                        self.add_unknown(4) # f32 delay
-                        if texts is ():
-                            self.texts = texts = []
-                        texts.append(dbytes.read_string())
+                    self.version = version = section.version
+                    # TODO other versions
+                    if version >= 2:
+                        self.add_unknown(4)
+                        self.fadeout_time = dbytes.read_struct(S_FLOAT)
+                        for i in range(5):
+                            self.add_unknown(4) # f32 delay
+                            if texts is ():
+                                self.texts = texts = []
+                            texts.append(dbytes.read_string())
             dbytes.pos = end
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
+        p(f"Version: {self.version}")
         for i, text in enumerate(self.texts):
             if text:
                 p(f"Text {i}: {text!r}")

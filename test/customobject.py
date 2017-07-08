@@ -35,6 +35,13 @@ class InfoDisplayBoxTest(unittest.TestCase):
             obj = PROBER.parse(DstBytes(f))
             self.assertEqual(obj.texts, ["Test_2", "", "", "", ""])
 
+    def test_parse_ver_0(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/infodisplaybox ver_0.bytes", 'rb') as f:
+            p.print_data_of(PROBER.parse(DstBytes(f)))
+            # TODO verify content when supporting this version
+
+
     def test_print_data(self):
         p = PrintContext.for_test()
         with open("in/customobject/infodisplaybox 1.bytes", 'rb') as f:
