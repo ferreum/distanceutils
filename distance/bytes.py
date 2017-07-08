@@ -203,8 +203,9 @@ class BytesModel(object):
                 dbytes.pos = end_pos
                 return True
             if current_pos != end_pos:
-                remain = self.add_unknown(end_pos - current_pos, or_to_eof=or_to_eof)
-                return len(remain) == current_pos
+                wanted = end_pos - current_pos
+                remain = self.add_unknown(wanted, or_to_eof=or_to_eof)
+                return len(remain) == wanted
         return False
 
     def print_data(self, file=None, flags=(), p=None):

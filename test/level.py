@@ -45,6 +45,23 @@ class LevelTest(unittest.TestCase):
             with self.assertRaises(UnexpectedEOFError):
                 raise AssertionError(next(gen))
 
+    def test_invalid_str(self):
+        with open("in/level/invalid-groupname.bytes", 'rb') as f:
+            level = Level(DstBytes(f))
+            self.assertEqual(level.level_name, "Test Group")
+            settings = level.read_settings()
+            gen = level.iter_objects()
+            results = list(level.iter_objects())
+            self.assertEqual(len(results), 5)
+            for i, (obj, sane, exc) in enumerate(results):
+                self.assertIsNotNone(obj, f"i == {i}")
+                self.assertTrue(sane, f"i == {i}")
+                self.assertEqual(exc, obj.exception)
+                if i == 2:
+                    self.assertIsInstance(exc, UnicodeError)
+                else:
+                    self.assertIsNone(exc, f"i == {i}")
+
 
 if __name__ == '__main__':
     unittest.main()
