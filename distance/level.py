@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
                     SECTION_UNK_2, SECTION_UNK_3, SECTION_UNK_5, SECTION_LEVEL_INFO)
-from .constants import Difficulty, Mode, AbilityToggle
+from .constants import Difficulty, Mode, AbilityToggle, ForceType
 from .common import format_duration
 from .detect import BytesProber
 
@@ -38,14 +38,14 @@ def _fallback_subobject(section):
     return None
 
 
-def parse_transform_pos(dbytes):
+def parse_n_floats(dbytes, n, default):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
     f = read_float()
     if math.isnan(f):
-        return (0.0, 0.0, 0.0)
+        return default
     else:
-        return (f, read_float(), read_float())
+        return (f, *(read_float() for _ in range(n - 1)))
 
 
 def parse_transform(dbytes):
@@ -431,10 +431,10 @@ class GravityTrigger(LevelObject):
             if section.ident == SECTION_UNK_3:
                 if section.value_id == 0x0e:
                     # SphereCollider
-                    self.trigger_center = (0.0, 0.0, 0.0)
+                    self.trigger_center = parse_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
                     self.trigger_radius = 50.0
                     with dbytes.limit(section.data_end, True):
-                        self.trigger_center = parse_transform_pos(dbytes)
+                        self.trigger_center = parse_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
                         self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
             elif section.ident == SECTION_UNK_2:
                 if section.value_id == 0x45:
@@ -477,6 +477,72 @@ class GravityTrigger(LevelObject):
             p(f"Reset before trigger: {self.reset_before_trigger and 'yes' or 'no'}")
         if self.disable_music_trigger is not None:
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
+
+
+@PROBER.for_type('ForceZoneBox')
+class ForceZoneBox(LevelObject):
+
+    custom_name = None
+    force_direction = ()
+    global_force = None
+    force_type = None
+    gravity_magnitude = None
+    disable_global_gravity = None
+    wind_speed = None
+    drag_multiplier = None
+
+    def _parse_sub(self, dbytes):
+        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            end = section.data_end
+            if section.ident == SECTION_UNK_3:
+                if section.value_id == 0x0f:
+                    pass # collider
+            elif section.ident == SECTION_UNK_2:
+                if section.value_id == 0x63:
+                    # CustomName
+                    self.add_unknown(4) # 0x36=wind 0x3b=gravity
+                    if dbytes.pos < section.data_end:
+                        with dbytes.limit(section.data_end):
+                            self.custom_name = dbytes.read_string()
+                elif section.value_id == 0xa0:
+                    self.add_unknown(4) # 0x37=wind, 0x3c=gravity
+                    self.force_direction = (0.0, 0.0, 1.0)
+                    self.global_force = 0
+                    self.force_type = ForceType.WIND
+                    self.gravity_magnitude = 25.0
+                    self.disable_global_gravity = 0
+                    self.wind_speed = 300.0
+                    self.drag_multiplier = 1.0
+                    with dbytes.limit(section.data_end, True):
+                        self.force_direction = parse_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
+                        self.global_force = dbytes.read_byte()
+                        self.force_type = dbytes.read_fixed_number(4)
+                        self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
+                        self.disable_global_gravity = dbytes.read_byte()
+                        self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
+                        self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
+            dbytes.pos = end
+
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
+        if self.custom_name:
+            p(f"Custom name: {self.custom_name!r}")
+        if self.force_direction:
+            dir_str = ', '.join(str(v) for v in self.force_direction)
+            p(f"Force direction: {dir_str}")
+        if self.global_force is not None:
+            p(f"Global force: {self.global_force and 'yes' or 'no'}")
+        if self.force_type is not None:
+            p(f"Force type: {ForceType.to_name(self.force_type)}")
+        if self.force_type == ForceType.WIND:
+            p(f"Wind speed: {self.wind_speed}")
+            p(f"Drag multiplier: {self.drag_multiplier}")
+        elif self.force_type == ForceType.GRAVITY:
+            p(f"Magnitude: {self.gravity_magnitude}")
+            p(f"Disable global gravity: {self.disable_global_gravity and 'yes' or 'no'}")
+            p(f"Drag multiplier: {self.drag_multiplier}")
 
 
 class Level(BytesModel):

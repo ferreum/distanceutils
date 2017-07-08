@@ -123,4 +123,15 @@ class Rating(FancyEnum):
     }
 
 
+class ForceType(FancyEnum):
+
+    WIND = 0
+    GRAVITY = 1
+
+    Names = {
+        WIND: "Wind",
+        GRAVITY: "Gravity",
+    }
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

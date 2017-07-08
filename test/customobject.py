@@ -13,6 +13,7 @@ if '../' not in sys.path:
 
 from distance.level import PROBER
 from distance.bytes import DstBytes, PrintContext
+from distance.constants import ForceType
 
 
 def results_with_groups(gen):
@@ -108,6 +109,30 @@ class GravityTriggerTest(unittest.TestCase):
         p = PrintContext.for_test()
         with open("in/customobject/gravtrigger changed.bytes", 'rb') as f:
             p.print_data_of(PROBER.parse(DstBytes(f)))
+
+
+class ForceZoneBoxTest(unittest.TestCase):
+
+    files = ("default", "changed wind", "changed gravity")
+
+    def test_default(self):
+        with open(f"in/customobject/forcezone default.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.force_type, ForceType.WIND)
+            self.assertEqual(obj.drag_multiplier, 1.0)
+
+    def test_gravity(self):
+        with open(f"in/customobject/forcezone changed gravity.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.force_type, ForceType.GRAVITY)
+            self.assertEqual(obj.disable_global_gravity, 1)
+
+    def test_print(self):
+        for fname in self.files:
+            with self.subTest(fname=fname):
+                p = PrintContext.for_test()
+                with open(f"in/customobject/forcezone {fname}.bytes", 'rb') as f:
+                    p.print_data_of(PROBER.parse(DstBytes(f)))
 
 
 if __name__ == '__main__':
