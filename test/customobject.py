@@ -88,6 +88,13 @@ class TeleExitTest(unittest.TestCase):
         with open("in/customobject/tele exit nocheckpoint.bytes", 'rb') as f:
             p.print_data_of(PROBER.parse(DstBytes(f)))
 
+    def test_virusspiritspawner(self):
+        p = PrintContext.for_test()
+        with open("in/customobject/virusspiritspawner.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(obj.sub_teleporter.destination, 6666)
+            p.print_data_of(obj)
+
 
 class GravityTriggerTest(unittest.TestCase):
 

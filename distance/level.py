@@ -330,7 +330,7 @@ class SubTeleporter(SubObject):
             p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
 
 
-@PROBER.for_type('Teleporter', 'TeleporterVirus', 'TeleporterExit')
+@PROBER.for_type('Teleporter', 'TeleporterVirus', 'TeleporterExit', 'VirusSpiritSpawner')
 class Teleporter(LevelObject):
 
     sub_teleporter = None
