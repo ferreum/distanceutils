@@ -365,7 +365,6 @@ class WorldText(LevelObject):
                     if pos < section.data_end:
                         dbytes.pos = pos
                         self.text = dbytes.read_string()
-                        pos = dbytes.pos
                         for i in range((section.data_end - dbytes.pos) // 4):
                             self.add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
                     else:
