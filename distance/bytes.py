@@ -50,7 +50,8 @@ class PrintContext(object):
     def __init__(self, file, flags):
         self.file = file
         self.flags = flags
-        self.tree_buffered_lines = []
+        # buffered lines, object finished
+        self._tree_data = [], []
 
     @classmethod
     def for_test(clazz, file=None, flags=()):
@@ -61,9 +62,13 @@ class PrintContext(object):
         return p
 
     def __call__(self, line):
-        buf = self.tree_buffered_lines
+        buf, ended = self._tree_data
         if buf:
-            buf[-1].append(line)
+            last = buf[-1]
+            if ended[-1]:
+                self.tree_push_up(last, False)
+                last.clear()
+            last.append(line)
         else:
             f = self.file
             if f is not None:
@@ -72,7 +77,8 @@ class PrintContext(object):
     def tree_push_up(self, lines, last):
         if not lines:
             return
-        buf = self.tree_buffered_lines
+        buf, ended = self._tree_data
+        ended[-1] = False
         if len(buf) > 1:
             dest = buf[-2]
             push_line = dest.append
@@ -96,22 +102,21 @@ class PrintContext(object):
 
     @contextmanager
     def tree_children(self, num_children):
-        buf = self.tree_buffered_lines
+        buf, ended = self._tree_data
         lines = []
         buf.append(lines)
+        ended.append(False)
         try:
             yield
         finally:
             self.tree_push_up(lines, True)
             buf.pop()
+            ended.pop()
 
     def tree_next_child(self):
-        buf = self.tree_buffered_lines
-        if buf:
-            last = buf[-1]
-            if last:
-                self.tree_push_up(last, False)
-                last.clear()
+        buf, ended = self._tree_data
+        if buf and buf[-1]:
+            ended[-1] = True
 
     def print_data_of(self, obj):
         obj.print_data(p=self)
