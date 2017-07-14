@@ -9,7 +9,7 @@ import re
 import sqlite3
 from datetime import datetime
 
-from distance.levelinfos import LevelInfos
+from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance.bytes import DstBytes
 from distance.common import get_cache_filename
 
@@ -38,7 +38,7 @@ def main(argv):
         c.execute("CREATE INDEX lvl_author ON level(author)")
 
         dbytes = DstBytes(args.FILE)
-        infos = LevelInfos(dbytes)
+        infos = WorkshopLevelInfos(dbytes)
         count = 0
         for level, sane, exc in infos.iter_levels():
             values = [level.id, level.title, level.description, level.updated_date,
