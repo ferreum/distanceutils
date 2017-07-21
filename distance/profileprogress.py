@@ -40,7 +40,7 @@ class LevelProgress(BytesModel):
     completion = ()
     scores = ()
 
-    def parse(self, dbytes):
+    def parse(self, dbytes, version=None):
         self.level_path = dbytes.read_string()
         self.recoverable = True
         self.add_unknown(value=dbytes.read_string())
@@ -57,7 +57,8 @@ class LevelProgress(BytesModel):
         self.scores = scores = []
         for i in range(num_levels):
             scores.append(dbytes.read_fixed_number(4, signed=True))
-        self.add_unknown(8)
+        if version > 2:
+            self.add_unknown(8)
 
     def _print_data(self, p):
         p(f"Level path: {self.level_path!r}")
@@ -154,6 +155,9 @@ class PlayerStats(BytesModel):
 
     version = None
     stats = {}
+    modes_offline = ()
+    modes_online = ()
+    trackmogrify_mods = ()
 
     def parse(self, dbytes, version=None):
         def read_double():
@@ -183,12 +187,13 @@ class PlayerStats(BytesModel):
         for i in range(num):
             online_times.append(read_double())
 
-        self.add_unknown(8)
-        self.require_equal(SECTION_UNK_1, 4)
-        num = dbytes.read_fixed_number(4)
-        self.trackmogrify_mods = mods = []
-        for i in range(num):
-            mods.append(dbytes.read_string())
+        if version >= 6:
+            self.add_unknown(8)
+            self.require_equal(SECTION_UNK_1, 4)
+            num = dbytes.read_fixed_number(4)
+            self.trackmogrify_mods = mods = []
+            for i in range(num):
+                mods.append(dbytes.read_string())
 
     def _print_data(self, p):
         p(f"Player stats version: {self.version}")
@@ -309,7 +314,8 @@ class ProfileProgress(BytesModel):
         with dbytes.limit(data_end):
             num = self.num_levels
             if num:
-                for res in LevelProgress.iter_maybe_partial(dbytes, max_pos=data_end):
+                for res in LevelProgress.iter_maybe_partial(
+                        dbytes, max_pos=data_end, version=s2.version):
                     yield res
                     if not res[1]:
                         break
@@ -331,6 +337,9 @@ class ProfileProgress(BytesModel):
 
     def iter_tricks(self):
         dbytes = self.dbytes
+        if self.level_s2.version < 6:
+            self.somelevel_list_start = dbytes.pos
+            return (), 0
         dbytes.pos = self.found_tricks_start
         self.require_equal(SECTION_UNK_1, 4)
         num_tricks = dbytes.read_fixed_number(4)
@@ -341,6 +350,8 @@ class ProfileProgress(BytesModel):
         return gen(), num_tricks
 
     def iter_somelevels(self):
+        if self.level_s2.version < 6:
+            return (), 0
         dbytes = self.dbytes
         dbytes.pos = self.somelevel_list_start
         self.require_equal(SECTION_UNK_1, 4)
