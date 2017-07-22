@@ -338,7 +338,6 @@ class ProfileProgress(BytesModel):
     def iter_tricks(self):
         dbytes = self.dbytes
         if self.level_s2.version < 6:
-            self.somelevel_list_start = dbytes.pos
             return (), 0
         dbytes.pos = self.found_tricks_start
         self.require_equal(SECTION_UNK_1, 4)
@@ -346,8 +345,21 @@ class ProfileProgress(BytesModel):
         def gen():
             for i in range(num_tricks):
                 yield dbytes.read_string()
-            self.somelevel_list_start = dbytes.pos + 18
+            self.adventure_levels_start = dbytes.pos
         return gen(), num_tricks
+
+    def iter_unlocked_adventure(self):
+        if self.level_s2.version < 6:
+            return (), 0
+        dbytes = self.dbytes
+        dbytes.pos = self.adventure_levels_start
+        self.require_equal(SECTION_UNK_1, 4)
+        num_advlevels = dbytes.read_fixed_number(4)
+        def gen():
+            for i in range(num_advlevels):
+                yield dbytes.read_string()
+            self.somelevel_list_start = dbytes.pos + 10
+        return gen(), num_advlevels
 
     def iter_somelevels(self):
         if self.level_s2.version < 6:
@@ -398,6 +410,13 @@ class ProfileProgress(BytesModel):
                     p.tree_next_child()
                     t_str = ', '.join(repr(t) for t in islice(gen, 5))
                     p(f"Tricks: {t_str}")
+            gen, length = self.iter_unlocked_adventure()
+            if length:
+                p(f"Unlocked adventure stages: {length}")
+            with p.tree_children(length):
+                for advlevel in gen:
+                    p.tree_next_child()
+                    p(f"Level: {advlevel!r}")
             gen, length = self.iter_somelevels()
             if length:
                 p(f"Some levels: {length}")

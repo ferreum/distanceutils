@@ -51,6 +51,11 @@ class ProfileProgressTest(unittest.TestCase):
         with open("in/profileprogress/levels_version_2.bytes", 'rb') as f:
             p.print_data_of(ProfileProgress(DstBytes(f)))
 
+    def test_unlocked_adventure(self):
+        p = PrintContext.for_test()
+        with open("in/profileprogress/unlocked adventure.bytes", 'rb') as f:
+            p.print_data_of(ProfileProgress(DstBytes(f)))
+
 
 if __name__ == '__main__':
     unittest.main()
