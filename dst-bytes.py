@@ -34,7 +34,7 @@ def main():
         with open(fname, 'rb') as f:
             try:
                 if len(args.FILE) > 1:
-                    p()
+                    p("")
                     p(f"File: {f.name!r}")
                 obj, _, exception = maybe_partial(DstBytes(f))
                 p(f"Type: {type(obj).__name__}")
