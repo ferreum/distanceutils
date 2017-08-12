@@ -16,13 +16,6 @@ from distance.bytes import DstBytes, PrintContext
 from distance.constants import ForceType
 
 
-def results_with_groups(gen):
-    for obj, sane, exc in gen:
-        yield obj, sane, exc
-        if obj.has_children:
-            yield from results_with_groups(obj.iter_children())
-
-
 class InfoDisplayBoxTest(unittest.TestCase):
 
     def test_parse(self):

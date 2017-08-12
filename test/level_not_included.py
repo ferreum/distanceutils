@@ -11,15 +11,15 @@ import math
 if '../' not in sys.path:
     sys.path.append('../')
 
-from distance.level import Level
+from distance.level import Level, need_counters
 from distance.bytes import DstBytes, PrintContext
 
 
-def results_with_groups(gen):
-    for obj, sane, exc in gen:
-        yield obj, sane, exc
-        if getattr(obj, 'has_children', False):
-            yield from results_with_groups(obj.iter_children())
+def objects_with_groups(gen):
+    for obj in gen:
+        yield obj
+        if getattr(obj, 'is_object_group', False):
+            yield from objects_with_groups(obj.subobjects)
 
 
 class BaseTest(unittest.TestCase):
@@ -42,15 +42,14 @@ class BaseTest(unittest.TestCase):
             raise unittest.SkipTest(f"Test file {filename} does not exist")
         self.files.append(f)
         self.level = level = Level(DstBytes(f))
-        settings_res = level.read_settings()
-        gen = level.iter_objects(with_layers=with_layers)
+        settings = level.read_settings()[0]
+        gen = (res[0] for res in level.iter_objects(with_layers=with_layers))
         if with_groups:
-            gen = results_with_groups(gen)
-        self.results = results = [settings_res] + list(gen)
-        self.objects = objects = [o for o, _, _ in results]
-        for _, sane, exc in results:
-            if exc:
-                raise exc
+            gen = objects_with_groups(gen)
+        self.objects = objects = [settings] + list(gen)
+        for obj in objects:
+            if obj.exception:
+                raise obj.exception
         return level, objects
 
     def assertTimes(self, *times):
@@ -136,10 +135,8 @@ class Version1Test(BaseTest):
         for name in self.MANY_LEVELS:
             with self.subTest(name=name):
                 level, objects = self.getLevel(f"in/level-not-included/v1/{name}.bytes")
-                for obj, sane, exc in self.results:
-                    self.assertIsNone(exc)
+                for obj in self.objects:
                     self.assertIsNone(obj.exception)
-                    self.assertTrue(sane)
             self.close_files()
 
 
@@ -167,6 +164,14 @@ class Version3Test(BaseTest):
         self.assertEqual(level.level_name, "FullPipeTag")
         self.assertTimes(0, 0, 0, 0)
         self.assertEqual(len(objects), 5874)
+
+    def test_print_groups(self):
+        p = PrintContext.for_test(flags=('groups',))
+        with open("in/level-not-included/v3/fullpipe.bytes", 'rb') as f:
+            with need_counters(p) as counters:
+                level = Level(DstBytes(f))
+                p.print_data_of(level)
+                self.assertEqual(counters.num_objects, 5873)
 
 
 class Version4Test(BaseTest):

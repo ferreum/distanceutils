@@ -104,7 +104,7 @@ def need_counters(p):
 
 def _print_objects(p, gen):
     counters = p.counters
-    for obj, sane, exc in gen:
+    for obj in gen:
         p.tree_next_child()
         counters.num_objects += 1
         if 'numbers' in p.flags:
@@ -113,6 +113,9 @@ def _print_objects(p, gen):
 
 
 class LevelObject(BytesModel):
+
+    subobject_prober = SUBOBJ_PROBER
+    is_object_group = False
 
     has_children = False
     transform = None
@@ -129,7 +132,7 @@ class LevelObject(BytesModel):
                 s5 = self.require_section(SECTION_UNK_5)
                 if s5.num_objects:
                     self.subobjects = subobjects = []
-                    gen = SUBOBJ_PROBER.iter_maybe_partial(
+                    gen = self.subobject_prober.iter_maybe_partial(
                         dbytes, max_pos=s5.data_end)
                     for obj, sane, exc in gen:
                         subobjects.append(obj)
@@ -145,13 +148,20 @@ class LevelObject(BytesModel):
         p(f"Object type: {self.type!r}")
         if 'transform' in p.flags:
             p(f"Transform: {self.transform}")
+        self._print_pre_data(p)
         if self.subobjects:
-            num = len(self.subobjects)
-            p(f"Subobjects: {num}")
-            with p.tree_children(num):
-                for obj in self.subobjects:
-                    p.tree_next_child()
-                    p.print_data_of(obj)
+            self._print_subobjects(p)
+
+    def _print_subobjects(self, p):
+        num = len(self.subobjects)
+        p(f"Subobjects: {num}")
+        with p.tree_children(num):
+            for obj in self.subobjects:
+                p.tree_next_child()
+                p.print_data_of(obj)
+
+    def _print_pre_data(self, p):
+        pass
 
 
 class SubObject(BytesModel):
@@ -265,18 +275,14 @@ class LevelSettings(BytesModel):
 @PROBER.for_type('Group')
 class Group(LevelObject):
 
-    children_start = None
-    children_end = None
-    num_children = None
-    has_children = True
+    subobject_prober = PROBER
+    is_object_group = True
+
     group_name = None
 
     def _parse_sub(self, dbytes):
         s5 = self.require_section(SECTION_UNK_5)
-        self.children_start = s5.end_pos
-        self.children_end = children_end = s5.data_start + s5.size
-        self.num_children = s5.num_objects
-        dbytes.pos = children_end
+        dbytes.pos = s5.data_end
         s2 = Section(dbytes)
         dbytes.pos = s2.size + s2.data_start
         s2 = Section(dbytes)
@@ -284,34 +290,21 @@ class Group(LevelObject):
             self.add_unknown(s2.data_start + 12 - dbytes.pos)
             self.group_name = dbytes.read_string()
 
-    def iter_children(self):
-        dbytes = self.dbytes
-        num = self.num_children
-        if num is not None:
-            dbytes.pos = self.children_start
-            gen = PROBER.iter_maybe_partial(dbytes, max_pos=self.children_end)
-            for obj, sane, exc in gen:
-                yield obj, sane, exc
-                if not sane:
-                    break
-                num -= 1
-                if num <= 0:
-                    break
-        dbytes.pos = self.end_pos
-
-    def _print_data(self, p):
+    def _print_subobjects(self, p):
         with need_counters(p) as counters:
-            LevelObject._print_data(self, p)
-            if self.group_name is not None:
-                p(f"Custom name: {self.group_name!r}")
-            p(f"Grouped objects: {self.num_children}")
+            num = len(self.subobjects)
+            p(f"Grouped objects: {num}")
             if 'groups' in p.flags:
-                num = self.num_children
                 p.counters.grouped_objects += num
                 with p.tree_children(num):
-                    _print_objects(p, self.iter_children())
+                    _print_objects(p, self.subobjects)
             if counters:
                 counters.print_data(p)
+
+    def _print_pre_data(self, p):
+        LevelObject._print_pre_data(self, p)
+        if self.group_name is not None:
+            p(f"Custom name: {self.group_name!r}")
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
@@ -648,7 +641,7 @@ class Level(BytesModel):
         dbytes = self.dbytes
         for layer, sane, exc in Section.iter_maybe_partial(dbytes):
             layer_end = layer.size + layer.data_start
-            yield layer, sane, exc
+            yield layer
             if not sane:
                 return
             dbytes.pos = layer_end
@@ -656,7 +649,7 @@ class Level(BytesModel):
     def iter_layer_objects(self, layer):
         layer_end = layer.size + layer.data_start
         for obj, sane, exc in PROBER.iter_maybe_partial(self.dbytes, max_pos=layer_end):
-            yield obj, sane, exc
+            yield obj
             if not sane:
                 break
 
@@ -668,10 +661,10 @@ class Level(BytesModel):
             if not sane:
                 return
             with need_counters(p) as counters:
-                for layer, sane, exc in self.iter_layers():
-                    p(f"Layer: {counters.num_layers}")
-                    counters.num_layers += 1
-                    counters.layer_objects += layer.num_objects
+                for layer in self.iter_layers():
+                    p(f"Layer: {p.counters.num_layers}")
+                    p.counters.num_layers += 1
+                    p.counters.layer_objects += layer.num_objects
                     p.print_data_of(layer)
                     with p.tree_children(layer.num_objects):
                         _print_objects(p, self.iter_layer_objects(layer))
