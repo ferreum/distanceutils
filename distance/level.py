@@ -17,6 +17,7 @@ from .detect import BytesProber
 
 
 S_ABILITIES = Struct("5b")
+FLOAT_SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
 
 PROBER = BytesProber()
@@ -51,21 +52,21 @@ def parse_n_floats(dbytes, n, default):
 def parse_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
-    f = read_float()
-    if math.isnan(f):
+    f = dbytes.read_n(4)
+    if f == FLOAT_SKIP_BYTES:
         pos = (0.0, 0.0, 0.0)
     else:
-        pos = (f, read_float(), read_float())
-    f = read_float()
-    if math.isnan(f):
+        pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
+    f = dbytes.read_n(4)
+    if f == FLOAT_SKIP_BYTES:
         rot = (0.0, 0.0, 0.0, 0.0)
     else:
-        rot = (f, read_float(), read_float(), read_float())
-    f = read_float()
-    if math.isnan(f):
+        rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
+    f = dbytes.read_n(4)
+    if f == FLOAT_SKIP_BYTES:
         scale = (1.0, 1.0, 1.0)
     else:
-        scale = (f, read_float(), read_float())
+        scale = (S_FLOAT.unpack(f)[0], read_float(), read_float())
     return pos, rot, scale
 
 
@@ -115,6 +116,7 @@ class LevelObject(BytesModel):
 
     has_children = False
     transform = None
+    subobjects = ()
 
     def parse(self, dbytes):
         ts = self.require_section(SECTION_TYPE)
@@ -123,6 +125,16 @@ class LevelObject(BytesModel):
         s3 = self.require_section(SECTION_UNK_3)
         if dbytes.pos + 12 < s3.data_end:
             self.transform = parse_transform(dbytes)
+            if dbytes.pos + 12 < s3.data_end:
+                s5 = self.require_section(SECTION_UNK_5)
+                if s5.num_objects:
+                    self.subobjects = subobjects = []
+                    gen = SUBOBJ_PROBER.iter_maybe_partial(
+                        dbytes, max_pos=s5.data_end)
+                    for obj, sane, exc in gen:
+                        subobjects.append(obj)
+                        if not sane:
+                            break
         with dbytes.limit(ts.data_end):
             self._parse_sub(dbytes)
 
@@ -133,6 +145,13 @@ class LevelObject(BytesModel):
         p(f"Object type: {self.type!r}")
         if 'transform' in p.flags:
             p(f"Transform: {self.transform}")
+        if self.subobjects:
+            num = len(self.subobjects)
+            p(f"Subobjects: {num}")
+            with p.tree_children(num):
+                for obj in self.subobjects:
+                    p.tree_next_child()
+                    p.print_data_of(obj)
 
 
 class SubObject(BytesModel):
@@ -146,6 +165,9 @@ class SubObject(BytesModel):
 
     def _parse_sub(self, dbytes):
         pass
+
+    def _print_data(self, p):
+        p(f"Subobject type: {self.type!r}")
 
 
 @PROBER.for_type('LevelSettings')
@@ -322,6 +344,7 @@ class SubTeleporter(SubObject):
             dbytes.pos = section.data_start + section.size
 
     def _print_data(self, p):
+        SubObject._print_data(self, p)
         if self.destination is not None:
             p(f"Teleports to: {self.destination}")
         if self.link_id is not None:
@@ -336,19 +359,10 @@ class Teleporter(LevelObject):
     sub_teleporter = None
 
     def _parse_sub(self, dbytes):
-        self.require_section(SECTION_UNK_5)
-        gen = SUBOBJ_PROBER.iter_maybe_partial(dbytes, max_pos=self.reported_end_pos)
-        for obj, sane, exc in gen:
+        for obj in self.subobjects:
             if isinstance(obj, SubTeleporter):
                 self.sub_teleporter = obj
                 break
-            if not sane:
-                break
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.sub_teleporter:
-            p.print_data_of(self.sub_teleporter)
 
 
 @PROBER.for_type('WorldText')

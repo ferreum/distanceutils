@@ -173,6 +173,23 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
             p.print_data_of(obj)
 
 
+class S5Offset(unittest.TestCase):
+
+    def test_glasssplineroadstraight(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/glasssplineroadstraight s5 offset.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(len(obj.subobjects), 2)
+            p.print_data_of(obj)
+
+    def test_jumpbarrierlowhi(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/jumpbarrierlowhi s5 offset.bytes", 'rb') as f:
+            obj = PROBER.parse(DstBytes(f))
+            self.assertEqual(len(obj.subobjects), 3)
+            p.print_data_of(obj)
+
+
 if __name__ == '__main__':
     unittest.main()
 
