@@ -597,7 +597,7 @@ class EnableAbilitiesBox(LevelObject):
                                 abilities[propname] = value
             dbytes.pos = section.data_end
 
-    def print_data(self, p):
+    def _print_data(self, p):
         LevelObject._print_data(self, p)
         ab_str = ', '.join(k for k, v in self.abilities.items() if v)
         if not ab_str:
