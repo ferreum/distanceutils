@@ -11,7 +11,7 @@ import math
 if '../' not in sys.path:
     sys.path.append('../')
 
-from distance.level import PROBER
+from distance.level import PROBER, SubTeleporter
 from distance.bytes import DstBytes, PrintContext
 from distance.constants import ForceType
 
@@ -69,12 +69,16 @@ class TeleExitTest(unittest.TestCase):
     def test_with_checkpoint(self):
         with open("in/customobject/tele exit checkpoint.bytes", 'rb') as f:
             obj = PROBER.parse(DstBytes(f))
-            self.assertEqual(obj.sub_teleporter.trigger_checkpoint, 1)
+            tele = next(obj.iter_subobjects(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(tele.trigger_checkpoint, 1)
 
     def test_without_checkpoint(self):
         with open("in/customobject/tele exit nocheckpoint.bytes", 'rb') as f:
             obj = PROBER.parse(DstBytes(f))
-            self.assertEqual(obj.sub_teleporter.trigger_checkpoint, 0)
+            tele = next(obj.iter_subobjects(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(tele.trigger_checkpoint, 0)
 
     def test_print_data(self):
         p = PrintContext.for_test()
@@ -85,7 +89,9 @@ class TeleExitTest(unittest.TestCase):
         p = PrintContext.for_test()
         with open("in/customobject/virusspiritspawner.bytes", 'rb') as f:
             obj = PROBER.parse(DstBytes(f))
-            self.assertEqual(obj.sub_teleporter.destination, 6666)
+            tele = next(obj.iter_subobjects(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(tele.destination, 6666)
             p.print_data_of(obj)
 
 

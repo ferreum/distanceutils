@@ -144,6 +144,12 @@ class LevelObject(BytesModel):
     def _parse_sub(self, dbytes):
         pass
 
+    def iter_subobjects(self, ty=None, name=None):
+        for obj in self.subobjects:
+            if ty is None or isinstance(obj, ty):
+                if name is None or obj.type == name:
+                    yield obj
+
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
         if 'transform' in p.flags:
@@ -344,18 +350,6 @@ class SubTeleporter(SubObject):
             p(f"Link ID: {self.link_id}")
         if self.trigger_checkpoint is not None:
             p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
-
-
-@PROBER.for_type('Teleporter', 'TeleporterVirus', 'TeleporterExit', 'VirusSpiritSpawner')
-class Teleporter(LevelObject):
-
-    sub_teleporter = None
-
-    def _parse_sub(self, dbytes):
-        for obj in self.subobjects:
-            if isinstance(obj, SubTeleporter):
-                self.sub_teleporter = obj
-                break
 
 
 @PROBER.for_type('WorldText')
