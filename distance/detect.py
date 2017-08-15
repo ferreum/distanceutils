@@ -50,6 +50,7 @@ class BytesProber(object):
 
     def detect_class(self, dbytes):
         sections = {}
+        start_pos = dbytes.pos
         section = Section(dbytes).put_into(sections)
         if section.ident == SECTION_TYPE:
             ty = section.type
@@ -62,15 +63,17 @@ class BytesProber(object):
             cls = self._get_from_funcs(section)
         if cls is None:
             raise IOError(f"Unknown object section: {section.ident}")
-        return cls, sections
+        return cls, {'sections': sections, 'start_pos': start_pos}
 
     def parse(self, dbytes, **kw):
-        cls, sections = self.detect_class(dbytes)
-        return cls(dbytes, sections=sections, **kw)
+        cls, add_kw = self.detect_class(dbytes)
+        kw.update(add_kw)
+        return cls(dbytes, **kw)
 
     def maybe_partial(self, dbytes, **kw):
-        cls, sections = self.detect_class(dbytes)
-        return cls.maybe_partial(dbytes, sections=sections, **kw)
+        cls, add_kw = self.detect_class(dbytes)
+        kw.update(add_kw)
+        return cls.maybe_partial(dbytes, **kw)
 
     def iter_maybe_partial(self, dbytes, *args, max_pos=None, **kw):
         try:

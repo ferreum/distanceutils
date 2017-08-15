@@ -174,10 +174,12 @@ class BytesModel(object):
         except Exception as e:
             return entries, False, e
 
-    def __init__(self, dbytes, sections=None, **kw):
+    def __init__(self, dbytes, sections=None, start_pos=None, **kw):
         if sections is not None:
             self.sections = sections
-        self.start_pos = start_pos = dbytes.pos
+        if start_pos is None:
+            start_pos = dbytes.pos
+        self.start_pos = start_pos
         self.dbytes = dbytes
         try:
             self.parse(dbytes, **kw)
