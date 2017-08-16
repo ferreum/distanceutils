@@ -59,7 +59,7 @@ def parse_transform(dbytes):
         pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
     f = dbytes.read_n(4)
     if f == FLOAT_SKIP_BYTES:
-        rot = (0.0, 0.0, 0.0, 0.0)
+        rot = (0.0, 0.0, 0.0, 1.0)
     else:
         rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
     f = dbytes.read_n(4)
