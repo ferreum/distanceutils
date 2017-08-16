@@ -117,7 +117,6 @@ class LevelObject(BytesModel):
     subobject_prober = SUBOBJ_PROBER
     is_object_group = False
 
-    has_children = False
     transform = None
     subobjects = ()
 
