@@ -476,14 +476,7 @@ class DstBytes(object):
 
     def read_fixed_number(self, length, signed=False):
         data = self.read_n(length)
-        n = 0
-        for i, b in enumerate(data):
-            n |= b << (i * 8)
-        if signed:
-            bit = 1 << (length * 8 - 1)
-            if n & bit:
-                n -= (bit << 1)
-        return n
+        return int.from_bytes(data, 'little', signed=signed)
 
     def read_struct(self, st):
         if isinstance(st, str):
@@ -515,24 +508,7 @@ class DstBytes(object):
         self.file.write(data)
 
     def write_num(self, length, value, signed=False):
-        if signed:
-            bit = 1 << (length * 8)
-            if value < -bit - 1:
-                raise OverflowError(f"value too large for length {length}:"
-                                    f"{value} (0x{value:x})")
-            if value >= bit >> 1:
-                raise OverflowError(f"value larger than {length} bytes: "
-                                    f"{value} (0x{value:x})")
-            if value < 0:
-                value += bit
-        else:
-            if value >= (1 << (length * 8)):
-                raise OverflowError(f"value larger than {length} bytes: "
-                                    f"{value} (0x{value:x})")
-        if value < 0:
-            raise OverflowError(f"value must be positive: {value}")
-        data = bytes((value >> (8 * i)) & 0xff for i in range(length))
-        self.write_bytes(data)
+        self.write_bytes(value.to_bytes(length, 'little', signed=signed))
 
     def write_var_num(self, value):
         l = []
