@@ -511,5 +511,55 @@ class DstBytes(object):
                     return
                 b = self.read_byte()
 
+    def write_bytes(self, data):
+        self.file.write(data)
+
+    def write_num(self, length, value, signed=False):
+        if signed:
+            bit = 1 << (length * 8)
+            if value < -bit - 1:
+                raise OverflowError(f"value too large for length {length}:"
+                                    f"{value} (0x{value:x})")
+            if value >= bit >> 1:
+                raise OverflowError(f"value larger than {length} bytes: "
+                                    f"{value} (0x{value:x})")
+            if value < 0:
+                value += bit
+        else:
+            if value >= (1 << (length * 8)):
+                raise OverflowError(f"value larger than {length} bytes: "
+                                    f"{value} (0x{value:x})")
+        if value < 0:
+            raise OverflowError(f"value must be positive: {value}")
+        data = bytes((value >> (8 * i)) & 0xff for i in range(length))
+        self.write_bytes(data)
+
+    def write_var_num(self, value):
+        l = []
+        while value >= 0x80:
+            l.append((value & 0x7f) | 0x80)
+            value >>= 7
+        l.append(value)
+        self.write_bytes(bytes(l))
+
+    def write_str(self, s):
+        data = s.encode('utf-16-le')
+        self.write_var_num(len(data))
+        self.write_bytes(data)
+
+    @contextmanager
+    def write_size(self):
+        start = self.pos
+        self.write_bytes(b'\x00' * 8)
+        try:
+            yield
+        finally:
+            end = self.pos
+            try:
+                self.pos = start
+                self.write_num(8, end - start - 8)
+            finally:
+                self.pos = end
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
