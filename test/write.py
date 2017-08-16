@@ -68,10 +68,17 @@ class WriteNumSignedTest(unittest.TestCase):
     def test_i4_max(self):
         self._test_signed(4, 0x7FFF_FFFF, b'\xFF\xFF\xFF\x7F')
 
+    def test_i4_too_negative(self):
+        buf, dbytes = new_bytes()
+        self.assertRaises(OverflowError, dbytes.write_num,
+                          1, -129, signed=True)
+        self.assertEqual(buf.getvalue(), b'')
+
     def test_i4_too_large(self):
         buf, dbytes = new_bytes()
         self.assertRaises(OverflowError, dbytes.write_num,
                           4, 0x8000_0000, signed=True)
+        self.assertEqual(buf.getvalue(), b'')
 
     def test_i4_negative(self):
         self._test_signed(4, -1, b'\xFF\xFF\xFF\xFF')
