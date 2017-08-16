@@ -174,7 +174,13 @@ class BytesModel(object):
         except Exception as e:
             return entries, False, e
 
-    def __init__(self, dbytes, sections=None, start_pos=None, **kw):
+    def __init__(self, dbytes=None, **kw):
+        if dbytes is not None:
+            self.read(dbytes, **kw)
+        elif kw:
+            raise ValueError(f"invalid keyword arguments: {kw}")
+
+    def read(self, dbytes, sections=None, start_pos=None, **kw):
         if sections is not None:
             self.sections = sections
         if start_pos is None:

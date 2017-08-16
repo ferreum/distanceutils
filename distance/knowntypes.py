@@ -37,7 +37,7 @@ PROBER.extend(LEVEL_PROBER)
 
 
 detect_class = PROBER.detect_class
-parse = PROBER.parse
+read = PROBER.read
 maybe_partial = PROBER.maybe_partial
 
 

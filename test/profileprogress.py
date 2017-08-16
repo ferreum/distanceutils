@@ -18,19 +18,19 @@ from distance.constants import Completion, Mode
 
 class ProfileProgressTest(unittest.TestCase):
 
-    def test_parse_new(self):
+    def test_read_new(self):
         with open("in/profileprogress/new profile.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
             list(obj.iter_levels())
 
-    def test_parse_single_map_started(self):
+    def test_read_single_map_started(self):
         with open("in/profileprogress/started acclivity.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
             levels = list(obj.iter_levels())
             self.assertEqual(len(levels), 1)
             self.assertEqual(levels[0][0].completion[Mode.SPRINT], Completion.STARTED)
 
-    def test_parse_single_map_diamond(self):
+    def test_read_single_map_diamond(self):
         with open("in/profileprogress/diamond acclivity.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
             levels = list(obj.iter_levels())

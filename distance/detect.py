@@ -65,10 +65,12 @@ class BytesProber(object):
             raise IOError(f"Unknown object section: {section.ident}")
         return cls, {'sections': sections, 'start_pos': start_pos}
 
-    def parse(self, dbytes, **kw):
+    def read(self, dbytes, **kw):
         cls, add_kw = self.detect_class(dbytes)
         kw.update(add_kw)
-        return cls(dbytes, **kw)
+        obj = cls()
+        obj.read(dbytes, **kw)
+        return obj
 
     def maybe_partial(self, dbytes, **kw):
         cls, add_kw = self.detect_class(dbytes)
