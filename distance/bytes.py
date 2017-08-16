@@ -421,16 +421,16 @@ class DstBytes(object):
     max_pos = None
     expect_overread = False
 
-    def __init__(self, source):
-        self.source = source
+    def __init__(self, file):
+        self.file = file
 
     @property
     def pos(self):
-        return self.source.tell()
+        return self.file.tell()
 
     @pos.setter
     def pos(self, newpos):
-        self.source.seek(newpos)
+        self.file.seek(newpos)
 
     @contextmanager
     def limit(self, max_pos, expect_overread=False):
@@ -455,7 +455,7 @@ class DstBytes(object):
         max_pos = self.max_pos
         if max_pos is not None and self.pos + n > max_pos:
             raise EOFError
-        result = self.source.read(n)
+        result = self.file.read(n)
         if not or_to_eof and len(result) != n:
             raise EOFError
         return result
