@@ -19,6 +19,9 @@ from .detect import BytesProber
 S_ABILITIES = Struct("5b")
 FLOAT_SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
+S_FLOAT3 = Struct("fff")
+S_FLOAT4 = Struct("ffff")
+
 
 PROBER = BytesProber()
 
@@ -70,6 +73,26 @@ def parse_transform(dbytes):
     return pos, rot, scale
 
 
+def write_transform(dbytes, trans):
+    if trans is None:
+        trans = ()
+    if len(trans) > 0 and trans[0]:
+        pos = trans[0]
+        dbytes.write_bytes(S_FLOAT3.pack(*pos))
+    else:
+        dbytes.write_bytes(FLOAT_SKIP_BYTES)
+    if len(trans) > 1 and trans[1]:
+        rot = trans[1]
+        dbytes.write_bytes(S_FLOAT4.pack(*rot))
+    else:
+        dbytes.write_bytes(FLOAT_SKIP_BYTES)
+    if len(trans) > 2 and trans[2]:
+        scale = trans[2]
+        dbytes.write_bytes(S_FLOAT3.pack(*scale))
+    else:
+        dbytes.write_bytes(FLOAT_SKIP_BYTES)
+
+
 class Counters(object):
 
     num_objects = 0
@@ -117,8 +140,10 @@ class LevelObject(BytesModel):
     subobject_prober = SUBOBJ_PROBER
     is_object_group = False
 
+    version = None
     transform = None
     subobjects = ()
+    has_subobjects = False
 
     def parse(self, dbytes):
         ts = self.require_section(SECTION_TYPE)
@@ -142,6 +167,31 @@ class LevelObject(BytesModel):
 
     def _parse_sub(self, dbytes):
         pass
+
+    def write(self, dbytes):
+        dbytes.write_num(4, SECTION_TYPE)
+        size_pos = dbytes.pos
+        with dbytes.write_size():
+            dbytes.write_str(self.type)
+            dbytes.write_bytes(b'\x00') # unknown
+            dbytes.write_secnum()
+            dbytes.write_num(4, self.version or 0)
+
+            dbytes.write_num(4, SECTION_UNK_3)
+            with dbytes.write_size():
+                dbytes.write_num(4, 1) # type
+                dbytes.write_bytes(b'\x00' * 4) # unknown
+                dbytes.write_secnum()
+                write_transform(dbytes, self.transform)
+                if (self.has_subobjects or self.subobjects
+                        or self.get_section(SECTION_UNK_5)):
+                    dbytes.write_num(4, SECTION_UNK_5)
+                    with dbytes.write_size():
+                        dbytes.write_num(4, len(self.subobjects))
+                        for obj in self.subobjects:
+                            obj.write(dbytes)
+
+            self._write_sub(dbytes)
 
     def iter_subobjects(self, ty=None, name=None):
         for obj in self.subobjects:
@@ -602,6 +652,42 @@ class EnableAbilitiesBox(LevelObject):
         if not ab_str:
             ab_str = "None"
         p(f"Abilities: {ab_str}")
+
+
+@PROBER.for_type("WedgeGS")
+class WedgeGS(LevelObject):
+
+    type = "WedgeGS"
+    version = 3
+    has_subobjects = True
+
+    def _parse_sub(self, dbytes):
+        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            if section.ident == SECTION_UNK_3:
+                if section.value_id == 3: # Material
+                    pass
+            elif section.ident == SECTION_UNK_2:
+                if section.value_id == 0x83: # GoldenSimples
+                    pass
+            dbytes.pos = section.data_end
+
+    def _write_sub(self, dbytes):
+        dbytes.write_num(4, SECTION_UNK_3)
+        with dbytes.write_size():
+            dbytes.write_num(4, 3) # type
+            dbytes.write_num(4, 0) # num s1
+            dbytes.write_secnum()
+
+        dbytes.write_num(4, SECTION_UNK_2)
+        with dbytes.write_size():
+            dbytes.write_num(4, 0x83) # type
+            dbytes.write_num(4, 3) # version
+            dbytes.write_secnum()
+            dbytes.write_num(4, 41)
+            dbytes.write_num(4, 41)
+            dbytes.write_num(4, 0)
 
 
 class Level(BytesModel):

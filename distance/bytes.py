@@ -233,6 +233,10 @@ class BytesModel(object):
                 return len(remain) == wanted
         return False
 
+    def write(self, dbytes):
+        raise NotImplementedError(
+            "Subclass needs to override write(self, dbytes)")
+
     def print_data(self, file=None, flags=(), p=None):
         if p is None:
             p = PrintContext(file, flags)
@@ -325,7 +329,9 @@ class Section(BytesModel):
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
-            self.add_unknown(9)
+            self.add_unknown(1)
+            self.number = dbytes.read_fixed_number(4)
+            self.version = dbytes.read_fixed_number(4)
         elif ident == SECTION_UNK_5:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
@@ -334,7 +340,8 @@ class Section(BytesModel):
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_fixed_number(4)
-            self.add_unknown(8)
+            self.add_unknown(4)
+            self.number = dbytes.read_fixed_number(4)
         elif ident == SECTION_UNK_2:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
@@ -420,6 +427,7 @@ class DstBytes(object):
 
     max_pos = None
     expect_overread = False
+    section_counter = 0
 
     def __init__(self, file):
         self.file = file
@@ -522,6 +530,12 @@ class DstBytes(object):
         data = s.encode('utf-16-le')
         self.write_var_num(len(data))
         self.write_bytes(data)
+
+    def write_secnum(self):
+        n = self.section_counter
+        n += 1
+        self.section_counter = n
+        self.write_num(4, n)
 
     @contextmanager
     def write_size(self):

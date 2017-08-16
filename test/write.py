@@ -123,6 +123,19 @@ class WriteStringTest(unittest.TestCase):
                        b'\xa0\x06' + b't\x00e\x00s\x00t\x00' * 100)
 
 
+class WriteSecnumTest(unittest.TestCase):
+
+    def test_multiple(self):
+        buf, dbytes = new_bytes()
+
+        dbytes.write_secnum()
+        dbytes.write_secnum()
+        dbytes.write_secnum()
+
+        self.assertEqual(buf.getvalue(),
+                         b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00')
+
+
 class WriteSizeTest(unittest.TestCase):
 
     def test_empty(self):
