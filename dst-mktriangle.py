@@ -17,15 +17,17 @@ def main():
     parser.add_argument("FILE", nargs=1, help=".bytes filename")
     args = parser.parse_args()
 
+    scale = (1 / 16,) * 3
+    objs = []
+    from math import pi, cos, sin
+    for i in range(13):
+        r = pi * i * .1
+        x = (i - 6) * 6
+        objs.append(WedgeGS(transform=((x, 0, 0), (sin(r), 0, 0, cos(r)), scale)))
+    group = Group(subobjects=objs)
+
     with open(args.FILE[0], 'wb') as f:
-        dbytes = DstBytes(f)
-        wedge1 = WedgeGS()
-        wedge1.transform = ((0, -50, 0), (0, 0, 1, 0), (1e-10, 1, 1))
-        wedge2 = WedgeGS()
-        wedge2.transform = ((0, 50, 0), (0, 0, 0, -1), (1e-10, 1, 1))
-        group = Group()
-        group.subobjects = [wedge1, wedge2]
-        group.write(dbytes)
+        group.write(DstBytes(f))
 
 
 if __name__ == '__main__':

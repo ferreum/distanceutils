@@ -178,7 +178,7 @@ class BytesModel(object):
         if dbytes is not None:
             self.read(dbytes, **kw)
         elif kw:
-            raise ValueError(f"invalid keyword arguments: {kw}")
+            self.__dict__.update(kw)
 
     def read(self, dbytes, sections=None, start_pos=None, **kw):
         if sections is not None:
