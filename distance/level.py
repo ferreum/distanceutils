@@ -10,7 +10,8 @@ from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
-                    SECTION_UNK_2, SECTION_UNK_3, SECTION_UNK_5, SECTION_LEVEL_INFO)
+                    SECTION_UNK_2, SECTION_UNK_3, SECTION_UNK_5,
+                    SECTION_LEVEL_INFO, SECTION_UNK_1)
 from .constants import Difficulty, Mode, AbilityToggle, ForceType
 from .common import format_duration
 from .detect import BytesProber
@@ -193,6 +194,9 @@ class LevelObject(BytesModel):
 
             self._write_sub(dbytes)
 
+    def _write_sub(self, dbytes):
+        pass
+
     def iter_subobjects(self, ty=None, name=None):
         for obj in self.subobjects:
             if ty is None or isinstance(obj, ty):
@@ -332,18 +336,42 @@ class Group(LevelObject):
 
     subobject_prober = PROBER
     is_object_group = True
+    has_subobjects = True
+    version = 3
+    type = 'Group'
 
     group_name = None
 
     def _parse_sub(self, dbytes):
         s5 = self.require_section(SECTION_UNK_5)
         dbytes.pos = s5.data_end
-        s2 = Section(dbytes)
-        dbytes.pos = s2.size + s2.data_start
-        s2 = Section(dbytes)
-        if s2.size > 12:
-            self.add_unknown(s2.data_start + 12 - dbytes.pos)
-            self.group_name = dbytes.read_string()
+        while dbytes.pos < self.reported_end_pos:
+            section = Section(dbytes)
+            if section.ident == SECTION_UNK_2:
+                if section.value_id == 0x1d: # Group / inspect Children
+                    pass
+                elif section.value_id == 0x63:
+                    if section.size > 12:
+                        dbytes.pos += 4 # secnum
+                        self.group_name = dbytes.read_string()
+            dbytes.pos = section.data_end
+
+    def _write_sub(self, dbytes):
+        dbytes.write_num(4, SECTION_UNK_2)
+        with dbytes.write_size():
+            dbytes.write_num(4, 0x1d) # value id
+            dbytes.write_num(4, 1) # version
+            dbytes.write_secnum()
+            dbytes.write_num(4, SECTION_UNK_1)
+            dbytes.write_num(4, 0) # num values
+            dbytes.write_num(4, 0) # inspect Children: None
+        dbytes.write_num(4, SECTION_UNK_2)
+        with dbytes.write_size():
+            dbytes.write_num(4, 0x63) # value id
+            dbytes.write_num(4, 0) # version
+            dbytes.write_secnum()
+            if self.group_name is not None:
+                dbytes.write_str(self.group_name)
 
     def _print_subobjects(self, p):
         with need_counters(p) as counters:

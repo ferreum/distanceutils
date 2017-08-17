@@ -9,7 +9,7 @@ import argparse
 import traceback
 
 from distance.bytes import DstBytes, PrintContext
-from distance.level import WedgeGS
+from distance.level import WedgeGS, Group
 
 
 def main():
@@ -19,9 +19,13 @@ def main():
 
     with open(args.FILE[0], 'wb') as f:
         dbytes = DstBytes(f)
-        wedge = WedgeGS()
-        wedge.transform = (None, (.7, 0, .7, 0), None)
-        wedge.write(dbytes)
+        wedge1 = WedgeGS()
+        wedge1.transform = ((0, -50, 0), (0, 0, 1, 0), (1e-10, 1, 1))
+        wedge2 = WedgeGS()
+        wedge2.transform = ((0, 50, 0), (0, 0, 0, -1), (1e-10, 1, 1))
+        group = Group()
+        group.subobjects = [wedge1, wedge2]
+        group.write(dbytes)
 
 
 if __name__ == '__main__':
