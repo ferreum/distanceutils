@@ -49,7 +49,7 @@ def main():
     objs = []
     simplesize = 64
 
-    def mktri(dest, srot):
+    def rtri_to_transform(dest, srot):
         pr, pa, pb = dest
         rot = np.quaternion(1, 0, 0, 0)
 
@@ -57,23 +57,22 @@ def main():
         vbr = pb - pr
         ay = -np.arctan2(vbr[2], vbr[0])
         rot *= np.quaternion(cos(ay/2), 0, sin(ay/2), 0)
-        print("ay", ay, rot)
 
         # rotate around z for pb
         vbxr = rotpointrev(rot, vbr)
         az = np.arctan2(vbxr[1], vbxr[0])
         rot *= np.quaternion(cos(az/2), 0, 0, sin(az/2))
-        print("az", az, rot)
 
         # rotate around x for pa
         vaxr = rotpointrev(rot, pa - pr)
         ax = np.arctan2(vaxr[2], vaxr[1])
         rot = rot * np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
-        print("ax", ax)
+
+        print("ax", ax, "ay", ay, "az", az)
 
         print(" rot", rot)
         print("srot", srot)
-        print("diff", rot - srot)
+        print("diff", rot*srot.conj())
 
         print("norms", rot.norm(), srot.norm())
 
@@ -82,12 +81,7 @@ def main():
         pos = (pb + pa) / 2
         scale = [0, length(pr - pa) / simplesize, length(pr - pb) / simplesize]
         print("pos", pos, "rot", rot, "scale", scale)
-        objs.append(WedgeGS(transform=(pos, convrot(fixy * rot), scale)))
-
-        objs.extend(
-            WedgeGS(type='SphereGS',
-                    transform=[point, (), [1/simplesize]*3])
-            for point in itertools.chain(dest))
+        return pos, convrot(fixy * rot), scale
 
     for i in range(13):
         for j in range(13):
@@ -101,7 +95,14 @@ def main():
                 # offset
                 dest += np.array([(i-6) * 30, (j-6)*30, (k-6)*30])
 
-                mktri(dest, srot)
+                transform = rtri_to_transform(dest, srot)
+
+                objs.append(WedgeGS(transform=transform))
+
+                # objs.extend(
+                #     WedgeGS(type='SphereGS',
+                #             transform=[point, (), [1/simplesize]*3])
+                #     for point in itertools.chain(dest))
 
     group = Group(subobjects=objs)
     with open(args.FILE[0], 'wb') as f:
