@@ -20,21 +20,23 @@ def main():
 
     import numpy as np, quaternion
     from numpy import pi, sin, cos
-    from distance.transform import rtri_to_transform, rotpoint, SIMPLE_SIZE
+    from distance.transform import (rtri_to_transform, rotpoint, SIMPLE_SIZE,
+                                    create_triangle_simples)
 
     objs = []
 
     i = j = k = 0
-    maxes = np.array([6, 6, 6])
-    maxhalf = maxes / 2
+    maxes = np.array([4, 4, 4])
+    maxhalf = (maxes - 1) / 2
     maxi, maxj, maxk = maxes
-    for i in range(maxi + 1):
-        for j in range(maxj + 1):
-            for k in range(maxk + 1):
+    speed = pi/3
+    for i in range(maxi):
+        for j in range(maxj):
+            for k in range(maxk):
                 print()
-                verts = np.array([[-10, -5, 0], [10, -5, 0], [-10, 5, 0]])
+                verts = np.array([[-10, -5, 0], [10, -5, 0], [-20, 5, 0]])
 
-                angles = pi/3*i, pi/3*j, pi/3*k
+                angles = speed*i, speed*j, speed*k
                 print("angles", angles)
                 srot = quaternion.from_euler_angles(*angles)
 
@@ -43,14 +45,15 @@ def main():
                 # offset
                 verts += (np.array([i, j, k]) - maxhalf) * 30
 
-                transform = rtri_to_transform(verts, srot)
+                create_triangle_simples(verts, objs)
 
-                objs.append(WedgeGS(transform=transform))
+                # transform = rtri_to_transform(verts, srot)
+                # objs.append(WedgeGS(transform=transform))
 
-                objs.extend(
-                    WedgeGS(type='SphereGS',
-                            transform=[point, (), [.7/SIMPLE_SIZE]*3])
-                    for point in itertools.chain(verts))
+                # objs.extend(
+                #     WedgeGS(type='SphereGS',
+                #             transform=[point, (), [.7/SIMPLE_SIZE]*3])
+                #     for point in itertools.chain(verts))
 
     group = Group(subobjects=objs)
     with open(args.FILE[0], 'wb') as f:
