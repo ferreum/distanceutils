@@ -77,17 +77,17 @@ def parse_transform(dbytes):
 def write_transform(dbytes, trans):
     if trans is None:
         trans = ()
-    if len(trans) > 0 and trans[0]:
+    if len(trans) > 0 and len(trans[0]):
         pos = trans[0]
         dbytes.write_bytes(S_FLOAT3.pack(*pos))
     else:
         dbytes.write_bytes(FLOAT_SKIP_BYTES)
-    if len(trans) > 1 and trans[1]:
+    if len(trans) > 1 and len(trans[1]):
         rot = trans[1]
         dbytes.write_bytes(S_FLOAT4.pack(*rot))
     else:
         dbytes.write_bytes(FLOAT_SKIP_BYTES)
-    if len(trans) > 2 and trans[2]:
+    if len(trans) > 2 and len(trans[2]):
         scale = trans[2]
         dbytes.write_bytes(S_FLOAT3.pack(*scale))
     else:
