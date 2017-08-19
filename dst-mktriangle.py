@@ -30,7 +30,7 @@ def normalized(vec):
 
 def rotpoint(rot, point):
     import numpy as np
-    return rot * point / rot
+    return (rot * np.quaternion(0, *point) / rot).imag
 
 
 def rotpointrev(rot, point):
@@ -55,26 +55,20 @@ def main():
 
         # rotate around y for pb
         vbr = pb - pr
-        print("vbr", vbr)
         ay = -np.arctan2(vbr[2], vbr[0])
         rot *= np.quaternion(cos(ay/2), 0, sin(ay/2), 0)
-        # rot = quaternion.from_euler_angles(0, ay, 0)
         print("ay", ay, rot)
 
         # rotate around z for pb
         vbxr = rotpointrev(rot, vbr)
-        print("vbxr", vbxr)
         az = np.arctan2(vbxr[1], vbxr[0])
         rot *= np.quaternion(cos(az/2), 0, 0, sin(az/2))
-        # rot = quaternion.from_euler_angles(0, ay, az)
         print("az", az, rot)
 
         # rotate around x for pa
         vaxr = rotpointrev(rot, pa - pr)
-        print("pa", pa, "vaxr", vaxr)
         ax = np.arctan2(vaxr[2], vaxr[1])
         rot = rot * np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
-        # rot = quaternion.from_euler_angles(ax, ay, az)
         print("ax", ax)
 
         print(" rot", rot)
@@ -89,7 +83,6 @@ def main():
         scale = [0, length(pr - pa) / simplesize, length(pr - pb) / simplesize]
         print("pos", pos, "rot", rot, "scale", scale)
         objs.append(WedgeGS(transform=(pos, convrot(fixy * rot), scale)))
-        # objs.append(WedgeGS(transform=(pos, convrot(fixy * srot), scale)))
 
         objs.extend(
             WedgeGS(type='SphereGS',
@@ -97,19 +90,18 @@ def main():
             for point in itertools.chain(dest))
 
     for i in range(13):
-        dest = np.array([[-10, 0, 0], [-10, 10, 0], [10, 0, 0]])
-        a = pi/6 * i
-        u = normalized(np.array([0, 0, 1]))
-        # a = pi/2
-        # u = normalized(np.array([4, 9, 1]))
-        asin = sin(a/2)
-        srot = np.quaternion(cos(a/2), *(u*asin))
-        dest = np.array([(srot * np.quaternion(0, *p) / srot).imag for p in dest])
+        for j in range(13):
+            for k in range(13):
+                dest = np.array([[-10, 0, 0], [-10, 10, 0], [10, 0, 0]])
 
-        # offset
-        dest += np.array([(i-6) * 30, 0, 0])
+                srot = quaternion.from_euler_angles(pi/6*i, pi/6*j, pi/6*k)
 
-        mktri(dest, srot)
+                dest = np.array([rotpoint(srot, p) for p in dest])
+
+                # offset
+                dest += np.array([(i-6) * 30, (j-6)*30, (k-6)*30])
+
+                mktri(dest, srot)
 
     group = Group(subobjects=objs)
     with open(args.FILE[0], 'wb') as f:
