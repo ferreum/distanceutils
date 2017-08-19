@@ -24,26 +24,33 @@ def main():
 
     objs = []
 
-    for i in range(7):
-        for j in range(7):
-            for k in range(7):
-                dest = np.array([[-10, 0, 0], [-10, 10, 0], [10, 0, 0]])
+    i = j = k = 0
+    maxes = np.array([6, 6, 6])
+    maxhalf = maxes / 2
+    maxi, maxj, maxk = maxes
+    for i in range(maxi + 1):
+        for j in range(maxj + 1):
+            for k in range(maxk + 1):
+                print()
+                verts = np.array([[-10, -5, 0], [10, -5, 0], [-10, 5, 0]])
 
-                srot = quaternion.from_euler_angles(pi/3*i, pi/3*j, pi/3*k)
+                angles = pi/3*i, pi/3*j, pi/3*k
+                print("angles", angles)
+                srot = quaternion.from_euler_angles(*angles)
 
-                dest = np.array([rotpoint(srot, p) for p in dest])
+                verts = np.array([rotpoint(srot, p) for p in verts])
 
                 # offset
-                dest += np.array([(i-6) * 30, (j-6)*30, (k-6)*30])
+                verts += (np.array([i, j, k]) - maxhalf) * 30
 
-                transform = rtri_to_transform(dest, srot)
+                transform = rtri_to_transform(verts, srot)
 
                 objs.append(WedgeGS(transform=transform))
 
                 objs.extend(
                     WedgeGS(type='SphereGS',
-                            transform=[point, (), [1/SIMPLE_SIZE]*3])
-                    for point in itertools.chain(dest))
+                            transform=[point, (), [.7/SIMPLE_SIZE]*3])
+                    for point in itertools.chain(verts))
 
     group = Group(subobjects=objs)
     with open(args.FILE[0], 'wb') as f:

@@ -7,7 +7,7 @@
 SIMPLE_SIZE = 64
 
 
-def convrot(quat):
+def convquat(quat):
     import numpy as np
     return np.array([quat.z, quat.y, -quat.x, quat.w])
 
@@ -32,12 +32,13 @@ def rotpointrev(rot, point):
     return (rot.conj() * np.quaternion(0, *point) * rot).imag
 
 
-def rtri_to_quat(verts):
-    """Converts the given vetices representing a right triangle to a
-    transform for a WedgeGS.
+def rtri_to_vers(verts):
 
-    Parameter verts is an array of 3-dimensional vertices of length 3.
-    The first entry is the vertex of the right angle."""
+    """Calculates the versor that aligns the legs of the triangle
+    [(0, 0, 0), (1, 0, 0), (0, 1, 0)] with the given right-angled triangle's legs.
+
+    `verts` is an array of 3-dimensional vertices of length 3.
+    The first entry is the vertex of the triangle's right angle."""
 
     import numpy as np, quaternion
     from numpy import pi, sin, cos, arctan2
@@ -45,20 +46,22 @@ def rtri_to_quat(verts):
     pr, pa, pb = verts
     rot = np.quaternion(1, 0, 0, 0)
 
-    # rotate around y for pb
-    vbr = pb - pr
-    ay = -arctan2(vbr[2], vbr[0])
+    # rotate around y for pa
+    var = pa - pr
+    ay = -arctan2(var[2], var[0])
     rot *= np.quaternion(cos(ay/2), 0, sin(ay/2), 0)
 
-    # rotate around z for pb
-    vbxr = rotpointrev(rot, vbr)
-    az = arctan2(vbxr[1], vbxr[0])
+    # rotate around z for pa
+    vaxr = rotpointrev(rot, var)
+    az = arctan2(vaxr[1], vaxr[0])
     rot *= np.quaternion(cos(az/2), 0, 0, sin(az/2))
 
-    # rotate around x for pa
-    vaxr = rotpointrev(rot, pa - pr)
-    ax = arctan2(vaxr[2], vaxr[1])
+    # rotate around x for pb
+    vbxr = rotpointrev(rot, pb - pr)
+    ax = arctan2(vbxr[2], vbxr[1])
     rot *= np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
+
+    print("ax", ax, "ay", ay, "az", az)
 
     return rot
 
@@ -72,7 +75,7 @@ def rtri_to_transform(verts, srot):
     from numpy import pi, sin, cos
 
     pr, pa, pb = verts
-    rot = rtri_to_quat(verts)
+    rot = rtri_to_vers(verts)
 
     print(" rot", rot)
     print("srot", srot)
@@ -81,9 +84,9 @@ def rtri_to_transform(verts, srot):
 
     rot = np.quaternion(cos(-pi/4), 0, sin(-pi/4), 0) * rot
 
-    pos = (pb + pa) / 2
-    scale = [0, length(pr - pa) / SIMPLE_SIZE, length(pr - pb) / SIMPLE_SIZE]
-    return pos, convrot(rot), scale
+    pos = (pa + pb) / 2
+    scale = [0, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
+    return pos, convquat(rot), scale
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
