@@ -70,8 +70,6 @@ def rtri_to_vers(verts):
     ax = arctan2(vbxr[2], vbxr[1])
     rot *= np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
 
-    print("ax", ax, "ay", ay, "az", az)
-
     return rot
 
 
@@ -85,12 +83,6 @@ def rtri_to_transform(verts, srot=None):
 
     pr, pa, pb = verts
     rot = rtri_to_vers(verts)
-
-    print(" rot", rot)
-    if srot is not None:
-        print("srot", srot)
-        print("diff", rot*srot.conj())
-        print("norms", rot.norm(), srot.norm())
 
     rot = np.quaternion(cos(-pi/4), 0, sin(-pi/4), 0) * rot
 
@@ -113,8 +105,6 @@ def create_triangle_simples(verts, objs, cls=WedgeGS):
     aa = pi - ac - ab
 
     imax, _ = max(enumerate([aa, ab, ac]), key=lambda e: e[1])
-
-    print("angles", aa, ab, ac, "imax", imax)
 
     pmax = verts[imax]
     pnext = verts[(imax + 1) % 3]

@@ -23,17 +23,17 @@ def main():
     from distance.transform import (rtri_to_transform, rotpoint, SIMPLE_SIZE,
                                     create_triangle_simples)
 
-    objs = []
+    maxes = np.array([6, 6, 6])
+    speed = pi/6
 
-    i = j = k = 0
-    maxes = np.array([4, 4, 4])
     maxhalf = (maxes - 1) / 2
     maxi, maxj, maxk = maxes
-    speed = pi/3
+
+    objs = []
+
     for i in range(maxi):
         for j in range(maxj):
             for k in range(maxk):
-                print()
                 verts = np.array([[-10, -5, 0], [10, -5, 0], [-20, 5, 0]])
 
                 angles = speed*i, speed*j, speed*k

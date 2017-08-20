@@ -4,6 +4,7 @@
 # Created:     2017-08-20
 
 
+import sys
 import argparse
 
 from distance.bytes import DstBytes
@@ -62,15 +63,20 @@ def obj_to_simples(obj, dest):
             **kw)
 
     vertices = np.array(obj.vertices) * scale
-    for face in obj.faces:
+    slen = len(dest)
+    n_tris = 0
+    for i, face in enumerate(obj.faces):
         it = iter(face)
         first = vertices[next(it) - 1]
         prev = vertices[next(it) - 1]
         for index in it:
-            print(index)
+            n_tris += 1
             vert = vertices[index - 1]
             create_triangle_simples(np.array([first, prev, vert]), dest,
                                     cls=mkwedge)
+            sys.stdout.write(f"\rgenerating... created {len(dest) - slen} "
+                             f"simples for {n_tris} triangles")
+    print()
 
 
 def main():
@@ -85,11 +91,15 @@ def main():
 
     objs = []
 
+    print()
     obj_to_simples(obj, objs)
 
     group = Group(subobjects=objs)
     with open(args.BYTESOUT[0], 'wb') as f:
-        group.write(DstBytes(f))
+        print(f"Writing {args.BYTESOUT[0]}...")
+        dbytes = DstBytes(f)
+        group.write(dbytes)
+        print(f"{dbytes.pos} bytes written")
 
     return 0
 
