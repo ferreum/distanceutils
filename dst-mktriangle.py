@@ -31,6 +31,14 @@ def main():
 
     objs = []
 
+    options = dict(
+        image_index=14,
+        emit_index=14,
+        tex_scale=(10, 10, 10),
+        reflect_color=(.2, .2, .2, .2),
+        world_mapped=True,
+    )
+
     for i in range(maxi):
         for j in range(maxj):
             for k in range(maxk):
@@ -45,19 +53,7 @@ def main():
                 # offset
                 verts += (np.array([i, j, k]) - maxhalf) * 30
 
-                def mkwedge(**kw):
-                    return WedgeGS(
-                        image_index=14,
-                        emit_index=14,
-                        tex_scale=(10, 10, 10),
-                        reflect_color=(.2, .2, .2, .2),
-                        world_mapped=True,
-                        **kw)
-
-                create_triangle_simples(verts, objs, cls=mkwedge)
-
-                # transform = rtri_to_transform(verts, srot)
-                # objs.append(WedgeGS(transform=transform))
+                create_triangle_simples(verts, objs, simple_args=options)
 
                 # objs.extend(
                 #     WedgeGS(type='SphereGS',

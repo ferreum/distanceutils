@@ -48,17 +48,16 @@ def obj_to_simples(obj, dest, scale=1):
     from distance.transform import create_triangle_simples
     import numpy as np, quaternion
 
-    def mkwedge(**kw):
-        return WedgeGS(
-            mat_color=(.8, .8, .8, 1),
-            mat_emit=(0, 0, 0, 0),
-            mat_reflect=(0, 0, 0, 0),
-            image_index=17,
-            emit_index=17,
-            world_mapped=True,
-            disable_diffuse=True,
-            disable_bump=True,
-            **kw)
+    options = dict(
+        mat_color=(.8, .8, .8, 1),
+        mat_emit=(0, 0, 0, 0),
+        mat_reflect=(0, 0, 0, 0),
+        image_index=17,
+        emit_index=17,
+        world_mapped=True,
+        disable_diffuse=True,
+        disable_bump=True
+    )
 
     vertices = np.array(obj.vertices) * scale
     slen = len(dest)
@@ -71,7 +70,7 @@ def obj_to_simples(obj, dest, scale=1):
             n_tris += 1
             vert = vertices[index - 1]
             create_triangle_simples(np.array([first, prev, vert]), dest,
-                                    cls=mkwedge)
+                                    simple_args=options)
             prev = vert
             sys.stdout.write(f"\rgenerating... created {len(dest) - slen} "
                              f"simples for {n_tris} triangles")
