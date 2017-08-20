@@ -87,7 +87,7 @@ def rtri_to_transform(verts, srot=None):
     rot = np.quaternion(cos(-pi/4), 0, sin(-pi/4), 0) * rot
 
     pos = (pa + pb) / 2
-    scale = [0, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
+    scale = [1e-5, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
     return pos, convquat(rot), scale
 
 
