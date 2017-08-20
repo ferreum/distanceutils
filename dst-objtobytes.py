@@ -44,11 +44,9 @@ def read_obj(file):
     return ObjFile(vertices=verts, faces=faces)
 
 
-def obj_to_simples(obj, dest):
+def obj_to_simples(obj, dest, scale=1):
     from distance.transform import create_triangle_simples
     import numpy as np, quaternion
-
-    scale = 16
 
     def mkwedge(**kw):
         return WedgeGS(
@@ -60,7 +58,6 @@ def obj_to_simples(obj, dest):
             world_mapped=True,
             disable_diffuse=True,
             disable_bump=True,
-            disable_collision=True,
             **kw)
 
     vertices = np.array(obj.vertices) * scale
@@ -83,8 +80,11 @@ def obj_to_simples(obj, dest):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--name", help="Custom object name")
+    parser.add_argument("--scale", type=int, help="Set object scale")
     parser.add_argument("OBJIN", nargs=1, help=".obj filename to read")
     parser.add_argument("BYTESOUT", nargs=1, help=".bytes filename to write")
+    parser.set_defaults(scale=16)
     args = parser.parse_args()
 
     with open(args.OBJIN[0]) as f:
@@ -94,9 +94,9 @@ def main():
     objs = []
 
     print()
-    obj_to_simples(obj, objs)
+    obj_to_simples(obj, objs, scale=args.scale)
 
-    group = Group(subobjects=objs)
+    group = Group(subobjects=objs, group_name=args.name)
     with open(args.BYTESOUT[0], 'wb') as f:
         print(f"Writing {args.BYTESOUT[0]}...")
         dbytes = DstBytes(f)
