@@ -75,6 +75,7 @@ def obj_to_simples(obj, dest):
             vert = vertices[index - 1]
             create_triangle_simples(np.array([first, prev, vert]), dest,
                                     cls=mkwedge)
+            prev = vert
             sys.stdout.write(f"\rgenerating... created {len(dest) - slen} "
                              f"simples for {n_tris} triangles")
     print()
