@@ -38,7 +38,8 @@ def read_obj(file):
             face = []
             for i in vals.split(' '):
                 parts = i.split('/')
-                face.append(int(parts[0]))
+                if parts[0]:
+                    face.append(int(parts[0]))
             faces.append(face)
     return ObjFile(vertices=verts, faces=faces)
 
