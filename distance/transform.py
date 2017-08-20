@@ -91,24 +91,17 @@ def rtri_to_transform(verts, srot=None):
     return pos, convquat(rot), scale
 
 
-def create_triangle_simples(verts, objs, simple_args={}):
+def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
 
-    """Creates simples for the given triangle surface."""
+    """Creates two wedges for an arbitrary triangle.
+
+    pmax - the vertex with the greatest angle
+    pnext, plast - the remaining vertices
+    objs - the list to put the objects into
+    simple_args - args to pass to WedgeGS"""
 
     import numpy as np
-    from numpy import pi, dot
-
-    pa, pb, pc = verts
-
-    ac = abs(vec_angle(pa - pc, pb - pc))
-    ab = abs(vec_angle(pa - pb, pc - pb))
-    aa = pi - ac - ab
-
-    imax, _ = max(enumerate([aa, ab, ac]), key=lambda e: e[1])
-
-    pmax = verts[imax]
-    pnext = verts[(imax + 1) % 3]
-    plast = verts[(imax + 2) % 3]
+    from numpy import dot
 
     vnm = pmax - pnext
     vnl = plast - pnext
@@ -121,6 +114,52 @@ def create_triangle_simples(verts, objs, simple_args={}):
 
     transform = rtri_to_transform(np.array([pr, plast, pmax]))
     objs.append(WedgeGS(transform=transform, **simple_args))
+
+
+def create_single_wedge(pr, pa, pb, objs, simple_args={}):
+
+    """Creates a single wedge for the given right triangle.
+
+    pmax - the vertex with the right angle
+    pnext, plast - the remaining vertices
+    objs - the list to put the objects into
+    simple_args - args to pass to WedgeGS"""
+
+    import numpy as np
+
+    transform = rtri_to_transform(np.array([pr, pa, pb]))
+    objs.append(WedgeGS(transform=transform, **simple_args))
+
+
+def create_triangle_simples(verts, objs, simple_args={}):
+
+    """Creates simples for the given triangle.
+
+    verts - sequence containing the three vertices
+    objs - list to put the objects into
+    simple_args - args to pass to WedgeGS"""
+
+    import numpy as np
+    from numpy import pi
+
+    pa, pb, pc = verts
+
+    ac = abs(vec_angle(pa - pc, pb - pc))
+    ab = abs(vec_angle(pa - pb, pc - pb))
+    aa = pi - ac - ab
+
+    imax, amax = max(enumerate([aa, ab, ac]), key=lambda e: e[1])
+
+    pmax = verts[imax]
+    pnext = verts[(imax + 1) % 3]
+    plast = verts[(imax + 2) % 3]
+
+    if -0.001 < abs(amax) - pi/2 < 0.001:
+        # very close to right triangle
+        create_single_wedge(pmax, pnext, plast, objs, simple_args=simple_args)
+    else:
+        # any other triangle
+        create_two_wedges(pmax, pnext, plast, objs, simple_args=simple_args)
 
     # objs.append(WedgeGS(
     #     type='SphereGS',
