@@ -689,6 +689,26 @@ class WedgeGS(LevelObject):
     version = 3
     has_subobjects = True
 
+    mat_color = (.3, .3, .3, 1)
+    mat_emit = (.8, .8, .8, .5)
+    mat_reflect = (.3, .3, .3, .9)
+    mat_spec = (1, 1, 1, 1)
+
+    tex_scale = (1, 1, 1)
+    tex_offset = (0, 0, 0)
+    image_index = 17
+    emit_index = 17
+    flip_tex_uv = 0
+    world_mapped = 0
+    disable_diffuse = 0
+    disable_bump = 0
+    bump_strength = 0
+    disable_reflect = 0
+    disable_collision = 0
+    additive_transp = 0
+    multip_transp = 0
+    invert_emit = 0
+
     def _parse_sub(self, dbytes):
         dbytes.pos = self.require_section(SECTION_UNK_3).data_end
         while dbytes.pos < self.reported_end_pos:
@@ -705,17 +725,42 @@ class WedgeGS(LevelObject):
         dbytes.write_num(4, SECTION_UNK_3)
         with dbytes.write_size():
             dbytes.write_num(4, 3) # type
-            dbytes.write_num(4, 0) # num s1
+            dbytes.write_num(4, 2) # num s1
             dbytes.write_secnum()
+            dbytes.write_num(4, SECTION_UNK_1)
+            dbytes.write_num(4, 1) # num values?
+            dbytes.write_str("SimplesMaterial")
+            dbytes.write_num(4, SECTION_UNK_1)
+            dbytes.write_num(4, 4) # num values?
+            dbytes.write_str("_Color")
+            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_color))
+            dbytes.write_str("_EmitColor")
+            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_emit))
+            dbytes.write_str("_ReflectColor")
+            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_reflect))
+            dbytes.write_str("_SpecColor")
+            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
 
         dbytes.write_num(4, SECTION_UNK_2)
         with dbytes.write_size():
             dbytes.write_num(4, 0x83) # type
             dbytes.write_num(4, 3) # version
             dbytes.write_secnum()
-            dbytes.write_num(4, 41)
-            dbytes.write_num(4, 41)
-            dbytes.write_num(4, 0)
+            dbytes.write_num(4, self.image_index)
+            dbytes.write_num(4, self.emit_index)
+            dbytes.write_num(4, 0) # preset
+            dbytes.write_bytes(S_FLOAT3.pack(*self.tex_scale))
+            dbytes.write_bytes(S_FLOAT3.pack(*self.tex_offset))
+            dbytes.write_num(1, self.flip_tex_uv and 1 or 0)
+            dbytes.write_num(1, self.world_mapped and 1 or 0)
+            dbytes.write_num(1, self.disable_diffuse and 1 or 0)
+            dbytes.write_num(1, self.disable_bump and 1 or 0)
+            dbytes.write_bytes(S_FLOAT.pack(self.bump_strength))
+            dbytes.write_num(1, self.disable_reflect)
+            dbytes.write_num(1, self.disable_collision)
+            dbytes.write_num(1, self.additive_transp)
+            dbytes.write_num(1, self.multip_transp)
+            dbytes.write_num(1, self.invert_emit)
 
 
 class Level(BytesModel):

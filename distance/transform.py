@@ -99,7 +99,7 @@ def rtri_to_transform(verts, srot=None):
     return pos, convquat(rot), scale
 
 
-def create_triangle_simples(verts, objs):
+def create_triangle_simples(verts, objs, cls=WedgeGS):
 
     """Creates simples for the given triangle surface."""
 
@@ -127,10 +127,10 @@ def create_triangle_simples(verts, objs):
     pr = vr + pnext
 
     transform = rtri_to_transform(np.array([pr, pmax, pnext]))
-    objs.append(WedgeGS(transform=transform))
+    objs.append(cls(transform=transform))
 
     transform = rtri_to_transform(np.array([pr, plast, pmax]))
-    objs.append(WedgeGS(transform=transform))
+    objs.append(cls(transform=transform))
 
     # objs.append(WedgeGS(
     #     type='SphereGS',

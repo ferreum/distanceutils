@@ -46,7 +46,20 @@ def obj_to_simples(obj, dest):
     from distance.transform import create_triangle_simples
     import numpy as np, quaternion
 
-    scale = 256
+    scale = 16
+
+    def mkwedge(**kw):
+        return WedgeGS(
+            mat_color=(.8, .8, .8, 1),
+            mat_emit=(0, 0, 0, 0),
+            mat_reflect=(0, 0, 0, 0),
+            image_index=17,
+            emit_index=17,
+            world_mapped=True,
+            disable_diffuse=True,
+            disable_bump=True,
+            disable_collision=True,
+            **kw)
 
     vertices = np.array(obj.vertices) * scale
     for face in obj.faces:
@@ -56,7 +69,8 @@ def obj_to_simples(obj, dest):
         for index in it:
             print(index)
             vert = vertices[index - 1]
-            create_triangle_simples(np.array([first, prev, vert]), dest)
+            create_triangle_simples(np.array([first, prev, vert]), dest,
+                                    cls=mkwedge)
 
 
 def main():

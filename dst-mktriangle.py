@@ -45,7 +45,16 @@ def main():
                 # offset
                 verts += (np.array([i, j, k]) - maxhalf) * 30
 
-                create_triangle_simples(verts, objs)
+                def mkwedge(**kw):
+                    return WedgeGS(
+                        image_index=14,
+                        emit_index=14,
+                        tex_scale=(10, 10, 10),
+                        reflect_color=(.2, .2, .2, .2),
+                        world_mapped=True,
+                        **kw)
+
+                create_triangle_simples(verts, objs, cls=mkwedge)
 
                 # transform = rtri_to_transform(verts, srot)
                 # objs.append(WedgeGS(transform=transform))
