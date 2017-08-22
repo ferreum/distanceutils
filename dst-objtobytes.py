@@ -80,6 +80,8 @@ class ObjReader(object):
 
         self.started = False
         self.options = options
+        self.group_num = 0
+        self.group_name = None
 
     def set_material(self, mtl):
         opt = dict()
@@ -110,6 +112,9 @@ class ObjReader(object):
             #     texs.append(parse_floats(vals))
             # elif left == 'vn':
             #     normals.append(parse_floats(vals))
+            elif left == 'g':
+                self.group_num += 1
+                self.group_name = vals.strip()
             elif left == 'f':
                 face = []
                 for i in vals.split(' '):
@@ -152,26 +157,52 @@ def read_mtllib(file, mtls, base=None):
     return mtls
 
 
-def obj_to_simples(obj, dest, scale=1):
+def obj_to_simples(obj, scale=1):
     from distance.transform import create_triangle_simples
     import numpy as np, quaternion
 
-    slen = len(dest)
+    objs = []
+    root_objs = objs
     n_tris = 0
+    num_added = 0
+    group_name = None
+    group_num = 0
+
+    def end_group():
+        nonlocal num_added
+        num_added += len(objs)
+        root_objs.append(Group(group_name=group_name,
+                               subobjects=objs))
+
     for face in obj:
+
+        if obj.group_num != group_num:
+            if group_num > 0:
+                end_group()
+            objs = []
+            group_name = obj.group_name
+            group_num = obj.group_num
+
         it = iter(face)
         options = obj.options
         first = obj.vertices[next(it) - 1]
         prev = obj.vertices[next(it) - 1]
+
         for index in it:
             n_tris += 1
             vert = obj.vertices[index - 1]
             create_triangle_simples(np.array([first, prev, vert]) * scale,
-                                    dest, simple_args=options)
+                                    objs, simple_args=options)
             prev = vert
-            sys.stdout.write(f"\rgenerating... created {len(dest) - slen} "
+            sys.stdout.write(f"\rgenerating... created {len(objs) + num_added} "
                              f"simples for {n_tris} triangles")
+
     print()
+
+    if group_num > 0:
+        end_group()
+
+    return root_objs
 
 
 def main():
@@ -200,8 +231,7 @@ def main():
     with open(args.OBJIN[0]) as f:
         obj = ObjReader(f, options=options, default_material=def_mat)
 
-        objs = []
-        faces = obj_to_simples(obj, objs, scale=args.scale)
+        objs = obj_to_simples(obj, scale=args.scale)
 
         print(f"converted {len(obj.vertices)} vertices and "
               f"{obj.num_faces} faces")
