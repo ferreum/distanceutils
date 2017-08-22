@@ -167,12 +167,18 @@ def obj_to_simples(obj, scale=1):
     num_added = 0
     group_name = None
     group_num = 0
+    group_verts = []
 
     def end_group():
         nonlocal num_added
         num_added += len(objs)
-        root_objs.append(Group(group_name=group_name,
-                               subobjects=objs))
+        verts = np.array(group_verts) * scale
+        center = tuple((min(verts[:,i]) + max(verts[:,i])) / 2
+                       for i in range(3))
+        group = Group(group_name=group_name,
+                      subobjects=objs)
+        group.recenter(center)
+        root_objs.append(group)
 
     for face in obj:
 
@@ -180,6 +186,7 @@ def obj_to_simples(obj, scale=1):
             if group_num > 0:
                 end_group()
             objs = []
+            group_verts = []
             group_name = obj.group_name
             group_num = obj.group_num
 
@@ -187,10 +194,13 @@ def obj_to_simples(obj, scale=1):
         options = obj.options
         first = obj.vertices[next(it) - 1]
         prev = obj.vertices[next(it) - 1]
+        group_verts.append(first)
+        group_verts.append(prev)
 
         for index in it:
             n_tris += 1
             vert = obj.vertices[index - 1]
+            group_verts.append(vert)
             create_triangle_simples(np.array([first, prev, vert]) * scale,
                                     objs, simple_args=options)
             prev = vert

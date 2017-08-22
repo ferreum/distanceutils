@@ -142,7 +142,7 @@ class LevelObject(BytesModel):
     is_object_group = False
 
     version = None
-    transform = None
+    transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
     subobjects = ()
     has_subobjects = False
 
@@ -388,6 +388,15 @@ class Group(LevelObject):
         LevelObject._print_pre_data(self, p)
         if self.group_name is not None:
             p(f"Custom name: {self.group_name!r}")
+
+    def recenter(self, center):
+        pos, rot, scale = self.transform
+        self.transform = center, rot, scale
+        diff = tuple(c - o for c, o in zip(pos, center))
+        for obj in self.subobjects:
+            pos, rot, scale = obj.transform
+            pos = tuple(o + d for o, d in zip(pos, diff))
+            obj.transform = pos, rot, scale
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
