@@ -166,7 +166,7 @@ def obj_to_simples(obj, scale=1):
     def end_group():
         nonlocal num_added
         num_added += len(objs)
-        verts = np.array(group_verts) * scale
+        verts = np.array(group_verts)
         center = tuple((min(verts[:,i]) + max(verts[:,i])) / 2
                        for i in range(3))
         group = Group(group_name=group_name,
@@ -184,18 +184,18 @@ def obj_to_simples(obj, scale=1):
             group_name = obj.group_name
             group_num = obj.group_num
 
-        it = iter(face)
-        options = obj.options
-        first = obj.vertices[next(it) - 1]
-        prev = obj.vertices[next(it) - 1]
-        group_verts.append(first)
-        group_verts.append(prev)
+        verts = np.array([obj.vertices[i - 1] for i in face]) * scale
+        group_verts.extend(verts)
 
-        for index in it:
+        options = obj.options
+
+        it = iter(verts)
+        first = next(it)
+        prev = next(it)
+
+        for vert in it:
             n_tris += 1
-            vert = obj.vertices[index - 1]
-            group_verts.append(vert)
-            create_triangle_simples(np.array([first, prev, vert]) * scale,
+            create_triangle_simples(np.array([first, prev, vert]),
                                     objs, simple_args=options)
             prev = vert
             sys.stdout.write(f"\rgenerating... created {len(objs) + num_added} "
