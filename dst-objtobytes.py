@@ -101,17 +101,11 @@ class ObjReader(object):
         num_faces = 0
         self.vertices = verts = []
         self.set_material(None)
-        # texs = []
-        # normals = []
         mtls = {}
         for line in self.file:
             left, _, vals = line.strip().partition(' ')
             if left == 'v':
                 verts.append(parse_floats(vals))
-            # elif left == 'vt':
-            #     texs.append(parse_floats(vals))
-            # elif left == 'vn':
-            #     normals.append(parse_floats(vals))
             elif left == 'g':
                 self.group_num += 1
                 self.group_name = vals.strip()
