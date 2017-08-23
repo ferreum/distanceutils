@@ -4,14 +4,18 @@
 # Created:     2017-08-19
 
 
+import numpy as np, quaternion
+
 from .level import WedgeGS
+
 
 SIMPLE_SIZE = 64
 
+WEDGE_DEF_ROT = np.quaternion(np.cos(np.pi/4), 0, np.sin(np.pi/4), 0)
+
 
 def convquat(quat):
-    import numpy as np
-    return np.array([quat.z, quat.y, -quat.x, quat.w])
+    return np.array([quat.x, quat.y, quat.z, quat.w])
 
 
 def length(vec):
@@ -44,7 +48,7 @@ def vec_angle(va, vb):
 def rtri_to_vers(verts):
 
     """Calculates the versor that aligns the legs of the triangle
-    [(0, 0, 0), (1, 0, 0), (0, 1, 0)] with the given right-angled triangle's legs.
+    [(0, 0, 0), (0, 0, -1), (0, 1, 0)] with the given right-angled triangle's legs.
 
     `verts` is an array of 3-dimensional vertices of length 3.
     The first entry is the vertex of the triangle's right angle."""
@@ -57,18 +61,21 @@ def rtri_to_vers(verts):
 
     # rotate around y for pa
     var = pa - pr
-    ay = -arctan2(var[2], var[0])
+    ay = arctan2(-var[0], -var[2])
     rot *= np.quaternion(cos(ay/2), 0, sin(ay/2), 0)
 
-    # rotate around z for pa
+    # rotate around x for pa
     vaxr = rotpointrev(rot, var)
-    az = arctan2(vaxr[1], vaxr[0])
+    ax = arctan2(vaxr[1], -vaxr[2])
+    rot *= np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
+
+    # rotate around z for pb
+    vbxr = rotpointrev(rot, pb - pr)
+    az = arctan2(-vbxr[0], vbxr[1])
     rot *= np.quaternion(cos(az/2), 0, 0, sin(az/2))
 
-    # rotate around x for pb
-    vbxr = rotpointrev(rot, pb - pr)
-    ax = arctan2(vbxr[2], vbxr[1])
-    rot *= np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
+    print(" ->", ax, ay, az)
+    print(" quat", rot)
 
     return rot
 
@@ -83,13 +90,14 @@ def rtri_to_transform(verts, srot=None):
 
     pr, pa, pb = verts
 
-    rot = np.quaternion(cos(-pi/4), 0, sin(-pi/4), 0)
-
-    rot *= rtri_to_vers(verts)
+    v2 = np.array([(0, 0, 0), pa - pr, pb - pr])
+    rot = rtri_to_vers(v2)
 
     pos = (pa + pb) / 2
     scale = [1e-5, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
-    return pos, convquat(rot), scale
+    crot = convquat(rot)
+    print(" crot", crot)
+    return pos, crot, scale
 
 
 def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
