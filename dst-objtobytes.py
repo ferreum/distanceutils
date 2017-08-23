@@ -184,7 +184,8 @@ def obj_to_simples(obj, scale=1):
             group_name = obj.group_name
             group_num = obj.group_num
 
-        verts = np.array([obj.vertices[i - 1] for i in face]) * scale
+        verts = np.array([obj.vertices[i - 1] for i in face])
+        verts *= scale, scale, -scale
         group_verts.extend(verts)
 
         options = obj.options
