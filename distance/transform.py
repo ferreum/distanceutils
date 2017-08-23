@@ -82,9 +82,10 @@ def rtri_to_transform(verts, srot=None):
     from numpy import pi, sin, cos
 
     pr, pa, pb = verts
-    rot = rtri_to_vers(verts)
 
-    rot = np.quaternion(cos(-pi/4), 0, sin(-pi/4), 0) * rot
+    rot = np.quaternion(cos(-pi/4), 0, sin(-pi/4), 0)
+
+    rot *= rtri_to_vers(verts)
 
     pos = (pa + pb) / 2
     scale = [1e-5, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
