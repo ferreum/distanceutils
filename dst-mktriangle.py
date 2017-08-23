@@ -45,8 +45,11 @@ def main():
                 verts = np.array([[-10, -5, 0], [10, -5, 0], [-20, 5, 0]])
 
                 angles = speed*i, speed*j, speed*k
+                alpha, beta, gamma = angles
                 print("angles", angles)
-                srot = quaternion.from_euler_angles(*angles)
+                srot = np.quaternion(cos(alpha/2), sin(alpha/2), 0, 0)
+                srot *= np.quaternion(cos(beta/2), 0, sin(beta/2), 0)
+                srot *= np.quaternion(cos(gamma/2), 0, 0, sin(gamma/2))
 
                 verts = np.array([rotpoint(srot, p) for p in verts])
 
