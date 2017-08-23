@@ -74,9 +74,6 @@ def rtri_to_vers(verts):
     az = arctan2(-vbxr[0], vbxr[1])
     rot *= np.quaternion(cos(az/2), 0, 0, sin(az/2))
 
-    print(" ->", ax, ay, az)
-    print(" quat", rot)
-
     return rot
 
 
@@ -96,7 +93,6 @@ def rtri_to_transform(verts, srot=None):
     pos = (pa + pb) / 2
     scale = [1e-5, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
     crot = convquat(rot)
-    print(" crot", crot)
     return pos, crot, scale
 
 
