@@ -30,12 +30,17 @@ def normalized(vec):
 
 def rotpoint(rot, point):
     import numpy as np
-    return (rot * np.quaternion(0, *point) / rot).imag
+    res = rot * np.quaternion(0, *point)
+    res /= rot
+    return res.imag
 
 
 def rotpointrev(rot, point):
     import numpy as np
-    return (rot.conj() * np.quaternion(0, *point) * rot).imag
+    res = rot.conj()
+    res *= np.quaternion(0, *point)
+    res *= rot
+    return res.imag
 
 
 def vec_angle(va, vb):
