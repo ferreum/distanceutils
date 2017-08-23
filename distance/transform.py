@@ -87,13 +87,11 @@ def rtri_to_transform(verts, srot=None):
 
     pr, pa, pb = verts
 
-    v2 = np.array([(0, 0, 0), pa - pr, pb - pr])
-    rot = rtri_to_vers(v2)
+    rot = rtri_to_vers(verts)
 
     pos = (pa + pb) / 2
     scale = [1e-5, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
-    crot = convquat(rot)
-    return pos, crot, scale
+    return pos, convquat(rot), scale
 
 
 def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
