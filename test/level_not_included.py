@@ -30,17 +30,22 @@ class BaseTest(unittest.TestCase):
     def tearDown(self):
         self.close_files()
 
+    def open(self, filename):
+        try:
+            f = open(filename, 'rb')
+        except FileNotFoundError:
+            raise unittest.SkipTest(f"Test file {filename} does not exist")
+        else:
+            self.files.append(f)
+            return f
+
     def close_files(self):
         for f in self.files:
             f.close()
         self.files = []
 
     def getLevel(self, filename, with_layers=False, with_groups=False):
-        try:
-            f = open(filename, 'rb')
-        except FileNotFoundError:
-            raise unittest.SkipTest(f"Test file {filename} does not exist")
-        self.files.append(f)
+        f = self.open(filename)
         self.level = level = Level(DstBytes(f))
         settings = level.read_settings()[0]
         gen = (res[0] for res in level.iter_objects(with_layers=with_layers))
@@ -65,14 +70,14 @@ class BaseTest(unittest.TestCase):
 
 class Base(object):
 
-    class PrintTest(unittest.TestCase):
+    class PrintTest(BaseTest):
 
         def test_print(self):
-            for f in self.files:
-                with self.subTest(file=f):
+            for file in self.files:
+                with self.subTest(file=file):
                     p = PrintContext.for_test()
-                    with open(f"in/level-not-included/{f}.bytes", 'rb') as f:
-                        p.print_data_of(Level(DstBytes(f)))
+                    f = self.open(f"in/level-not-included/{f}.bytes")
+                    p.print_data_of(Level(DstBytes(f)))
 
 
 class Version0Test(BaseTest):
@@ -167,11 +172,11 @@ class Version3Test(BaseTest):
 
     def test_print_groups(self):
         p = PrintContext.for_test(flags=('groups',))
-        with open("in/level-not-included/v3/fullpipe.bytes", 'rb') as f:
-            with need_counters(p) as counters:
-                level = Level(DstBytes(f))
-                p.print_data_of(level)
-                self.assertEqual(counters.num_objects, 5873)
+        f = self.open("in/level-not-included/v3/fullpipe.bytes")
+        with need_counters(p) as counters:
+            level = Level(DstBytes(f))
+            p.print_data_of(level)
+            self.assertEqual(counters.num_objects, 5873)
 
 
 class Version4Test(BaseTest):
