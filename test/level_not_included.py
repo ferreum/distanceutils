@@ -260,7 +260,7 @@ class Version9Test(BaseTest):
         self.assertScores(10400, 6900, 5200, 4200)
         self.assertEqual(len(objects), 627)
 
-    def test_sector_flower(self):
+    def test_flower(self):
         level, objects = self.getLevel("in/level-not-included/v9/flower.bytes")
         self.assertEqual(level.level_name, "Flower")
         self.assertTimes(-1, -1, -1, -1)
