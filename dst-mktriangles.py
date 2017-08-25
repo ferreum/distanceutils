@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        dst-mktriangle.py
-# Description: dst-mktriangle
+# File:        dst-mktriangles.py
+# Description: sandbox for trying out simples generation
 # Created:     2017-08-16
 
 
