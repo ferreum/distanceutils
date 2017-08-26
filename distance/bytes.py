@@ -149,10 +149,11 @@ class BytesModel(object):
             return clazz(*args, **kw), True, None
         except Exception as e:
             try:
-                return e.partial_object, e.sane_final_pos, e
+                obj = e.partial_object
             except AttributeError:
-                pass
-            raise e
+                raise e
+            else:
+                return obj, obj.sane_end_pos, e
 
     @classmethod
     def iter_maybe_partial(clazz, dbytes, *args, max_pos=None, **kw):
@@ -191,11 +192,12 @@ class BytesModel(object):
             self.parse(dbytes, **kw)
             self.apply_end_pos(dbytes)
             self.end_pos = dbytes.pos
+            self.sane_end_pos = True
         except Exception as e:
             orig_e = e
             exc_pos = dbytes.pos
             if exc_pos != start_pos and isinstance(e, EOFError):
-                e = UnexpectedEOFError().with_traceback(e.__traceback__)
+                e = UnexpectedEOFError()
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
@@ -208,8 +210,8 @@ class BytesModel(object):
                     del e.partial_object
                 except AttributeError:
                     pass
-            e.sane_final_pos = self.apply_end_pos(dbytes, or_to_eof=True)
-            self.end_pos = exc_pos
+            self.sane_end_pos = self.apply_end_pos(dbytes, or_to_eof=True)
+            self.end_pos = dbytes.pos
             raise e from orig_e
 
     def parse(self, dbytes):

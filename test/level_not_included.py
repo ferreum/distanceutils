@@ -47,11 +47,10 @@ class BaseTest(unittest.TestCase):
     def getLevel(self, filename, with_layers=False, with_groups=False):
         f = self.open(filename)
         self.level = level = Level(DstBytes(f))
-        settings = level.read_settings()[0]
         gen = (res[0] for res in level.iter_objects(with_layers=with_layers))
         if with_groups:
             gen = objects_with_groups(gen)
-        self.objects = objects = [settings] + list(gen)
+        self.objects = objects = [level.get_settings()] + list(gen)
         for obj in objects:
             if obj.exception:
                 raise obj.exception

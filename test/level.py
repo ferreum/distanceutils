@@ -31,7 +31,7 @@ class LevelTest(unittest.TestCase):
             dbytes = DstBytes(f)
             level = Level(dbytes)
             self.assertEqual(level.level_name, "Test-straightroad")
-            results = [level.read_settings()] + list(level.iter_objects())
+            results = [level.get_settings()] + list(level.iter_objects())
             self.assertEqual(len(results), 3)
 
     def test_truncated2(self):
@@ -40,7 +40,6 @@ class LevelTest(unittest.TestCase):
             level = Level(dbytes)
             self.assertEqual(level.level_name, "Test-straightroad")
             gen = level.iter_objects()
-            obj, sane, exc = level.read_settings()
             obj, sane, exc = next(gen)
             with self.assertRaises(UnexpectedEOFError):
                 raise AssertionError(next(gen))
@@ -49,7 +48,6 @@ class LevelTest(unittest.TestCase):
         with open("in/level/invalid-groupname.bytes", 'rb') as f:
             level = Level(DstBytes(f))
             self.assertEqual(level.level_name, "Test Group")
-            settings = level.read_settings()
             gen = level.iter_objects()
             results = list(level.iter_objects())
             self.assertEqual(len(results), 5)

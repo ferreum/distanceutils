@@ -774,17 +774,31 @@ class WedgeGS(LevelObject):
 
 class Level(BytesModel):
 
+    settings = None
+
     def parse(self, dbytes):
         ls = self.require_section(SECTION_LEVEL, 0)
         if not ls:
             raise IOError("No level section")
         self.level_name = ls.level_name
 
-    def read_settings(self):
-        return LevelSettings.maybe_partial(self.dbytes)
+    def get_settings(self):
+        s = self.settings
+        if not s:
+            s, sane, exc = LevelSettings.maybe_partial(self.dbytes)
+            self.settings = s
+        return s
+
+    def move_to_first_layer(self):
+        settings = self.get_settings()
+        if settings.sane_end_pos:
+            self.dbytes.pos = settings.reported_end_pos
+        else:
+            raise settings.exception
 
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
+        self.move_to_first_layer()
         for layer, sane, exc in Section.iter_maybe_partial(dbytes):
             layer_end = layer.size + layer.data_start
             if with_layers:
@@ -817,9 +831,9 @@ class Level(BytesModel):
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
         try:
-            settings, sane, exc = self.read_settings()
+            settings = self.get_settings()
             p.print_data_of(settings)
-            if not sane:
+            if not settings.sane_end_pos:
                 return
             with need_counters(p) as counters:
                 for layer in self.iter_layers():
