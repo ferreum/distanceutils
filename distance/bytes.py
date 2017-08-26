@@ -182,10 +182,8 @@ class BytesModel(object):
         elif kw:
             self.__dict__.update(kw)
 
-    def read(self, dbytes, start_section=None, sections=None,
+    def read(self, dbytes, start_section=None,
              start_pos=None, **kw):
-        if sections is not None:
-            self.sections = sections
         self.start_section = start_section
         if start_pos is None:
             start_pos = dbytes.pos
@@ -289,21 +287,6 @@ class BytesModel(object):
             self.start_section = sec = Section(self.dbytes)
         return sec
 
-    def read_sections_to(self, to, index=None, **kw):
-        sections = self.sections
-        if sections is None:
-            self.sections = sections = {}
-        return Section.read_to_map(self.dbytes, to, index=index, dest=sections, **kw)
-
-    def get_section(self, ident, index=0):
-        sections = self.sections
-        if sections is None:
-            return None
-        s_list = self.sections.get(ident, ())
-        if index <= len(s_list) - 1:
-            return s_list[index]
-        return None
-
     def require_type(self, expect):
         ts = self.get_start_section()
         if not ts:
@@ -315,13 +298,6 @@ class BytesModel(object):
             if not expect(ts.type):
                 raise IOError(f"Invalid object type: {ts.type}")
         return ts
-
-    def require_section(self, ident, index=0, **kw):
-        s = self.get_section(ident, index)
-        if s is not None:
-            return s
-        self.read_sections_to(ident, index, **kw)
-        return self.get_section(ident, index)
 
     def add_unknown(self, nbytes=None, value=None, or_to_eof=False):
         unknown = self.unknown
@@ -407,31 +383,6 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
-
-    def put_into(self, dest):
-        try:
-            prev = dest[self.ident]
-        except KeyError:
-            dest[self.ident] = [self]
-        else:
-            prev.append(self)
-        return self
-
-    @staticmethod
-    def iter_all(*args, **kw):
-        while True:
-            yield Section(*args, **kw)
-
-    @staticmethod
-    def read_to_map(dbytes, to, index=None, dest=None, **kw):
-        if dest is None:
-            dest = {}
-        for section in Section.iter_all(dbytes, **kw):
-            section.put_into(dest)
-            if section.ident == to:
-                if index is None or len(dest[section.ident]) >= index:
-                    return dest
-        return dest
 
     @property
     def data_end(self):

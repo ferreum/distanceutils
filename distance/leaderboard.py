@@ -33,14 +33,6 @@ class Entry(BytesModel):
         else:
             raise IOError(f"unknown version: {version}")
 
-    @staticmethod
-    def iter_all(dbytes, version):
-        try:
-            while True:
-                yield Entry(dbytes, version=version)
-        except EOFError:
-            pass
-
 
 class Leaderboard(BytesModel):
 

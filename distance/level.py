@@ -164,6 +164,7 @@ class LevelObject(BytesModel):
                     self.transform = parse_transform(dbytes)
                 if dbytes.pos + Section.MIN_SIZE < end:
                     self.subobjects_section = s5 = Section(dbytes)
+                    self.has_subobjects = True
                     if s5.num_objects:
                         self.subobjects = subobjects = []
                         gen = self.subobject_prober.iter_maybe_partial(
@@ -190,8 +191,7 @@ class LevelObject(BytesModel):
                 dbytes.write_bytes(b'\x00' * 4) # unknown
                 dbytes.write_secnum()
                 write_transform(dbytes, self.transform)
-                if (self.has_subobjects or self.subobjects
-                        or self.get_section(SECTION_UNK_5)):
+                if self.has_subobjects or self.subobjects:
                     dbytes.write_num(4, SECTION_UNK_5)
                     with dbytes.write_size():
                         dbytes.write_num(4, len(self.subobjects))

@@ -49,9 +49,8 @@ class BytesProber(object):
         return None
 
     def detect_class(self, dbytes):
-        sections = {}
         start_pos = dbytes.pos
-        section = Section(dbytes).put_into(sections)
+        section = Section(dbytes)
         start_section = section
         if section.ident == SECTION_TYPE:
             ty = section.type
@@ -64,8 +63,7 @@ class BytesProber(object):
             cls = self._get_from_funcs(section)
         if cls is None:
             raise IOError(f"Unknown object section: {section.ident}")
-        return cls, {'start_section': start_section,
-                     'sections': sections, 'start_pos': start_pos}
+        return cls, {'start_section': start_section, 'start_pos': start_pos}
 
     def read(self, dbytes, **kw):
         cls, add_kw = self.detect_class(dbytes)

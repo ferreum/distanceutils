@@ -47,14 +47,6 @@ class Level(BytesModel):
         self.rating = dbytes.read_byte()
         self.add_unknown(3)
 
-    @staticmethod
-    def iter_all(dbytes):
-        try:
-            while True:
-                yield Level(dbytes)
-        except EOFError:
-            pass
-
 
 class WorkshopLevelInfos(BytesModel):
 
