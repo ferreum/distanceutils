@@ -57,18 +57,29 @@ class Entry(BytesModel):
 
 class LevelInfos(BytesModel):
 
+    version = None
+    entries_s2 = None
+
     def parse(self, dbytes):
         ts = self.require_type(FTYPE_LEVELINFOS)
-        self.recoverable = True
-        s2 = self.require_section(SECTION_UNK_2)
-        self.version = s2.version
-        self.entries_s2 = s2
-        self.add_unknown(4)
+        self.report_end_pos(ts.data_end)
+        self._read_sections(ts.data_end)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x97:
+                self.version = sec.version
+                self.entries_s2 = sec
+                return True
+        return BytesModel._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
-        dbytes = self.dbytes
-        self.num_entries = length = dbytes.read_fixed_number(8)
         s2 = self.entries_s2
+        if not s2:
+            return (), 0
+        dbytes = self.dbytes
+        dbytes.pos = s2.data_start + 12
+        length = dbytes.read_fixed_number(8)
         def gen():
             with dbytes.limit(s2.data_end):
                 for _ in range(length):

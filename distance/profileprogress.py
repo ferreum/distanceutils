@@ -289,20 +289,20 @@ class ProfileProgress(BytesModel):
     def parse(self, dbytes):
         ts = self.require_type(FTYPE_PROFILEPROGRESS)
         self.report_end_pos(ts.data_end)
-        s3 = Section(dbytes)
-        dbytes.pos = s3.data_end
-        while dbytes.pos < ts.data_end:
-            section = Section(dbytes)
-            if section.ident == SECTION_UNK_2:
-                with dbytes.limit(section.data_end):
-                    if section.value_id == 0x6A:
-                        self.level_s2 = section
-                        self.add_unknown(4)
-                        self.num_levels = dbytes.read_fixed_number(4)
-                        self.add_unknown(4)
-                    elif section.value_id == 0x8E:
-                        self.stats_s2 = section
-            dbytes.pos = section.data_start + section.size
+        self._read_sections(ts.data_end)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x6A:
+                self.level_s2 = sec
+                self.add_unknown(4)
+                self.num_levels = dbytes.read_fixed_number(4)
+                self.add_unknown(4)
+                return True
+            elif sec.value_id == 0x8E:
+                self.stats_s2 = sec
+                return True
+        return BytesModel._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         s2 = self.level_s2

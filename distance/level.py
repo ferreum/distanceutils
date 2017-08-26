@@ -153,13 +153,8 @@ class LevelObject(BytesModel):
     def parse(self, dbytes):
         ts = self.get_start_section()
         self.type = ts.type
-        self.report_end_pos(ts.data_start + ts.size)
-        with dbytes.limit(ts.data_end):
-            while dbytes.pos < ts.data_end:
-                sec = Section(dbytes)
-                with dbytes.limit(sec.data_end):
-                    self._read_section_data(dbytes, sec)
-                dbytes.pos = sec.data_end
+        self.report_end_pos(ts.data_end)
+        self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_UNK_3:
@@ -178,6 +173,7 @@ class LevelObject(BytesModel):
                             if not sane:
                                 break
                 return True
+        return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
         dbytes.write_num(4, SECTION_TYPE)
@@ -262,8 +258,6 @@ class LevelSettings(LevelObject):
         LevelObject.parse(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x52:
                 self.levelinfo_section = sec
@@ -297,6 +291,8 @@ class LevelSettings(LevelObject):
                     self.abilities = dbytes.read_struct(S_ABILITIES)
                 if version >= 2:
                     self.difficulty = dbytes.read_fixed_number(4)
+                return True
+        return BytesModel._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
@@ -340,8 +336,6 @@ class Group(LevelObject):
     group_name = None
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x1d: # Group / inspect Children
                 return True
@@ -350,6 +344,7 @@ class Group(LevelObject):
                     dbytes.pos += 4 # secnum
                     self.group_name = dbytes.read_string()
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
         dbytes.write_num(4, SECTION_UNK_2)
@@ -402,8 +397,6 @@ class SubTeleporter(LevelObject):
     trigger_checkpoint = None
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x3E:
                 dbytes.pos = sec.data_start + 12
@@ -424,6 +417,7 @@ class SubTeleporter(LevelObject):
                     check = 1
                 self.trigger_checkpoint = check
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -441,8 +435,6 @@ class WorldText(LevelObject):
     text = None
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_3:
             if sec.value_id == 0x07:
                 pos = sec.data_start + 12
@@ -454,6 +446,7 @@ class WorldText(LevelObject):
                 else:
                     self.text = f"Hello World"
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -468,8 +461,6 @@ class InfoDisplayBox(LevelObject):
     texts = ()
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x4A:
                 texts = self.texts
@@ -498,6 +489,7 @@ class InfoDisplayBox(LevelObject):
                             self.texts = texts = []
                         texts.append(dbytes.read_string())
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -523,8 +515,6 @@ class GravityTrigger(LevelObject):
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_3:
             if sec.value_id == 0x0e:
                 # SphereCollider
@@ -559,6 +549,7 @@ class GravityTrigger(LevelObject):
                     self.reset_before_trigger = dbytes.read_byte()
                     self.disable_music_trigger = dbytes.read_byte()
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -591,8 +582,6 @@ class ForceZoneBox(LevelObject):
     drag_multiplier = None
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_3:
             if sec.value_id == 0x0f:
                 # collider
@@ -623,6 +612,7 @@ class ForceZoneBox(LevelObject):
                     self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
                     self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -652,8 +642,6 @@ class EnableAbilitiesBox(LevelObject):
                        'EnableBoosting', 'EnableJetRotating'}
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_3:
             if sec.value_id == 0x0f:
                 # BoxCollider
@@ -677,6 +665,7 @@ class EnableAbilitiesBox(LevelObject):
                         if propname in self.KNOWN_ABILITIES:
                             abilities[propname] = value
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -714,8 +703,6 @@ class WedgeGS(LevelObject):
     invert_emit = 0
 
     def _read_section_data(self, dbytes, sec):
-        if LevelObject._read_section_data(self, dbytes, sec):
-            return True
         if sec.ident == SECTION_UNK_3:
             if sec.value_id == 3:
                 # Material
@@ -724,6 +711,7 @@ class WedgeGS(LevelObject):
             if sec.value_id == 0x83:
                 # GoldenSimples
                 return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
         dbytes.write_num(4, SECTION_UNK_3)

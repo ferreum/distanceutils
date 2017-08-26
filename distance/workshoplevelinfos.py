@@ -63,7 +63,7 @@ class WorkshopLevelInfos(BytesModel):
     def parse(self, dbytes):
         ts = self.require_type(FTYPE_WSLEVELINFOS)
         self.report_end_pos(ts.data_end)
-        self._read_sections(dbytes, ts.data_end)
+        self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_UNK_2:
