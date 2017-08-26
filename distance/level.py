@@ -53,6 +53,9 @@ def parse_n_floats(dbytes, n, default):
         return (f, *(read_float() for _ in range(n - 1)))
 
 
+TRANSFORM_MIN_SIZE = 12
+
+
 def parse_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
@@ -145,29 +148,36 @@ class LevelObject(BytesModel):
     transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
     subobjects = ()
     has_subobjects = False
+    subobjects_section = None
 
     def parse(self, dbytes):
         ts = self.require_section(SECTION_TYPE)
         self.type = ts.type
         self.report_end_pos(ts.data_start + ts.size)
-        s3 = self.require_section(SECTION_UNK_3)
-        if dbytes.pos + 12 < s3.data_end:
-            self.transform = parse_transform(dbytes)
-            if dbytes.pos + 12 < s3.data_end:
-                s5 = self.require_section(SECTION_UNK_5)
-                if s5.num_objects:
-                    self.subobjects = subobjects = []
-                    gen = self.subobject_prober.iter_maybe_partial(
-                        dbytes, max_pos=s5.data_end)
-                    for obj, sane, exc in gen:
-                        subobjects.append(obj)
-                        if not sane:
-                            break
         with dbytes.limit(ts.data_end):
-            self._parse_sub(dbytes)
+            while dbytes.pos < ts.data_end:
+                sec = Section(dbytes)
+                with dbytes.limit(sec.data_end):
+                    self._read_section_data(dbytes, sec)
+                dbytes.pos = sec.data_end
 
-    def _parse_sub(self, dbytes):
-        pass
+    def _read_section_data(self, dbytes, sec):
+        if sec.ident == SECTION_UNK_3:
+            if sec.value_id == 0x01: # base object props
+                end = sec.data_end
+                if dbytes.pos + TRANSFORM_MIN_SIZE < end:
+                    self.transform = parse_transform(dbytes)
+                if dbytes.pos + Section.MIN_SIZE < end:
+                    self.subobjects_section = s5 = Section(dbytes)
+                    if s5.num_objects:
+                        self.subobjects = subobjects = []
+                        gen = self.subobject_prober.iter_maybe_partial(
+                            dbytes, max_pos=s5.data_end)
+                        for obj, sane, exc in gen:
+                            subobjects.append(obj)
+                            if not sane:
+                                break
+                return True
 
     def write(self, dbytes):
         dbytes.write_num(4, SECTION_TYPE)
@@ -342,19 +352,17 @@ class Group(LevelObject):
 
     group_name = None
 
-    def _parse_sub(self, dbytes):
-        s5 = self.require_section(SECTION_UNK_5)
-        dbytes.pos = s5.data_end
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            if section.ident == SECTION_UNK_2:
-                if section.value_id == 0x1d: # Group / inspect Children
-                    pass
-                elif section.value_id == 0x63:
-                    if section.size > 12:
-                        dbytes.pos += 4 # secnum
-                        self.group_name = dbytes.read_string()
-            dbytes.pos = section.data_end
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x1d: # Group / inspect Children
+                return True
+            elif sec.value_id == 0x63: # Group name
+                if sec.size > 12:
+                    dbytes.pos += 4 # secnum
+                    self.group_name = dbytes.read_string()
+                return True
 
     def _write_sub(self, dbytes):
         dbytes.write_num(4, SECTION_UNK_2)
@@ -400,33 +408,35 @@ class Group(LevelObject):
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
-class SubTeleporter(SubObject):
+class SubTeleporter(LevelObject):
 
     destination = None
     link_id = None
     trigger_checkpoint = None
 
-    def _parse_sub(self, dbytes):
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            if section.ident == SECTION_UNK_2:
-                if section.value_id == 0x3E:
-                    dbytes.pos = section.data_start + 12
-                    value = dbytes.read_fixed_number(4)
-                    self.destination = value
-                elif section.value_id == 0x3F:
-                    dbytes.pos = section.data_start + 12
-                    value = dbytes.read_fixed_number(4)
-                    self.link_id = value
-                elif section.value_id == 0x51:
-                    if section.size > 12:
-                        dbytes.pos = section.data_start + 12
-                        check = dbytes.read_byte()
-                    else:
-                        # if section is too short, the checkpoint is enabled
-                        check = 1
-                    self.trigger_checkpoint = check
-            dbytes.pos = section.data_start + section.size
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x3E:
+                dbytes.pos = sec.data_start + 12
+                value = dbytes.read_fixed_number(4)
+                self.destination = value
+                return True
+            elif sec.value_id == 0x3F:
+                dbytes.pos = sec.data_start + 12
+                value = dbytes.read_fixed_number(4)
+                self.link_id = value
+                return True
+            elif sec.value_id == 0x51:
+                if sec.size > 12:
+                    dbytes.pos = sec.data_start + 12
+                    check = dbytes.read_byte()
+                else:
+                    # if section is too short, the checkpoint is enabled
+                    check = 1
+                self.trigger_checkpoint = check
+                return True
 
     def _print_data(self, p):
         SubObject._print_data(self, p)
@@ -443,21 +453,20 @@ class WorldText(LevelObject):
 
     text = None
 
-    def _parse_sub(self, dbytes):
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            if section.ident == SECTION_UNK_3:
-                if section.value_id == 0x07:
-                    pos = section.data_start + 12
-                    if pos < section.data_end:
-                        dbytes.pos = pos
-                        self.text = dbytes.read_string()
-                        for i in range((section.data_end - dbytes.pos) // 4):
-                            self.add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
-                    else:
-                        self.text = f"Hello World"
-                    break
-            dbytes.pos = section.data_start + section.size
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_3:
+            if sec.value_id == 0x07:
+                pos = sec.data_start + 12
+                if pos < sec.data_end:
+                    dbytes.pos = pos
+                    self.text = dbytes.read_string()
+                    for i in range((sec.data_end - dbytes.pos) // 4):
+                        self.add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
+                else:
+                    self.text = f"Hello World"
+                return True
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -471,39 +480,37 @@ class InfoDisplayBox(LevelObject):
     version = None
     texts = ()
 
-    def _parse_sub(self, dbytes):
-        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
-        texts = ()
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            end = section.data_end
-            if section.ident == SECTION_UNK_2:
-                if section.value_id == 0x4A:
-                    self.version = version = section.version
-                    if version == 0:
-                        self.add_unknown(4)
-                        num_props = dbytes.read_fixed_number(4)
-                        self.texts = texts = [None] * 5
-                        for i in range(num_props):
-                            propname = dbytes.read_string()
-                            if propname.startswith("InfoText"):
-                                dbytes.pos = value_start = dbytes.pos + 8
-                                if not math.isnan(dbytes.read_struct(S_FLOAT)[0]):
-                                    dbytes.pos = value_start
-                                    index = int(propname[-1])
-                                    texts[index] = dbytes.read_string()
-                            else:
-                                dbytes.pos += 12
-                    else:
-                        # only verified in v2
-                        self.add_unknown(4)
-                        self.fadeout_time = dbytes.read_struct(S_FLOAT)
-                        for i in range(5):
-                            self.add_unknown(4) # f32 delay
-                            if texts is ():
-                                self.texts = texts = []
-                            texts.append(dbytes.read_string())
-            dbytes.pos = end
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x4A:
+                texts = self.texts
+                self.version = version = sec.version
+                if version == 0:
+                    self.add_unknown(4)
+                    num_props = dbytes.read_fixed_number(4)
+                    self.texts = texts = [None] * 5
+                    for i in range(num_props):
+                        propname = dbytes.read_string()
+                        if propname.startswith("InfoText"):
+                            dbytes.pos = value_start = dbytes.pos + 8
+                            if not math.isnan(dbytes.read_struct(S_FLOAT)[0]):
+                                dbytes.pos = value_start
+                                index = int(propname[-1])
+                                texts[index] = dbytes.read_string()
+                        else:
+                            dbytes.pos += 12
+                else:
+                    # only verified in v2
+                    self.add_unknown(4)
+                    self.fadeout_time = dbytes.read_struct(S_FLOAT)
+                    for i in range(5):
+                        self.add_unknown(4) # f32 delay
+                        if texts is ():
+                            self.texts = texts = []
+                        texts.append(dbytes.read_string())
+                return True
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -528,43 +535,43 @@ class GravityTrigger(LevelObject):
     reset_before_trigger = None
     disable_music_trigger = None
 
-    def _parse_sub(self, dbytes):
-        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            end = section.data_end
-            if section.ident == SECTION_UNK_3:
-                if section.value_id == 0x0e:
-                    # SphereCollider
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_3:
+            if sec.value_id == 0x0e:
+                # SphereCollider
+                self.trigger_center = (0.0, 0.0, 0.0)
+                self.trigger_radius = 50.0
+                with dbytes.limit(sec.data_end, True):
                     self.trigger_center = parse_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
-                    self.trigger_radius = 50.0
-                    with dbytes.limit(section.data_end, True):
-                        self.trigger_center = parse_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
-                        self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
-            elif section.ident == SECTION_UNK_2:
-                if section.value_id == 0x45:
-                    # GravityTrigger
-                    self.add_unknown(4)
-                    self.disable_gravity = 1
-                    self.drag_scale = 1.0
-                    self.drag_scale_angular = 1.0
-                    with dbytes.limit(section.data_end, True):
-                        self.disable_gravity = dbytes.read_byte()
-                        self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
-                        self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
-                elif section.value_id == 0x4b:
-                    # MusicTrigger
-                    self.add_unknown(4)
-                    self.music_id = 19
-                    self.one_time_trigger = 1
-                    self.reset_before_trigger = 0
-                    self.disable_music_trigger = 0
-                    with dbytes.limit(section.data_end, True):
-                        self.music_id = dbytes.read_fixed_number(4)
-                        self.one_time_trigger = dbytes.read_byte()
-                        self.reset_before_trigger = dbytes.read_byte()
-                        self.disable_music_trigger = dbytes.read_byte()
-            dbytes.pos = end
+                    self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
+                return True
+        elif sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x45:
+                # GravityTrigger
+                self.add_unknown(4)
+                self.disable_gravity = 1
+                self.drag_scale = 1.0
+                self.drag_scale_angular = 1.0
+                with dbytes.limit(sec.data_end, True):
+                    self.disable_gravity = dbytes.read_byte()
+                    self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
+                    self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
+                return True
+            elif sec.value_id == 0x4b:
+                # MusicTrigger
+                self.add_unknown(4)
+                self.music_id = 19
+                self.one_time_trigger = 1
+                self.reset_before_trigger = 0
+                self.disable_music_trigger = 0
+                with dbytes.limit(sec.data_end, True):
+                    self.music_id = dbytes.read_fixed_number(4)
+                    self.one_time_trigger = dbytes.read_byte()
+                    self.reset_before_trigger = dbytes.read_byte()
+                    self.disable_music_trigger = dbytes.read_byte()
+                return True
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -596,39 +603,39 @@ class ForceZoneBox(LevelObject):
     wind_speed = None
     drag_multiplier = None
 
-    def _parse_sub(self, dbytes):
-        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            end = section.data_end
-            if section.ident == SECTION_UNK_3:
-                if section.value_id == 0x0f:
-                    pass # collider
-            elif section.ident == SECTION_UNK_2:
-                if section.value_id == 0x63:
-                    # CustomName
-                    self.add_unknown(4) # 0x36=wind 0x3b=gravity
-                    if dbytes.pos < section.data_end:
-                        with dbytes.limit(section.data_end):
-                            self.custom_name = dbytes.read_string()
-                elif section.value_id == 0xa0:
-                    self.add_unknown(4) # 0x37=wind, 0x3c=gravity
-                    self.force_direction = (0.0, 0.0, 1.0)
-                    self.global_force = 0
-                    self.force_type = ForceType.WIND
-                    self.gravity_magnitude = 25.0
-                    self.disable_global_gravity = 0
-                    self.wind_speed = 300.0
-                    self.drag_multiplier = 1.0
-                    with dbytes.limit(section.data_end, True):
-                        self.force_direction = parse_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
-                        self.global_force = dbytes.read_byte()
-                        self.force_type = dbytes.read_fixed_number(4)
-                        self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
-                        self.disable_global_gravity = dbytes.read_byte()
-                        self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
-                        self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
-            dbytes.pos = end
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_3:
+            if sec.value_id == 0x0f:
+                # collider
+                return True
+        elif sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x63:
+                # CustomName
+                self.add_unknown(4) # 0x36=wind 0x3b=gravity
+                if dbytes.pos < sec.data_end:
+                    with dbytes.limit(sec.data_end):
+                        self.custom_name = dbytes.read_string()
+                return True
+            elif sec.value_id == 0xa0:
+                self.add_unknown(4) # 0x37=wind, 0x3c=gravity
+                self.force_direction = (0.0, 0.0, 1.0)
+                self.global_force = 0
+                self.force_type = ForceType.WIND
+                self.gravity_magnitude = 25.0
+                self.disable_global_gravity = 0
+                self.wind_speed = 300.0
+                self.drag_multiplier = 1.0
+                with dbytes.limit(sec.data_end, True):
+                    self.force_direction = parse_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
+                    self.global_force = dbytes.read_byte()
+                    self.force_type = dbytes.read_fixed_number(4)
+                    self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
+                    self.disable_global_gravity = dbytes.read_byte()
+                    self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
+                    self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
+                return True
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -657,31 +664,32 @@ class EnableAbilitiesBox(LevelObject):
     KNOWN_ABILITIES = {'EnableFlying', 'EnableJumping',
                        'EnableBoosting', 'EnableJetRotating'}
 
-    def _parse_sub(self, dbytes):
-        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            if section.ident == SECTION_UNK_3:
-                if section.value_id == 0x0f:
-                    pass # BoxCollider
-            elif section.ident == SECTION_UNK_2:
-                if section.value_id == 0x5e:
-                    if section.size > 16:
-                        self.add_unknown(4)
-                        self.abilities = abilities = {}
-                        num_props = dbytes.read_fixed_number(4)
-                        for i in range(num_props):
-                            propname = dbytes.read_string()
-                            dbytes.pos = value_start = dbytes.pos + 8
-                            byte = dbytes.read_byte()
-                            if byte not in (0, 1): # probably NaN
-                                value = 0
-                                dbytes.pos = value_start + 4
-                            else:
-                                value = byte
-                            if propname in self.KNOWN_ABILITIES:
-                                abilities[propname] = value
-            dbytes.pos = section.data_end
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_3:
+            if sec.value_id == 0x0f:
+                # BoxCollider
+                return True
+        elif sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x5e:
+                # Abilities
+                if sec.size > 16:
+                    self.add_unknown(4)
+                    self.abilities = abilities = {}
+                    num_props = dbytes.read_fixed_number(4)
+                    for i in range(num_props):
+                        propname = dbytes.read_string()
+                        dbytes.pos = value_start = dbytes.pos + 8
+                        byte = dbytes.read_byte()
+                        if byte not in (0, 1): # probably NaN
+                            value = 0
+                            dbytes.pos = value_start + 4
+                        else:
+                            value = byte
+                        if propname in self.KNOWN_ABILITIES:
+                            abilities[propname] = value
+                return True
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -718,17 +726,17 @@ class WedgeGS(LevelObject):
     multip_transp = 0
     invert_emit = 0
 
-    def _parse_sub(self, dbytes):
-        dbytes.pos = self.require_section(SECTION_UNK_3).data_end
-        while dbytes.pos < self.reported_end_pos:
-            section = Section(dbytes)
-            if section.ident == SECTION_UNK_3:
-                if section.value_id == 3: # Material
-                    pass
-            elif section.ident == SECTION_UNK_2:
-                if section.value_id == 0x83: # GoldenSimples
-                    pass
-            dbytes.pos = section.data_end
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_3:
+            if sec.value_id == 3:
+                # Material
+                return True
+        elif sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x83:
+                # GoldenSimples
+                return True
 
     def _write_sub(self, dbytes):
         dbytes.write_num(4, SECTION_UNK_3)

@@ -320,6 +320,8 @@ class BytesModel(object):
 
 class Section(BytesModel):
 
+    MIN_SIZE = 12 # 4b (ident) + 8b (data_size)
+
     layer_name = None
     num_objects = None
     layer_flags = ()
