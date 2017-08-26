@@ -146,7 +146,7 @@ class LevelObject(BytesModel):
 
     version = None
     transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
-    subobjects = ()
+    _subobjects = None
     has_subobjects = False
     subobjects_section = None
 
@@ -165,16 +165,36 @@ class LevelObject(BytesModel):
                 if dbytes.pos + Section.MIN_SIZE < end:
                     self.subobjects_section = s5 = Section(dbytes)
                     self.has_subobjects = True
-                    if s5.num_objects:
-                        self.subobjects = subobjects = []
-                        gen = self.subobject_prober.iter_maybe_partial(
-                            dbytes, max_pos=s5.data_end)
-                        for obj, sane, exc in gen:
-                            subobjects.append(obj)
-                            if not sane:
-                                break
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
+
+    @property
+    def subobjects(self):
+        objs = self._subobjects
+        if objs is None:
+            s5 = self.subobjects_section
+            if s5 and s5.num_objects:
+                self._subobjects = objs = []
+                dbytes = self.dbytes
+                old_pos = dbytes.pos
+                try:
+                    dbytes.pos = s5.subobjects_start
+                    gen = self.subobject_prober.iter_maybe_partial(
+                        dbytes, max_pos=s5.data_end)
+                    for obj, sane, exc in gen:
+                        objs.append(obj)
+                        if not sane:
+                            break
+                finally:
+                    dbytes.pos = old_pos
+
+            else:
+                self._subobjects = objs = ()
+        return objs
+
+    @subobjects.setter
+    def subobjects(self, objs):
+        self._subobjects = objs
 
     def write(self, dbytes):
         dbytes.write_num(4, SECTION_TYPE)

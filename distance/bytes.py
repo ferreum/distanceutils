@@ -180,7 +180,8 @@ class BytesModel(object):
         if dbytes is not None:
             self.read(dbytes, **kw)
         elif kw:
-            self.__dict__.update(kw)
+            for k, v in kw.items():
+                setattr(self, k, v)
 
     def read(self, dbytes, start_section=None,
              start_pos=None, **kw):
@@ -337,6 +338,7 @@ class Section(BytesModel):
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
             self.num_objects = dbytes.read_fixed_number(4)
+            self.subobjects_start = dbytes.pos
         elif ident == SECTION_UNK_3:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
