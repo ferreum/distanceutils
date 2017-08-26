@@ -62,15 +62,17 @@ class WorkshopLevelInfos(BytesModel):
 
     def parse(self, dbytes):
         ts = self.require_type(FTYPE_WSLEVELINFOS)
-        with dbytes.limit(ts.data_end):
-            while dbytes.pos < ts.data_end:
-                sec = Section(dbytes)
-                if sec.ident == SECTION_UNK_2:
-                    if sec.value_id == 0x6d:
-                        self.levels_s2 = sec
-                        dbytes.pos += 4 # secnum
-                        self.num_levels = dbytes.read_fixed_number(4)
-                dbytes.pos = sec.data_end
+        self.report_end_pos(ts.data_end)
+        self._read_sections(dbytes, ts.data_end)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x6d:
+                self.levels_s2 = sec
+                dbytes.pos += 4 # secnum
+                self.num_levels = dbytes.read_fixed_number(4)
+                return True
+        return BytesModel._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         dbytes = self.dbytes

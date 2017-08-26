@@ -220,6 +220,17 @@ class BytesModel(object):
         raise NotImplementedError(
             "Subclass needs to override parse(self, dbytes)")
 
+    def _read_sections(self, dbytes, end):
+        with dbytes.limit(end):
+            while dbytes.pos < end:
+                sec = Section(dbytes)
+                with dbytes.limit(sec.data_end):
+                    self._read_section_data(dbytes, sec)
+                dbytes.pos = sec.data_end
+
+    def _read_section_data(self, dbytes, sec):
+        pass
+
     def report_end_pos(self, pos):
         self.recoverable = True
         self.reported_end_pos = pos
