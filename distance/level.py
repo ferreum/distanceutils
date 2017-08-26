@@ -39,7 +39,7 @@ def _fallback_object(section):
 @SUBOBJ_PROBER.func
 def _fallback_subobject(section):
     if section.ident == SECTION_TYPE:
-        return SubObject
+        return LevelObject
     return None
 
 
@@ -233,22 +233,6 @@ class LevelObject(BytesModel):
         pass
 
 
-class SubObject(BytesModel):
-
-    def parse(self, dbytes):
-        ts = self.require_section(SECTION_TYPE)
-        self.report_end_pos(ts.data_start + ts.size)
-        self.type = ts.type
-        with dbytes.limit(ts.data_end):
-            self._parse_sub(dbytes)
-
-    def _parse_sub(self, dbytes):
-        pass
-
-    def _print_data(self, p):
-        p(f"Subobject type: {self.type!r}")
-
-
 @PROBER.for_type('LevelSettings')
 class LevelSettings(BytesModel):
 
@@ -439,7 +423,7 @@ class SubTeleporter(LevelObject):
                 return True
 
     def _print_data(self, p):
-        SubObject._print_data(self, p)
+        LevelObject._print_data(self, p)
         if self.destination is not None:
             p(f"Teleports to: {self.destination}")
         if self.link_id is not None:
