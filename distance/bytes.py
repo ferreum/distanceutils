@@ -167,6 +167,7 @@ class BytesModel(object):
     def read_all_maybe_partial(clazz, *args, **kw):
         entries = []
         try:
+            sane = True
             for entry, sane, exc in clazz.iter_maybe_partial(*args, **kw):
                 entries.append(entry)
                 if not sane:
