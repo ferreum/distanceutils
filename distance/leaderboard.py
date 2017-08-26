@@ -44,18 +44,36 @@ class Entry(BytesModel):
 
 class Leaderboard(BytesModel):
 
-    def parse(self, dbytes):
-        self.require_type(FTYPE_LEADERBOARD)
-        self.version = version = self.require_section(SECTION_UNK_2).version
-        self.add_unknown(12)
-        if version >= 1:
-            self.add_unknown(4)
+    entries_s2 = None
+    version = None
 
-    def iter_entries(self):
-        return Entry.iter_maybe_partial(self.dbytes, version=self.version)
+    def parse(self, dbytes):
+        ts = self.require_type(FTYPE_LEADERBOARD)
+        self.report_end_pos(ts.data_end)
+        self._read_sections(ts.data_end)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.ident == SECTION_UNK_2:
+            self.entries_s2 = sec
+            dbytes.pos += 4 # secnum
+            self.version = sec.version
+            self.num_entries = dbytes.read_fixed_number(4)
+
+    def move_to_first_entry(self):
+        s2 = self.entries_s2
+        if s2:
+            pos = s2.data_start + 20
+            if s2.version >= 1:
+                pos += 4
+            self.dbytes.pos = pos
+            return True
+        return False
 
     def read_entries(self):
-        return Entry.read_all_maybe_partial(self.dbytes, version=self.version)
+        if self.move_to_first_entry():
+            return Entry.read_all_maybe_partial(self.dbytes, version=self.version)
+        else:
+            return ()
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

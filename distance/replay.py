@@ -27,32 +27,40 @@ class Replay(BytesModel):
     car_color_sparkle = None
 
     def parse(self, dbytes):
-        self.require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
-        self.recoverable = True
-        self.version = version = self.require_section(SECTION_UNK_2).version
-        self.add_unknown(4)
-        self.player_name = dbytes.read_string()
-        if version >= 2:
-            self.player_id = dbytes.read_fixed_number(8)
-            self.player_name_2 = dbytes.read_string()
-            if version >= 3:
-                self.finish_time = dbytes.read_fixed_number(4)
-                self.replay_duration = dbytes.read_fixed_number(4)
-        self.add_unknown(4)
-        self.car_name = dbytes.read_string()
-        self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
-        self.car_color_secondary = dbytes.read_struct(S_COLOR_RGBA)
-        self.car_color_glow = dbytes.read_struct(S_COLOR_RGBA)
-        self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
+        ts = self.require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+        self.report_end_pos(ts.data_end)
+        self._read_sections(ts.data_end)
 
-        if version <= 1:
-            self.require_equal(SECTION_UNK_1, 4)
-            section_size = dbytes.read_fixed_number(4) * 4
-            dbytes.pos += section_size
-            self.require_equal(SECTION_UNK_1, 4)
-            section_size = dbytes.read_fixed_number(4)
-            dbytes.pos += section_size - 8
-            self.finish_time = dbytes.read_fixed_number(4)
+    def _read_section_data(self, dbytes, sec):
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x7f:
+                # demo data
+                self.version = version = sec.version
+                dbytes.pos += 4 # secnum
+                self.player_name = dbytes.read_string()
+                if version >= 2:
+                    self.player_id = dbytes.read_fixed_number(8)
+                    self.player_name_2 = dbytes.read_string()
+                    if version >= 3:
+                        self.finish_time = dbytes.read_fixed_number(4)
+                        self.replay_duration = dbytes.read_fixed_number(4)
+                self.add_unknown(4)
+                self.car_name = dbytes.read_string()
+                self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
+                self.car_color_secondary = dbytes.read_struct(S_COLOR_RGBA)
+                self.car_color_glow = dbytes.read_struct(S_COLOR_RGBA)
+                self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
+
+                if version <= 1:
+                    self.require_equal(SECTION_UNK_1, 4)
+                    section_size = dbytes.read_fixed_number(4) * 4
+                    dbytes.pos += section_size
+                    self.require_equal(SECTION_UNK_1, 4)
+                    section_size = dbytes.read_fixed_number(4)
+                    dbytes.pos += section_size - 8
+                    self.finish_time = dbytes.read_fixed_number(4)
+                return True
+        return BytesModel._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Version: {self.version}")
