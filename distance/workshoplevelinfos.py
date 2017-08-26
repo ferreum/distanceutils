@@ -4,7 +4,7 @@
 # Created:     2017-06-24
 
 
-from .bytes import BytesModel, SECTION_UNK_2
+from .bytes import BytesModel, Section, SECTION_UNK_2
 from .common import format_bytes
 from .constants import Rating
 
@@ -58,17 +58,32 @@ class Level(BytesModel):
 
 class WorkshopLevelInfos(BytesModel):
 
+    num_levels = 0
+
     def parse(self, dbytes):
-        self.require_type(FTYPE_WSLEVELINFOS)
-        self.version = self.require_section(SECTION_UNK_2).version
-        self.add_unknown(12)
+        ts = self.require_type(FTYPE_WSLEVELINFOS)
+        with dbytes.limit(ts.data_end):
+            while dbytes.pos < ts.data_end:
+                sec = Section(dbytes)
+                if sec.ident == SECTION_UNK_2:
+                    if sec.value_id == 0x6d:
+                        self.levels_s2 = sec
+                        dbytes.pos += 4 # secnum
+                        self.num_levels = dbytes.read_fixed_number(4)
+                dbytes.pos = sec.data_end
 
     def iter_levels(self):
-        return Level.iter_maybe_partial(self.dbytes)
+        dbytes = self.dbytes
+        if self.levels_s2:
+            dbytes.pos = self.levels_s2.data_start + 20
+            return Level.iter_maybe_partial(dbytes)
+        else:
+            return ()
 
     def _print_data(self, p):
         unk_str = ""
         try:
+            p(f"Levelinfos: {self.num_levels}")
             for level, sane, exc in self.iter_levels():
                 if 'unknown' in p.flags:
                     unk_str = f"Unknown: {format_bytes(level.unknown)} "

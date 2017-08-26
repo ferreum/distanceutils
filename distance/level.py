@@ -772,10 +772,10 @@ class Level(BytesModel):
     settings = None
 
     def parse(self, dbytes):
-        ls = self.require_section(SECTION_LEVEL, 0)
-        if not ls:
-            raise IOError("No level section")
-        self.level_name = ls.level_name
+        sec = self.get_start_section()
+        if sec.ident != SECTION_LEVEL:
+            raise IOError("Unexcpected section: {sec.ident}")
+        self.level_name = sec.level_name
 
     def get_settings(self):
         s = self.settings

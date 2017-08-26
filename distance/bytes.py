@@ -292,7 +292,7 @@ class BytesModel(object):
         return None
 
     def require_type(self, expect):
-        ts = self.require_section(SECTION_TYPE)
+        ts = self.get_start_section()
         if not ts:
             raise IOError("Missing type information")
         if isinstance(expect, str):
