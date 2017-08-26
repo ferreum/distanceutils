@@ -814,6 +814,7 @@ class Level(BytesModel):
 
     def iter_layers(self):
         dbytes = self.dbytes
+        self.move_to_first_layer()
         for layer, sane, exc in Section.iter_maybe_partial(dbytes):
             layer_end = layer.size + layer.data_start
             yield layer
@@ -822,7 +823,9 @@ class Level(BytesModel):
             dbytes.pos = layer_end
 
     def iter_layer_objects(self, layer):
-        layer_end = layer.size + layer.data_start
+        dbytes = self.dbytes
+        dbytes.pos = layer.objects_start
+        layer_end = layer.data_end
         for obj, sane, exc in PROBER.iter_maybe_partial(self.dbytes, max_pos=layer_end):
             yield obj
             if not sane:

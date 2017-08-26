@@ -371,6 +371,7 @@ class Section(BytesModel):
                 else:
                     self.layer_flags = flags
                     self.add_unknown(1)
+            self.objects_start = dbytes.pos
         elif ident == SECTION_LEVEL:
             self.add_unknown(8)
             self.level_name = dbytes.read_string()
