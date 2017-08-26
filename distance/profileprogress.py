@@ -289,7 +289,7 @@ class ProfileProgress(BytesModel):
     def parse(self, dbytes):
         ts = self.require_type(FTYPE_PROFILEPROGRESS)
         self.report_end_pos(ts.data_end)
-        s3 = self.require_section(SECTION_UNK_3)
+        s3 = Section(dbytes)
         dbytes.pos = s3.data_end
         while dbytes.pos < ts.data_end:
             section = Section(dbytes)

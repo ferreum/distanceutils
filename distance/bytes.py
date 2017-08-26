@@ -181,9 +181,11 @@ class BytesModel(object):
         elif kw:
             self.__dict__.update(kw)
 
-    def read(self, dbytes, sections=None, start_pos=None, **kw):
+    def read(self, dbytes, start_section=None, sections=None,
+             start_pos=None, **kw):
         if sections is not None:
             self.sections = sections
+        self.start_section = start_section
         if start_pos is None:
             start_pos = dbytes.pos
         self.start_pos = start_pos
@@ -267,6 +269,12 @@ class BytesModel(object):
 
     def _print_data(self, p):
         pass
+
+    def get_start_section(self):
+        sec = self.start_section
+        if not sec:
+            self.start_section = sec = Section(self.dbytes)
+        return sec
 
     def read_sections_to(self, to, index=None, **kw):
         sections = self.sections

@@ -151,7 +151,7 @@ class LevelObject(BytesModel):
     subobjects_section = None
 
     def parse(self, dbytes):
-        ts = self.require_section(SECTION_TYPE)
+        ts = self.get_start_section()
         self.type = ts.type
         self.report_end_pos(ts.data_start + ts.size)
         with dbytes.limit(ts.data_end):
@@ -234,7 +234,7 @@ class LevelObject(BytesModel):
 
 
 @PROBER.for_type('LevelSettings')
-class LevelSettings(BytesModel):
+class LevelSettings(LevelObject):
 
     type = None
     version = None
@@ -249,51 +249,54 @@ class LevelSettings(BytesModel):
     def parse(self, dbytes):
         next_section = dbytes.read_fixed_number(4)
         dbytes.pos -= 4
-        if next_section == SECTION_LEVEL_INFO:
+        sec = self.get_start_section()
+        if sec.ident == SECTION_LEVEL_INFO:
             # Levelinfo section only found in old (v1) maps
-            isec = self.require_section(SECTION_LEVEL_INFO)
             self.type = 'Section 88888888'
-            self.report_end_pos(isec.data_start + isec.size)
+            self.report_end_pos(sec.data_start + sec.size)
             self.add_unknown(4)
             self.skybox_name = dbytes.read_string()
             self.add_unknown(143)
             self.name = dbytes.read_string()
             return
-        ts = self.require_section(SECTION_TYPE)
-        self.report_end_pos(ts.data_start + ts.size)
-        self.type = ts.type
-        with dbytes.limit(ts.data_end):
-            self.require_section(SECTION_UNK_3)
-            self.version = version = self.require_section(SECTION_UNK_2).version
+        LevelObject.parse(self, dbytes)
 
-            self.add_unknown(12)
-            self.name = dbytes.read_string()
-            self.add_unknown(4)
-            self.modes = modes = {}
-            num_modes = dbytes.read_fixed_number(4)
-            for i in range(num_modes):
-                mode = dbytes.read_fixed_number(4)
-                modes[mode] = dbytes.read_byte()
-            self.music_id = dbytes.read_fixed_number(4)
-            if version <= 3:
-                self.skybox_name = dbytes.read_string()
-                self.add_unknown(57)
-            elif version == 4:
-                self.add_unknown(141)
-            elif version == 5:
-                self.add_unknown(172) # confirmed only for v5
-            elif 6 <= version:
-                # confirmed only for v6..v9
-                self.add_unknown(176)
-            self.medal_times = times = []
-            self.medal_scores = scores = []
-            for i in range(4):
-                times.append(dbytes.read_struct(S_FLOAT)[0])
-                scores.append(dbytes.read_fixed_number(4, signed=True))
-            if version >= 1:
-                self.abilities = dbytes.read_struct(S_ABILITIES)
-            if version >= 2:
-                self.difficulty = dbytes.read_fixed_number(4)
+    def _read_section_data(self, dbytes, sec):
+        if LevelObject._read_section_data(self, dbytes, sec):
+            return True
+        if sec.ident == SECTION_UNK_2:
+            if sec.value_id == 0x52:
+                self.levelinfo_section = sec
+                self.version = version = sec.version
+
+                self.add_unknown(12)
+                self.name = dbytes.read_string()
+                self.add_unknown(4)
+                self.modes = modes = {}
+                num_modes = dbytes.read_fixed_number(4)
+                for i in range(num_modes):
+                    mode = dbytes.read_fixed_number(4)
+                    modes[mode] = dbytes.read_byte()
+                self.music_id = dbytes.read_fixed_number(4)
+                if version <= 3:
+                    self.skybox_name = dbytes.read_string()
+                    self.add_unknown(57)
+                elif version == 4:
+                    self.add_unknown(141)
+                elif version == 5:
+                    self.add_unknown(172) # confirmed only for v5
+                elif 6 <= version:
+                    # confirmed only for v6..v9
+                    self.add_unknown(176)
+                self.medal_times = times = []
+                self.medal_scores = scores = []
+                for i in range(4):
+                    times.append(dbytes.read_struct(S_FLOAT)[0])
+                    scores.append(dbytes.read_fixed_number(4, signed=True))
+                if version >= 1:
+                    self.abilities = dbytes.read_struct(S_ABILITIES)
+                if version >= 2:
+                    self.difficulty = dbytes.read_fixed_number(4)
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
