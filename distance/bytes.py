@@ -255,7 +255,6 @@ class BytesModel(object):
             e.exc_pos = exc_pos
             if self.recoverable:
                 e.partial_object = self
-                self.exception_info = (start_pos, exc_pos)
                 self.exception = e
             else:
                 try:
