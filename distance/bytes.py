@@ -60,18 +60,18 @@ class PrintContext(object):
         p.print_exception = print_exc
         return p
 
-    def __call__(self, line):
+    def __call__(self, text):
         buf, ended = self._tree_data
         if buf:
             last = buf[-1]
             if ended[-1]:
                 self.tree_push_up(last, False)
                 last.clear()
-            last.append(line)
+            last.extend(text.split('\n'))
         else:
             f = self.file
             if f is not None:
-                print(line, file=f)
+                print(text, file=f)
 
     def tree_push_up(self, lines, last):
         if not lines:
