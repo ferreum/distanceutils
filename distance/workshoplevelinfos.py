@@ -12,6 +12,13 @@ from .constants import Rating
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
 
+def format_date(date):
+    from datetime import datetime
+    if date is None:
+        return "None"
+    return str(datetime.fromtimestamp(date))
+
+
 class Level(BytesModel):
 
     id = None
@@ -77,20 +84,31 @@ class WorkshopLevelInfos(BytesModel):
     def _print_data(self, p):
         unk_str = ""
         p(f"Levelinfos: {self.num_levels}")
-        for level, sane, exc in self.iter_levels():
-            if 'unknown' in p.flags:
-                unk_str = f"Unknown: {format_bytes(level.unknown)} "
-            if level.rating is None:
-                rate_str = " Rating: None"
-            elif level.rating == Rating.NONE:
-                rate_str = ""
-            else:
-                rate_str = " Rating: " + Rating.to_name(level.rating)
-            p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
-            if exc:
-                p.print_exception(exc)
-            if not sane:
-                break
+        with p.tree_children(0):
+            for level, sane, exc in self.iter_levels():
+                p.tree_next_child()
+                p(f"Title: {level.title!r} ({level.id})")
+                p(f"Author: {level.author!r} ({level.authorid})")
+                if level.published_by_user:
+                    p(f"Published by this steam user")
+                p(f"Publish date: {format_date(level.published_date)}")
+                p(f"Updated date: {format_date(level.updated_date)}")
+                p(f"Tags: {level.tags!r}")
+                p(f"Path: {level.path!r}")
+                percent = "0"
+                if level.upvotes:
+                    percent = round(100 * level.upvotes / (level.upvotes + level.downvotes))
+                p(f"Votes: {level.upvotes} up / {level.downvotes} down ({percent}%)")
+                if 'description' in p.flags:
+                    p(f"Description: {level.description}")
+                if level.rating is not None and level.rating != Rating.NONE:
+                    p(f"Rating: {Rating.to_name(level.rating)}")
+                if 'unknown' in p.flags:
+                    p(f"Unknown: {format_bytes(level.unknown)}")
+                if exc:
+                    p.print_exception(exc)
+                if not sane:
+                    break
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
