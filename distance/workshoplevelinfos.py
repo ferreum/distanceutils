@@ -36,20 +36,20 @@ class Level(BytesModel):
     rating = None
 
     def parse(self, dbytes):
-        self.id = dbytes.read_fixed_number(8)
+        self.id = dbytes.read_num(8)
         self.recoverable = True
         self.title = dbytes.read_string()
         self.description = dbytes.read_string()
-        self.updated_date = dbytes.read_fixed_number(4)
-        self.published_date = dbytes.read_fixed_number(4)
+        self.updated_date = dbytes.read_num(4)
+        self.published_date = dbytes.read_num(4)
         self.tags = dbytes.read_string()
-        self.authorid = dbytes.read_fixed_number(8)
+        self.authorid = dbytes.read_num(8)
         self.author = dbytes.read_string()
         self.path = dbytes.read_string()
         self.published_by_user = dbytes.read_byte()
         self.add_unknown(7)
-        self.upvotes = dbytes.read_fixed_number(4)
-        self.downvotes = dbytes.read_fixed_number(4)
+        self.upvotes = dbytes.read_num(4)
+        self.downvotes = dbytes.read_num(4)
         self.add_unknown(4)
         self.rating = dbytes.read_byte()
         self.add_unknown(3)
@@ -68,7 +68,7 @@ class WorkshopLevelInfos(BytesModel):
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x6d:
                 self.levels_s2 = sec
-                self.num_levels = dbytes.read_fixed_number(4)
+                self.num_levels = dbytes.read_num(4)
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
 

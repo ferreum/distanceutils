@@ -310,7 +310,7 @@ class BytesModel(object):
 
     def require_equal(self, expect, nbytes=None, value=None):
         if nbytes is not None:
-            value = self.dbytes.read_fixed_number(nbytes)
+            value = self.dbytes.read_num(nbytes)
         if value != expect:
             raise IOError(f"Unexpected data: {value!r}")
 
@@ -324,44 +324,44 @@ class Section(BytesModel):
     layer_flags = ()
 
     def parse(self, dbytes):
-        self.ident = ident = dbytes.read_fixed_number(4)
+        self.ident = ident = dbytes.read_num(4)
         self.recoverable = True
         if ident == SECTION_TYPE:
-            self.size = dbytes.read_fixed_number(8)
+            self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
             self.add_unknown(1)
-            self.number = dbytes.read_fixed_number(4)
-            self.version = dbytes.read_fixed_number(4)
+            self.number = dbytes.read_num(4)
+            self.version = dbytes.read_num(4)
         elif ident == SECTION_UNK_5:
-            self.size = dbytes.read_fixed_number(8)
+            self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
-            self.num_objects = dbytes.read_fixed_number(4)
+            self.num_objects = dbytes.read_num(4)
             self.subobjects_start = dbytes.pos
         elif ident == SECTION_UNK_3:
-            self.size = dbytes.read_fixed_number(8)
+            self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
-            self.value_id = dbytes.read_fixed_number(4)
+            self.value_id = dbytes.read_num(4)
             dbytes.pos += 4 # secnum
-            self.number = dbytes.read_fixed_number(4)
+            self.number = dbytes.read_num(4)
         elif ident == SECTION_UNK_2:
-            self.size = dbytes.read_fixed_number(8)
+            self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
-            self.value_id = dbytes.read_fixed_number(4)
-            self.version = dbytes.read_fixed_number(4)
+            self.value_id = dbytes.read_num(4)
+            self.version = dbytes.read_num(4)
             dbytes.pos += 4 # secnum
         elif ident == SECTION_LAYER:
-            self.size = size = dbytes.read_fixed_number(8)
+            self.size = size = dbytes.read_num(8)
             self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
-            self.num_objects = dbytes.read_fixed_number(4)
+            self.num_objects = dbytes.read_num(4)
 
             pos = dbytes.pos
             if pos + 4 >= data_start + size:
                 # Happens with empty old layer sections, this prevents error
                 # with empty layer at end of file.
                 return
-            tmp = dbytes.read_fixed_number(4)
+            tmp = dbytes.read_num(4)
             dbytes.pos = pos
             if tmp == 0 or tmp == 1:
                 self.add_unknown(4)
@@ -378,10 +378,10 @@ class Section(BytesModel):
             self.level_name = dbytes.read_string()
             self.add_unknown(8)
         elif ident == SECTION_LEVEL_INFO:
-            self.size = dbytes.read_fixed_number(8)
+            self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
         elif ident == SECTION_UNK_32:
-            self.size = dbytes.read_fixed_number(8)
+            self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
@@ -450,7 +450,7 @@ class DstBytes(object):
     def read_byte(self):
         return self.read_n(1)[0]
 
-    def read_number(self):
+    def read_var_num(self):
         n = 0
         bits = 0
         while True:
@@ -461,7 +461,7 @@ class DstBytes(object):
             else:
                 return n | (b << bits)
 
-    def read_fixed_number(self, length, signed=False):
+    def read_num(self, length, signed=False):
         data = self.read_n(length)
         return int.from_bytes(data, 'little', signed=signed)
 
@@ -472,7 +472,7 @@ class DstBytes(object):
         return st.unpack(data)
 
     def read_string(self):
-        length = self.read_number()
+        length = self.read_var_num()
         data = self.read_n(length)
         return data.decode('utf-16', 'surrogateescape')
 

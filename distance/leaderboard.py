@@ -24,11 +24,11 @@ class Entry(BytesModel):
     def parse(self, dbytes, version=None):
         self.playername = dbytes.read_string()
         self.recoverable = True
-        self.time = dbytes.read_fixed_number(4)
+        self.time = dbytes.read_num(4)
         if version == 0:
             self.add_unknown(4)
         elif version == 1:
-            self.replay = dbytes.read_fixed_number(8)
+            self.replay = dbytes.read_num(8)
             self.add_unknown(12)
         else:
             raise IOError(f"unknown version: {version}")
@@ -48,7 +48,7 @@ class Leaderboard(BytesModel):
         if sec.ident == SECTION_UNK_2:
             self.entries_s2 = sec
             self.version = sec.version
-            self.num_entries = dbytes.read_fixed_number(4)
+            self.num_entries = dbytes.read_num(4)
 
     def move_to_first_entry(self):
         s2 = self.entries_s2

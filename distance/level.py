@@ -284,11 +284,11 @@ class LevelSettings(LevelObject):
                 self.name = dbytes.read_string()
                 self.add_unknown(4)
                 self.modes = modes = {}
-                num_modes = dbytes.read_fixed_number(4)
+                num_modes = dbytes.read_num(4)
                 for i in range(num_modes):
-                    mode = dbytes.read_fixed_number(4)
+                    mode = dbytes.read_num(4)
                     modes[mode] = dbytes.read_byte()
-                self.music_id = dbytes.read_fixed_number(4)
+                self.music_id = dbytes.read_num(4)
                 if version <= 3:
                     self.skybox_name = dbytes.read_string()
                     self.add_unknown(57)
@@ -303,11 +303,11 @@ class LevelSettings(LevelObject):
                 self.medal_scores = scores = []
                 for i in range(4):
                     times.append(dbytes.read_struct(S_FLOAT)[0])
-                    scores.append(dbytes.read_fixed_number(4, signed=True))
+                    scores.append(dbytes.read_num(4, signed=True))
                 if version >= 1:
                     self.abilities = dbytes.read_struct(S_ABILITIES)
                 if version >= 2:
-                    self.difficulty = dbytes.read_fixed_number(4)
+                    self.difficulty = dbytes.read_num(4)
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
@@ -415,11 +415,11 @@ class SubTeleporter(LevelObject):
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x3E:
-                value = dbytes.read_fixed_number(4)
+                value = dbytes.read_num(4)
                 self.destination = value
                 return True
             elif sec.value_id == 0x3F:
-                value = dbytes.read_fixed_number(4)
+                value = dbytes.read_num(4)
                 self.link_id = value
                 return True
             elif sec.value_id == 0x51:
@@ -479,7 +479,7 @@ class InfoDisplayBox(LevelObject):
                 texts = self.texts
                 self.version = version = sec.version
                 if version == 0:
-                    num_props = dbytes.read_fixed_number(4)
+                    num_props = dbytes.read_num(4)
                     self.texts = texts = [None] * 5
                     for i in range(num_props):
                         propname = dbytes.read_string()
@@ -553,7 +553,7 @@ class GravityTrigger(LevelObject):
                 self.reset_before_trigger = 0
                 self.disable_music_trigger = 0
                 with dbytes.limit(sec.data_end, True):
-                    self.music_id = dbytes.read_fixed_number(4)
+                    self.music_id = dbytes.read_num(4)
                     self.one_time_trigger = dbytes.read_byte()
                     self.reset_before_trigger = dbytes.read_byte()
                     self.disable_music_trigger = dbytes.read_byte()
@@ -613,7 +613,7 @@ class ForceZoneBox(LevelObject):
                 with dbytes.limit(sec.data_end, True):
                     self.force_direction = parse_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
                     self.global_force = dbytes.read_byte()
-                    self.force_type = dbytes.read_fixed_number(4)
+                    self.force_type = dbytes.read_num(4)
                     self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
                     self.disable_global_gravity = dbytes.read_byte()
                     self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
@@ -658,7 +658,7 @@ class EnableAbilitiesBox(LevelObject):
                 # Abilities
                 if sec.size > 16:
                     self.abilities = abilities = {}
-                    num_props = dbytes.read_fixed_number(4)
+                    num_props = dbytes.read_num(4)
                     for i in range(num_props):
                         propname = dbytes.read_string()
                         dbytes.pos = value_start = dbytes.pos + 8
