@@ -5,9 +5,7 @@
 
 
 import argparse
-import re
 import sqlite3
-from datetime import datetime
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance.bytes import DstBytes

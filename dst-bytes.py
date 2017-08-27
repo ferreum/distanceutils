@@ -6,7 +6,6 @@
 
 import sys
 import argparse
-import traceback
 
 from distance.bytes import DstBytes, PrintContext
 from distance.knowntypes import maybe_partial
@@ -39,9 +38,7 @@ def main():
                 obj, _, exception = maybe_partial(DstBytes(f))
                 p(f"Type: {type(obj).__name__}")
                 p.print_data_of(obj)
-            except KeyboardInterrupt:
-                raise
-            except BaseException as e:
+            except Exception as e:
                 p.print_exception(e)
                 have_error = True
     return 1 if have_error else 0

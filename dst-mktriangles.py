@@ -4,12 +4,9 @@
 # Created:     2017-08-16
 
 
-import sys
 import argparse
-import traceback
-import itertools
 
-from distance.bytes import DstBytes, PrintContext
+from distance.bytes import DstBytes
 from distance.level import WedgeGS, Group
 
 
@@ -22,6 +19,8 @@ def main():
     from numpy import pi, sin, cos
     from distance.transform import (rtri_to_transform, rotpoint, SIMPLE_SIZE,
                                     create_triangle_simples)
+
+    quaternion # suppress warning
 
     maxes = np.array([6, 6, 6])
     speed = pi/6
