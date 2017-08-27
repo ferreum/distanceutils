@@ -4,7 +4,7 @@
 # Created:     2017-06-24
 
 
-from .bytes import BytesModel, Section, SECTION_UNK_2
+from .bytes import BytesModel, SECTION_UNK_2
 from .common import format_bytes
 from .constants import Rating
 

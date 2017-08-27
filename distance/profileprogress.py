@@ -7,8 +7,8 @@
 from collections import OrderedDict
 from itertools import islice
 
-from .bytes import (BytesModel, Section, S_DOUBLE,
-                    SECTION_UNK_1, SECTION_UNK_2, SECTION_UNK_3)
+from .bytes import (BytesModel, S_DOUBLE,
+                    SECTION_UNK_1, SECTION_UNK_2)
 from .common import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
 

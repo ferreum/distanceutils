@@ -48,7 +48,6 @@ class LevelTest(unittest.TestCase):
         with open("in/level/invalid-groupname.bytes", 'rb') as f:
             level = Level(DstBytes(f))
             self.assertEqual(level.level_name, "Test Group")
-            gen = level.iter_objects()
             results = list(level.iter_objects())
             self.assertEqual(len(results), 5)
             for i, (obj, sane, exc) in enumerate(results):

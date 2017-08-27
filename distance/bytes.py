@@ -8,7 +8,6 @@ import struct
 from struct import Struct
 import traceback
 from contextlib import contextmanager
-from itertools import islice
 
 from .common import format_unknown
 

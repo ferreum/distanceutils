@@ -163,7 +163,7 @@ class LevelObject(BytesModel):
                 if dbytes.pos + TRANSFORM_MIN_SIZE < end:
                     self.transform = parse_transform(dbytes)
                 if dbytes.pos + Section.MIN_SIZE < end:
-                    self.subobjects_section = s5 = Section(dbytes)
+                    self.subobjects_section = Section(dbytes)
                     self.has_subobjects = True
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
@@ -198,7 +198,6 @@ class LevelObject(BytesModel):
 
     def write(self, dbytes):
         dbytes.write_num(4, SECTION_TYPE)
-        size_pos = dbytes.pos
         with dbytes.write_size():
             dbytes.write_str(self.type)
             dbytes.write_bytes(b'\x00') # unknown
@@ -263,8 +262,6 @@ class LevelSettings(LevelObject):
     difficulty = None
 
     def parse(self, dbytes):
-        next_section = dbytes.read_fixed_number(4)
-        dbytes.pos -= 4
         sec = self.get_start_section()
         if sec.ident == SECTION_LEVEL_INFO:
             # Levelinfo section only found in old (v1) maps

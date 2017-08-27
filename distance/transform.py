@@ -9,6 +9,8 @@ import numpy as np, quaternion
 from .level import WedgeGS
 
 
+quaternion # suppress warning
+
 SIMPLE_SIZE = 64
 
 WEDGE_DEF_ROT = np.quaternion(np.cos(np.pi/4), 0, np.sin(np.pi/4), 0)
@@ -19,24 +21,20 @@ def convquat(quat):
 
 
 def length(vec):
-    import numpy as np
     return np.linalg.norm(vec)
 
 
 def normalized(vec):
-    import numpy as np
     return vec / np.linalg.norm(vec)
 
 
 def rotpoint(rot, point):
-    import numpy as np
     res = rot * np.quaternion(0, *point)
     res /= rot
     return res.imag
 
 
 def rotpointrev(rot, point):
-    import numpy as np
     res = rot.conj()
     res *= np.quaternion(0, *point)
     res *= rot
@@ -44,7 +42,6 @@ def rotpointrev(rot, point):
 
 
 def vec_angle(va, vb):
-    import numpy as np
     ua = normalized(va)
     ub = normalized(vb)
     return np.arccos(np.clip(np.dot(ua, ub), -1.0, 1.0))
@@ -58,8 +55,7 @@ def rtri_to_vers(verts):
     `verts` is an array of 3-dimensional vertices of length 3.
     The first entry is the vertex of the triangle's right angle."""
 
-    import numpy as np, quaternion
-    from numpy import pi, sin, cos, arctan2
+    from numpy import sin, cos, arctan2
 
     pr, pa, pb = verts
     rot = np.quaternion(1, 0, 0, 0)
@@ -87,9 +83,6 @@ def rtri_to_transform(verts, srot=None):
     """Converts the given vetices representing a right triangle to a
     transform for a WedgeGS."""
 
-    import numpy as np, quaternion
-    from numpy import pi, sin, cos
-
     pr, pa, pb = verts
 
     rot = rtri_to_vers(verts)
@@ -108,7 +101,6 @@ def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
     objs - the list to put the objects into
     simple_args - args to pass to WedgeGS"""
 
-    import numpy as np
     from numpy import dot
 
     vnm = pmax - pnext
@@ -147,7 +139,6 @@ def create_triangle_simples(verts, objs, simple_args={}):
     objs - list to put the objects into
     simple_args - args to pass to WedgeGS"""
 
-    import numpy as np
     from numpy import pi
 
     pa, pb, pc = verts

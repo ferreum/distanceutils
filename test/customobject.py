@@ -6,7 +6,6 @@
 
 import unittest
 import sys
-import math
 
 if '../' not in sys.path:
     sys.path.append('../')
