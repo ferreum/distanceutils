@@ -21,7 +21,7 @@ class Entry(BytesModel):
     time = None
     replay = None
 
-    def parse(self, dbytes, version=None):
+    def _read(self, dbytes, version=None):
         self.playername = dbytes.read_string()
         self.recoverable = True
         self.time = dbytes.read_num(4)
@@ -39,7 +39,7 @@ class Leaderboard(BytesModel):
     entries_s2 = None
     version = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         ts = self.require_type(FTYPE_LEADERBOARD)
         self.report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)

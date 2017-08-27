@@ -11,7 +11,7 @@ from distance.bytes import DstBytes
 from distance.level import WedgeGS, Group
 
 
-def parse_floats(s):
+def read_floats(s):
     return [float(f) for f in s.split(' ') if f]
 
 
@@ -105,7 +105,7 @@ class ObjReader(object):
         for line in self.file:
             left, _, vals = line.strip().partition(' ')
             if left == 'v':
-                verts.append(parse_floats(vals))
+                verts.append(read_floats(vals))
             elif left == 'g':
                 self.group_num += 1
                 self.group_name = vals.strip()
@@ -139,11 +139,11 @@ def read_mtllib(file, mtls, base=None):
             mtls[name] = mtl = Material(name=name, base=base)
         elif mtl:
             if left == 'Ka':
-                mtl.ambient = parse_floats(vals)
+                mtl.ambient = read_floats(vals)
             elif left == 'Kd':
-                mtl.diffuse = parse_floats(vals)
+                mtl.diffuse = read_floats(vals)
             elif left == 'Ks':
-                mtl.specular = parse_floats(vals)
+                mtl.specular = read_floats(vals)
             elif left == 'illum':
                 mtl.illum = float(vals.strip())
             elif left == 'Ns':

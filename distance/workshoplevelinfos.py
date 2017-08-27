@@ -35,7 +35,7 @@ class Level(BytesModel):
     downvotes = None
     rating = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         self.id = dbytes.read_num(8)
         self.recoverable = True
         self.title = dbytes.read_string()
@@ -59,7 +59,7 @@ class WorkshopLevelInfos(BytesModel):
 
     num_levels = 0
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         ts = self.require_type(FTYPE_WSLEVELINFOS)
         self.report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)

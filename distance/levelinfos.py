@@ -21,7 +21,7 @@ class Entry(BytesModel):
     medal_times = ()
     medal_scores = ()
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         self.level_name = dbytes.read_string()
         self.recoverable = True
         self.level_path = dbytes.read_string()
@@ -60,7 +60,7 @@ class LevelInfos(BytesModel):
     version = None
     entries_s2 = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         ts = self.require_type(FTYPE_LEVELINFOS)
         self.report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)

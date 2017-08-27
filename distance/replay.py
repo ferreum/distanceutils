@@ -26,7 +26,7 @@ class Replay(BytesModel):
     car_color_glow = None
     car_color_sparkle = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         ts = self.require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
         self.report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)

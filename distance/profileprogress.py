@@ -40,7 +40,7 @@ class LevelProgress(BytesModel):
     completion = ()
     scores = ()
 
-    def parse(self, dbytes, version=None):
+    def _read(self, dbytes, version=None):
         self.level_path = dbytes.read_string()
         self.recoverable = True
         self.add_unknown(value=dbytes.read_string())
@@ -71,17 +71,17 @@ class Stat(object):
 
     def __init__(self, type, ident, unit='num', nbytes=None):
         if type == 'd':
-            def parse(dbytes):
+            def _read(dbytes):
                 return dbytes.read_struct(S_DOUBLE)[0]
         elif type == 'u8':
-            def parse(dbytes):
+            def _read(dbytes):
                 return dbytes.read_num(8)
         elif type == 'unk':
-            def parse(dbytes):
+            def _read(dbytes):
                 return dbytes.read_n(nbytes)
         else:
             raise ValueError(f"invalid type: {type!r}")
-        self.parse_value = parse
+        self.read_value = _read
         if unit == 'sec':
             self.format = lambda v: format_duration_dhms(v * 1000)
         elif unit == 'num':
@@ -98,7 +98,7 @@ class Stat(object):
         self.type = type
         self.unit = unit
 
-    def parse_value(self, dbytes):
+    def read_value(self, dbytes):
         raise NotImplementedError
 
 
@@ -159,7 +159,7 @@ class PlayerStats(BytesModel):
     modes_online = ()
     trackmogrify_mods = ()
 
-    def parse(self, dbytes, version=None):
+    def _read(self, dbytes, version=None):
         def read_double():
             return dbytes.read_struct(S_DOUBLE)[0]
         self.version = version
@@ -167,7 +167,7 @@ class PlayerStats(BytesModel):
 
         self.stats = stats = {}
         for k, stat in STATS.items():
-            stats[k] = stat.parse_value(dbytes)
+            stats[k] = stat.read_value(dbytes)
 
         self.require_equal(SECTION_UNK_1, 4)
         num = dbytes.read_num(4)
@@ -286,7 +286,7 @@ class ProfileProgress(BytesModel):
     num_levels = None
     stats_s2 = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         ts = self.require_type(FTYPE_PROFILEPROGRESS)
         self.report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)

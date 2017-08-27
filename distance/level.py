@@ -43,7 +43,7 @@ def _fallback_subobject(section):
     return None
 
 
-def parse_n_floats(dbytes, n, default):
+def read_n_floats(dbytes, n, default):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
     f = read_float()
@@ -56,7 +56,7 @@ def parse_n_floats(dbytes, n, default):
 TRANSFORM_MIN_SIZE = 12
 
 
-def parse_transform(dbytes):
+def read_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
     f = dbytes.read_n(4)
@@ -150,7 +150,7 @@ class LevelObject(BytesModel):
     has_subobjects = False
     subobjects_section = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         ts = self.get_start_section()
         self.type = ts.type
         self.report_end_pos(ts.data_end)
@@ -161,7 +161,7 @@ class LevelObject(BytesModel):
             if sec.value_id == 0x01: # base object props
                 end = sec.data_end
                 if dbytes.pos + TRANSFORM_MIN_SIZE < end:
-                    self.transform = parse_transform(dbytes)
+                    self.transform = read_transform(dbytes)
                 if dbytes.pos + Section.MIN_SIZE < end:
                     self.subobjects_section = Section(dbytes)
                     self.has_subobjects = True
@@ -261,7 +261,7 @@ class LevelSettings(LevelObject):
     abilities = ()
     difficulty = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         sec = self.get_start_section()
         if sec.ident == SECTION_LEVEL_INFO:
             # Levelinfo section only found in old (v1) maps
@@ -272,7 +272,7 @@ class LevelSettings(LevelObject):
             self.add_unknown(143)
             self.name = dbytes.read_string()
             return
-        LevelObject.parse(self, dbytes)
+        LevelObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_UNK_2:
@@ -532,7 +532,7 @@ class GravityTrigger(LevelObject):
                 self.trigger_center = (0.0, 0.0, 0.0)
                 self.trigger_radius = 50.0
                 with dbytes.limit(sec.data_end, True):
-                    self.trigger_center = parse_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
+                    self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
                     self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
                 return True
         elif sec.ident == SECTION_UNK_2:
@@ -611,7 +611,7 @@ class ForceZoneBox(LevelObject):
                 self.wind_speed = 300.0
                 self.drag_multiplier = 1.0
                 with dbytes.limit(sec.data_end, True):
-                    self.force_direction = parse_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
+                    self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
                     self.global_force = dbytes.read_byte()
                     self.force_type = dbytes.read_num(4)
                     self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
@@ -765,7 +765,7 @@ class Level(BytesModel):
 
     settings = None
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         sec = self.get_start_section()
         if sec.ident != SECTION_LEVEL:
             raise IOError("Unexcpected section: {sec.ident}")

@@ -190,7 +190,7 @@ class BytesModel(object):
         self.start_pos = start_pos
         self.dbytes = dbytes
         try:
-            self.parse(dbytes, **kw)
+            self._read(dbytes, **kw)
             self.apply_end_pos(dbytes)
             self.end_pos = dbytes.pos
             self.sane_end_pos = True
@@ -215,9 +215,9 @@ class BytesModel(object):
             self.end_pos = dbytes.pos
             raise e from orig_e
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         raise NotImplementedError(
-            "Subclass needs to override parse(self, dbytes)")
+            "Subclass needs to override _read(self, dbytes)")
 
     def _read_sections(self, end):
         dbytes = self.dbytes
@@ -323,7 +323,7 @@ class Section(BytesModel):
     num_objects = None
     layer_flags = ()
 
-    def parse(self, dbytes):
+    def _read(self, dbytes):
         self.ident = ident = dbytes.read_num(4)
         self.recoverable = True
         if ident == SECTION_TYPE:
