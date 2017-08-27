@@ -76,24 +76,21 @@ class WorkshopLevelInfos(BytesModel):
 
     def _print_data(self, p):
         unk_str = ""
-        try:
-            p(f"Levelinfos: {self.num_levels}")
-            for level, sane, exc in self.iter_levels():
-                if 'unknown' in p.flags:
-                    unk_str = f"Unknown: {format_bytes(level.unknown)} "
-                if level.rating is None:
-                    rate_str = " Rating: None"
-                elif level.rating == Rating.NONE:
-                    rate_str = ""
-                else:
-                    rate_str = " Rating: " + Rating.to_name(level.rating)
-                p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
-                if exc:
-                    p.print_exception(exc)
-                if not sane:
-                    break
-        except Exception as e:
-            p.print_exception(e)
+        p(f"Levelinfos: {self.num_levels}")
+        for level, sane, exc in self.iter_levels():
+            if 'unknown' in p.flags:
+                unk_str = f"Unknown: {format_bytes(level.unknown)} "
+            if level.rating is None:
+                rate_str = " Rating: None"
+            elif level.rating == Rating.NONE:
+                rate_str = ""
+            else:
+                rate_str = " Rating: " + Rating.to_name(level.rating)
+            p(f"Level: {unk_str}ID: {level.id} {level.title!r} by {level.author!r}({level.authorid}){rate_str}")
+            if exc:
+                p.print_exception(exc)
+            if not sane:
+                break
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
