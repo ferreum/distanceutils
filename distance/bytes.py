@@ -192,6 +192,17 @@ class BytesModel(object):
             return entries, False, e
 
     def __init__(self, dbytes=None, **kw):
+
+        """Constructor.
+
+        If dbytes is set, also call self.read() with the given dbytes and all
+        optional **kw parameters.
+
+        If dbytes is unset or None, set the given **kw parameters as
+        attributes on the new object.
+
+        """
+
         if dbytes is not None:
             self.read(dbytes, **kw)
         elif kw:
@@ -200,6 +211,30 @@ class BytesModel(object):
 
     def read(self, dbytes, start_section=None,
              start_pos=None, **kw):
+
+        """Read data of this object from the given dbytes.
+
+        Subclasses need to implement self._read() for this to work.
+        Subclasses should never override self.read().
+
+        Exceptions raised in self._read() gain the following attributes:
+
+        start_pos - dbytes.pos before starting self._read(), or parameter
+                    start_pos, if set.
+        exc_pos   - dbytes.pos where the exception occurred.
+        sane_end_pos - Whether dbytes.pos is considered sane (see below).
+        partial_object - Set to self only if self.recoverable is set to true.
+
+        EOFError occuring in self._read() are converted to
+        UnexpectedEOFError if any data has been read from dbytes.
+
+        After _read(), regardless of whether an exception was raised,
+        it is attempted to set dbytes.pos to the position reported
+        (if it was) with _report_end_pos(). If this is successful,
+        the dbytes.pos is considered sane.
+
+        """
+
         self.start_section = start_section
         if start_pos is None:
             start_pos = dbytes.pos
@@ -224,6 +259,7 @@ class BytesModel(object):
                 self.exception = e
             else:
                 try:
+                    # delete attr set for inner recoverable object
                     del e.partial_object
                 except AttributeError:
                     pass
