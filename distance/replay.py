@@ -5,7 +5,7 @@
 
 
 from .bytes import (BytesModel, S_COLOR_RGBA,
-                    SECTION_UNK_2, SECTION_UNK_1)
+                    SECTION_2, SECTION_1)
 from .common import format_duration, format_color
 
 
@@ -32,7 +32,7 @@ class Replay(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_UNK_2:
+        if sec.ident == SECTION_2:
             if sec.value_id == 0x7f:
                 # demo data
                 self.version = version = sec.version
@@ -51,10 +51,10 @@ class Replay(BytesModel):
                 self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
 
                 if version <= 1:
-                    self.require_equal(SECTION_UNK_1, 4)
+                    self.require_equal(SECTION_1, 4)
                     section_size = dbytes.read_num(4) * 4
                     dbytes.pos += section_size
-                    self.require_equal(SECTION_UNK_1, 4)
+                    self.require_equal(SECTION_1, 4)
                     section_size = dbytes.read_num(4)
                     dbytes.pos += section_size - 8
                     self.finish_time = dbytes.read_num(4)

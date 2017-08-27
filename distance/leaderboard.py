@@ -6,7 +6,7 @@
 
 from operator import attrgetter
 
-from .bytes import BytesModel, SECTION_UNK_2
+from .bytes import BytesModel, SECTION_2
 from .common import format_bytes, format_duration
 
 
@@ -45,7 +45,7 @@ class Leaderboard(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_UNK_2:
+        if sec.ident == SECTION_2:
             self.entries_s2 = sec
             self.version = sec.version
             self.num_entries = dbytes.read_num(4)

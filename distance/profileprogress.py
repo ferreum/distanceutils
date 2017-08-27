@@ -8,7 +8,7 @@ from collections import OrderedDict
 from itertools import islice
 
 from .bytes import (BytesModel, S_DOUBLE,
-                    SECTION_UNK_1, SECTION_UNK_2)
+                    SECTION_1, SECTION_2)
 from .common import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
 
@@ -46,13 +46,13 @@ class LevelProgress(BytesModel):
         self.add_unknown(value=dbytes.read_string())
         self.add_unknown(1)
 
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num_levels = dbytes.read_num(4)
         self.completion = completion = []
         for i in range(num_levels):
             completion.append(dbytes.read_num(4))
 
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num_levels = dbytes.read_num(4)
         self.scores = scores = []
         for i in range(num_levels):
@@ -169,19 +169,19 @@ class PlayerStats(BytesModel):
         for k, stat in STATS.items():
             stats[k] = stat.read_value(dbytes)
 
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num = dbytes.read_num(4)
         self.modes_offline = offline_times = []
         for i in range(num):
             offline_times.append(read_double())
 
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num = dbytes.read_num(4)
         modes_unknown = self.add_unknown(value=[])
         for i in range(num):
             modes_unknown.append(dbytes.read_num(8))
 
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num = dbytes.read_num(4)
         self.modes_online = online_times = []
         for i in range(num):
@@ -189,7 +189,7 @@ class PlayerStats(BytesModel):
 
         if version >= 6:
             self.add_unknown(8)
-            self.require_equal(SECTION_UNK_1, 4)
+            self.require_equal(SECTION_1, 4)
             num = dbytes.read_num(4)
             self.trackmogrify_mods = mods = []
             for i in range(num):
@@ -292,7 +292,7 @@ class ProfileProgress(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_UNK_2:
+        if sec.ident == SECTION_2:
             if sec.value_id == 0x6A:
                 self.level_s2 = sec
                 self.num_levels = dbytes.read_num(4)
@@ -325,7 +325,7 @@ class ProfileProgress(BytesModel):
     def iter_official_levels(self):
         dbytes = self.dbytes
         dbytes.pos = self.off_mapname_start
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num_maps = dbytes.read_num(4)
         def gen():
             for i in range(num_maps):
@@ -338,7 +338,7 @@ class ProfileProgress(BytesModel):
         if self.level_s2.version < 6:
             return (), 0
         dbytes.pos = self.found_tricks_start
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num_tricks = dbytes.read_num(4)
         def gen():
             for i in range(num_tricks):
@@ -351,7 +351,7 @@ class ProfileProgress(BytesModel):
             return (), 0
         dbytes = self.dbytes
         dbytes.pos = self.adventure_levels_start
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num_advlevels = dbytes.read_num(4)
         def gen():
             for i in range(num_advlevels):
@@ -364,7 +364,7 @@ class ProfileProgress(BytesModel):
             return (), 0
         dbytes = self.dbytes
         dbytes.pos = self.somelevel_list_start
-        self.require_equal(SECTION_UNK_1, 4)
+        self.require_equal(SECTION_1, 4)
         num_somelevels = dbytes.read_num(4)
         def gen():
             for i in range(num_somelevels):

@@ -21,11 +21,11 @@ SECTION_LEVEL = 99999999
 SECTION_TYPE = 66666666
 SECTION_LAYER = 77777777
 SECTION_LEVEL_INFO = 88888888
-SECTION_UNK_5 = 55555555
-SECTION_UNK_3 = 33333333
-SECTION_UNK_2 = 22222222
-SECTION_UNK_1 = 11111111
-SECTION_UNK_32 = 32323232
+SECTION_5 = 55555555
+SECTION_3 = 33333333
+SECTION_2 = 22222222
+SECTION_1 = 11111111
+SECTION_32 = 32323232
 
 
 LAYER_FLAG_NAMES = ({0: "", 1: "Active"},
@@ -333,18 +333,18 @@ class Section(BytesModel):
             self.add_unknown(1)
             self.number = dbytes.read_num(4)
             self.version = dbytes.read_num(4)
-        elif ident == SECTION_UNK_5:
+        elif ident == SECTION_5:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
             self.num_objects = dbytes.read_num(4)
             self.subobjects_start = dbytes.pos
-        elif ident == SECTION_UNK_3:
+        elif ident == SECTION_3:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_num(4)
             dbytes.pos += 4 # secnum
             self.number = dbytes.read_num(4)
-        elif ident == SECTION_UNK_2:
+        elif ident == SECTION_2:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_num(4)
@@ -380,7 +380,7 @@ class Section(BytesModel):
         elif ident == SECTION_LEVEL_INFO:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
-        elif ident == SECTION_UNK_32:
+        elif ident == SECTION_32:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
         else:
