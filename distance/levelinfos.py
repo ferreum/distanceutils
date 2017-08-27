@@ -91,7 +91,7 @@ class LevelInfos(BytesModel):
         gen, length = self.iter_levels()
         if length:
             p(f"Level entries: {length}")
-        with p.tree_children(length):
+        with p.tree_children():
             for entry, sane, exc in gen:
                 p.tree_next_child()
                 p.print_data_of(entry)

@@ -83,7 +83,7 @@ class WorkshopLevelInfos(BytesModel):
     def _print_data(self, p):
         unk_str = ""
         p(f"Levelinfos: {self.num_levels}")
-        with p.tree_children(0):
+        with p.tree_children():
             for level, sane, exc in self.iter_levels():
                 p.tree_next_child()
                 p(f"Title: {level.title!r} ({level.id})")

@@ -210,7 +210,7 @@ class PlayerStats(BytesModel):
             p(f"{name}: {val_str}")
 
         ps(s.total, "All play time")
-        with p.tree_children(5):
+        with p.tree_children():
             total_in_modes = sum(self.modes_offline) + sum(self.modes_online)
             p.tree_next_child()
             p(f"Total time in modes: {format_duration_dhms(total_in_modes * 1000)}")
@@ -218,14 +218,14 @@ class PlayerStats(BytesModel):
             total_online = sum(self.modes_online)
             p.tree_next_child()
             p(f"Total time in offline modes: {format_duration_dhms(total_offline * 1000)}")
-            with p.tree_children(sum(1 for t in self.modes_offline if t >= 0.001)):
+            with p.tree_children():
                 for mode, time in enumerate(self.modes_offline):
                     if time >= 0.001:
                         p.tree_next_child()
                         p(f"Time playing {Mode.to_name(mode)} offline: {format_duration_dhms(time * 1000)}")
             p.tree_next_child()
             p(f"Total time in online modes: {format_duration_dhms(total_online * 1000)}")
-            with p.tree_children(sum(1 for t in self.modes_online if t >= 0.001)):
+            with p.tree_children():
                 for mode, time in enumerate(self.modes_online):
                     if time >= 0.001:
                         p.tree_next_child()
@@ -236,7 +236,7 @@ class PlayerStats(BytesModel):
         total_distance = sum(values.get(stat.ident) for stat in
                              (s.forward, s.reverse, s.air_fly, s.air_nofly))
         ps(s.deaths, "Total deaths")
-        with p.tree_children(6):
+        with p.tree_children():
             ps(s.impact_deaths, "Impact deaths")
             ps(s.killgrid_deaths, "Killgrid deaths")
             ps(s.laser_deaths, "Laser deaths")
@@ -248,7 +248,7 @@ class PlayerStats(BytesModel):
         ps(s.checkpoints, "Checkpoints hit")
         ps(s.cooldowns, "Cooldowns hit")
         p(f"Distance traveled: {format_distance(total_distance)}")
-        with p.tree_children(7):
+        with p.tree_children():
             ps(s.forward, "Distance driven forward")
             ps(s.reverse, "Distance driven reverse")
             ps(s.air_fly, "Distance airborn flying")
@@ -273,7 +273,7 @@ class PlayerStats(BytesModel):
         mods = self.trackmogrify_mods
         if mods:
             p(f"Found trackmogrify mods: {len(mods)}")
-            with p.tree_children((len(mods) + 4) // 5):
+            with p.tree_children():
                 for i in range(0, len(mods), 5):
                     mods_str = ', '.join(repr(m) for m in islice(mods, i, i + 5))
                     p.tree_next_child()
@@ -384,14 +384,14 @@ class ProfileProgress(BytesModel):
         if self.level_s2:
             p(f"Level progress version: {self.level_s2.version}")
             p(f"Level count: {self.num_levels}")
-            with p.tree_children(self.num_levels):
+            with p.tree_children():
                 for level, sane, exc in self.iter_levels():
                     p.tree_next_child()
                     p.print_data_of(level)
             gen, length = self.iter_official_levels()
             if length:
                 p(f"Unlocked levels: {length}")
-            with p.tree_children((length + 4) // 5):
+            with p.tree_children():
                 # need to ensure that gen is exhausted
                 gen = iter(list(gen))
                 for _ in range(0, length, 5):
@@ -401,7 +401,7 @@ class ProfileProgress(BytesModel):
             gen, length = self.iter_tricks()
             if length:
                 p(f"Found tricks: {length}")
-            with p.tree_children((length + 4) // 5):
+            with p.tree_children():
                 # need to ensure that gen is exhausted
                 gen = iter(list(gen))
                 for _ in range(0, length, 5):
@@ -411,14 +411,14 @@ class ProfileProgress(BytesModel):
             gen, length = self.iter_unlocked_adventure()
             if length:
                 p(f"Unlocked adventure stages: {length}")
-            with p.tree_children(length):
+            with p.tree_children():
                 for advlevel in gen:
                     p.tree_next_child()
                     p(f"Level: {advlevel!r}")
             gen, length = self.iter_somelevels()
             if length:
                 p(f"Some levels: {length}")
-            with p.tree_children(length):
+            with p.tree_children():
                 for somelevel in gen:
                     p.tree_next_child()
                     p(f"Level: {somelevel!r}")

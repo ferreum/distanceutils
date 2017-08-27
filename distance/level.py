@@ -239,7 +239,7 @@ class LevelObject(BytesModel):
     def _print_subobjects(self, p):
         num = len(self.subobjects)
         p(f"Subobjects: {num}")
-        with p.tree_children(num):
+        with p.tree_children():
             for obj in self.subobjects:
                 p.tree_next_child()
                 p.print_data_of(obj)
@@ -385,7 +385,7 @@ class Group(LevelObject):
             p(f"Grouped objects: {num}")
             if 'groups' in p.flags:
                 p.counters.grouped_objects += num
-                with p.tree_children(num):
+                with p.tree_children():
                     _print_objects(p, self.subobjects)
             if counters:
                 counters.print_data(p)
@@ -833,7 +833,7 @@ class Level(BytesModel):
                     p.counters.num_layers += 1
                     p.counters.layer_objects += layer.num_objects
                     p.print_data_of(layer)
-                    with p.tree_children(layer.num_objects):
+                    with p.tree_children():
                         _print_objects(p, self.iter_layer_objects(layer))
                 if counters:
                     counters.print_data(p)

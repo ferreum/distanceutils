@@ -116,7 +116,7 @@ class PrintContext(object):
             push_line(prefix + line)
 
     @contextmanager
-    def tree_children(self, num_children):
+    def tree_children(self):
         buf, ended = self._tree_data
         lines = []
         buf.append(lines)

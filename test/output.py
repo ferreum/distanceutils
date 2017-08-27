@@ -32,7 +32,7 @@ class TreeTest(BaseTest):
     def test_basic(self):
         p = self.p
         p("Root")
-        with p.tree_children(0):
+        with p.tree_children():
             p.tree_next_child()
             p(f"First")
             p.tree_next_child()
@@ -47,7 +47,7 @@ class TreeTest(BaseTest):
     def test_next_child_after_object(self):
         p = self.p
         p("Root")
-        with p.tree_children(0):
+        with p.tree_children():
             p(f"First")
             p.tree_next_child()
             p(f"Second")
@@ -62,10 +62,10 @@ class TreeTest(BaseTest):
     def test_nested(self):
         p = self.p
         p("Root")
-        with p.tree_children(0):
+        with p.tree_children():
             p.tree_next_child()
             p(f"First")
-            with p.tree_children(0):
+            with p.tree_children():
                 p.tree_next_child()
                 p(f"Second")
             p.tree_next_child()
@@ -82,11 +82,11 @@ class TreeTest(BaseTest):
         # connects to the line before it.
         p = self.p
         p("Root")
-        with p.tree_children(0):
+        with p.tree_children():
             p.tree_next_child()
             p(f"First")
             p.tree_next_child()
-            with p.tree_children(0):
+            with p.tree_children():
                 p.tree_next_child()
                 p(f"Second")
             p(f"Third")
@@ -100,14 +100,14 @@ class TreeTest(BaseTest):
     def test_nested_end_empty(self):
         p = self.p
         p("Root")
-        with p.tree_children(0):
+        with p.tree_children():
             p.tree_next_child()
             p(f"First")
             p.tree_next_child()
-            with p.tree_children(0):
+            with p.tree_children():
                 p.tree_next_child()
                 p(f"Second")
-                with p.tree_children(0):
+                with p.tree_children():
                     p.tree_next_child()
         self.assertResult("""
         Root
