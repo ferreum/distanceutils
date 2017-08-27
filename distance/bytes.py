@@ -152,6 +152,8 @@ class PrintContext(object):
 
 class BytesModel(object):
 
+    """Base object representing a set amount of data in .bytes files."""
+
     unknown = ()
     sections = None
     exception = None
@@ -300,6 +302,13 @@ class BytesModel(object):
         return False
 
     def write(self, dbytes):
+
+        """Writes this object to the given dbytes.
+
+        Subclasses need to implement this method.
+
+        """
+
         raise NotImplementedError(
             "Subclass needs to override write(self, dbytes)")
 
@@ -454,6 +463,11 @@ class Section(BytesModel):
 
 
 class DstBytes(object):
+
+    """File wrapper providing methods for reading and writing common data
+    types used in .bytes files.
+
+    """
 
     _max_pos = None
     _expect_overread = False
