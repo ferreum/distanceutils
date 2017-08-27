@@ -25,7 +25,7 @@ def objects_with_groups(gen):
 class BaseTest(unittest.TestCase):
 
     def setUp(self):
-        self.files = []
+        self.opened_files = []
 
     def tearDown(self):
         self.close_files()
@@ -36,13 +36,13 @@ class BaseTest(unittest.TestCase):
         except FileNotFoundError:
             raise unittest.SkipTest(f"Test file {filename} does not exist")
         else:
-            self.files.append(f)
+            self.opened_files.append(f)
             return f
 
     def close_files(self):
-        for f in self.files:
+        for f in self.opened_files:
             f.close()
-        self.files = []
+        self.opened_files = []
 
     def getLevel(self, filename, with_layers=False, with_groups=False):
         f = self.open(filename)
@@ -75,7 +75,7 @@ class Base(object):
             for file in self.files:
                 with self.subTest(file=file):
                     p = PrintContext.for_test()
-                    f = self.open(f"in/level-not-included/{f}.bytes")
+                    f = self.open(f"in/level-not-included/{file}.bytes")
                     p.print_data_of(Level(DstBytes(f)))
 
 
