@@ -329,7 +329,7 @@ class LevelSettings(LevelObject):
             modes_str = ', '.join(Mode.to_name(mode)
                                   for mode, value in sorted(self.modes.items())
                                   if value)
-            p(f"Level modes: {modes_str}")
+            p(f"Level modes: {modes_str or 'None'}")
         if self.abilities:
             ab_str = ', '.join(AbilityToggle.to_name_for_value(toggle, value)
                                for toggle, value in enumerate(self.abilities)
