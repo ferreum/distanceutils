@@ -155,10 +155,11 @@ class BytesModel(object):
     """Base object representing a set amount of data in .bytes files."""
 
     unknown = ()
-    sections = None
+    sections = ()
     exception = None
     reported_end_pos = None
     recoverable = False
+    start_section = None
 
     @classmethod
     def maybe_partial(clazz, *args, **kw):
@@ -237,7 +238,9 @@ class BytesModel(object):
 
         """
 
-        self.start_section = start_section
+        if start_section:
+            self.start_section = start_section
+            self.sections = [start_section]
         if start_pos is None:
             start_pos = dbytes.pos
         self.start_pos = start_pos
@@ -274,9 +277,13 @@ class BytesModel(object):
 
     def _read_sections(self, end):
         dbytes = self.dbytes
+        sections = self.sections
+        if sections is ():
+            self.sections = sections = []
         with dbytes.limit(end):
             while dbytes.pos < end:
                 sec = Section(dbytes)
+                sections.append(sec)
                 with dbytes.limit(sec.data_end):
                     self._read_section_data(dbytes, sec)
                 dbytes.pos = sec.data_end
@@ -319,14 +326,22 @@ class BytesModel(object):
             if file or flags:
                 raise TypeError("p must be the single argument")
 
-        if 'unknown' in p.flags:
-            if self.sections is not None:
-                for s_list in self.sections.values():
-                    for i, s in enumerate(s_list):
-                        if s.unknown:
-                            p(f"Section {s.ident}-{i} unknown: {format_unknown(s.unknown)}")
-            if self.unknown:
-                p(f"Unknown: {format_unknown(self.unknown)}")
+        if 'sections' in p.flags and self.sections:
+            p(f"Sections: {len(self.sections)}")
+            with p.tree_children():
+                for sec in self.sections:
+                    p.tree_next_child()
+                    unk_str = ""
+                    p(f"Section: {sec.ident}{unk_str}")
+                    if 'offset' in p.flags:
+                        start = sec.data_start
+                        end = sec.data_end
+                        if start is not None and end is not None:
+                            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+                    if 'unknown' in p.flags and sec.unknown:
+                        p(f"Unknown: {format_unknown(sec.unknown)}")
+        if 'unknown' in p.flags and self.unknown:
+            p(f"Unknown: {format_unknown(self.unknown)}")
         if 'offset' in p.flags:
             start = self.start_pos
             end = self.end_pos
@@ -382,6 +397,8 @@ class Section(BytesModel):
     layer_name = None
     num_objects = None
     layer_flags = ()
+    data_start = None
+    size = None
 
     def _read(self, dbytes):
         self.ident = ident = dbytes.read_num(4)
@@ -448,7 +465,11 @@ class Section(BytesModel):
 
     @property
     def data_end(self):
-        return self.data_start + self.size
+        start = self.data_start
+        size = self.size
+        if start is None or size is None:
+            return None
+        return start + self.size
 
     def _print_data(self, p):
         if self.ident == SECTION_7:
