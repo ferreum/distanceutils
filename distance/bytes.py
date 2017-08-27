@@ -342,13 +342,14 @@ class Section(BytesModel):
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_fixed_number(4)
-            self.add_unknown(4)
+            dbytes.pos += 4 # secnum
             self.number = dbytes.read_fixed_number(4)
         elif ident == SECTION_UNK_2:
             self.size = dbytes.read_fixed_number(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_fixed_number(4)
             self.version = dbytes.read_fixed_number(4)
+            dbytes.pos += 4 # secnum
         elif ident == SECTION_LAYER:
             self.size = size = dbytes.read_fixed_number(8)
             self.data_start = data_start = dbytes.pos

@@ -280,7 +280,7 @@ class LevelSettings(LevelObject):
                 self.levelinfo_section = sec
                 self.version = version = sec.version
 
-                self.add_unknown(12)
+                self.add_unknown(8)
                 self.name = dbytes.read_string()
                 self.add_unknown(4)
                 self.modes = modes = {}
@@ -358,7 +358,6 @@ class Group(LevelObject):
                 return True
             elif sec.value_id == 0x63: # Group name
                 if sec.size > 12:
-                    dbytes.pos += 4 # secnum
                     self.group_name = dbytes.read_string()
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
@@ -416,18 +415,15 @@ class SubTeleporter(LevelObject):
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x3E:
-                dbytes.pos = sec.data_start + 12
                 value = dbytes.read_fixed_number(4)
                 self.destination = value
                 return True
             elif sec.value_id == 0x3F:
-                dbytes.pos = sec.data_start + 12
                 value = dbytes.read_fixed_number(4)
                 self.link_id = value
                 return True
             elif sec.value_id == 0x51:
                 if sec.size > 12:
-                    dbytes.pos = sec.data_start + 12
                     check = dbytes.read_byte()
                 else:
                     # if section is too short, the checkpoint is enabled
@@ -483,7 +479,6 @@ class InfoDisplayBox(LevelObject):
                 texts = self.texts
                 self.version = version = sec.version
                 if version == 0:
-                    self.add_unknown(4)
                     num_props = dbytes.read_fixed_number(4)
                     self.texts = texts = [None] * 5
                     for i in range(num_props):
@@ -498,7 +493,6 @@ class InfoDisplayBox(LevelObject):
                             dbytes.pos += 12
                 else:
                     # only verified in v2
-                    self.add_unknown(4)
                     self.fadeout_time = dbytes.read_struct(S_FLOAT)
                     for i in range(5):
                         self.add_unknown(4) # f32 delay
@@ -544,7 +538,6 @@ class GravityTrigger(LevelObject):
         elif sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x45:
                 # GravityTrigger
-                self.add_unknown(4)
                 self.disable_gravity = 1
                 self.drag_scale = 1.0
                 self.drag_scale_angular = 1.0
@@ -555,7 +548,6 @@ class GravityTrigger(LevelObject):
                 return True
             elif sec.value_id == 0x4b:
                 # MusicTrigger
-                self.add_unknown(4)
                 self.music_id = 19
                 self.one_time_trigger = 1
                 self.reset_before_trigger = 0
@@ -606,13 +598,11 @@ class ForceZoneBox(LevelObject):
         elif sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x63:
                 # CustomName
-                self.add_unknown(4) # 0x36=wind 0x3b=gravity
                 if dbytes.pos < sec.data_end:
                     with dbytes.limit(sec.data_end):
                         self.custom_name = dbytes.read_string()
                 return True
             elif sec.value_id == 0xa0:
-                self.add_unknown(4) # 0x37=wind, 0x3c=gravity
                 self.force_direction = (0.0, 0.0, 1.0)
                 self.global_force = 0
                 self.force_type = ForceType.WIND
@@ -667,7 +657,6 @@ class EnableAbilitiesBox(LevelObject):
             if sec.value_id == 0x5e:
                 # Abilities
                 if sec.size > 16:
-                    self.add_unknown(4)
                     self.abilities = abilities = {}
                     num_props = dbytes.read_fixed_number(4)
                     for i in range(num_props):

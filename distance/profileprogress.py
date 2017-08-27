@@ -295,9 +295,7 @@ class ProfileProgress(BytesModel):
         if sec.ident == SECTION_UNK_2:
             if sec.value_id == 0x6A:
                 self.level_s2 = sec
-                self.add_unknown(4)
                 self.num_levels = dbytes.read_fixed_number(4)
-                self.add_unknown(4)
                 return True
             elif sec.value_id == 0x8E:
                 self.stats_s2 = sec

@@ -36,7 +36,6 @@ class Replay(BytesModel):
             if sec.value_id == 0x7f:
                 # demo data
                 self.version = version = sec.version
-                dbytes.pos += 4 # secnum
                 self.player_name = dbytes.read_string()
                 if version >= 2:
                     self.player_id = dbytes.read_fixed_number(8)
