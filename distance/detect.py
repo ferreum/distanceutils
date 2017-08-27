@@ -4,7 +4,7 @@
 # Created:     2017-06-28
 
 
-from .bytes import Section, SECTION_TYPE
+from .bytes import Section, SECTION_6
 
 
 class BytesProber(object):
@@ -52,7 +52,7 @@ class BytesProber(object):
         start_pos = dbytes.pos
         section = Section(dbytes)
         start_section = section
-        if section.ident == SECTION_TYPE:
+        if section.ident == SECTION_6:
             ty = section.type
             cls = self._types.get(ty, None)
             if cls is None:

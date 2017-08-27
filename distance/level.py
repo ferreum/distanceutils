@@ -9,9 +9,9 @@ import math
 from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section, S_FLOAT,
-                    SECTION_LEVEL, SECTION_LAYER, SECTION_TYPE,
+                    SECTION_9, SECTION_7, SECTION_6,
                     SECTION_2, SECTION_3, SECTION_5,
-                    SECTION_LEVEL_INFO, SECTION_1)
+                    SECTION_8, SECTION_1)
 from .constants import Difficulty, Mode, AbilityToggle, ForceType
 from .common import format_duration
 from .detect import BytesProber
@@ -31,14 +31,14 @@ SUBOBJ_PROBER = BytesProber()
 
 @PROBER.func
 def _fallback_object(section):
-    if section.ident == SECTION_TYPE:
+    if section.ident == SECTION_6:
         return LevelObject
     return None
 
 
 @SUBOBJ_PROBER.func
 def _fallback_subobject(section):
-    if section.ident == SECTION_TYPE:
+    if section.ident == SECTION_6:
         return LevelObject
     return None
 
@@ -197,7 +197,7 @@ class LevelObject(BytesModel):
         self._subobjects = objs
 
     def write(self, dbytes):
-        dbytes.write_num(4, SECTION_TYPE)
+        dbytes.write_num(4, SECTION_6)
         with dbytes.write_size():
             dbytes.write_str(self.type)
             dbytes.write_bytes(b'\x00') # unknown
@@ -263,7 +263,7 @@ class LevelSettings(LevelObject):
 
     def _read(self, dbytes):
         sec = self.get_start_section()
-        if sec.ident == SECTION_LEVEL_INFO:
+        if sec.ident == SECTION_8:
             # Levelinfo section only found in old (v1) maps
             self.type = 'Section 88888888'
             self.report_end_pos(sec.data_start + sec.size)
@@ -767,7 +767,7 @@ class Level(BytesModel):
 
     def _read(self, dbytes):
         sec = self.get_start_section()
-        if sec.ident != SECTION_LEVEL:
+        if sec.ident != SECTION_9:
             raise IOError("Unexcpected section: {sec.ident}")
         self.level_name = sec.level_name
 

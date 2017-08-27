@@ -17,14 +17,30 @@ S_COLOR_RGBA = Struct("4f")
 S_FLOAT = Struct("f")
 S_DOUBLE = Struct("d")
 
-SECTION_LEVEL = 99999999
-SECTION_TYPE = 66666666
-SECTION_LAYER = 77777777
-SECTION_LEVEL_INFO = 88888888
+"""Level container"""
+SECTION_9 = 99999999
+
+"""Container for most objects"""
+SECTION_6 = 66666666
+
+"""Level layer container"""
+SECTION_7 = 77777777
+
+"""Levelinfo found in some v1 levels"""
+SECTION_8 = 88888888
+
+"""Subobject list container"""
 SECTION_5 = 55555555
+
+"""Data container"""
 SECTION_3 = 33333333
+
+"""Data container"""
 SECTION_2 = 22222222
+
+"""Used for some properties"""
 SECTION_1 = 11111111
+
 SECTION_32 = 32323232
 
 
@@ -326,7 +342,7 @@ class Section(BytesModel):
     def _read(self, dbytes):
         self.ident = ident = dbytes.read_num(4)
         self.recoverable = True
-        if ident == SECTION_TYPE:
+        if ident == SECTION_6:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
@@ -350,7 +366,7 @@ class Section(BytesModel):
             self.value_id = dbytes.read_num(4)
             self.version = dbytes.read_num(4)
             dbytes.pos += 4 # secnum
-        elif ident == SECTION_LAYER:
+        elif ident == SECTION_7:
             self.size = size = dbytes.read_num(8)
             self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
@@ -373,11 +389,11 @@ class Section(BytesModel):
                     self.layer_flags = flags
                     self.add_unknown(1)
             self.objects_start = dbytes.pos
-        elif ident == SECTION_LEVEL:
+        elif ident == SECTION_9:
             self.add_unknown(8)
             self.level_name = dbytes.read_string()
             self.add_unknown(8)
-        elif ident == SECTION_LEVEL_INFO:
+        elif ident == SECTION_8:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
         elif ident == SECTION_32:
@@ -391,7 +407,7 @@ class Section(BytesModel):
         return self.data_start + self.size
 
     def _print_data(self, p):
-        if self.ident == SECTION_LAYER:
+        if self.ident == SECTION_7:
             p(f"Layer name: {self.layer_name!r}")
             p(f"Layer object count: {self.num_objects}")
             if self.layer_flags:
