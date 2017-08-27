@@ -151,9 +151,9 @@ class LevelObject(BytesModel):
     subobjects_section = None
 
     def _read(self, dbytes):
-        ts = self.get_start_section()
+        ts = self._get_start_section()
         self.type = ts.type
-        self.report_end_pos(ts.data_end)
+        self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
@@ -262,14 +262,14 @@ class LevelSettings(LevelObject):
     difficulty = None
 
     def _read(self, dbytes):
-        sec = self.get_start_section()
+        sec = self._get_start_section()
         if sec.ident == SECTION_8:
             # Levelinfo section only found in old (v1) maps
             self.type = 'Section 88888888'
-            self.report_end_pos(sec.data_start + sec.size)
-            self.add_unknown(4)
+            self._report_end_pos(sec.data_start + sec.size)
+            self._add_unknown(4)
             self.skybox_name = dbytes.read_string()
-            self.add_unknown(143)
+            self._add_unknown(143)
             self.name = dbytes.read_string()
             return
         LevelObject._read(self, dbytes)
@@ -280,9 +280,9 @@ class LevelSettings(LevelObject):
                 self.levelinfo_section = sec
                 self.version = version = sec.version
 
-                self.add_unknown(8)
+                self._add_unknown(8)
                 self.name = dbytes.read_string()
-                self.add_unknown(4)
+                self._add_unknown(4)
                 self.modes = modes = {}
                 num_modes = dbytes.read_num(4)
                 for i in range(num_modes):
@@ -291,14 +291,14 @@ class LevelSettings(LevelObject):
                 self.music_id = dbytes.read_num(4)
                 if version <= 3:
                     self.skybox_name = dbytes.read_string()
-                    self.add_unknown(57)
+                    self._add_unknown(57)
                 elif version == 4:
-                    self.add_unknown(141)
+                    self._add_unknown(141)
                 elif version == 5:
-                    self.add_unknown(172) # confirmed only for v5
+                    self._add_unknown(172) # confirmed only for v5
                 elif 6 <= version:
                     # confirmed only for v6..v9
-                    self.add_unknown(176)
+                    self._add_unknown(176)
                 self.medal_times = times = []
                 self.medal_scores = scores = []
                 for i in range(4):
@@ -455,7 +455,7 @@ class WorldText(LevelObject):
                     dbytes.pos = pos
                     self.text = dbytes.read_string()
                     for i in range((sec.data_end - dbytes.pos) // 4):
-                        self.add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
+                        self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
                 else:
                     self.text = f"Hello World"
                 return True
@@ -495,7 +495,7 @@ class InfoDisplayBox(LevelObject):
                     # only verified in v2
                     self.fadeout_time = dbytes.read_struct(S_FLOAT)
                     for i in range(5):
-                        self.add_unknown(4) # f32 delay
+                        self._add_unknown(4) # f32 delay
                         if texts is ():
                             self.texts = texts = []
                         texts.append(dbytes.read_string())
@@ -766,7 +766,7 @@ class Level(BytesModel):
     settings = None
 
     def _read(self, dbytes):
-        sec = self.get_start_section()
+        sec = self._get_start_section()
         if sec.ident != SECTION_9:
             raise IOError("Unexcpected section: {sec.ident}")
         self.level_name = sec.level_name

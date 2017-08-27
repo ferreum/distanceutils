@@ -43,22 +43,22 @@ class LevelProgress(BytesModel):
     def _read(self, dbytes, version=None):
         self.level_path = dbytes.read_string()
         self.recoverable = True
-        self.add_unknown(value=dbytes.read_string())
-        self.add_unknown(1)
+        self._add_unknown(value=dbytes.read_string())
+        self._add_unknown(1)
 
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num_levels = dbytes.read_num(4)
         self.completion = completion = []
         for i in range(num_levels):
             completion.append(dbytes.read_num(4))
 
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num_levels = dbytes.read_num(4)
         self.scores = scores = []
         for i in range(num_levels):
             scores.append(dbytes.read_num(4, signed=True))
         if version > 2:
-            self.add_unknown(8)
+            self._add_unknown(8)
 
     def _print_data(self, p):
         p(f"Level path: {self.level_path!r}")
@@ -169,27 +169,27 @@ class PlayerStats(BytesModel):
         for k, stat in STATS.items():
             stats[k] = stat.read_value(dbytes)
 
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num = dbytes.read_num(4)
         self.modes_offline = offline_times = []
         for i in range(num):
             offline_times.append(read_double())
 
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num = dbytes.read_num(4)
-        modes_unknown = self.add_unknown(value=[])
+        modes_unknown = self._add_unknown(value=[])
         for i in range(num):
             modes_unknown.append(dbytes.read_num(8))
 
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num = dbytes.read_num(4)
         self.modes_online = online_times = []
         for i in range(num):
             online_times.append(read_double())
 
         if version >= 6:
-            self.add_unknown(8)
-            self.require_equal(SECTION_1, 4)
+            self._add_unknown(8)
+            self._require_equal(SECTION_1, 4)
             num = dbytes.read_num(4)
             self.trackmogrify_mods = mods = []
             for i in range(num):
@@ -287,8 +287,8 @@ class ProfileProgress(BytesModel):
     stats_s2 = None
 
     def _read(self, dbytes):
-        ts = self.require_type(FTYPE_PROFILEPROGRESS)
-        self.report_end_pos(ts.data_end)
+        ts = self._require_type(FTYPE_PROFILEPROGRESS)
+        self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
@@ -325,7 +325,7 @@ class ProfileProgress(BytesModel):
     def iter_official_levels(self):
         dbytes = self.dbytes
         dbytes.pos = self.off_mapname_start
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num_maps = dbytes.read_num(4)
         def gen():
             for i in range(num_maps):
@@ -338,7 +338,7 @@ class ProfileProgress(BytesModel):
         if self.level_s2.version < 6:
             return (), 0
         dbytes.pos = self.found_tricks_start
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num_tricks = dbytes.read_num(4)
         def gen():
             for i in range(num_tricks):
@@ -351,7 +351,7 @@ class ProfileProgress(BytesModel):
             return (), 0
         dbytes = self.dbytes
         dbytes.pos = self.adventure_levels_start
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num_advlevels = dbytes.read_num(4)
         def gen():
             for i in range(num_advlevels):
@@ -364,7 +364,7 @@ class ProfileProgress(BytesModel):
             return (), 0
         dbytes = self.dbytes
         dbytes.pos = self.somelevel_list_start
-        self.require_equal(SECTION_1, 4)
+        self._require_equal(SECTION_1, 4)
         num_somelevels = dbytes.read_num(4)
         def gen():
             for i in range(num_somelevels):

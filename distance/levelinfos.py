@@ -26,8 +26,8 @@ class Entry(BytesModel):
         self.recoverable = True
         self.level_path = dbytes.read_string()
         self.level_basename = dbytes.read_string()
-        self.add_unknown(16)
-        self.require_equal(12121212, 4)
+        self._add_unknown(16)
+        self._require_equal(12121212, 4)
         num_modes = dbytes.read_num(4)
         self.modes = modes = {}
         for _ in range(num_modes):
@@ -38,7 +38,7 @@ class Entry(BytesModel):
         for _ in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
             scores.append(dbytes.read_num(4, signed=True))
-        self.add_unknown(25)
+        self._add_unknown(25)
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
@@ -61,8 +61,8 @@ class LevelInfos(BytesModel):
     entries_s2 = None
 
     def _read(self, dbytes):
-        ts = self.require_type(FTYPE_LEVELINFOS)
-        self.report_end_pos(ts.data_end)
+        ts = self._require_type(FTYPE_LEVELINFOS)
+        self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):

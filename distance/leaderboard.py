@@ -26,10 +26,10 @@ class Entry(BytesModel):
         self.recoverable = True
         self.time = dbytes.read_num(4)
         if version == 0:
-            self.add_unknown(4)
+            self._add_unknown(4)
         elif version == 1:
             self.replay = dbytes.read_num(8)
-            self.add_unknown(12)
+            self._add_unknown(12)
         else:
             raise IOError(f"unknown version: {version}")
 
@@ -40,8 +40,8 @@ class Leaderboard(BytesModel):
     version = None
 
     def _read(self, dbytes):
-        ts = self.require_type(FTYPE_LEADERBOARD)
-        self.report_end_pos(ts.data_end)
+        ts = self._require_type(FTYPE_LEADERBOARD)
+        self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):

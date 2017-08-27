@@ -207,7 +207,7 @@ class BytesModel(object):
         self.dbytes = dbytes
         try:
             self._read(dbytes, **kw)
-            self.apply_end_pos(dbytes)
+            self.__apply_end_pos(dbytes)
             self.end_pos = dbytes.pos
             self.sane_end_pos = True
         except Exception as e:
@@ -227,7 +227,7 @@ class BytesModel(object):
                     del e.partial_object
                 except AttributeError:
                     pass
-            self.sane_end_pos = self.apply_end_pos(dbytes, or_to_eof=True)
+            self.sane_end_pos = self.__apply_end_pos(dbytes, or_to_eof=True)
             self.end_pos = dbytes.pos
             raise e from orig_e
 
@@ -247,11 +247,11 @@ class BytesModel(object):
     def _read_section_data(self, dbytes, sec):
         return False
 
-    def report_end_pos(self, pos):
+    def _report_end_pos(self, pos):
         self.recoverable = True
         self.reported_end_pos = pos
 
-    def apply_end_pos(self, dbytes, or_to_eof=False):
+    def __apply_end_pos(self, dbytes, or_to_eof=False):
         end_pos = self.reported_end_pos
         if end_pos is not None:
             current_pos = dbytes.pos
@@ -260,7 +260,7 @@ class BytesModel(object):
                 return True
             if current_pos != end_pos:
                 wanted = end_pos - current_pos
-                remain = self.add_unknown(wanted, or_to_eof=or_to_eof)
+                remain = self._add_unknown(wanted, or_to_eof=or_to_eof)
                 return len(remain) == wanted
         return False
 
@@ -297,14 +297,14 @@ class BytesModel(object):
     def _print_data(self, p):
         pass
 
-    def get_start_section(self):
+    def _get_start_section(self):
         sec = self.start_section
         if not sec:
             self.start_section = sec = Section(self.dbytes)
         return sec
 
-    def require_type(self, expect):
-        ts = self.get_start_section()
+    def _require_type(self, expect):
+        ts = self._get_start_section()
         if not ts:
             raise IOError("Missing type information")
         if isinstance(expect, str):
@@ -315,7 +315,7 @@ class BytesModel(object):
                 raise IOError(f"Invalid object type: {ts.type}")
         return ts
 
-    def add_unknown(self, nbytes=None, value=None, or_to_eof=False):
+    def _add_unknown(self, nbytes=None, value=None, or_to_eof=False):
         unknown = self.unknown
         if unknown is ():
             self.unknown = unknown = []
@@ -324,7 +324,7 @@ class BytesModel(object):
         unknown.append(value)
         return value
 
-    def require_equal(self, expect, nbytes=None, value=None):
+    def _require_equal(self, expect, nbytes=None, value=None):
         if nbytes is not None:
             value = self.dbytes.read_num(nbytes)
         if value != expect:
@@ -346,7 +346,7 @@ class Section(BytesModel):
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
-            self.add_unknown(1)
+            self._add_unknown(1)
             self.number = dbytes.read_num(4)
             self.version = dbytes.read_num(4)
         elif ident == SECTION_5:
@@ -380,19 +380,19 @@ class Section(BytesModel):
             tmp = dbytes.read_num(4)
             dbytes.pos = pos
             if tmp == 0 or tmp == 1:
-                self.add_unknown(4)
+                self._add_unknown(4)
                 flags = dbytes.read_struct("bbb")
                 if tmp == 0:
                     frozen = 1 if flags[0] == 0 else 0
                     self.layer_flags = (flags[1], frozen, flags[2])
                 else:
                     self.layer_flags = flags
-                    self.add_unknown(1)
+                    self._add_unknown(1)
             self.objects_start = dbytes.pos
         elif ident == SECTION_9:
-            self.add_unknown(8)
+            self._add_unknown(8)
             self.level_name = dbytes.read_string()
-            self.add_unknown(8)
+            self._add_unknown(8)
         elif ident == SECTION_8:
             self.size = dbytes.read_num(8)
             self.data_start = dbytes.pos
@@ -420,8 +420,8 @@ class Section(BytesModel):
 
 class DstBytes(object):
 
-    max_pos = None
-    expect_overread = False
+    _max_pos = None
+    _expect_overread = False
     section_counter = 0
 
     def __init__(self, file):
@@ -437,25 +437,25 @@ class DstBytes(object):
 
     @contextmanager
     def limit(self, max_pos, expect_overread=False):
-        old_max = self.max_pos
+        old_max = self._max_pos
         if old_max is not None and max_pos > old_max:
             raise IOError("cannot extend max_pos")
-        self.expect_overread = expect_overread
-        self.max_pos = max_pos
+        self._expect_overread = expect_overread
+        self._max_pos = max_pos
         try:
             yield
         except EOFError:
-            if not self.expect_overread:
+            if not self._expect_overread:
                 raise
         finally:
-            self.max_pos = old_max
+            self._max_pos = old_max
 
     def read_n(self, n, or_to_eof=False):
         if n == 0:
             return b''
         if n < 0:
             raise ValueError("n must be positive")
-        max_pos = self.max_pos
+        max_pos = self._max_pos
         if max_pos is not None and self.pos + n > max_pos:
             raise EOFError
         result = self.file.read(n)

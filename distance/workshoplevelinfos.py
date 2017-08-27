@@ -47,12 +47,12 @@ class Level(BytesModel):
         self.author = dbytes.read_string()
         self.path = dbytes.read_string()
         self.published_by_user = dbytes.read_byte()
-        self.add_unknown(7)
+        self._add_unknown(7)
         self.upvotes = dbytes.read_num(4)
         self.downvotes = dbytes.read_num(4)
-        self.add_unknown(4)
+        self._add_unknown(4)
         self.rating = dbytes.read_byte()
-        self.add_unknown(3)
+        self._add_unknown(3)
 
 
 class WorkshopLevelInfos(BytesModel):
@@ -60,8 +60,8 @@ class WorkshopLevelInfos(BytesModel):
     num_levels = 0
 
     def _read(self, dbytes):
-        ts = self.require_type(FTYPE_WSLEVELINFOS)
-        self.report_end_pos(ts.data_end)
+        ts = self._require_type(FTYPE_WSLEVELINFOS)
+        self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
