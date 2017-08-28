@@ -38,11 +38,11 @@ class Replay(BytesModel):
                 self.version = version = sec.version
                 self.player_name = dbytes.read_string()
                 if version >= 2:
-                    self.player_id = dbytes.read_num(8)
+                    self.player_id = dbytes.read_int(8)
                     self.player_name_2 = dbytes.read_string()
                     if version >= 3:
-                        self.finish_time = dbytes.read_num(4)
-                        self.replay_duration = dbytes.read_num(4)
+                        self.finish_time = dbytes.read_int(4)
+                        self.replay_duration = dbytes.read_int(4)
                 self._add_unknown(4)
                 self.car_name = dbytes.read_string()
                 self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
@@ -52,12 +52,12 @@ class Replay(BytesModel):
 
                 if version <= 1:
                     self._require_equal(SECTION_1, 4)
-                    section_size = dbytes.read_num(4) * 4
+                    section_size = dbytes.read_int(4) * 4
                     dbytes.pos += section_size
                     self._require_equal(SECTION_1, 4)
-                    section_size = dbytes.read_num(4)
+                    section_size = dbytes.read_int(4)
                     dbytes.pos += section_size - 8
-                    self.finish_time = dbytes.read_num(4)
+                    self.finish_time = dbytes.read_int(4)
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
 

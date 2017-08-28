@@ -47,16 +47,16 @@ class LevelProgress(BytesModel):
         self._add_unknown(1)
 
         self._require_equal(SECTION_1, 4)
-        num_levels = dbytes.read_num(4)
+        num_levels = dbytes.read_int(4)
         self.completion = completion = []
         for i in range(num_levels):
-            completion.append(dbytes.read_num(4))
+            completion.append(dbytes.read_int(4))
 
         self._require_equal(SECTION_1, 4)
-        num_levels = dbytes.read_num(4)
+        num_levels = dbytes.read_int(4)
         self.scores = scores = []
         for i in range(num_levels):
-            scores.append(dbytes.read_num(4, signed=True))
+            scores.append(dbytes.read_int(4, signed=True))
         if version > 2:
             self._add_unknown(8)
 
@@ -75,7 +75,7 @@ class Stat(object):
                 return dbytes.read_struct(S_DOUBLE)[0]
         elif type == 'u8':
             def _read(dbytes):
-                return dbytes.read_num(8)
+                return dbytes.read_int(8)
         elif type == 'unk':
             def _read(dbytes):
                 return dbytes.read_n(nbytes)
@@ -170,19 +170,19 @@ class PlayerStats(BytesModel):
             stats[k] = stat.read_value(dbytes)
 
         self._require_equal(SECTION_1, 4)
-        num = dbytes.read_num(4)
+        num = dbytes.read_int(4)
         self.modes_offline = offline_times = []
         for i in range(num):
             offline_times.append(read_double())
 
         self._require_equal(SECTION_1, 4)
-        num = dbytes.read_num(4)
+        num = dbytes.read_int(4)
         modes_unknown = self._add_unknown(value=[])
         for i in range(num):
-            modes_unknown.append(dbytes.read_num(8))
+            modes_unknown.append(dbytes.read_int(8))
 
         self._require_equal(SECTION_1, 4)
-        num = dbytes.read_num(4)
+        num = dbytes.read_int(4)
         self.modes_online = online_times = []
         for i in range(num):
             online_times.append(read_double())
@@ -190,7 +190,7 @@ class PlayerStats(BytesModel):
         if version >= 6:
             self._add_unknown(8)
             self._require_equal(SECTION_1, 4)
-            num = dbytes.read_num(4)
+            num = dbytes.read_int(4)
             self.trackmogrify_mods = mods = []
             for i in range(num):
                 mods.append(dbytes.read_string())
@@ -295,7 +295,7 @@ class ProfileProgress(BytesModel):
         if sec.ident == SECTION_2:
             if sec.value_id == 0x6A:
                 self.level_s2 = sec
-                self.num_levels = dbytes.read_num(4)
+                self.num_levels = dbytes.read_int(4)
                 return True
             elif sec.value_id == 0x8E:
                 self.stats_s2 = sec
@@ -326,7 +326,7 @@ class ProfileProgress(BytesModel):
         dbytes = self.dbytes
         dbytes.pos = self.off_mapname_start
         self._require_equal(SECTION_1, 4)
-        num_maps = dbytes.read_num(4)
+        num_maps = dbytes.read_int(4)
         def gen():
             for i in range(num_maps):
                 yield dbytes.read_string()
@@ -339,7 +339,7 @@ class ProfileProgress(BytesModel):
             return (), 0
         dbytes.pos = self.found_tricks_start
         self._require_equal(SECTION_1, 4)
-        num_tricks = dbytes.read_num(4)
+        num_tricks = dbytes.read_int(4)
         def gen():
             for i in range(num_tricks):
                 yield dbytes.read_string()
@@ -352,7 +352,7 @@ class ProfileProgress(BytesModel):
         dbytes = self.dbytes
         dbytes.pos = self.adventure_levels_start
         self._require_equal(SECTION_1, 4)
-        num_advlevels = dbytes.read_num(4)
+        num_advlevels = dbytes.read_int(4)
         def gen():
             for i in range(num_advlevels):
                 yield dbytes.read_string()
@@ -365,7 +365,7 @@ class ProfileProgress(BytesModel):
         dbytes = self.dbytes
         dbytes.pos = self.somelevel_list_start
         self._require_equal(SECTION_1, 4)
-        num_somelevels = dbytes.read_num(4)
+        num_somelevels = dbytes.read_int(4)
         def gen():
             for i in range(num_somelevels):
                 yield dbytes.read_string()

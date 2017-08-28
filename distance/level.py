@@ -197,23 +197,23 @@ class LevelObject(BytesModel):
         self._subobjects = objs
 
     def write(self, dbytes):
-        dbytes.write_num(4, SECTION_6)
+        dbytes.write_int(4, SECTION_6)
         with dbytes.write_size():
             dbytes.write_str(self.type)
             dbytes.write_bytes(b'\x00') # unknown
             dbytes.write_secnum()
-            dbytes.write_num(4, self.version or 0)
+            dbytes.write_int(4, self.version or 0)
 
-            dbytes.write_num(4, SECTION_3)
+            dbytes.write_int(4, SECTION_3)
             with dbytes.write_size():
-                dbytes.write_num(4, 1) # type
+                dbytes.write_int(4, 1) # type
                 dbytes.write_bytes(b'\x00' * 4) # unknown
                 dbytes.write_secnum()
                 write_transform(dbytes, self.transform)
                 if self.has_subobjects or self.subobjects:
-                    dbytes.write_num(4, SECTION_5)
+                    dbytes.write_int(4, SECTION_5)
                     with dbytes.write_size():
-                        dbytes.write_num(4, len(self.subobjects))
+                        dbytes.write_int(4, len(self.subobjects))
                         for obj in self.subobjects:
                             obj.write(dbytes)
 
@@ -284,11 +284,11 @@ class LevelSettings(LevelObject):
                 self.name = dbytes.read_string()
                 self._add_unknown(4)
                 self.modes = modes = {}
-                num_modes = dbytes.read_num(4)
+                num_modes = dbytes.read_int(4)
                 for i in range(num_modes):
-                    mode = dbytes.read_num(4)
+                    mode = dbytes.read_int(4)
                     modes[mode] = dbytes.read_byte()
-                self.music_id = dbytes.read_num(4)
+                self.music_id = dbytes.read_int(4)
                 if version <= 3:
                     self.skybox_name = dbytes.read_string()
                     self._add_unknown(57)
@@ -303,11 +303,11 @@ class LevelSettings(LevelObject):
                 self.medal_scores = scores = []
                 for i in range(4):
                     times.append(dbytes.read_struct(S_FLOAT)[0])
-                    scores.append(dbytes.read_num(4, signed=True))
+                    scores.append(dbytes.read_int(4, signed=True))
                 if version >= 1:
                     self.abilities = dbytes.read_struct(S_ABILITIES)
                 if version >= 2:
-                    self.difficulty = dbytes.read_num(4)
+                    self.difficulty = dbytes.read_int(4)
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
@@ -363,18 +363,18 @@ class Group(LevelObject):
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
-        dbytes.write_num(4, SECTION_2)
+        dbytes.write_int(4, SECTION_2)
         with dbytes.write_size():
-            dbytes.write_num(4, 0x1d) # value id
-            dbytes.write_num(4, 1) # version
+            dbytes.write_int(4, 0x1d) # value id
+            dbytes.write_int(4, 1) # version
             dbytes.write_secnum()
-            dbytes.write_num(4, SECTION_1)
-            dbytes.write_num(4, 0) # num values
-            dbytes.write_num(4, 0) # inspect Children: None
-        dbytes.write_num(4, SECTION_2)
+            dbytes.write_int(4, SECTION_1)
+            dbytes.write_int(4, 0) # num values
+            dbytes.write_int(4, 0) # inspect Children: None
+        dbytes.write_int(4, SECTION_2)
         with dbytes.write_size():
-            dbytes.write_num(4, 0x63) # value id
-            dbytes.write_num(4, 0) # version
+            dbytes.write_int(4, 0x63) # value id
+            dbytes.write_int(4, 0) # version
             dbytes.write_secnum()
             if self.group_name is not None:
                 dbytes.write_str(self.group_name)
@@ -415,11 +415,11 @@ class SubTeleporter(LevelObject):
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_2:
             if sec.value_id == 0x3E:
-                value = dbytes.read_num(4)
+                value = dbytes.read_int(4)
                 self.destination = value
                 return True
             elif sec.value_id == 0x3F:
-                value = dbytes.read_num(4)
+                value = dbytes.read_int(4)
                 self.link_id = value
                 return True
             elif sec.value_id == 0x51:
@@ -479,7 +479,7 @@ class InfoDisplayBox(LevelObject):
                 texts = self.texts
                 self.version = version = sec.version
                 if version == 0:
-                    num_props = dbytes.read_num(4)
+                    num_props = dbytes.read_int(4)
                     self.texts = texts = [None] * 5
                     for i in range(num_props):
                         propname = dbytes.read_string()
@@ -553,7 +553,7 @@ class GravityTrigger(LevelObject):
                 self.reset_before_trigger = 0
                 self.disable_music_trigger = 0
                 with dbytes.limit(sec.data_end, True):
-                    self.music_id = dbytes.read_num(4)
+                    self.music_id = dbytes.read_int(4)
                     self.one_time_trigger = dbytes.read_byte()
                     self.reset_before_trigger = dbytes.read_byte()
                     self.disable_music_trigger = dbytes.read_byte()
@@ -613,7 +613,7 @@ class ForceZoneBox(LevelObject):
                 with dbytes.limit(sec.data_end, True):
                     self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
                     self.global_force = dbytes.read_byte()
-                    self.force_type = dbytes.read_num(4)
+                    self.force_type = dbytes.read_int(4)
                     self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
                     self.disable_global_gravity = dbytes.read_byte()
                     self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
@@ -658,7 +658,7 @@ class EnableAbilitiesBox(LevelObject):
                 # Abilities
                 if sec.size > 16:
                     self.abilities = abilities = {}
-                    num_props = dbytes.read_num(4)
+                    num_props = dbytes.read_int(4)
                     for i in range(num_props):
                         propname = dbytes.read_string()
                         dbytes.pos = value_start = dbytes.pos + 8
@@ -720,16 +720,16 @@ class WedgeGS(LevelObject):
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
-        dbytes.write_num(4, SECTION_3)
+        dbytes.write_int(4, SECTION_3)
         with dbytes.write_size():
-            dbytes.write_num(4, 3) # type
-            dbytes.write_num(4, 2) # num s1
+            dbytes.write_int(4, 3) # type
+            dbytes.write_int(4, 2) # num s1
             dbytes.write_secnum()
-            dbytes.write_num(4, SECTION_1)
-            dbytes.write_num(4, 1) # num values?
+            dbytes.write_int(4, SECTION_1)
+            dbytes.write_int(4, 1) # num values?
             dbytes.write_str("SimplesMaterial")
-            dbytes.write_num(4, SECTION_1)
-            dbytes.write_num(4, 4) # num values?
+            dbytes.write_int(4, SECTION_1)
+            dbytes.write_int(4, 4) # num values?
             dbytes.write_str("_Color")
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_color))
             dbytes.write_str("_EmitColor")
@@ -739,26 +739,26 @@ class WedgeGS(LevelObject):
             dbytes.write_str("_SpecColor")
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
 
-        dbytes.write_num(4, SECTION_2)
+        dbytes.write_int(4, SECTION_2)
         with dbytes.write_size():
-            dbytes.write_num(4, 0x83) # type
-            dbytes.write_num(4, 3) # version
+            dbytes.write_int(4, 0x83) # type
+            dbytes.write_int(4, 3) # version
             dbytes.write_secnum()
-            dbytes.write_num(4, self.image_index)
-            dbytes.write_num(4, self.emit_index)
-            dbytes.write_num(4, 0) # preset
+            dbytes.write_int(4, self.image_index)
+            dbytes.write_int(4, self.emit_index)
+            dbytes.write_int(4, 0) # preset
             dbytes.write_bytes(S_FLOAT3.pack(*self.tex_scale))
             dbytes.write_bytes(S_FLOAT3.pack(*self.tex_offset))
-            dbytes.write_num(1, self.flip_tex_uv and 1 or 0)
-            dbytes.write_num(1, self.world_mapped and 1 or 0)
-            dbytes.write_num(1, self.disable_diffuse and 1 or 0)
-            dbytes.write_num(1, self.disable_bump and 1 or 0)
+            dbytes.write_int(1, self.flip_tex_uv and 1 or 0)
+            dbytes.write_int(1, self.world_mapped and 1 or 0)
+            dbytes.write_int(1, self.disable_diffuse and 1 or 0)
+            dbytes.write_int(1, self.disable_bump and 1 or 0)
             dbytes.write_bytes(S_FLOAT.pack(self.bump_strength))
-            dbytes.write_num(1, self.disable_reflect)
-            dbytes.write_num(1, self.disable_collision)
-            dbytes.write_num(1, self.additive_transp)
-            dbytes.write_num(1, self.multip_transp)
-            dbytes.write_num(1, self.invert_emit)
+            dbytes.write_int(1, self.disable_reflect)
+            dbytes.write_int(1, self.disable_collision)
+            dbytes.write_int(1, self.additive_transp)
+            dbytes.write_int(1, self.multip_transp)
+            dbytes.write_int(1, self.invert_emit)
 
 
 class Level(BytesModel):

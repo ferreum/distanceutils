@@ -24,7 +24,7 @@ class WriteNumTest(unittest.TestCase):
     def _test_num(self, length, value, expect):
         buf, dbytes = new_bytes()
 
-        dbytes.write_num(length, value)
+        dbytes.write_int(length, value)
 
         result = buf.getvalue()
         self.assertEqual(result, expect)
@@ -40,12 +40,12 @@ class WriteNumTest(unittest.TestCase):
 
     def test_u4_too_large(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_num, 4, 0x1_0000_0000)
+        self.assertRaises(OverflowError, dbytes.write_int, 4, 0x1_0000_0000)
         self.assertEqual(buf.getvalue(), b'')
 
     def test_u4_negative_raises(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_num, 4, -32)
+        self.assertRaises(OverflowError, dbytes.write_int, 4, -32)
         self.assertEqual(buf.getvalue(), b'')
 
 
@@ -54,7 +54,7 @@ class WriteNumSignedTest(unittest.TestCase):
     def _test_signed(self, length, value, expect):
         buf, dbytes = new_bytes()
 
-        dbytes.write_num(length, value, signed=True)
+        dbytes.write_int(length, value, signed=True)
 
         result = buf.getvalue()
         self.assertEqual(result, expect)
@@ -70,13 +70,13 @@ class WriteNumSignedTest(unittest.TestCase):
 
     def test_i4_too_negative(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_num,
+        self.assertRaises(OverflowError, dbytes.write_int,
                           1, -129, signed=True)
         self.assertEqual(buf.getvalue(), b'')
 
     def test_i4_too_large(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_num,
+        self.assertRaises(OverflowError, dbytes.write_int,
                           4, 0x8000_0000, signed=True)
         self.assertEqual(buf.getvalue(), b'')
 

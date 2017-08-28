@@ -28,16 +28,16 @@ class Entry(BytesModel):
         self.level_basename = dbytes.read_string()
         self._add_unknown(16)
         self._require_equal(12121212, 4)
-        num_modes = dbytes.read_num(4)
+        num_modes = dbytes.read_int(4)
         self.modes = modes = {}
         for _ in range(num_modes):
-            mode = dbytes.read_num(4)
+            mode = dbytes.read_int(4)
             modes[mode] = dbytes.read_byte()
         self.medal_times = times = []
         self.medal_scores = scores = []
         for _ in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_num(4, signed=True))
+            scores.append(dbytes.read_int(4, signed=True))
         self._add_unknown(25)
 
     def _print_data(self, p):
@@ -79,7 +79,7 @@ class LevelInfos(BytesModel):
             return (), 0
         dbytes = self.dbytes
         dbytes.pos = s2.data_start + 12
-        length = dbytes.read_num(8)
+        length = dbytes.read_int(8)
         def gen():
             with dbytes.limit(s2.data_end):
                 for _ in range(length):
