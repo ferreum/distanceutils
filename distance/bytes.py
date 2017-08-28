@@ -44,18 +44,6 @@ SECTION_1 = 11111111
 SECTION_32 = 32323232
 
 
-LAYER_FLAG_NAMES = ({0: "", 1: "Active"},
-                    {0: "", 1: "Frozen"},
-                    {0: "Invisible", 1: ""})
-
-
-def format_flag(gen):
-    for flag, names in gen:
-        name = names.get(flag, f"Unknown({flag})")
-        if name:
-            yield name
-
-
 class UnexpectedEOFError(Exception):
     pass
 
@@ -432,24 +420,6 @@ class Section(BytesModel):
             self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
             self.num_objects = dbytes.read_int(4)
-
-            pos = dbytes.pos
-            if pos + 4 >= data_start + size:
-                # Happens with empty old layer sections, this prevents error
-                # with empty layer at end of file.
-                return
-            tmp = dbytes.read_int(4)
-            dbytes.pos = pos
-            if tmp == 0 or tmp == 1:
-                self._add_unknown(4)
-                flags = dbytes.read_struct("bbb")
-                if tmp == 0:
-                    frozen = 1 if flags[0] == 0 else 0
-                    self.layer_flags = (flags[1], frozen, flags[2])
-                else:
-                    self.layer_flags = flags
-                    self._add_unknown(1)
-            self.objects_start = dbytes.pos
         elif ident == SECTION_9:
             self._add_unknown(8)
             self.level_name = dbytes.read_string()
@@ -470,17 +440,6 @@ class Section(BytesModel):
         if start is None or size is None:
             return None
         return start + self.size
-
-    def _print_data(self, p):
-        if self.ident == SECTION_7:
-            p(f"Layer name: {self.layer_name!r}")
-            p(f"Layer object count: {self.num_objects}")
-            if self.layer_flags:
-                flag_str = ', '.join(
-                    format_flag(zip(self.layer_flags, LAYER_FLAG_NAMES)))
-                if not flag_str:
-                    flag_str = "None"
-                p(f"Layer flags: {flag_str}")
 
 
 class DstBytes(object):

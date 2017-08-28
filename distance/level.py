@@ -12,7 +12,8 @@ from .bytes import (BytesModel, Section, S_FLOAT,
                     SECTION_9, SECTION_7, SECTION_6,
                     SECTION_2, SECTION_3, SECTION_5,
                     SECTION_8, SECTION_1)
-from .constants import Difficulty, Mode, AbilityToggle, ForceType
+from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
+                        LAYER_FLAG_NAMES)
 from .common import format_duration
 from .detect import BytesProber
 
@@ -51,6 +52,18 @@ def read_n_floats(dbytes, n, default):
         return default
     else:
         return (f, *(read_float() for _ in range(n - 1)))
+
+
+def obj_only(gen):
+    for obj, sane, exc in gen:
+        yield obj
+
+
+def format_flags(gen):
+    for flag, names in gen:
+        name = names.get(flag, f"Unknown({flag})")
+        if name:
+            yield name
 
 
 TRANSFORM_MIN_SIZE = 12
@@ -248,7 +261,6 @@ class LevelObject(BytesModel):
         pass
 
 
-@PROBER.for_type('LevelSettings')
 class LevelSettings(LevelObject):
 
     type = None
@@ -339,6 +351,67 @@ class LevelSettings(LevelObject):
             p(f"Abilities: {ab_str}")
         if self.difficulty is not None:
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
+
+
+class Layer(BytesModel):
+
+    layer_name = None
+    num_objects = 0
+    objects_start = None
+    layer_flags = (0, 0, 0)
+
+    def _read(self, dbytes):
+        s7 = self._get_start_section()
+        self._report_end_pos(s7.data_end)
+
+        self.layer_name = s7.layer_name
+        self.num_objects = s7.num_objects
+
+        pos = dbytes.pos
+        if pos + 4 >= s7.data_end:
+            # Happens with empty old layer sections, this prevents error
+            # with empty layer at end of file.
+            return
+        tmp = dbytes.read_int(4)
+        dbytes.pos = pos
+        if tmp == 0 or tmp == 1:
+            self._add_unknown(4)
+            flags = dbytes.read_struct("bbb")
+            if tmp == 0:
+                frozen = 1 if flags[0] == 0 else 0
+                self.layer_flags = (flags[1], frozen, flags[2])
+            else:
+                self.layer_flags = flags
+                self._add_unknown(1)
+
+        self.objects_start = dbytes.pos
+
+    def iter_objects(self):
+        if not self.num_objects:
+            return
+        dbytes = self.dbytes
+        dbytes.pos = self.objects_start
+        for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=self.end_pos):
+            yield obj, sane, exc
+            if not sane:
+                break
+
+    def _print_data(self, p):
+        with need_counters(p) as counters:
+            p(f"Layer: {self.layer_name!r}")
+            p(f"Layer object count: {self.num_objects}")
+            if self.layer_flags:
+                flag_str = ', '.join(
+                    format_flags(zip(self.layer_flags, LAYER_FLAG_NAMES)))
+                if not flag_str:
+                    flag_str = "None"
+                p(f"Layer flags: {flag_str}")
+            p.counters.num_layers += 1
+            p.counters.layer_objects += self.num_objects
+            with p.tree_children():
+                _print_objects(p, obj_only(self.iter_objects()))
+            if counters:
+                counters.print_data(p)
 
 
 @PROBER.for_type('Group')
@@ -788,37 +861,24 @@ class Level(BytesModel):
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer, sane, exc in Section.iter_maybe_partial(dbytes):
-            layer_end = layer.size + layer.data_start
+        for layer, layer_sane, exc in Layer.iter_maybe_partial(dbytes):
+            sane = layer_sane or layer.objects_start is not None
             if with_layers:
                 yield layer, sane, exc
-            if not sane:
-                return
             if with_objects:
-                for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=layer_end):
-                    yield obj, True, exc
-                    if not sane:
-                        break
-            dbytes.pos = layer_end
+                for obj, sane, exc in layer.iter_objects():
+                    yield obj, sane, exc
+            if not layer_sane:
+                return
+            dbytes.pos = layer.end_pos
 
     def iter_layers(self):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer, sane, exc in Section.iter_maybe_partial(dbytes):
-            layer_end = layer.size + layer.data_start
+        for layer, sane, exc in Layer.iter_maybe_partial(dbytes):
             yield layer
             if not sane:
                 return
-            dbytes.pos = layer_end
-
-    def iter_layer_objects(self, layer):
-        dbytes = self.dbytes
-        dbytes.pos = layer.objects_start
-        layer_end = layer.data_end
-        for obj, sane, exc in PROBER.iter_maybe_partial(self.dbytes, max_pos=layer_end):
-            yield obj
-            if not sane:
-                break
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
@@ -829,12 +889,7 @@ class Level(BytesModel):
                 return
             with need_counters(p) as counters:
                 for layer in self.iter_layers():
-                    p(f"Layer: {p.counters.num_layers}")
-                    p.counters.num_layers += 1
-                    p.counters.layer_objects += layer.num_objects
                     p.print_data_of(layer)
-                    with p.tree_children():
-                        _print_objects(p, self.iter_layer_objects(layer))
                 if counters:
                     counters.print_data(p)
         except Exception as e:
