@@ -397,7 +397,7 @@ class Section(BytesModel):
             self.type = dbytes.read_string()
             self._add_unknown(1)
             self.number = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
+            self.num_sections = dbytes.read_int(4)
         elif ident == SECTION_5:
             self.size = dbytes.read_int(8)
             self.data_start = dbytes.pos

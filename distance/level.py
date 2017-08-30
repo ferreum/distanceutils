@@ -157,7 +157,7 @@ class LevelObject(BytesModel):
     subobject_prober = SUBOBJ_PROBER
     is_object_group = False
 
-    version = None
+    num_sections = None
     transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
     _subobjects = None
     has_subobjects = False
@@ -166,6 +166,7 @@ class LevelObject(BytesModel):
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
+        self.num_sections = ts.num_sections
         self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
@@ -215,7 +216,7 @@ class LevelObject(BytesModel):
             dbytes.write_str(self.type)
             dbytes.write_bytes(b'\x00') # unknown
             dbytes.write_secnum()
-            dbytes.write_int(4, self.version or 0)
+            dbytes.write_int(4, self.num_sections or 0)
 
             dbytes.write_int(4, SECTION_3)
             with dbytes.write_size():
@@ -325,8 +326,6 @@ class LevelSettings(LevelObject):
 
     def _print_data(self, p):
         p(f"Object type: {self.type!r}")
-        if self.version is not None:
-            p(f"Object version: {self.version!r}")
         if self.name is not None:
             p(f"Level name: {self.name!r}")
         if self.skybox_name is not None:
@@ -420,7 +419,7 @@ class Group(LevelObject):
     subobject_prober = PROBER
     is_object_group = True
     has_subobjects = True
-    version = 3
+    num_sections = 3
     type = 'Group'
 
     group_name = None
@@ -758,7 +757,7 @@ class EnableAbilitiesBox(LevelObject):
 class WedgeGS(LevelObject):
 
     type = "WedgeGS"
-    version = 3
+    num_sections = 3
     has_subobjects = True
 
     mat_color = (.3, .3, .3, 1)
