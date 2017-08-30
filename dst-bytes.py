@@ -36,7 +36,6 @@ def main():
                     p("")
                     p(f"File: {f.name!r}")
                 obj, _, exception = maybe_partial(DstBytes(f))
-                p(f"Type: {type(obj).__name__}")
                 p.print_data_of(obj)
             except Exception as e:
                 p.print_exception(e)

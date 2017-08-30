@@ -314,40 +314,45 @@ class BytesModel(object):
             if file or flags:
                 raise TypeError("p must be the single argument")
 
+        self._print_type(p)
+        if 'offset' in p.flags:
+            self._print_offset(p)
         if 'sections' in p.flags and self.sections:
             p(f"Sections: {len(self.sections)}")
             with p.tree_children():
                 for sec in self.sections:
                     p.tree_next_child()
-                    unk_str = ""
-                    p(f"Section: {sec.ident}{unk_str}")
-                    if 'offset' in p.flags:
-                        start = sec.data_start
-                        end = sec.data_end
-                        if start is not None and end is not None:
-                            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
-                    if 'unknown' in p.flags and sec.unknown:
-                        p(f"Unknown: {format_unknown(sec.unknown)}")
+                    p.print_data_of(sec)
         if 'unknown' in p.flags and self.unknown:
             p(f"Unknown: {format_unknown(self.unknown)}")
-        if 'offset' in p.flags:
-            start = self.start_pos
-            end = self.end_pos
-            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
-        if 'size' in p.flags:
-            p(f"Data size: 0x{self.end_pos - self.start_pos:x}")
         self._print_data(p)
+        self._print_children(p)
         if self.exception:
             p(f"Error when parsing:")
             p.print_exception(self.exception)
 
+    def _print_type(self, p):
+        start_sec = self.start_section
+        if start_sec and start_sec.ident == SECTION_6:
+            type_str = start_sec.type
+            p(f"Object type: {type_str!r}")
+
+    def _print_offset(self, p):
+        start = self.start_pos
+        end = self.end_pos
+        p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+
     def _print_data(self, p):
+        pass
+
+    def _print_children(self, p):
         pass
 
     def _get_start_section(self):
         sec = self.start_section
         if not sec:
             self.start_section = sec = Section(self.dbytes)
+            self.sections = [sec]
         return sec
 
     def _require_type(self, expect):
@@ -387,6 +392,10 @@ class Section(BytesModel):
     layer_flags = ()
     data_start = None
     size = None
+    type = None
+    value_id = None
+    version = None
+    num_sections = None
 
     def _read(self, dbytes):
         self.ident = ident = dbytes.read_int(4)
@@ -407,8 +416,8 @@ class Section(BytesModel):
             self.size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
+            self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
-            self.number = dbytes.read_int(4)
         elif ident == SECTION_2:
             self.size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -440,6 +449,20 @@ class Section(BytesModel):
         if start is None or size is None:
             return None
         return start + self.size
+
+    def _print_type(self, p):
+        type_str = ""
+        if self.value_id is not None:
+            type_str += f" type 0x{self.value_id:02x}"
+        if self.version is not None:
+            type_str += f" ver {self.version}"
+        p(f"Section: {self.ident}{type_str}")
+
+    def _print_offset(self, p):
+        start = self.data_start
+        end = self.data_end
+        if start is not None and end is not None:
+            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
 
 
 class DstBytes(object):

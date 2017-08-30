@@ -243,23 +243,17 @@ class LevelObject(BytesModel):
                     yield obj
 
     def _print_data(self, p):
-        p(f"Object type: {self.type!r}")
         if 'transform' in p.flags:
             p(f"Transform: {self.transform}")
-        self._print_pre_data(p)
+
+    def _print_children(self, p):
         if self.subobjects:
-            self._print_subobjects(p)
-
-    def _print_subobjects(self, p):
-        num = len(self.subobjects)
-        p(f"Subobjects: {num}")
-        with p.tree_children():
-            for obj in self.subobjects:
-                p.tree_next_child()
-                p.print_data_of(obj)
-
-    def _print_pre_data(self, p):
-        pass
+            num = len(self.subobjects)
+            p(f"Subobjects: {num}")
+            with p.tree_children():
+                for obj in self.subobjects:
+                    p.tree_next_child()
+                    p.print_data_of(obj)
 
 
 class LevelSettings(LevelObject):
@@ -324,8 +318,12 @@ class LevelSettings(LevelObject):
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
+    def _print_type(self, p):
+        LevelObject._print_type(self, p)
+        if self.version is not None:
+            p(f"Object version: {self.version}")
+
     def _print_data(self, p):
-        p(f"Object type: {self.type!r}")
         if self.name is not None:
             p(f"Level name: {self.name!r}")
         if self.skybox_name is not None:
@@ -451,19 +449,19 @@ class Group(LevelObject):
             if self.group_name is not None:
                 dbytes.write_str(self.group_name)
 
-    def _print_subobjects(self, p):
+    def _print_children(self, p):
         with need_counters(p) as counters:
             num = len(self.subobjects)
-            p(f"Grouped objects: {num}")
-            if 'groups' in p.flags:
-                p.counters.grouped_objects += num
-                with p.tree_children():
-                    _print_objects(p, self.subobjects)
+            if num:
+                p(f"Grouped objects: {num}")
+                if 'groups' in p.flags:
+                    p.counters.grouped_objects += num
+                    with p.tree_children():
+                        _print_objects(p, self.subobjects)
             if counters:
                 counters.print_data(p)
 
-    def _print_pre_data(self, p):
-        LevelObject._print_pre_data(self, p)
+    def _print_data(self, p):
         if self.group_name is not None:
             p(f"Custom name: {self.group_name!r}")
 
