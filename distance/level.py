@@ -462,6 +462,7 @@ class Group(LevelObject):
                 counters.print_data(p)
 
     def _print_data(self, p):
+        LevelObject._print_data(self, p)
         if self.group_name is not None:
             p(f"Custom name: {self.group_name!r}")
 
