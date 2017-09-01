@@ -23,8 +23,10 @@ def main():
 
     flags = [flag.strip() for arg in args.flags for flag in arg.split(',')]
 
-    if not 'nogroups' in flags:
+    if not 'nogroups' in flags or 'nogroup' in flags:
         flags.append('groups')
+    if not 'nosubobjects' in flags or 'nosubobject' in flags:
+        flags.append('subobjects')
 
     p = PrintContext(file=sys.stdout, flags=flags)
 

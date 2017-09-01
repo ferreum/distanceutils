@@ -247,7 +247,7 @@ class LevelObject(BytesModel):
             p(f"Transform: {self.transform}")
 
     def _print_children(self, p):
-        if self.subobjects:
+        if 'subobjects' in p.flags and self.subobjects:
             num = len(self.subobjects)
             p(f"Subobjects: {num}")
             with p.tree_children():
