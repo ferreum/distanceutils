@@ -579,21 +579,6 @@ class DstBytes(object):
         data = self.read_n(length)
         return data.decode('utf-16', 'surrogateescape')
 
-    def find_long_long(self, number):
-        data = struct.pack('q', number)
-        return self.find_bytes(data)
-
-    def find_bytes(self, data):
-        while True:
-            pos = 0
-            b = self.read_byte()
-            while b == data[pos]:
-                pos += 1
-                if pos >= len(data):
-                    self.pos -= len(data)
-                    return
-                b = self.read_byte()
-
     def write_bytes(self, data):
         self.file.write(data)
 
