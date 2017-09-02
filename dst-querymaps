@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        dst-querymaps.py
-# Description: dst-querymaps
+# File:        dst-querymaps
+# Description: Queries WorkshopLevelInfos cache database
 # Created:     2017-06-15
 
 import sys
@@ -23,7 +23,8 @@ def format_col(col):
 
 
 def main(argv):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Queries WorkshopLevelInfos cache database.")
     parser.add_argument("--db", help="map database filename.")
     parser.add_argument("--stdin-paths", action='store_true',
                         help="filter by path read from stdin.")

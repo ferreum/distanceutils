@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        dst-smallobjs.py
-# Description: dst-smallobjs
+# File:        dst-smallobjs
+# Description: Finds objects with very small y or z scale in CustomObject
 # Created:     2017-08-20
 
 
@@ -11,7 +11,8 @@ from distance.level import PROBER
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Finds objects with very small y or z scale in CustomObject.")
     parser.add_argument("FILE", nargs=1, help=".bytes CustomObject filename")
     args = parser.parse_args()
 

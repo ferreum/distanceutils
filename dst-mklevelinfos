@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        dst-mklevelinfos.py
-# Description: dst-mklevelinfos
+# File:        dst-mklevelinfos
+# Description: Creates WorkshopLevelInfos cache database
 # Created:     2017-06-25
 
 
@@ -13,7 +13,8 @@ from distance.common import get_cache_filename
 
 
 def main(argv):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Creates WorkshopLevelInfos cache database.")
     parser.add_argument("--db", help="database filename.")
     parser.add_argument("FILE", type=argparse.FileType('rb'),
                         help="WorkshopLevelInfos.bytes filename.")

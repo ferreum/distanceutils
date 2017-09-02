@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        dst-bytes.py
-# Description: dst-bytes
+# File:        dst-bytes
+# Description: Dumps data found in .bytes files
 # Created:     2017-06-28
 
 
@@ -12,7 +12,8 @@ from distance.knowntypes import maybe_partial
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Dumps data found in .bytes files.")
     parser.add_argument("FILE", nargs='+', help=".bytes filename")
     parser.add_argument("--unknown", action='append_const', const='unknown', dest='flags',
                         help="Print unknown data too (same as -f unknown).")
