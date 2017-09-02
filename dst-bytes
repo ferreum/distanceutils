@@ -15,8 +15,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="Dumps data found in .bytes files.")
     parser.add_argument("FILE", nargs='+', help=".bytes filename")
-    parser.add_argument("--unknown", action='append_const', const='unknown', dest='flags',
-                        help="Print unknown data too (same as -f unknown).")
     parser.add_argument("-f", "--flags", action='append',
                         help="Add flags.")
     parser.set_defaults(flags=[])
