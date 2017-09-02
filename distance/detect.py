@@ -3,7 +3,7 @@
 # Created:     2017-06-28
 
 
-from .bytes import Section, SECTION_6
+from .bytes import Section, MAGIC_6
 
 
 class BytesProber(object):
@@ -51,7 +51,7 @@ class BytesProber(object):
         start_pos = dbytes.pos
         section = Section(dbytes)
         start_section = section
-        if section.magic == SECTION_6:
+        if section.magic == MAGIC_6:
             ty = section.type
             cls = self._types.get(ty, None)
             if cls is None:

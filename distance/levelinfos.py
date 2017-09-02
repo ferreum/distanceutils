@@ -3,7 +3,7 @@
 # Created:     2017-07-07
 
 
-from .bytes import BytesModel, SECTION_2, S_FLOAT
+from .bytes import BytesModel, MAGIC_2, S_FLOAT
 from .common import format_duration
 from .constants import Mode
 
@@ -65,7 +65,7 @@ class LevelInfos(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_2:
+        if sec.magic == MAGIC_2:
             if sec.value_id == 0x97:
                 self.version = sec.version
                 self.entries_s2 = sec

@@ -8,9 +8,9 @@ import math
 from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section, S_FLOAT,
-                    SECTION_9, SECTION_7, SECTION_6,
-                    SECTION_2, SECTION_3, SECTION_5,
-                    SECTION_8, SECTION_1)
+                    MAGIC_9, MAGIC_7, MAGIC_6,
+                    MAGIC_2, MAGIC_3, MAGIC_5,
+                    MAGIC_8, MAGIC_1)
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .common import format_duration
@@ -31,14 +31,14 @@ SUBOBJ_PROBER = BytesProber()
 
 @PROBER.func
 def _fallback_object(section):
-    if section.magic == SECTION_6:
+    if section.magic == MAGIC_6:
         return LevelObject
     return None
 
 
 @SUBOBJ_PROBER.func
 def _fallback_subobject(section):
-    if section.magic == SECTION_6:
+    if section.magic == MAGIC_6:
         return LevelObject
     return None
 
@@ -170,7 +170,7 @@ class LevelObject(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_3:
+        if sec.magic == MAGIC_3:
             if sec.value_id == 0x01: # base object props
                 end = sec.data_end
                 if dbytes.pos + TRANSFORM_MIN_SIZE < end:
@@ -210,21 +210,21 @@ class LevelObject(BytesModel):
         self._subobjects = objs
 
     def write(self, dbytes):
-        dbytes.write_int(4, SECTION_6)
+        dbytes.write_int(4, MAGIC_6)
         with dbytes.write_size():
             dbytes.write_str(self.type)
             dbytes.write_bytes(b'\x00') # unknown
             dbytes.write_secnum()
             dbytes.write_int(4, self.num_sections or 0)
 
-            dbytes.write_int(4, SECTION_3)
+            dbytes.write_int(4, MAGIC_3)
             with dbytes.write_size():
                 dbytes.write_int(4, 1) # type
                 dbytes.write_bytes(b'\x00' * 4) # unknown
                 dbytes.write_secnum()
                 write_transform(dbytes, self.transform)
                 if self.has_subobjects or self.subobjects:
-                    dbytes.write_int(4, SECTION_5)
+                    dbytes.write_int(4, MAGIC_5)
                     with dbytes.write_size():
                         dbytes.write_int(4, len(self.subobjects))
                         for obj in self.subobjects:
@@ -269,7 +269,7 @@ class LevelSettings(LevelObject):
 
     def _read(self, dbytes):
         sec = self._get_start_section()
-        if sec.magic == SECTION_8:
+        if sec.magic == MAGIC_8:
             # Levelinfo section only found in old (v1) maps
             self.type = 'Section 88888888'
             self._report_end_pos(sec.data_start + sec.data_size)
@@ -281,7 +281,7 @@ class LevelSettings(LevelObject):
         LevelObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_2:
+        if sec.magic == MAGIC_2:
             if sec.value_id == 0x52:
                 self.levelinfo_section = sec
                 self.version = version = sec.version
@@ -422,7 +422,7 @@ class Group(LevelObject):
     custom_name = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_2:
+        if sec.magic == MAGIC_2:
             if sec.value_id == 0x1d: # Group / inspect Children
                 return True
             elif sec.value_id == 0x63: # Group name
@@ -432,15 +432,15 @@ class Group(LevelObject):
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
-        dbytes.write_int(4, SECTION_2)
+        dbytes.write_int(4, MAGIC_2)
         with dbytes.write_size():
             dbytes.write_int(4, 0x1d) # value id
             dbytes.write_int(4, 1) # version
             dbytes.write_secnum()
-            dbytes.write_int(4, SECTION_1)
+            dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 0) # num values
             dbytes.write_int(4, 0) # inspect Children: None
-        dbytes.write_int(4, SECTION_2)
+        dbytes.write_int(4, MAGIC_2)
         with dbytes.write_size():
             dbytes.write_int(4, 0x63) # value id
             dbytes.write_int(4, 0) # version
@@ -483,7 +483,7 @@ class SubTeleporter(LevelObject):
     trigger_checkpoint = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_2:
+        if sec.magic == MAGIC_2:
             if sec.value_id == 0x3E:
                 value = dbytes.read_int(4)
                 self.destination = value
@@ -518,7 +518,7 @@ class WorldText(LevelObject):
     text = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_3:
+        if sec.magic == MAGIC_3:
             if sec.value_id == 0x07:
                 pos = sec.data_start + 12
                 if pos < sec.data_end:
@@ -544,7 +544,7 @@ class InfoDisplayBox(LevelObject):
     texts = ()
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_2:
+        if sec.magic == MAGIC_2:
             if sec.value_id == 0x4A:
                 texts = self.texts
                 self.version = version = sec.version
@@ -596,7 +596,7 @@ class GravityTrigger(LevelObject):
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_3:
+        if sec.magic == MAGIC_3:
             if sec.value_id == 0x0e:
                 # SphereCollider
                 self.trigger_center = (0.0, 0.0, 0.0)
@@ -605,7 +605,7 @@ class GravityTrigger(LevelObject):
                     self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
                     self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
                 return True
-        elif sec.magic == SECTION_2:
+        elif sec.magic == MAGIC_2:
             if sec.value_id == 0x45:
                 # GravityTrigger
                 self.disable_gravity = 1
@@ -661,11 +661,11 @@ class ForceZoneBox(LevelObject):
     drag_multiplier = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_3:
+        if sec.magic == MAGIC_3:
             if sec.value_id == 0x0f:
                 # collider
                 return True
-        elif sec.magic == SECTION_2:
+        elif sec.magic == MAGIC_2:
             if sec.value_id == 0x63:
                 # CustomName
                 if dbytes.pos < sec.data_end:
@@ -719,11 +719,11 @@ class EnableAbilitiesBox(LevelObject):
                        'EnableBoosting', 'EnableJetRotating'}
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_3:
+        if sec.magic == MAGIC_3:
             if sec.value_id == 0x0f:
                 # BoxCollider
                 return True
-        elif sec.magic == SECTION_2:
+        elif sec.magic == MAGIC_2:
             if sec.value_id == 0x5e:
                 # Abilities
                 if sec.data_size > 16:
@@ -779,26 +779,26 @@ class WedgeGS(LevelObject):
     invert_emit = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_3:
+        if sec.magic == MAGIC_3:
             if sec.value_id == 3:
                 # Material
                 return True
-        elif sec.magic == SECTION_2:
+        elif sec.magic == MAGIC_2:
             if sec.value_id == 0x83:
                 # GoldenSimples
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
-        dbytes.write_int(4, SECTION_3)
+        dbytes.write_int(4, MAGIC_3)
         with dbytes.write_size():
             dbytes.write_int(4, 3) # type
             dbytes.write_int(4, 2) # num s1
             dbytes.write_secnum()
-            dbytes.write_int(4, SECTION_1)
+            dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 1) # num values?
             dbytes.write_str("SimplesMaterial")
-            dbytes.write_int(4, SECTION_1)
+            dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 4) # num values?
             dbytes.write_str("_Color")
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_color))
@@ -809,7 +809,7 @@ class WedgeGS(LevelObject):
             dbytes.write_str("_SpecColor")
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
 
-        dbytes.write_int(4, SECTION_2)
+        dbytes.write_int(4, MAGIC_2)
         with dbytes.write_size():
             dbytes.write_int(4, 0x83) # type
             dbytes.write_int(4, 3) # version
@@ -837,7 +837,7 @@ class Level(BytesModel):
 
     def _read(self, dbytes):
         sec = self._get_start_section()
-        if sec.magic != SECTION_9:
+        if sec.magic != MAGIC_9:
             raise IOError("Unexcpected section: {sec.magic}")
         self.level_name = sec.level_name
 

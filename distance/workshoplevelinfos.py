@@ -3,7 +3,7 @@
 # Created:     2017-06-24
 
 
-from .bytes import BytesModel, SECTION_2
+from .bytes import BytesModel, MAGIC_2
 from .common import format_bytes
 from .constants import Rating
 
@@ -64,7 +64,7 @@ class WorkshopLevelInfos(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == SECTION_2:
+        if sec.magic == MAGIC_2:
             if sec.value_id == 0x6d:
                 self.levels_s2 = sec
                 self.num_levels = dbytes.read_int(4)

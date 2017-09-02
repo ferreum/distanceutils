@@ -17,30 +17,30 @@ S_FLOAT = Struct("f")
 S_DOUBLE = Struct("d")
 
 """Level container"""
-SECTION_9 = 99999999
+MAGIC_9 = 99999999
 
 """Container for most objects"""
-SECTION_6 = 66666666
+MAGIC_6 = 66666666
 
 """Level layer container"""
-SECTION_7 = 77777777
+MAGIC_7 = 77777777
 
 """Levelinfo found in some v1 levels"""
-SECTION_8 = 88888888
+MAGIC_8 = 88888888
 
 """Subobject list container"""
-SECTION_5 = 55555555
+MAGIC_5 = 55555555
 
 """Data container"""
-SECTION_3 = 33333333
+MAGIC_3 = 33333333
 
 """Data container"""
-SECTION_2 = 22222222
+MAGIC_2 = 22222222
 
 """Used for some properties"""
-SECTION_1 = 11111111
+MAGIC_1 = 11111111
 
-SECTION_32 = 32323232
+MAGIC_32 = 32323232
 
 
 class UnexpectedEOFError(Exception):
@@ -332,7 +332,7 @@ class BytesModel(object):
 
     def _print_type(self, p):
         start_sec = self.start_section
-        if start_sec and start_sec.magic == SECTION_6:
+        if start_sec and start_sec.magic == MAGIC_6:
             type_str = start_sec.type
             p(f"Object type: {type_str!r}")
 
@@ -399,43 +399,43 @@ class Section(BytesModel):
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
         self.recoverable = True
-        if magic == SECTION_6:
+        if magic == MAGIC_6:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
             self._add_unknown(1)
             self.number = dbytes.read_int(4)
             self.num_sections = dbytes.read_int(4)
-        elif magic == SECTION_5:
+        elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.num_objects = dbytes.read_int(4)
             self.subobjects_start = dbytes.pos
-        elif magic == SECTION_3:
+        elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
-        elif magic == SECTION_2:
+        elif magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
-        elif magic == SECTION_7:
+        elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
             self.num_objects = dbytes.read_int(4)
-        elif magic == SECTION_9:
+        elif magic == MAGIC_9:
             self._add_unknown(8)
             self.level_name = dbytes.read_string()
             self._add_unknown(8)
-        elif magic == SECTION_8:
+        elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-        elif magic == SECTION_32:
+        elif magic == MAGIC_32:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
         else:
