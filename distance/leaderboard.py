@@ -44,7 +44,7 @@ class Leaderboard(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_2:
+        if sec.magic == SECTION_2:
             self.entries_s2 = sec
             self.version = sec.version
             self.num_entries = dbytes.read_int(4)

@@ -31,14 +31,14 @@ SUBOBJ_PROBER = BytesProber()
 
 @PROBER.func
 def _fallback_object(section):
-    if section.ident == SECTION_6:
+    if section.magic == SECTION_6:
         return LevelObject
     return None
 
 
 @SUBOBJ_PROBER.func
 def _fallback_subobject(section):
-    if section.ident == SECTION_6:
+    if section.magic == SECTION_6:
         return LevelObject
     return None
 
@@ -170,7 +170,7 @@ class LevelObject(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_3:
+        if sec.magic == SECTION_3:
             if sec.value_id == 0x01: # base object props
                 end = sec.data_end
                 if dbytes.pos + TRANSFORM_MIN_SIZE < end:
@@ -269,7 +269,7 @@ class LevelSettings(LevelObject):
 
     def _read(self, dbytes):
         sec = self._get_start_section()
-        if sec.ident == SECTION_8:
+        if sec.magic == SECTION_8:
             # Levelinfo section only found in old (v1) maps
             self.type = 'Section 88888888'
             self._report_end_pos(sec.data_start + sec.data_size)
@@ -281,7 +281,7 @@ class LevelSettings(LevelObject):
         LevelObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_2:
+        if sec.magic == SECTION_2:
             if sec.value_id == 0x52:
                 self.levelinfo_section = sec
                 self.version = version = sec.version
@@ -422,7 +422,7 @@ class Group(LevelObject):
     custom_name = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_2:
+        if sec.magic == SECTION_2:
             if sec.value_id == 0x1d: # Group / inspect Children
                 return True
             elif sec.value_id == 0x63: # Group name
@@ -483,7 +483,7 @@ class SubTeleporter(LevelObject):
     trigger_checkpoint = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_2:
+        if sec.magic == SECTION_2:
             if sec.value_id == 0x3E:
                 value = dbytes.read_int(4)
                 self.destination = value
@@ -518,7 +518,7 @@ class WorldText(LevelObject):
     text = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_3:
+        if sec.magic == SECTION_3:
             if sec.value_id == 0x07:
                 pos = sec.data_start + 12
                 if pos < sec.data_end:
@@ -544,7 +544,7 @@ class InfoDisplayBox(LevelObject):
     texts = ()
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_2:
+        if sec.magic == SECTION_2:
             if sec.value_id == 0x4A:
                 texts = self.texts
                 self.version = version = sec.version
@@ -596,7 +596,7 @@ class GravityTrigger(LevelObject):
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_3:
+        if sec.magic == SECTION_3:
             if sec.value_id == 0x0e:
                 # SphereCollider
                 self.trigger_center = (0.0, 0.0, 0.0)
@@ -605,7 +605,7 @@ class GravityTrigger(LevelObject):
                     self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
                     self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
                 return True
-        elif sec.ident == SECTION_2:
+        elif sec.magic == SECTION_2:
             if sec.value_id == 0x45:
                 # GravityTrigger
                 self.disable_gravity = 1
@@ -661,11 +661,11 @@ class ForceZoneBox(LevelObject):
     drag_multiplier = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_3:
+        if sec.magic == SECTION_3:
             if sec.value_id == 0x0f:
                 # collider
                 return True
-        elif sec.ident == SECTION_2:
+        elif sec.magic == SECTION_2:
             if sec.value_id == 0x63:
                 # CustomName
                 if dbytes.pos < sec.data_end:
@@ -719,11 +719,11 @@ class EnableAbilitiesBox(LevelObject):
                        'EnableBoosting', 'EnableJetRotating'}
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_3:
+        if sec.magic == SECTION_3:
             if sec.value_id == 0x0f:
                 # BoxCollider
                 return True
-        elif sec.ident == SECTION_2:
+        elif sec.magic == SECTION_2:
             if sec.value_id == 0x5e:
                 # Abilities
                 if sec.data_size > 16:
@@ -779,11 +779,11 @@ class WedgeGS(LevelObject):
     invert_emit = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.ident == SECTION_3:
+        if sec.magic == SECTION_3:
             if sec.value_id == 3:
                 # Material
                 return True
-        elif sec.ident == SECTION_2:
+        elif sec.magic == SECTION_2:
             if sec.value_id == 0x83:
                 # GoldenSimples
                 return True
@@ -837,8 +837,8 @@ class Level(BytesModel):
 
     def _read(self, dbytes):
         sec = self._get_start_section()
-        if sec.ident != SECTION_9:
-            raise IOError("Unexcpected section: {sec.ident}")
+        if sec.magic != SECTION_9:
+            raise IOError("Unexcpected section: {sec.magic}")
         self.level_name = sec.level_name
 
     def get_settings(self):

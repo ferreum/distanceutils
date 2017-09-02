@@ -332,7 +332,7 @@ class BytesModel(object):
 
     def _print_type(self, p):
         start_sec = self.start_section
-        if start_sec and start_sec.ident == SECTION_6:
+        if start_sec and start_sec.magic == SECTION_6:
             type_str = start_sec.type
             p(f"Object type: {type_str!r}")
 
@@ -384,7 +384,7 @@ class BytesModel(object):
 
 class Section(BytesModel):
 
-    MIN_SIZE = 12 # 4b (ident) + 8b (data_size)
+    MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
     layer_name = None
     num_objects = None
@@ -397,49 +397,49 @@ class Section(BytesModel):
     num_sections = None
 
     def _read(self, dbytes):
-        self.ident = ident = dbytes.read_int(4)
+        self.magic = magic = dbytes.read_int(4)
         self.recoverable = True
-        if ident == SECTION_6:
+        if magic == SECTION_6:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
             self._add_unknown(1)
             self.number = dbytes.read_int(4)
             self.num_sections = dbytes.read_int(4)
-        elif ident == SECTION_5:
+        elif magic == SECTION_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.num_objects = dbytes.read_int(4)
             self.subobjects_start = dbytes.pos
-        elif ident == SECTION_3:
+        elif magic == SECTION_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
-        elif ident == SECTION_2:
+        elif magic == SECTION_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
-        elif ident == SECTION_7:
+        elif magic == SECTION_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
             self.num_objects = dbytes.read_int(4)
-        elif ident == SECTION_9:
+        elif magic == SECTION_9:
             self._add_unknown(8)
             self.level_name = dbytes.read_string()
             self._add_unknown(8)
-        elif ident == SECTION_8:
+        elif magic == SECTION_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-        elif ident == SECTION_32:
+        elif magic == SECTION_32:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
         else:
-            raise IOError(f"unknown section: {ident} (0x{ident:08x})")
+            raise IOError(f"unknown section: {magic} (0x{magic:08x})")
 
     @property
     def data_end(self):
@@ -455,7 +455,7 @@ class Section(BytesModel):
             type_str += f" type 0x{self.value_id:02x}"
         if self.version is not None:
             type_str += f" ver {self.version}"
-        p(f"Section: {self.ident}{type_str}")
+        p(f"Section: {self.magic}{type_str}")
 
     def _print_offset(self, p):
         start = self.data_start

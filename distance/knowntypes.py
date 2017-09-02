@@ -24,10 +24,10 @@ PROBER = BytesProber({
 
 @PROBER.func
 def _detect_other(section):
-    if section.ident == SECTION_6:
+    if section.magic == SECTION_6:
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
-    if section.ident == SECTION_9:
+    if section.magic == SECTION_9:
         return Level
     return None
 
