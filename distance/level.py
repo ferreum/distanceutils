@@ -419,7 +419,7 @@ class Group(LevelObject):
     num_sections = 3
     type = 'Group'
 
-    group_name = None
+    custom_name = None
 
     def _read_section_data(self, dbytes, sec):
         if sec.ident == SECTION_2:
@@ -427,7 +427,7 @@ class Group(LevelObject):
                 return True
             elif sec.value_id == 0x63: # Group name
                 if sec.size > 12:
-                    self.group_name = dbytes.read_string()
+                    self.custom_name = dbytes.read_string()
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
@@ -445,8 +445,8 @@ class Group(LevelObject):
             dbytes.write_int(4, 0x63) # value id
             dbytes.write_int(4, 0) # version
             dbytes.write_secnum()
-            if self.group_name is not None:
-                dbytes.write_str(self.group_name)
+            if self.custom_name is not None:
+                dbytes.write_str(self.custom_name)
 
     def _print_children(self, p):
         with need_counters(p) as counters:
@@ -462,8 +462,8 @@ class Group(LevelObject):
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
-        if self.group_name is not None:
-            p(f"Custom name: {self.group_name!r}")
+        if self.custom_name is not None:
+            p(f"Custom name: {self.custom_name!r}")
 
     def recenter(self, center):
         pos, rot, scale = self.transform
