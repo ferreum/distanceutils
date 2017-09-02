@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        bytes.py
 # Description: bytes
 # Created:     2017-06-24

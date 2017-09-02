@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        leaderboard.py
 # Description: leaderboard
 # Created:     2017-06-27

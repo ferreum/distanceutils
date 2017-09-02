@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        transform.py
 # Description: transform
 # Created:     2017-08-19

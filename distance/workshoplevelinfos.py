@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        workshoplevelinfos.py
 # Description: workshoplevelinfos
 # Created:     2017-06-24

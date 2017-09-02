@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        knowntypes.py
 # Description: knowntypes
 # Created:     2017-07-01

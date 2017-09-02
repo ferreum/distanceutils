@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        constants.py
 # Description: constants
 # Created:     2017-07-05

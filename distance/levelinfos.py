@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # File:        levelinfos.py
 # Description: levelinfos
 # Created:     2017-07-07
