@@ -403,8 +403,8 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
-            self._add_unknown(1)
-            self.number = dbytes.read_int(4)
+            self._add_unknown(1) # unknown, always 0
+            dbytes.pos += 4 # secnum
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
@@ -441,6 +441,41 @@ class Section(BytesModel):
         else:
             raise IOError(f"unknown section: {magic} (0x{magic:08x})")
 
+    @staticmethod
+    @contextmanager
+    def write_header(dbytes, magic, *args, **kw):
+        maxarg = -1
+        def arg(pos, name):
+            nonlocal maxarg
+            maxarg = max(maxarg, pos)
+            if pos < len(args):
+                return args[pos]
+            else:
+                try:
+                    return kw.pop(name)
+                except KeyError:
+                    raise ValueError(f"missing argument: {name!r}")
+
+        dbytes.write_int(4, magic)
+        if magic in (MAGIC_3, MAGIC_2):
+            with dbytes.write_size():
+                dbytes.write_int(4, arg(0, 'ident'))
+                dbytes.write_int(4, arg(1, 'version'))
+                dbytes.write_secnum()
+                yield
+        elif magic == MAGIC_6:
+            with dbytes.write_size():
+                dbytes.write_str(arg(0, 'type'))
+                dbytes.write_bytes(b'\x00') # unknown, always 0
+                dbytes.write_secnum()
+                with dbytes.write_num_subsections():
+                    yield
+
+        if len(args) > maxarg + 1:
+            raise ValueError(f"too many arguments (expected {maxarg})")
+        if kw:
+            raise ValueError(f"invalid kwargs: {kw}")
+
     @property
     def data_end(self):
         start = self.data_start
@@ -474,6 +509,7 @@ class DstBytes(object):
     _max_pos = None
     _expect_overread = False
     section_counter = 0
+    num_subsections = 0
 
     def __init__(self, file):
         self.file = file
@@ -596,6 +632,31 @@ class DstBytes(object):
                 self.write_int(8, end - start - 8)
             finally:
                 self.pos = end
+
+    @contextmanager
+    def write_num_subsections(self):
+        start = self.pos
+        self.write_bytes(b'\x00' * 4)
+        try:
+            yield
+        finally:
+            end = self.pos
+            try:
+                self.pos = start
+                self.write_int(4, self.num_subsections)
+            finally:
+                self.pos = end
+
+    @contextmanager
+    def write_section(self, magic, *args, **kw):
+        # add this section and save the counter
+        old_count = self.num_subsections + 1
+        self.num_subsections = 0
+        try:
+            with Section.write_header(self, magic, *args, **kw):
+                yield
+        finally:
+            self.num_subsections = old_count
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

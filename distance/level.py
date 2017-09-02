@@ -210,18 +210,8 @@ class LevelObject(BytesModel):
         self._subobjects = objs
 
     def write(self, dbytes):
-        dbytes.write_int(4, MAGIC_6)
-        with dbytes.write_size():
-            dbytes.write_str(self.type)
-            dbytes.write_bytes(b'\x00') # unknown
-            dbytes.write_secnum()
-            dbytes.write_int(4, self.num_sections or 0)
-
-            dbytes.write_int(4, MAGIC_3)
-            with dbytes.write_size():
-                dbytes.write_int(4, 1) # type
-                dbytes.write_bytes(b'\x00' * 4) # unknown
-                dbytes.write_secnum()
+        with dbytes.write_section(MAGIC_6, self.type):
+            with dbytes.write_section(MAGIC_3, ident=1, version=0):
                 write_transform(dbytes, self.transform)
                 if self.has_subobjects or self.subobjects:
                     dbytes.write_int(4, MAGIC_5)
@@ -432,19 +422,11 @@ class Group(LevelObject):
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
-        dbytes.write_int(4, MAGIC_2)
-        with dbytes.write_size():
-            dbytes.write_int(4, 0x1d) # value id
-            dbytes.write_int(4, 1) # version
-            dbytes.write_secnum()
+        with dbytes.write_section(MAGIC_2, ident=0x1d, version=1):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 0) # num values
             dbytes.write_int(4, 0) # inspect Children: None
-        dbytes.write_int(4, MAGIC_2)
-        with dbytes.write_size():
-            dbytes.write_int(4, 0x63) # value id
-            dbytes.write_int(4, 0) # version
-            dbytes.write_secnum()
+        with dbytes.write_section(MAGIC_2, ident=0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
 
@@ -790,11 +772,7 @@ class WedgeGS(LevelObject):
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sub(self, dbytes):
-        dbytes.write_int(4, MAGIC_3)
-        with dbytes.write_size():
-            dbytes.write_int(4, 3) # type
-            dbytes.write_int(4, 2) # num s1
-            dbytes.write_secnum()
+        with dbytes.write_section(MAGIC_3, ident=3, version=2):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 1) # num values?
             dbytes.write_str("SimplesMaterial")
@@ -809,11 +787,7 @@ class WedgeGS(LevelObject):
             dbytes.write_str("_SpecColor")
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
 
-        dbytes.write_int(4, MAGIC_2)
-        with dbytes.write_size():
-            dbytes.write_int(4, 0x83) # type
-            dbytes.write_int(4, 3) # version
-            dbytes.write_secnum()
+        with dbytes.write_section(MAGIC_2, ident=0x83, version=3):
             dbytes.write_int(4, self.image_index)
             dbytes.write_int(4, self.emit_index)
             dbytes.write_int(4, 0) # preset
