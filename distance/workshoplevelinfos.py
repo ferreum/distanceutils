@@ -65,7 +65,7 @@ class WorkshopLevelInfos(BytesModel):
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
-            if sec.value_id == 0x6d:
+            if sec.ident == 0x6d:
                 self.levels_s2 = sec
                 self.num_levels = dbytes.read_int(4)
                 return True

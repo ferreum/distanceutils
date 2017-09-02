@@ -32,7 +32,7 @@ class Replay(BytesModel):
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
-            if sec.value_id == 0x7f:
+            if sec.ident == 0x7f:
                 # demo data
                 self.version = version = sec.version
                 self.player_name = dbytes.read_string()

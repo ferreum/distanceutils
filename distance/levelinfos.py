@@ -66,7 +66,7 @@ class LevelInfos(BytesModel):
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
-            if sec.value_id == 0x97:
+            if sec.ident == 0x97:
                 self.version = sec.version
                 self.entries_s2 = sec
                 return True

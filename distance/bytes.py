@@ -392,7 +392,7 @@ class Section(BytesModel):
     data_start = None
     data_size = None
     type = None
-    value_id = None
+    ident = None
     version = None
     num_sections = None
 
@@ -414,13 +414,13 @@ class Section(BytesModel):
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.value_id = dbytes.read_int(4)
+            self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
         elif magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.value_id = dbytes.read_int(4)
+            self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
         elif magic == MAGIC_7:
@@ -451,8 +451,8 @@ class Section(BytesModel):
 
     def _print_type(self, p):
         type_str = ""
-        if self.value_id is not None:
-            type_str += f" type 0x{self.value_id:02x}"
+        if self.ident is not None:
+            type_str += f" type 0x{self.ident:02x}"
         if self.version is not None:
             type_str += f" ver {self.version}"
         p(f"Section: {self.magic}{type_str}")

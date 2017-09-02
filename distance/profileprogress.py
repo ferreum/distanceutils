@@ -292,11 +292,11 @@ class ProfileProgress(BytesModel):
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
-            if sec.value_id == 0x6A:
+            if sec.ident == 0x6A:
                 self.level_s2 = sec
                 self.num_levels = dbytes.read_int(4)
                 return True
-            elif sec.value_id == 0x8E:
+            elif sec.ident == 0x8E:
                 self.stats_s2 = sec
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
