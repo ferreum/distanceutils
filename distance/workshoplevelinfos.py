@@ -75,7 +75,7 @@ class WorkshopLevelInfos(BytesModel):
         dbytes = self.dbytes
         if self.levels_s2:
             dbytes.pos = self.levels_s2.data_start + 20
-            return Level.iter_maybe_partial(dbytes)
+            return Level.iter_maybe(dbytes)
         else:
             return ()
 

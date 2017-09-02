@@ -8,7 +8,7 @@ import sys
 import argparse
 
 from distance.bytes import DstBytes, PrintContext
-from distance.knowntypes import maybe_partial
+from distance import knowntypes as types
 
 
 def main():
@@ -36,7 +36,7 @@ def main():
                 if len(args.FILE) > 1:
                     p("")
                     p(f"File: {f.name!r}")
-                obj, _, exception = maybe_partial(DstBytes(f))
+                obj, _, exception = types.maybe(DstBytes(f))
                 p.print_data_of(obj)
             except Exception as e:
                 p.print_exception(e)

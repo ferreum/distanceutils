@@ -115,7 +115,7 @@ class Version4Test(unittest.TestCase):
     def test_partial(self):
         with open("in/replay/version_4_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
-            replay, sane, exception = Replay.maybe_partial(dbytes)
+            replay, sane, exception = Replay.maybe(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
             self.assertEqual(replay.player_name_2, "Ferreus")
             self.assertEqual(replay.player_id, 76561198040630941)
@@ -132,7 +132,7 @@ class Version4Test(unittest.TestCase):
     def test_partial_2(self):
         with open("in/replay/version_4_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
-            replay, sane, exception = Replay.maybe_partial(dbytes)
+            replay, sane, exception = Replay.maybe(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
             self.assertEqual(replay.player_name_2, "Ferreus")
             self.assertEqual(replay.player_id, 76561198040630941)

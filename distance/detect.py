@@ -71,15 +71,15 @@ class BytesProber(object):
         obj.read(dbytes, **kw)
         return obj
 
-    def maybe_partial(self, dbytes, **kw):
+    def maybe(self, dbytes, **kw):
         cls, add_kw = self.detect_class(dbytes)
         kw.update(add_kw)
-        return cls.maybe_partial(dbytes, **kw)
+        return cls.maybe(dbytes, **kw)
 
-    def iter_maybe_partial(self, dbytes, *args, max_pos=None, **kw):
+    def iter_maybe(self, dbytes, *args, max_pos=None, **kw):
         try:
             while max_pos is None or dbytes.pos < max_pos:
-                yield self.maybe_partial(dbytes, *args, **kw)
+                yield self.maybe(dbytes, *args, **kw)
         except EOFError:
             pass
 

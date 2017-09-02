@@ -37,7 +37,7 @@ PROBER.extend(LEVEL_PROBER)
 
 detect_class = PROBER.detect_class
 read = PROBER.read
-maybe_partial = PROBER.maybe_partial
+maybe = PROBER.maybe
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -311,7 +311,7 @@ class ProfileProgress(BytesModel):
         with dbytes.limit(data_end):
             num = self.num_levels
             if num:
-                for res in LevelProgress.iter_maybe_partial(
+                for res in LevelProgress.iter_maybe(
                         dbytes, max_pos=data_end, version=s2.version):
                     yield res
                     if not res[1]:
@@ -377,7 +377,7 @@ class ProfileProgress(BytesModel):
         dbytes = self.dbytes
         dbytes.pos = s2.data_start + 16
         with dbytes.limit(s2.data_end):
-            return PlayerStats.maybe_partial(dbytes, version=s2.version)
+            return PlayerStats.maybe(dbytes, version=s2.version)
 
     def _print_data(self, p):
         if self.level_s2:

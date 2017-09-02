@@ -192,7 +192,7 @@ class LevelObject(BytesModel):
                 old_pos = dbytes.pos
                 try:
                     dbytes.pos = s5.subobjects_start
-                    gen = self.subobject_prober.iter_maybe_partial(
+                    gen = self.subobject_prober.iter_maybe(
                         dbytes, max_pos=s5.data_end)
                     for obj, sane, exc in gen:
                         objs.append(obj)
@@ -387,7 +387,7 @@ class Layer(BytesModel):
             return
         dbytes = self.dbytes
         dbytes.pos = self.objects_start
-        for obj, sane, exc in PROBER.iter_maybe_partial(dbytes, max_pos=self.end_pos):
+        for obj, sane, exc in PROBER.iter_maybe(dbytes, max_pos=self.end_pos):
             yield obj, sane, exc
             if not sane:
                 break
@@ -844,7 +844,7 @@ class Level(BytesModel):
     def get_settings(self):
         s = self.settings
         if not s:
-            s, sane, exc = LevelSettings.maybe_partial(self.dbytes)
+            s, sane, exc = LevelSettings.maybe(self.dbytes)
             self.settings = s
         return s
 
@@ -858,7 +858,7 @@ class Level(BytesModel):
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer, layer_sane, exc in Layer.iter_maybe_partial(dbytes):
+        for layer, layer_sane, exc in Layer.iter_maybe(dbytes):
             sane = layer_sane or layer.objects_start is not None
             if with_layers:
                 yield layer, sane, exc
@@ -872,7 +872,7 @@ class Level(BytesModel):
     def iter_layers(self):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer, sane, exc in Layer.iter_maybe_partial(dbytes):
+        for layer, sane, exc in Layer.iter_maybe(dbytes):
             yield layer
             if not sane:
                 return

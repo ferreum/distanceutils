@@ -82,7 +82,7 @@ class LevelInfos(BytesModel):
         def gen():
             with dbytes.limit(s2.data_end):
                 for _ in range(length):
-                    yield Entry.maybe_partial(dbytes)
+                    yield Entry.maybe(dbytes)
         return gen(), length
 
     def _print_data(self, p):

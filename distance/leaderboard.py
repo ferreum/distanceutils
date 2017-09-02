@@ -61,7 +61,7 @@ class Leaderboard(BytesModel):
 
     def read_entries(self):
         if self.move_to_first_entry():
-            return Entry.read_all_maybe_partial(self.dbytes, version=self.version)
+            return Entry.read_all_maybe(self.dbytes, version=self.version)
         else:
             return ()
 

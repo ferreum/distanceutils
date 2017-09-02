@@ -149,7 +149,7 @@ class BytesModel(object):
     start_section = None
 
     @classmethod
-    def maybe_partial(clazz, *args, **kw):
+    def maybe(clazz, *args, **kw):
         try:
             return clazz(*args, **kw), True, None
         except Exception as e:
@@ -161,19 +161,19 @@ class BytesModel(object):
                 return obj, obj.sane_end_pos, e
 
     @classmethod
-    def iter_maybe_partial(clazz, dbytes, *args, max_pos=None, **kw):
+    def iter_maybe(clazz, dbytes, *args, max_pos=None, **kw):
         try:
             while max_pos is None or dbytes.pos < max_pos:
-                yield clazz.maybe_partial(dbytes, *args, **kw)
+                yield clazz.maybe(dbytes, *args, **kw)
         except EOFError:
             pass
 
     @classmethod
-    def read_all_maybe_partial(clazz, *args, **kw):
+    def read_all_maybe(clazz, *args, **kw):
         entries = []
         try:
             sane = True
-            for entry, sane, exc in clazz.iter_maybe_partial(*args, **kw):
+            for entry, sane, exc in clazz.iter_maybe(*args, **kw):
                 entries.append(entry)
                 if not sane:
                     break
