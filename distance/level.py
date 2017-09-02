@@ -109,6 +109,12 @@ def write_transform(dbytes, trans):
         dbytes.write_bytes(FLOAT_SKIP_BYTES)
 
 
+def format_transform(trans):
+    def format_floats(floats):
+        return ', '.join(format(f, '.3f') for f in floats)
+    return ', '.join(f"({format_floats(f)})" for f in trans)
+
+
 class Counters(object):
 
     num_objects = 0
@@ -233,7 +239,7 @@ class LevelObject(BytesModel):
 
     def _print_data(self, p):
         if 'transform' in p.flags:
-            p(f"Transform: {self.transform}")
+            p(f"Transform: {format_transform(self.transform)}")
 
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.subobjects:
