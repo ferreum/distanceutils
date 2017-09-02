@@ -390,7 +390,7 @@ class Section(BytesModel):
     num_objects = None
     layer_flags = ()
     data_start = None
-    size = None
+    data_size = None
     type = None
     value_id = None
     version = None
@@ -400,31 +400,31 @@ class Section(BytesModel):
         self.ident = ident = dbytes.read_int(4)
         self.recoverable = True
         if ident == SECTION_6:
-            self.size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.type = dbytes.read_string()
             self._add_unknown(1)
             self.number = dbytes.read_int(4)
             self.num_sections = dbytes.read_int(4)
         elif ident == SECTION_5:
-            self.size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.num_objects = dbytes.read_int(4)
             self.subobjects_start = dbytes.pos
         elif ident == SECTION_3:
-            self.size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
         elif ident == SECTION_2:
-            self.size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.value_id = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.pos += 4 # secnum
         elif ident == SECTION_7:
-            self.size = size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = data_start = dbytes.pos
             self.layer_name = dbytes.read_string()
             self.num_objects = dbytes.read_int(4)
@@ -433,10 +433,10 @@ class Section(BytesModel):
             self.level_name = dbytes.read_string()
             self._add_unknown(8)
         elif ident == SECTION_8:
-            self.size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
         elif ident == SECTION_32:
-            self.size = dbytes.read_int(8)
+            self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
         else:
             raise IOError(f"unknown section: {ident} (0x{ident:08x})")
@@ -444,10 +444,10 @@ class Section(BytesModel):
     @property
     def data_end(self):
         start = self.data_start
-        size = self.size
+        size = self.data_size
         if start is None or size is None:
             return None
-        return start + self.size
+        return start + size
 
     def _print_type(self, p):
         type_str = ""

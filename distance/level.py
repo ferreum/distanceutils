@@ -272,7 +272,7 @@ class LevelSettings(LevelObject):
         if sec.ident == SECTION_8:
             # Levelinfo section only found in old (v1) maps
             self.type = 'Section 88888888'
-            self._report_end_pos(sec.data_start + sec.size)
+            self._report_end_pos(sec.data_start + sec.data_size)
             self._add_unknown(4)
             self.skybox_name = dbytes.read_string()
             self._add_unknown(143)
@@ -426,7 +426,7 @@ class Group(LevelObject):
             if sec.value_id == 0x1d: # Group / inspect Children
                 return True
             elif sec.value_id == 0x63: # Group name
-                if sec.size > 12:
+                if sec.data_size > 12:
                     self.custom_name = dbytes.read_string()
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
@@ -493,7 +493,7 @@ class SubTeleporter(LevelObject):
                 self.link_id = value
                 return True
             elif sec.value_id == 0x51:
-                if sec.size > 12:
+                if sec.data_size > 12:
                     check = dbytes.read_byte()
                 else:
                     # if section is too short, the checkpoint is enabled
@@ -726,7 +726,7 @@ class EnableAbilitiesBox(LevelObject):
         elif sec.ident == SECTION_2:
             if sec.value_id == 0x5e:
                 # Abilities
-                if sec.size > 16:
+                if sec.data_size > 16:
                     self.abilities = abilities = {}
                     num_props = dbytes.read_int(4)
                     for i in range(num_props):
