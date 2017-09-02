@@ -26,6 +26,10 @@ def main():
         flags.append('groups')
     if not 'nosubobjects' in flags or 'nosubobject' in flags:
         flags.append('subobjects')
+    if 'offsets' in flags:
+        flags.append('offset')
+    if 'section' in flags:
+        flags.append('sections')
 
     p = PrintContext(file=sys.stdout, flags=flags)
 
