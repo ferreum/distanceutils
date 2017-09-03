@@ -45,14 +45,25 @@ class BaseTest(unittest.TestCase):
             f.close()
         self.opened_files = []
 
-    def getLevel(self, filename, with_layers=False, with_groups=False):
+    def getLevel(self, filename, with_layers=False, with_groups=False,
+                 with_subobjects=False):
         f = self.open(filename)
         self.level = level = Level(DstBytes(f))
         gen = (res[0] for res in level.iter_objects(with_layers=with_layers))
         if with_groups:
             gen = objects_with_groups(gen)
         self.objects = objects = [level.get_settings()] + list(gen)
+        def get_subobjects(objs, is_sub):
+            for obj in objs:
+                if is_sub:
+                    yield obj
+                if not getattr(obj, 'is_object_group', True):
+                    yield from get_subobjects(obj.subobjects, True)
         for obj in objects:
+            if obj.exception:
+                raise obj.exception
+        self.subobjects = list(get_subobjects(objects, False))
+        for obj in self.subobjects:
             if obj.exception:
                 raise obj.exception
         return level, objects
@@ -110,24 +121,28 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "Magi")
         self.assertTimes(195000, 200000, 260000, 320000)
         self.assertEqual(len(objects), 882)
+        self.assertEqual(len(self.subobjects), 1132)
 
     def test_building_hop(self):
         level, objects = self.getLevel("in/level-not-included/v1/building hop.bytes")
         self.assertEqual(level.level_name, "Building hop")
         self.assertTimes(30302, 50504, 75756, 101009)
         self.assertEqual(len(objects), 69)
+        self.assertEqual(len(self.subobjects), 173)
 
     def test_city_of_gold(self):
         level, objects = self.getLevel("in/level-not-included/v1/roller coaster ride.bytes")
         self.assertEqual(level.level_name, "A City Of Gold")
         self.assertTimes(73501, 122502, 183753, 245005)
         self.assertEqual(len(objects), 128)
+        self.assertEqual(len(self.subobjects), 444)
 
     def test_dark_generator(self):
         level, objects = self.getLevel("in/level-not-included/v1/dark generator.bytes", with_layers=True)
         self.assertEqual(level.level_name, "Dark Generator")
         self.assertTimes(-1, -1, -1, -1)
         self.assertEqual(len(objects), 79)
+        self.assertEqual(len(self.subobjects), 108)
 
     def test_damnation(self):
         level, objects = self.getLevel("in/level-not-included/v1/damnation.bytes",
@@ -135,13 +150,12 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "Damnation")
         self.assertTimes(89421, 149035, 223552, 298070)
         self.assertEqual(len(objects), 608)
+        self.assertEqual(len(self.subobjects), 1144)
 
     def test_many_success(self):
         for name in self.MANY_LEVELS:
             with self.subTest(name=name):
-                level, objects = self.getLevel(f"in/level-not-included/v1/{name}.bytes")
-                for obj in self.objects:
-                    self.assertIsNone(obj.exception)
+                self.getLevel(f"in/level-not-included/v1/{name}.bytes")
             self.close_files()
 
 
@@ -157,18 +171,21 @@ class Version3Test(BaseTest):
         self.assertEqual(level.level_name, "Fall Running")
         self.assertTimes(115000, 140000, 180000, 200000)
         self.assertEqual(len(objects), 326)
+        self.assertEqual(len(self.subobjects), 515)
 
     def test_greenhouse(self):
         level, objects = self.getLevel("in/level-not-included/v3/tree.bytes")
         self.assertEqual(level.level_name, "[STE] Greenhouse")
         self.assertTimes(0, 0, 0, 0)
         self.assertEqual(len(objects), 359)
+        self.assertEqual(len(self.subobjects), 302)
 
     def test_fullpipe_with_groups(self):
         level, objects = self.getLevel("in/level-not-included/v3/fullpipe.bytes", with_groups=True)
         self.assertEqual(level.level_name, "FullPipeTag")
         self.assertTimes(0, 0, 0, 0)
         self.assertEqual(len(objects), 5874)
+        self.assertEqual(len(self.subobjects), 170)
 
     def test_print_groups(self):
         p = PrintContext.for_test(flags=('groups',))
@@ -186,12 +203,14 @@ class Version4Test(BaseTest):
         self.assertEqual(level.level_name, "DAC #17: Hexahorrific")
         self.assertTimes(42000, 45000, 50000, 60000)
         self.assertEqual(len(objects), 299)
+        self.assertEqual(len(self.subobjects), 29)
 
     def test_slip(self):
         level, objects = self.getLevel("in/level-not-included/v4/slipped second edit.bytes")
         self.assertEqual(level.level_name, "DAC #19: Slip")
         self.assertTimes(105000, 130000, 170000, 210000)
         self.assertEqual(len(objects), 593)
+        self.assertEqual(len(self.subobjects), 778)
 
 
 class Version5Test(BaseTest):
@@ -201,12 +220,14 @@ class Version5Test(BaseTest):
         self.assertEqual(level.level_name, "Cursed Mountain")
         self.assertTimes(100000, 120000, 150000, 210000)
         self.assertEqual(len(objects), 488)
+        self.assertEqual(len(self.subobjects), 268)
 
     def test_le_teleputo(self):
         level, objects = self.getLevel("in/level-not-included/v5/le teleputo.bytes")
         self.assertEqual(level.level_name, "Le Teleputo")
         self.assertTimes(140000, 210000, 280000, 340000)
         self.assertEqual(len(objects), 1486)
+        self.assertEqual(len(self.subobjects), 1185)
 
 
 class Version7Test(BaseTest):
@@ -216,24 +237,28 @@ class Version7Test(BaseTest):
         self.assertEqual(level.level_name, "The Grid")
         self.assertTimes(200000, 220000, 240000, 270000)
         self.assertEqual(len(objects), 313)
+        self.assertEqual(len(self.subobjects), 615)
 
     def test_neon_fury(self):
         level, objects = self.getLevel("in/level-not-included/v7/neon fury.bytes")
         self.assertEqual(level.level_name, "Neon Fury")
         self.assertTimes(63000, 80000, 150000, 180000)
         self.assertEqual(len(objects), 293)
+        self.assertEqual(len(self.subobjects), 440)
 
     def test_salvation(self):
         level, objects = self.getLevel("in/level-not-included/v7/salvation.bytes")
         self.assertEqual(level.level_name, "Salvation")
         self.assertTimes(120000, 180000, 300000, 488700)
         self.assertEqual(len(objects), 565)
+        self.assertEqual(len(self.subobjects), 570)
 
     def test_brief_chaos(self):
         level, objects = self.getLevel("in/level-not-included/v7/brief chaos.bytes")
         self.assertEqual(level.level_name, "Brief Chaos")
         self.assertTimes(0, 0, 0, 0)
         self.assertEqual(len(objects), 112)
+        self.assertEqual(len(self.subobjects), 619)
 
 
 class Version8Test(BaseTest):
@@ -243,12 +268,14 @@ class Version8Test(BaseTest):
         self.assertEqual(level.level_name, "Quicksilver")
         self.assertTimes(22000, 35000, 3321000, 3350000)
         self.assertEqual(len(objects), 310)
+        self.assertEqual(len(self.subobjects), 285)
 
     def test_rampage(self):
         level, objects = self.getLevel("in/level-not-included/v8/rampage.bytes")
         self.assertEqual(level.level_name, "Rampage Flats")
         self.assertTimes(85110, 140000, 179000, 180000)
         self.assertEqual(len(objects), 444)
+        self.assertEqual(len(self.subobjects), 1004)
 
 
 class Version9Test(BaseTest):
@@ -259,6 +286,7 @@ class Version9Test(BaseTest):
         self.assertTimes(180000, 249000, 324000, 498000)
         self.assertScores(10400, 6900, 5200, 4200)
         self.assertEqual(len(objects), 627)
+        self.assertEqual(len(self.subobjects), 793)
 
     def test_flower(self):
         level, objects = self.getLevel("in/level-not-included/v9/flower.bytes")
@@ -266,6 +294,7 @@ class Version9Test(BaseTest):
         self.assertTimes(-1, -1, -1, -1)
         self.assertScores(-1, -1, -1, -1)
         self.assertEqual(len(objects), 102)
+        self.assertEqual(len(self.subobjects), 212)
 
 
 class Version9PrintTest(Base.PrintTest):

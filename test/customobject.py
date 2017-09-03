@@ -10,7 +10,7 @@ import sys
 if '../' not in sys.path:
     sys.path.append('../')
 
-from distance.level import PROBER, SubTeleporter
+from distance.level import PROBER, SubTeleporter, WinLogic
 from distance.bytes import DstBytes
 from distance.printing import PrintContext
 from distance.constants import ForceType
@@ -187,6 +187,28 @@ class S5Offset(unittest.TestCase):
             obj = PROBER.read(DstBytes(f))
             self.assertEqual(len(obj.subobjects), 3)
             p.print_data_of(obj)
+
+
+class EmpireEndZone(unittest.TestCase):
+
+    def test_normal(self):
+        p = PrintContext.for_test(flags=('subobjects'))
+        with open(f"in/customobject/endzone.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            self.assertEqual(len(obj.subobjects), 9)
+            win_logic = next(obj.iter_subobjects(name='WinLogic'))
+            self.assertEqual(WinLogic, type(win_logic))
+            self.assertIsNone(win_logic.delay_before_broadcast)
+            p.print_data_of(obj)
+
+    def test_delay_before_broadcast(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/endzone delay.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            self.assertEqual(len(obj.subobjects), 9)
+            win_logic = next(obj.iter_subobjects(name='WinLogic'))
+            self.assertEqual(WinLogic, type(win_logic))
+            self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
 
 
 if __name__ == '__main__':
