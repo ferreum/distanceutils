@@ -40,6 +40,8 @@ MAGIC_2 = 22222222
 """Used for some properties"""
 MAGIC_1 = 11111111
 
+MAGIC_12 = 12121212
+
 MAGIC_32 = 32323232
 
 

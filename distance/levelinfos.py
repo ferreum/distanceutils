@@ -3,7 +3,7 @@
 # Created:     2017-07-07
 
 
-from .bytes import BytesModel, MAGIC_2, S_FLOAT
+from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
 from .common import format_duration
 from .constants import Mode
 
@@ -26,7 +26,7 @@ class Entry(BytesModel):
         self.level_path = dbytes.read_string()
         self.level_basename = dbytes.read_string()
         self._add_unknown(16)
-        self._require_equal(12121212, 4)
+        self._require_equal(MAGIC_12, 4)
         num_modes = dbytes.read_int(4)
         self.modes = modes = {}
         for _ in range(num_modes):
