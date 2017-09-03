@@ -39,7 +39,7 @@ def _fallback_object(section):
 @SUBOBJ_PROBER.func
 def _fallback_subobject(section):
     if section.magic == MAGIC_6:
-        return LevelObject
+        return SubObject
     return None
 
 
@@ -249,6 +249,15 @@ class LevelObject(BytesModel):
                 for obj in self.subobjects:
                     p.tree_next_child()
                     p.print_data_of(obj)
+
+
+class SubObject(LevelObject):
+
+    def _print_type(self, p):
+        start_sec = self.start_section
+        if start_sec and start_sec.magic == MAGIC_6:
+            type_str = start_sec.type
+            p(f"Subobject type: {type_str!r}")
 
 
 class LevelSettings(LevelObject):
@@ -464,7 +473,7 @@ class Group(LevelObject):
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
-class SubTeleporter(LevelObject):
+class SubTeleporter(SubObject):
 
     destination = None
     link_id = None
