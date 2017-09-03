@@ -279,9 +279,9 @@ class LevelSettings(LevelObject):
             self.type = 'Section 88888888'
             self._report_end_pos(sec.data_start + sec.data_size)
             self._add_unknown(4)
-            self.skybox_name = dbytes.read_string()
+            self.skybox_name = dbytes.read_str()
             self._add_unknown(143)
-            self.name = dbytes.read_string()
+            self.name = dbytes.read_str()
             return
         LevelObject._read(self, dbytes)
 
@@ -292,7 +292,7 @@ class LevelSettings(LevelObject):
                 self.version = version = sec.version
 
                 self._add_unknown(8)
-                self.name = dbytes.read_string()
+                self.name = dbytes.read_str()
                 self._add_unknown(4)
                 self.modes = modes = {}
                 num_modes = dbytes.read_int(4)
@@ -301,7 +301,7 @@ class LevelSettings(LevelObject):
                     modes[mode] = dbytes.read_byte()
                 self.music_id = dbytes.read_int(4)
                 if version <= 3:
-                    self.skybox_name = dbytes.read_string()
+                    self.skybox_name = dbytes.read_str()
                     self._add_unknown(57)
                 elif version == 4:
                     self._add_unknown(141)
@@ -432,7 +432,7 @@ class Group(LevelObject):
                 return True
             elif sec.ident == 0x63: # Group name
                 if sec.data_size > 12:
-                    self.custom_name = dbytes.read_string()
+                    self.custom_name = dbytes.read_str()
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
@@ -520,7 +520,7 @@ class WinLogic(SubObject):
                 if sec.data_size >= 16:
                     num_props = dbytes.read_int(4)
                     for _ in range(num_props):
-                        propname = dbytes.read_string()
+                        propname = dbytes.read_str()
                         self._add_unknown(8)
                         if propname == "DelayBeforeBroadcast":
                             value = dbytes.read_struct(S_FLOAT)[0]
@@ -546,7 +546,7 @@ class WorldText(LevelObject):
                 pos = sec.data_start + 12
                 if pos < sec.data_end:
                     dbytes.pos = pos
-                    self.text = dbytes.read_string()
+                    self.text = dbytes.read_str()
                     for i in range((sec.data_end - dbytes.pos) // 4):
                         self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
                 else:
@@ -575,13 +575,13 @@ class InfoDisplayBox(LevelObject):
                     num_props = dbytes.read_int(4)
                     self.texts = texts = [None] * 5
                     for i in range(num_props):
-                        propname = dbytes.read_string()
+                        propname = dbytes.read_str()
                         if propname.startswith("InfoText"):
                             dbytes.pos = value_start = dbytes.pos + 8
                             if not math.isnan(dbytes.read_struct(S_FLOAT)[0]):
                                 dbytes.pos = value_start
                                 index = int(propname[-1])
-                                texts[index] = dbytes.read_string()
+                                texts[index] = dbytes.read_str()
                         else:
                             dbytes.pos += 12
                 else:
@@ -591,7 +591,7 @@ class InfoDisplayBox(LevelObject):
                         self._add_unknown(4) # f32 delay
                         if texts is ():
                             self.texts = texts = []
-                        texts.append(dbytes.read_string())
+                        texts.append(dbytes.read_str())
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
@@ -693,7 +693,7 @@ class ForceZoneBox(LevelObject):
                 # CustomName
                 if dbytes.pos < sec.data_end:
                     with dbytes.limit(sec.data_end):
-                        self.custom_name = dbytes.read_string()
+                        self.custom_name = dbytes.read_str()
                 return True
             elif sec.ident == 0xa0:
                 self.force_direction = (0.0, 0.0, 1.0)
@@ -753,7 +753,7 @@ class EnableAbilitiesBox(LevelObject):
                     self.abilities = abilities = {}
                     num_props = dbytes.read_int(4)
                     for i in range(num_props):
-                        propname = dbytes.read_string()
+                        propname = dbytes.read_str()
                         dbytes.pos = value_start = dbytes.pos + 8
                         byte = dbytes.read_byte()
                         if byte not in (0, 1): # probably NaN

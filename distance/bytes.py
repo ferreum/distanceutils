@@ -314,7 +314,7 @@ class Section(BytesModel):
         if magic == MAGIC_6:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.type = dbytes.read_string()
+            self.type = dbytes.read_str()
             self._add_unknown(1) # unknown, always 0
             dbytes.pos += 4 # secnum
             self.num_sections = dbytes.read_int(4)
@@ -338,11 +338,11 @@ class Section(BytesModel):
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = data_start = dbytes.pos
-            self.layer_name = dbytes.read_string()
+            self.layer_name = dbytes.read_str()
             self.num_objects = dbytes.read_int(4)
         elif magic == MAGIC_9:
             self._add_unknown(8)
-            self.level_name = dbytes.read_string()
+            self.level_name = dbytes.read_str()
             self._add_unknown(8)
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
@@ -486,7 +486,7 @@ class DstBytes(object):
         data = self.read_n(st.size)
         return st.unpack(data)
 
-    def read_string(self):
+    def read_str(self):
         length = self.read_var_int()
         data = self.read_n(length)
         return data.decode('utf-16', 'surrogateescape')

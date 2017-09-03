@@ -21,7 +21,7 @@ class Entry(BytesModel):
     replay = None
 
     def _read(self, dbytes, version=None):
-        self.playername = dbytes.read_string()
+        self.playername = dbytes.read_str()
         self.recoverable = True
         self.time = dbytes.read_int(4)
         if version == 0:

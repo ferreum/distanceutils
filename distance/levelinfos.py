@@ -21,10 +21,10 @@ class Entry(BytesModel):
     medal_scores = ()
 
     def _read(self, dbytes):
-        self.level_name = dbytes.read_string()
+        self.level_name = dbytes.read_str()
         self.recoverable = True
-        self.level_path = dbytes.read_string()
-        self.level_basename = dbytes.read_string()
+        self.level_path = dbytes.read_str()
+        self.level_basename = dbytes.read_str()
         self._add_unknown(16)
         self._require_equal(MAGIC_12, 4)
         num_modes = dbytes.read_int(4)

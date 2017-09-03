@@ -40,9 +40,9 @@ class LevelProgress(BytesModel):
     scores = ()
 
     def _read(self, dbytes, version=None):
-        self.level_path = dbytes.read_string()
+        self.level_path = dbytes.read_str()
         self.recoverable = True
-        self._add_unknown(value=dbytes.read_string())
+        self._add_unknown(value=dbytes.read_str())
         self._add_unknown(1)
 
         self._require_equal(MAGIC_1, 4)
@@ -192,7 +192,7 @@ class PlayerStats(BytesModel):
             num = dbytes.read_int(4)
             self.trackmogrify_mods = mods = []
             for i in range(num):
-                mods.append(dbytes.read_string())
+                mods.append(dbytes.read_str())
 
     def _print_data(self, p):
         p(f"Player stats version: {self.version}")
@@ -328,7 +328,7 @@ class ProfileProgress(BytesModel):
         num_maps = dbytes.read_int(4)
         def gen():
             for i in range(num_maps):
-                yield dbytes.read_string()
+                yield dbytes.read_str()
             self.found_tricks_start = dbytes.pos + 36
         return gen(), num_maps
 
@@ -341,7 +341,7 @@ class ProfileProgress(BytesModel):
         num_tricks = dbytes.read_int(4)
         def gen():
             for i in range(num_tricks):
-                yield dbytes.read_string()
+                yield dbytes.read_str()
             self.adventure_levels_start = dbytes.pos
         return gen(), num_tricks
 
@@ -354,7 +354,7 @@ class ProfileProgress(BytesModel):
         num_advlevels = dbytes.read_int(4)
         def gen():
             for i in range(num_advlevels):
-                yield dbytes.read_string()
+                yield dbytes.read_str()
             self.somelevel_list_start = dbytes.pos + 10
         return gen(), num_advlevels
 
@@ -367,7 +367,7 @@ class ProfileProgress(BytesModel):
         num_somelevels = dbytes.read_int(4)
         def gen():
             for i in range(num_somelevels):
-                yield dbytes.read_string()
+                yield dbytes.read_str()
         return gen(), num_somelevels
 
     def read_stats(self):

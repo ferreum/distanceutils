@@ -35,15 +35,15 @@ class Replay(BytesModel):
             if sec.ident == 0x7f:
                 # demo data
                 self.version = version = sec.version
-                self.player_name = dbytes.read_string()
+                self.player_name = dbytes.read_str()
                 if version >= 2:
                     self.player_id = dbytes.read_int(8)
-                    self.player_name_2 = dbytes.read_string()
+                    self.player_name_2 = dbytes.read_str()
                     if version >= 3:
                         self.finish_time = dbytes.read_int(4)
                         self.replay_duration = dbytes.read_int(4)
                 self._add_unknown(4)
-                self.car_name = dbytes.read_string()
+                self.car_name = dbytes.read_str()
                 self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
                 self.car_color_secondary = dbytes.read_struct(S_COLOR_RGBA)
                 self.car_color_glow = dbytes.read_struct(S_COLOR_RGBA)
