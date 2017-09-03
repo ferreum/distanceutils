@@ -46,32 +46,29 @@ def vec_angle(va, vb):
     return np.arccos(np.clip(np.dot(ua, ub), -1.0, 1.0))
 
 
-def rtri_to_vers(verts):
+def rangle_to_vers(va, vb):
 
-    """Calculates the versor that aligns the legs of the triangle
-    [(0, 0, 0), (0, 0, -1), (0, 1, 0)] with the given right-angled triangle's legs.
+    """Calculates the versor that aligns the vectors
+    (0, 0, -1) and (0, 1, 0) with the given vectors.
 
-    `verts` is an array of 3-dimensional vertices of length 3.
-    The first entry is the vertex of the triangle's right angle."""
+    """
 
     from numpy import sin, cos, arctan2
 
-    pr, pa, pb = verts
     rot = np.quaternion(1, 0, 0, 0)
 
-    # rotate around y for pa
-    var = pa - pr
-    ay = arctan2(-var[0], -var[2])
+    # rotate around y for va
+    ay = arctan2(-va[0], -va[2])
     rot *= np.quaternion(cos(ay/2), 0, sin(ay/2), 0)
 
-    # rotate around x for pa
-    vaxr = rotpointrev(rot, var)
-    ax = arctan2(vaxr[1], -vaxr[2])
+    # rotate around x for va
+    vax = rotpointrev(rot, va)
+    ax = arctan2(vax[1], -vax[2])
     rot *= np.quaternion(cos(ax/2), sin(ax/2), 0, 0)
 
-    # rotate around z for pb
-    vbxr = rotpointrev(rot, pb - pr)
-    az = arctan2(-vbxr[0], vbxr[1])
+    # rotate around z for vb
+    vbx = rotpointrev(rot, vb)
+    az = arctan2(-vbx[0], vbx[1])
     rot *= np.quaternion(cos(az/2), 0, 0, sin(az/2))
 
     return rot
@@ -84,7 +81,7 @@ def rtri_to_transform(verts, srot=None):
 
     pr, pa, pb = verts
 
-    rot = rtri_to_vers(verts)
+    rot = rangle_to_vers(pa - pr, pb - pr)
 
     pos = (pa + pb) / 2
     scale = [1e-5, length(pr - pb) / SIMPLE_SIZE, length(pr - pa) / SIMPLE_SIZE]
