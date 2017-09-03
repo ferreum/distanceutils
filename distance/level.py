@@ -509,6 +509,31 @@ class SubTeleporter(SubObject):
             p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
 
 
+@SUBOBJ_PROBER.for_type('WinLogic')
+class WinLogic(SubObject):
+
+    delay_before_broadcast = None
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.magic == MAGIC_2:
+            if sec.ident == 0x5d:
+                num_props = dbytes.read_int(4)
+                for _ in range(num_props):
+                    propname = dbytes.read_string()
+                    dbytes.pos += 8 # unknown
+                    if propname == "DelayBeforeBroadcast":
+                        value = dbytes.read_struct(S_FLOAT)[0]
+                        self.delay_before_broadcast = value
+                    else:
+                        # don't know format/length of other properties
+                        break
+                return True
+
+    def _print_data(self, p):
+        if self.delay_before_broadcast is not None:
+            p(f"Delay before broadcast: {self.delay_before_broadcast}")
+
+
 @PROBER.for_type('WorldText')
 class WorldText(LevelObject):
 
