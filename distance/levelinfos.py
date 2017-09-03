@@ -45,7 +45,7 @@ class Entry(BytesModel):
         p(f"Level basename: {self.level_basename!r}")
         if self.modes:
             mode_str = ', '.join(Mode.to_name(m) for m, e in sorted(self.modes.items()) if e)
-            p(f"Enabled modes: {mode_str}")
+            p(f"Enabled modes: {mode_str or 'None'}")
         if self.medal_times:
             times_str = ', '.join(format_duration(t) for t in reversed(self.medal_times))
             p(f"Medal times: {times_str}")
