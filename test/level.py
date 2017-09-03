@@ -11,7 +11,8 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.level import Level
-from distance.bytes import DstBytes, PrintContext, UnexpectedEOFError
+from distance.bytes import DstBytes, UnexpectedEOFError
+from distance.printing import PrintContext
 
 
 class LevelTest(unittest.TestCase):

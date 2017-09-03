@@ -11,7 +11,8 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.level import PROBER, SubTeleporter
-from distance.bytes import DstBytes, PrintContext
+from distance.bytes import DstBytes
+from distance.printing import PrintContext
 from distance.constants import ForceType
 
 

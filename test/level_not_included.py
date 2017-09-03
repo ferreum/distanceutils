@@ -12,7 +12,8 @@ if '../' not in sys.path:
     sys.path.append('../')
 
 from distance.level import Level, need_counters
-from distance.bytes import DstBytes, PrintContext
+from distance.bytes import DstBytes
+from distance.printing import PrintContext
 
 
 def objects_with_groups(gen):

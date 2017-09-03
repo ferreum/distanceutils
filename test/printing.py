@@ -1,6 +1,6 @@
 #!/usr/bin/python
-# File:        output.py
-# Description: output tests
+# File:        printing.py
+# Description: printing tests
 # Created:     2017-07-10
 
 
@@ -12,7 +12,7 @@ from textwrap import dedent
 if '../' not in sys.path:
     sys.path.append('../')
 
-from distance.bytes import PrintContext
+from distance.printing import PrintContext
 
 
 class BaseTest(unittest.TestCase):
