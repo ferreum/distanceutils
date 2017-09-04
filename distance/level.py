@@ -497,7 +497,7 @@ class SubTeleporter(SubObject):
                     check = 1
                 self.trigger_checkpoint = check
                 return True
-        return LevelObject._read_section_data(self, dbytes, sec)
+        return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
