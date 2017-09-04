@@ -529,6 +529,7 @@ class WinLogic(SubObject):
                             # don't know format/length of other properties
                             break
                 return True
+        return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         if self.delay_before_broadcast is not None:

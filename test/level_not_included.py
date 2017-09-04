@@ -121,21 +121,21 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "Magi")
         self.assertTimes(195000, 200000, 260000, 320000)
         self.assertEqual(len(objects), 882)
-        self.assertEqual(len(self.subobjects), 1132)
+        self.assertEqual(len(self.subobjects), 1133)
 
     def test_building_hop(self):
         level, objects = self.getLevel("in/level-not-included/v1/building hop.bytes")
         self.assertEqual(level.level_name, "Building hop")
         self.assertTimes(30302, 50504, 75756, 101009)
         self.assertEqual(len(objects), 69)
-        self.assertEqual(len(self.subobjects), 173)
+        self.assertEqual(len(self.subobjects), 174)
 
     def test_city_of_gold(self):
         level, objects = self.getLevel("in/level-not-included/v1/roller coaster ride.bytes")
         self.assertEqual(level.level_name, "A City Of Gold")
         self.assertTimes(73501, 122502, 183753, 245005)
         self.assertEqual(len(objects), 128)
-        self.assertEqual(len(self.subobjects), 444)
+        self.assertEqual(len(self.subobjects), 445)
 
     def test_dark_generator(self):
         level, objects = self.getLevel("in/level-not-included/v1/dark generator.bytes", with_layers=True)
@@ -150,7 +150,7 @@ class Version1Test(BaseTest):
         self.assertEqual(level.level_name, "Damnation")
         self.assertTimes(89421, 149035, 223552, 298070)
         self.assertEqual(len(objects), 608)
-        self.assertEqual(len(self.subobjects), 1144)
+        self.assertEqual(len(self.subobjects), 1145)
 
     def test_many_success(self):
         for name in self.MANY_LEVELS:
@@ -171,7 +171,7 @@ class Version3Test(BaseTest):
         self.assertEqual(level.level_name, "Fall Running")
         self.assertTimes(115000, 140000, 180000, 200000)
         self.assertEqual(len(objects), 326)
-        self.assertEqual(len(self.subobjects), 515)
+        self.assertEqual(len(self.subobjects), 516)
 
     def test_greenhouse(self):
         level, objects = self.getLevel("in/level-not-included/v3/tree.bytes")
@@ -203,14 +203,14 @@ class Version4Test(BaseTest):
         self.assertEqual(level.level_name, "DAC #17: Hexahorrific")
         self.assertTimes(42000, 45000, 50000, 60000)
         self.assertEqual(len(objects), 299)
-        self.assertEqual(len(self.subobjects), 29)
+        self.assertEqual(len(self.subobjects), 30)
 
     def test_slip(self):
         level, objects = self.getLevel("in/level-not-included/v4/slipped second edit.bytes")
         self.assertEqual(level.level_name, "DAC #19: Slip")
         self.assertTimes(105000, 130000, 170000, 210000)
         self.assertEqual(len(objects), 593)
-        self.assertEqual(len(self.subobjects), 778)
+        self.assertEqual(len(self.subobjects), 779)
 
 
 class Version5Test(BaseTest):
@@ -220,14 +220,14 @@ class Version5Test(BaseTest):
         self.assertEqual(level.level_name, "Cursed Mountain")
         self.assertTimes(100000, 120000, 150000, 210000)
         self.assertEqual(len(objects), 488)
-        self.assertEqual(len(self.subobjects), 268)
+        self.assertEqual(len(self.subobjects), 269)
 
     def test_le_teleputo(self):
         level, objects = self.getLevel("in/level-not-included/v5/le teleputo.bytes")
         self.assertEqual(level.level_name, "Le Teleputo")
         self.assertTimes(140000, 210000, 280000, 340000)
         self.assertEqual(len(objects), 1486)
-        self.assertEqual(len(self.subobjects), 1185)
+        self.assertEqual(len(self.subobjects), 1186)
 
 
 class Version7Test(BaseTest):
@@ -237,28 +237,28 @@ class Version7Test(BaseTest):
         self.assertEqual(level.level_name, "The Grid")
         self.assertTimes(200000, 220000, 240000, 270000)
         self.assertEqual(len(objects), 313)
-        self.assertEqual(len(self.subobjects), 615)
+        self.assertEqual(len(self.subobjects), 616)
 
     def test_neon_fury(self):
         level, objects = self.getLevel("in/level-not-included/v7/neon fury.bytes")
         self.assertEqual(level.level_name, "Neon Fury")
         self.assertTimes(63000, 80000, 150000, 180000)
         self.assertEqual(len(objects), 293)
-        self.assertEqual(len(self.subobjects), 440)
+        self.assertEqual(len(self.subobjects), 441)
 
     def test_salvation(self):
         level, objects = self.getLevel("in/level-not-included/v7/salvation.bytes")
         self.assertEqual(level.level_name, "Salvation")
         self.assertTimes(120000, 180000, 300000, 488700)
         self.assertEqual(len(objects), 565)
-        self.assertEqual(len(self.subobjects), 570)
+        self.assertEqual(len(self.subobjects), 571)
 
     def test_brief_chaos(self):
         level, objects = self.getLevel("in/level-not-included/v7/brief chaos.bytes")
         self.assertEqual(level.level_name, "Brief Chaos")
         self.assertTimes(0, 0, 0, 0)
         self.assertEqual(len(objects), 112)
-        self.assertEqual(len(self.subobjects), 619)
+        self.assertEqual(len(self.subobjects), 620)
 
 
 class Version8Test(BaseTest):
@@ -268,14 +268,14 @@ class Version8Test(BaseTest):
         self.assertEqual(level.level_name, "Quicksilver")
         self.assertTimes(22000, 35000, 3321000, 3350000)
         self.assertEqual(len(objects), 310)
-        self.assertEqual(len(self.subobjects), 285)
+        self.assertEqual(len(self.subobjects), 286)
 
     def test_rampage(self):
         level, objects = self.getLevel("in/level-not-included/v8/rampage.bytes")
         self.assertEqual(level.level_name, "Rampage Flats")
         self.assertTimes(85110, 140000, 179000, 180000)
         self.assertEqual(len(objects), 444)
-        self.assertEqual(len(self.subobjects), 1004)
+        self.assertEqual(len(self.subobjects), 1005)
 
 
 class Version9Test(BaseTest):
@@ -286,7 +286,7 @@ class Version9Test(BaseTest):
         self.assertTimes(180000, 249000, 324000, 498000)
         self.assertScores(10400, 6900, 5200, 4200)
         self.assertEqual(len(objects), 627)
-        self.assertEqual(len(self.subobjects), 793)
+        self.assertEqual(len(self.subobjects), 794)
 
     def test_flower(self):
         level, objects = self.getLevel("in/level-not-included/v9/flower.bytes")
@@ -294,7 +294,7 @@ class Version9Test(BaseTest):
         self.assertTimes(-1, -1, -1, -1)
         self.assertScores(-1, -1, -1, -1)
         self.assertEqual(len(objects), 102)
-        self.assertEqual(len(self.subobjects), 212)
+        self.assertEqual(len(self.subobjects), 213)
 
 
 class Version9PrintTest(Base.PrintTest):
