@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-teletodot
+# File:        teletodot.py
 # Description: Generates GraphViz DOT from teleporter connections in a level
 # Created:     2017-08-26
 

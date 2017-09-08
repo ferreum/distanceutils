@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-bytes
+# File:        bytes.py
 # Description: Dumps data found in .bytes files
 # Created:     2017-06-28
 

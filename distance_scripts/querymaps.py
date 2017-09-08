@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-querymaps
+# File:        querymaps.py
 # Description: Queries WorkshopLevelInfos cache database
 # Created:     2017-06-15
 
@@ -22,7 +22,7 @@ def format_col(col):
         return repr(col)
 
 
-def main(argv):
+def main():
     parser = argparse.ArgumentParser(
         description="Queries WorkshopLevelInfos cache database.")
     parser.add_argument("--db", help="map database filename.")
@@ -34,7 +34,7 @@ def main(argv):
     parser.add_argument("--where", nargs='*', metavar=('COND', 'ARG'),
                         help="specify WHERE clause.")
     parser.add_argument("--order-by", help="specify ORDER BY clause.")
-    args = parser.parse_args(argv[1:])
+    args = parser.parse_args()
 
     if not args.db:
         args.db = get_cache_filename('data.db')
@@ -91,7 +91,7 @@ def main(argv):
 
 if __name__ == '__main__':
     try:
-        exit(main(sys.argv))
+        exit(main())
     except BrokenPipeError:
         exit(1)
 

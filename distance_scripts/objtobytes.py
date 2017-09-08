@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-objtobytes
+# File:        objtobytes.py
 # Description: Converts wavefront .obj to CustomObject made from simples
 # Created:     2017-08-20
 

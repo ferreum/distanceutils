@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-mktriangles
+# File:        mktriangles.py
 # Description: Sandbox for trying out simples generation
 # Created:     2017-08-16
 
@@ -22,7 +22,7 @@ def main():
 
     quaternion # suppress warning
 
-    maxes = np.array([6, 6, 6])
+    maxes = np.array([1, 1, 1])
     speed = pi/6
 
     maxhalf = (maxes - 1) / 2

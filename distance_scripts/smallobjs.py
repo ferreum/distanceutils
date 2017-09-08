@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-smallobjs
+# File:        smallobjs.py
 # Description: Finds objects with very small y or z scale in CustomObject
 # Created:     2017-08-20
 

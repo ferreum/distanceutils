@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# File:        dst-mklevelinfos
+# File:        mklevelinfos.py
 # Description: Creates WorkshopLevelInfos cache database
 # Created:     2017-06-25
 
@@ -12,13 +12,13 @@ from distance.bytes import DstBytes
 from distance.common import get_cache_filename, get_profile_filename
 
 
-def main(argv):
+def main():
     parser = argparse.ArgumentParser(
         description="Creates WorkshopLevelInfos cache database.")
     parser.add_argument("--db", help="database filename.")
     parser.add_argument("FILE", nargs='?',
                         help="WorkshopLevelInfos.bytes filename.")
-    args = parser.parse_args(argv[1:])
+    args = parser.parse_args()
 
     if args.db is None:
         args.db = get_cache_filename("data.db")
@@ -66,7 +66,6 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    import sys
-    exit(main(sys.argv))
+    exit(main())
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
