@@ -20,7 +20,7 @@ def main():
 
         def get_teleporters(gen):
             for obj in gen:
-                teles = list(o for o in obj.iter_subobjects(ty=SubTeleporter)
+                teles = list(o for o in obj.iter_children(ty=SubTeleporter)
                              if o.link_id is not None or
                                 o.destination is not None)
                 if teles:
@@ -28,7 +28,7 @@ def main():
                 if not obj.sane_end_pos:
                     break
                 if obj.is_object_group:
-                    yield from get_teleporters(obj.subobjects)
+                    yield from get_teleporters(obj.children)
 
         dests = {}
         srcs = {}

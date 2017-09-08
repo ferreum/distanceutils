@@ -62,7 +62,7 @@ def main():
                 #             transform=[point, (), [.7/SIMPLE_SIZE]*3])
                 #     for point in itertools.chain(verts))
 
-    group = Group(subobjects=objs)
+    group = Group(children=objs)
     with open(args.FILE[0], 'wb') as f:
         group.write(DstBytes(f))
 

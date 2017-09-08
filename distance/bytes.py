@@ -322,7 +322,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.num_objects = dbytes.read_int(4)
-            self.subobjects_start = dbytes.pos
+            self.children_start = dbytes.pos
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos

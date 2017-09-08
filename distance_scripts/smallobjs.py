@@ -22,7 +22,7 @@ def main():
     def get_objs(o):
         yield o
         if o.is_object_group:
-            for sub in o.subobjects:
+            for sub in o.children:
                 yield from get_objs(sub)
 
     def is_small(o):

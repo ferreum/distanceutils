@@ -69,14 +69,14 @@ class TeleExitTest(unittest.TestCase):
     def test_with_checkpoint(self):
         with open("in/customobject/tele exit checkpoint.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            tele = next(obj.iter_subobjects(name='Teleporter'))
+            tele = next(obj.iter_children(name='Teleporter'))
             self.assertIsInstance(tele, SubTeleporter)
             self.assertEqual(tele.trigger_checkpoint, 1)
 
     def test_without_checkpoint(self):
         with open("in/customobject/tele exit nocheckpoint.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            tele = next(obj.iter_subobjects(name='Teleporter'))
+            tele = next(obj.iter_children(name='Teleporter'))
             self.assertIsInstance(tele, SubTeleporter)
             self.assertEqual(tele.trigger_checkpoint, 0)
 
@@ -89,7 +89,7 @@ class TeleExitTest(unittest.TestCase):
         p = PrintContext.for_test()
         with open("in/customobject/virusspiritspawner.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            tele = next(obj.iter_subobjects(name='Teleporter'))
+            tele = next(obj.iter_children(name='Teleporter'))
             self.assertIsInstance(tele, SubTeleporter)
             self.assertEqual(tele.destination, 6666)
             p.print_data_of(obj)
@@ -178,25 +178,25 @@ class S5Offset(unittest.TestCase):
         p = PrintContext.for_test()
         with open(f"in/customobject/glasssplineroadstraight s5 offset.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            self.assertEqual(len(obj.subobjects), 2)
+            self.assertEqual(len(obj.children), 2)
             p.print_data_of(obj)
 
     def test_jumpbarrierlowhi(self):
         p = PrintContext.for_test()
         with open(f"in/customobject/jumpbarrierlowhi s5 offset.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            self.assertEqual(len(obj.subobjects), 3)
+            self.assertEqual(len(obj.children), 3)
             p.print_data_of(obj)
 
 
 class EmpireEndZone(unittest.TestCase):
 
     def test_normal(self):
-        p = PrintContext.for_test(flags=('subobjects'))
+        p = PrintContext.for_test(flags=('children'))
         with open(f"in/customobject/endzone.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            self.assertEqual(len(obj.subobjects), 9)
-            win_logic = next(obj.iter_subobjects(name='WinLogic'))
+            self.assertEqual(len(obj.children), 9)
+            win_logic = next(obj.iter_children(name='WinLogic'))
             self.assertEqual(WinLogic, type(win_logic))
             self.assertIsNone(win_logic.delay_before_broadcast)
             p.print_data_of(obj)
@@ -205,8 +205,8 @@ class EmpireEndZone(unittest.TestCase):
         p = PrintContext.for_test()
         with open(f"in/customobject/endzone delay.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            self.assertEqual(len(obj.subobjects), 9)
-            win_logic = next(obj.iter_subobjects(name='WinLogic'))
+            self.assertEqual(len(obj.children), 9)
+            win_logic = next(obj.iter_children(name='WinLogic'))
             self.assertEqual(WinLogic, type(win_logic))
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
 

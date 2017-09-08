@@ -159,14 +159,14 @@ def _print_objects(p, gen):
 
 class LevelObject(BytesModel):
 
-    subobject_prober = SUBOBJ_PROBER
+    child_prober = SUBOBJ_PROBER
     is_object_group = False
 
     num_sections = None
     transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
-    _subobjects = None
-    has_subobjects = False
-    subobjects_section = None
+    _children = None
+    has_children = False
+    children_section = None
 
     def _read(self, dbytes):
         ts = self._get_start_section()
@@ -182,23 +182,23 @@ class LevelObject(BytesModel):
                 if dbytes.pos + TRANSFORM_MIN_SIZE < end:
                     self.transform = read_transform(dbytes)
                 if dbytes.pos + Section.MIN_SIZE < end:
-                    self.subobjects_section = Section(dbytes)
-                    self.has_subobjects = True
+                    self.children_section = Section(dbytes)
+                    self.has_children = True
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
     @property
-    def subobjects(self):
-        objs = self._subobjects
+    def children(self):
+        objs = self._children
         if objs is None:
-            s5 = self.subobjects_section
+            s5 = self.children_section
             if s5 and s5.num_objects:
-                self._subobjects = objs = []
+                self._children = objs = []
                 dbytes = self.dbytes
                 old_pos = dbytes.pos
                 try:
-                    dbytes.pos = s5.subobjects_start
-                    gen = self.subobject_prober.iter_maybe(
+                    dbytes.pos = s5.children_start
+                    gen = self.child_prober.iter_maybe(
                         dbytes, max_pos=s5.data_end)
                     for obj, sane, exc in gen:
                         objs.append(obj)
@@ -206,24 +206,23 @@ class LevelObject(BytesModel):
                             break
                 finally:
                     dbytes.pos = old_pos
-
             else:
-                self._subobjects = objs = ()
+                self._children = objs = ()
         return objs
 
-    @subobjects.setter
-    def subobjects(self, objs):
-        self._subobjects = objs
+    @children.setter
+    def children(self, objs):
+        self._children = objs
 
     def write(self, dbytes):
         with dbytes.write_section(MAGIC_6, self.type):
             with dbytes.write_section(MAGIC_3, ident=1, version=0):
                 write_transform(dbytes, self.transform)
-                if self.has_subobjects or self.subobjects:
+                if self.has_children or self.children:
                     dbytes.write_int(4, MAGIC_5)
                     with dbytes.write_size():
-                        dbytes.write_int(4, len(self.subobjects))
-                        for obj in self.subobjects:
+                        dbytes.write_int(4, len(self.children))
+                        for obj in self.children:
                             obj.write(dbytes)
 
             self._write_sub(dbytes)
@@ -231,8 +230,8 @@ class LevelObject(BytesModel):
     def _write_sub(self, dbytes):
         pass
 
-    def iter_subobjects(self, ty=None, name=None):
-        for obj in self.subobjects:
+    def iter_children(self, ty=None, name=None):
+        for obj in self.children:
             if ty is None or isinstance(obj, ty):
                 if name is None or obj.type == name:
                     yield obj
@@ -242,11 +241,11 @@ class LevelObject(BytesModel):
             p(f"Transform: {format_transform(self.transform)}")
 
     def _print_children(self, p):
-        if 'subobjects' in p.flags and self.subobjects:
-            num = len(self.subobjects)
+        if 'subobjects' in p.flags and self.children:
+            num = len(self.children)
             p(f"Subobjects: {num}")
             with p.tree_children():
-                for obj in self.subobjects:
+                for obj in self.children:
                     p.tree_next_child()
                     p.print_data_of(obj)
 
@@ -418,9 +417,9 @@ class Layer(BytesModel):
 @PROBER.for_type('Group')
 class Group(LevelObject):
 
-    subobject_prober = PROBER
+    child_prober = PROBER
     is_object_group = True
-    has_subobjects = True
+    has_children = True
     num_sections = 3
     type = 'Group'
 
@@ -447,13 +446,13 @@ class Group(LevelObject):
 
     def _print_children(self, p):
         with need_counters(p) as counters:
-            num = len(self.subobjects)
+            num = len(self.children)
             if num:
                 p(f"Grouped objects: {num}")
                 if 'groups' in p.flags:
                     p.counters.grouped_objects += num
                     with p.tree_children():
-                        _print_objects(p, self.subobjects)
+                        _print_objects(p, self.children)
             if counters:
                 counters.print_data(p)
 
@@ -466,7 +465,7 @@ class Group(LevelObject):
         pos, rot, scale = self.transform
         self.transform = center, rot, scale
         diff = tuple(c - o for c, o in zip(pos, center))
-        for obj in self.subobjects:
+        for obj in self.children:
             pos, rot, scale = obj.transform
             pos = tuple(o + d for o, d in zip(pos, diff))
             obj.transform = pos, rot, scale
@@ -780,7 +779,7 @@ class WedgeGS(LevelObject):
 
     type = "WedgeGS"
     num_sections = 3
-    has_subobjects = True
+    has_children = True
 
     mat_color = (.3, .3, .3, 1)
     mat_emit = (.8, .8, .8, .5)

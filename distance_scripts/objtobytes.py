@@ -170,7 +170,7 @@ def obj_to_simples(obj, scale=1):
         center = tuple((min(verts[:,i]) + max(verts[:,i])) / 2
                        for i in range(3))
         group = Group(custom_name=group_name,
-                      subobjects=objs)
+                      children=objs)
         group.recenter(center)
         root_objs.append(group)
 
@@ -242,7 +242,7 @@ def main():
         print(f"converted {len(obj.vertices)} vertices and "
               f"{obj.num_faces} faces")
 
-    group = Group(subobjects=objs, custom_name=args.name)
+    group = Group(children=objs, custom_name=args.name)
     with open(args.BYTESOUT[0], 'wb') as f:
         print(f"Writing {args.BYTESOUT[0]}...")
         dbytes = DstBytes(f)

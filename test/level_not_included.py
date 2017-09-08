@@ -20,7 +20,7 @@ def objects_with_groups(gen):
     for obj in gen:
         yield obj
         if getattr(obj, 'is_object_group', False):
-            yield from objects_with_groups(obj.subobjects)
+            yield from objects_with_groups(obj.children)
 
 
 class BaseTest(unittest.TestCase):
@@ -58,7 +58,7 @@ class BaseTest(unittest.TestCase):
                 if is_sub:
                     yield obj
                 if not getattr(obj, 'is_object_group', True):
-                    yield from get_subobjects(obj.subobjects, True)
+                    yield from get_subobjects(obj.children, True)
         for obj in objects:
             if obj.exception:
                 raise obj.exception
