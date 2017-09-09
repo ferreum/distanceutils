@@ -2,8 +2,8 @@
 distanceutils
 *************
 
-Utilities for the game Distance by Refract Studios.
-###################################################
+Utilities for Refract Studios game Distance.
+############################################
 
 Intalling
 =========

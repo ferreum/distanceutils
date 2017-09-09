@@ -7,7 +7,7 @@ from setuptools import setup
 setup(
     name='distanceutils',
     version='0.1',
-    description='Utilities for the game Distance by Refract Studios',
+    description='Utilities for Refract Studios game Distance',
     license='MIT',
     author_email='code.danielk@gmail.com',
     url='https://github.com/ferreum/distanceutils',
