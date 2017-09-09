@@ -198,7 +198,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Completion for each mode (unplayed/started/finished/medal)
 
-    * Score for each mode
+    * Time/Score for each mode
 
   * List of unlocked official levels
 
