@@ -73,9 +73,7 @@ dst-teletodot
 Takes a level .bytes file and generates a Graphviz dot document of teleporter
 connections.
 
-For example, the connections can be viewed using xdot:
-
-::
+For example, the connections can be viewed using xdot::
 
   $ dst-teletodot my_level.bytes | xdot -
 
