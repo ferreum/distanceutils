@@ -25,7 +25,7 @@ dst-bytes
 
 Prints various contents of .bytes files.
 
-See section ".bytes Support" for a list of supported files.
+See `.bytes Support`_ for a list of supported files.
 
 Output can be modified by passing flags to the `-f` option:
 
@@ -100,8 +100,8 @@ dst-querymaps
 Queries the cache database. See --help for options.
 
 
-.bytes Support
-==============
+_`.bytes Support`
+=================
 
 Reading of the following .bytes files and objects is implemented:
 
@@ -116,11 +116,11 @@ Reading of the following .bytes files and objects is implemented:
 
   * Subobjects of objects
 
-  * Some Object and Subobject properties, see "Level Objects"
+  * Some Object and Subobject properties, see `Level Objects`_
 
 * CustomObjects (`<userdir>/CustomObjects/<name>.bytes`)
 
-  * These work exactly the same as objects found on levels. See "Level Objects"
+  * These work exactly the same as objects found on levels. See `Level Objects`_
 
 * LocalLeaderboard (`<userdir>/LocalLeaderboards/<level>/<mode_id>.bytes`)
 
@@ -209,8 +209,9 @@ Reading of the following .bytes files and objects is implemented:
   * Most user statistics displayed in garage menu
 
 
-Level Objects
--------------
+
+_`Level Objects`
+----------------
 
 * LevelSettings
 
