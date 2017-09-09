@@ -369,6 +369,8 @@ class Layer(BytesModel):
 
     def _read(self, dbytes):
         s7 = self._get_start_section()
+        if s7.magic != MAGIC_7:
+            raise ValueError(f"Invalid layer section: {s7.magic}")
         self._report_end_pos(s7.data_end)
 
         self.layer_name = s7.layer_name
@@ -994,6 +996,7 @@ class Level(BytesModel):
             yield layer
             if not sane:
                 return
+            dbytes.pos = layer.end_pos
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
