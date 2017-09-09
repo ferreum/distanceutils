@@ -2,8 +2,8 @@
 distanceutils
 *************
 
-Utilities for Refract Studios game Distance.
-############################################
+Utilities for the Refract Studios game Distance.
+################################################
 
 Intalling
 =========
@@ -62,7 +62,8 @@ simples.
 dst-teletodot
 -------------
 
-Takes a level .bytes file and generates a Graphviz dot document of teleporter connections.
+Takes a level .bytes file and generates a Graphviz dot document of teleporter
+connections.
 
 For example, the connections can be viewed using xdot:
 
@@ -74,8 +75,8 @@ For example, the connections can be viewed using xdot:
 WorkshopLevelInfos database
 ---------------------------
 
-For easier querying of levels, as a first step, a sqlite cache database is
-generated from WorkshopLevelInfos.bytes followed by querying the database.
+For easier querying of levels, as a first step, a SQLite cache database is
+generated from WorkshopLevelInfos.bytes, followed by querying this database.
 
 
 dst-mklevelinfos
@@ -97,7 +98,7 @@ Queries the cache database. See --help for options.
 Reading of the following .bytes files and objects is implemented:
 
 
-* Level (<userdir>/Levels/\*\*.bytes)
+* Level (`<userdir>/Levels/\*\*.bytes`)
 
   * LevelSettings
 
@@ -109,11 +110,11 @@ Reading of the following .bytes files and objects is implemented:
 
   * Some Object and Subobject properties, see "Level Objects"
 
-* CustomObjects (<userdir>/CustomObjects/<name>.bytes)
+* CustomObjects (`<userdir>/CustomObjects/<name>.bytes`)
 
   * These work exactly the same as objects found on levels. See "Level Objects"
 
-* LocalLeaderboard (<userdir>/LocalLeaderboards/<level>/<mode_id>.bytes)
+* LocalLeaderboard (`<userdir>/LocalLeaderboards/<level>/<mode_id>.bytes`)
 
   - Version 0..1
 
@@ -125,7 +126,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Replay ID
 
-* Replay (<userdir>/LocalLeaderboards/<level>/<mode_id>_<replay_id>.bytes)
+* Replay (`<userdir>/LocalLeaderboards/<level>/<mode_id>_<replay_id>.bytes`)
 
   - Version 0..4
 
@@ -133,7 +134,7 @@ Reading of the following .bytes files and objects is implemented:
 
   * Steam profile ID (version 1..4)
 
-  * Finish time (version 0 & 2..4)
+  * Finish time (version 0 and 2..4)
 
   * Replay duration (version 2..4)
 
@@ -141,21 +142,21 @@ Reading of the following .bytes files and objects is implemented:
 
   * Car colors
 
-* LevelInfos (<userdir>/Settings/LevelInfos.bytes)
+* LevelInfos (`<userdir>/Settings/LevelInfos.bytes`)
 
   * Level Entries
 
     * Level name
 
-    * Level unique identifier (path in <userdir>/Levels/)
+    * Level unique identifier (path in `<userdir>/Levels/`)
 
-    * Level basename
+    * Level file base name
 
     * Enabled modes
 
     * Medal times and scores
 
-* WorkshopLevelInfos (<userdir>/Levels/WorkshopLevels/WorkshopLevelInfos.bytes)
+* WorkshopLevelInfos (`<userdir>/Levels/WorkshopLevels/WorkshopLevelInfos.bytes`)
 
   * Workshop level entries
 
@@ -171,9 +172,9 @@ Reading of the following .bytes files and objects is implemented:
 
     * Author steam user ID
 
-    * Author steam name
+    * Author steam user name
 
-    * Level unique identifier (path in <Userdir>/Levels/, always start with WorkshopLevels/)
+    * Level unique identifier (path below `<Userdir>/Levels/`, always starts with `WorkshopLevels/`)
 
     * Published by this steam user
 
@@ -181,13 +182,13 @@ Reading of the following .bytes files and objects is implemented:
 
     * Rating by this steam user (None/Positive/Negative)
 
-* ProfileProgress (<userdir>/Profiles/Progress/<name>.bytes)
+* ProfileProgress (`<userdir>/Profiles/Progress/<name>.bytes`)
 
   * Level progress entries
 
     * Level unique identifier
 
-    * Completion for each mode (unplayed/started/finished/best medal)
+    * Completion for each mode (unplayed/started/finished/medal)
 
     * Score for each mode
 
@@ -233,7 +234,7 @@ Level Objects
 Various Level Objects
 '''''''''''''''''''''
 
-* Any subobject
+* Any object
 
   * Object type
 
@@ -298,7 +299,8 @@ Subobjects
 ''''''''''
 
 Some level objects have subobjects which in turn contain more information about
-the object.
+the object. Some are unnoticeable game intrinsics, some are visible in the
+properties pane in the editor.
 
 * Any subobject
 
@@ -309,7 +311,7 @@ the object.
   * Subobjects (Subobjects can have subobjects too)
 
 * Teleporter (Found on anything with teleporter properties like actual
-  Teleporter, TeleporterVirus, VirusSpiritSpawner, etc and even EmpireStart/EndZone)
+  Teleporter, TeleporterVirus, VirusSpiritSpawner, etc. and even EmpireStart/EndZone)
 
   * Link ID
 
@@ -317,7 +319,7 @@ the object.
 
   * Trigger checkpoint (true/false)
 
-* WinLogic (found on EmpireEndZone)
+* WinLogic (found on EmpireEndZone/EmpireEndZoneSimple)
 
   * DelayBeforeBroadcast
 
