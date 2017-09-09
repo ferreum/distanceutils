@@ -656,7 +656,7 @@ class CarScreenTextDecodeTrigger(LevelObject):
                         elif propname == 'StaticTimeText':
                             self.static_time_text = dbytes.read_byte()
                         elif propname == 'Delay':
-                            self.delay = dbytes.read_float()
+                            self.delay = dbytes.read_struct(S_FLOAT)[0]
                         elif propname == 'AnnouncerAction':
                             self.announcer_action = dbytes.read_int(4)
                         elif propname == 'AnnouncerPhrases':

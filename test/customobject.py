@@ -260,6 +260,15 @@ class CarScreenTextDecodeTrigger(unittest.TestCase):
             self.assertEqual(len(obj.text), 245)
             self.assertAlmostEqual(obj.per_char_speed, 0.01)
 
+    def test_ver0_5(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/decodetrigger v0 5.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
+            self.assertEqual(obj.text, "Anomaly Detected")
+            self.assertAlmostEqual(obj.per_char_speed, 0.1)
+            self.assertAlmostEqual(obj.delay, 1.0)
+
 
 if __name__ == '__main__':
     unittest.main()
