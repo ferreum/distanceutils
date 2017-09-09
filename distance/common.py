@@ -71,6 +71,8 @@ def format_duration_dhms(msec):
 
 
 def format_distance(meters):
+    if math.isnan(meters):
+        return "NaN"
     km = int(meters) / 1000.0
     return f"{km} km"
 
