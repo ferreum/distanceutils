@@ -705,8 +705,10 @@ class CarScreenTextDecodeTrigger(LevelObject):
             p(f"Announcer action: {self.announcer_action}")
         if self.announcer_phrases:
             p(f"Announcer phrases: {len(self.announcer_phrases)}")
-            for phrase in self.announcer_phrases:
-                p(f"Phrase: {phrase!r}")
+            with p.tree_children():
+                for phrase in self.announcer_phrases:
+                    p.tree_next_child()
+                    p(f"Phrase: {phrase!r}")
 
 
 @PROBER.for_type('GravityTrigger')
