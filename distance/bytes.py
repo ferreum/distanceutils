@@ -198,13 +198,14 @@ class BytesModel(object):
         end_pos = self.reported_end_pos
         if end_pos is not None:
             current_pos = dbytes.pos
+            if current_pos == end_pos:
+                return True
             if current_pos > end_pos:
                 dbytes.pos = end_pos
                 return True
-            if current_pos != end_pos:
-                wanted = end_pos - current_pos
-                remain = self._add_unknown(wanted, or_to_eof=or_to_eof)
-                return len(remain) == wanted
+            wanted = end_pos - current_pos
+            remain = self._add_unknown(wanted, or_to_eof=or_to_eof)
+            return len(remain) == wanted
         return False
 
     def write(self, dbytes):
