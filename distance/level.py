@@ -287,7 +287,6 @@ class LevelSettings(LevelObject):
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
             if sec.ident == 0x52:
-                self.levelinfo_section = sec
                 self.version = version = sec.version
 
                 self._add_unknown(8)
@@ -305,7 +304,7 @@ class LevelSettings(LevelObject):
                 elif version == 4:
                     self._add_unknown(141)
                 elif version == 5:
-                    self._add_unknown(172) # confirmed only for v5
+                    self._add_unknown(172)
                 elif 6 <= version:
                     # confirmed only for v6..v9
                     self._add_unknown(176)
