@@ -187,6 +187,13 @@ class Version3Test(BaseTest):
         self.assertEqual(len(objects), 5874)
         self.assertEqual(len(self.subobjects), 170)
 
+    def test_hexagon_18(self):
+        level, objects = self.getLevel("in/level-not-included/v3/hexagon 18.bytes", with_groups=True)
+        self.assertEqual(level.level_name, "Hexagon 18")
+        self.assertTimes(0, 0, 0, 0)
+        self.assertEqual(len(objects), 645)
+        self.assertEqual(len(self.subobjects), 1277)
+
     def test_print_groups(self):
         p = PrintContext.for_test(flags=('groups',))
         f = self.open("in/level-not-included/v3/fullpipe.bytes")

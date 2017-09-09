@@ -633,7 +633,7 @@ class CarScreenTextDecodeTrigger(LevelObject):
                         propname = dbytes.read_str()
                         self._add_unknown(8)
                         spos = dbytes.pos
-                        if spos + 4 < sec.data_end:
+                        if spos + 4 <= sec.data_end:
                             peek = dbytes.read_n(4)
                             # this is weird
                             if peek == FLOAT_SKIP_BYTES:
