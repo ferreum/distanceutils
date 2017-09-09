@@ -208,6 +208,7 @@ Reading of the following .bytes files and objects is implemented:
 
   * Most user statistics displayed in garage menu
 
+  * Found Trackmogrify modifiers
 
 
 _`Level Objects`
