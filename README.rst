@@ -8,10 +8,8 @@ Utilities for the Refract Studios game Distance.
 Intalling
 =========
 
-All modules and utilities are in the package "distanceutils".
-For example, using pip:
-
-::
+All modules and utilities are provided by the package `distanceutils`.
+For example, using pip::
 
   $ pip install --user distanceutils
 
@@ -29,13 +27,23 @@ Prints various contents of .bytes files.
 
 See section ".bytes Support" for a list of supported files.
 
-Output can be modified by passing flags to the `-f` option.
-
-The following flags exist:
+Output can be modified by passing flags to the `-f` option:
 
 * transform - Prints transform (position, rotation, scale) of level objects
 
 * offset - Prints hexadecimal offset of objects in the .bytes file
+
+* nosubobjects - Don't print subobjects
+
+* nogroups - Don't print objects inside groups
+
+* description - Print level descriptions in WorkshopLevelInfos
+
+* nosort - Don't sort LocalLeaderboard entries (entries are not sorted by time
+  in the file)
+
+* sections - Prints the sections that each object consists of (object format
+  intrinsic)
 
 * unknown - Prints unknown data for each object
 
