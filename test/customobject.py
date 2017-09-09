@@ -211,6 +211,18 @@ class EmpireEndZone(unittest.TestCase):
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
 
 
+class CarScreenTextDecodeTrigger(unittest.TestCase):
+
+    def test_trigger(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/decodetrigger.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            self.assertEqual(obj.text, "Please, help us.")
+            self.assertEqual(obj.time_text, "")
+            self.assertAlmostEqual(obj.per_char_speed, 0.0353)
+            p.print_data_of(obj)
+
+
 if __name__ == '__main__':
     unittest.main()
 

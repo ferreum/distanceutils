@@ -601,6 +601,57 @@ class InfoDisplayBox(LevelObject):
                 p(f"Text {i}: {text!r}")
 
 
+@PROBER.for_type('CarScreenTextDecodeTrigger')
+class CarScreenTextDecodeTrigger(LevelObject):
+
+    text = None
+    per_char_speed = None
+    clear_on_finish = None
+    clear_on_trigger_exit = None
+    destroy_on_trigger_exit = None
+    time_text = None
+    static_time_text = None
+    delay = None
+    announcer_action = None
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.magic == MAGIC_2:
+            if sec.ident == 0x57:
+                try:
+                    self.text = dbytes.read_str()
+                    self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    self.clear_on_finish = dbytes.read_byte()
+                    self.clear_on_trigger_exit = dbytes.read_byte()
+                    self.destroy_on_trigger_exit = dbytes.read_byte()
+                    self.time_text = dbytes.read_str()
+                    self.static_time_text = dbytes.read_byte()
+                    self.delay = dbytes.read_struct(S_FLOAT)[0]
+                    self.announcer_action = dbytes.read_int(4)
+                except EOFError:
+                    pass
+
+    def _print_data(self, p):
+        LevelObject._print_data(self, p)
+        if self.text is not None:
+            p(f"Text: {self.text!r}")
+        if self.per_char_speed is not None:
+            p(f"Per char speed: {self.per_char_speed}")
+        if self.clear_on_finish is not None:
+            p(f"Clear on finish: {self.clear_on_finish and 'yes' or 'no'}")
+        if self.clear_on_trigger_exit is not None:
+            p(f"Clear on trigger exit: {self.clear_on_trigger_exit and 'yes' or 'no'}")
+        if self.destroy_on_trigger_exit is not None:
+            p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
+        if self.time_text:
+            p(f"Time text: {self.time_text!r}")
+        if self.static_time_text is not None:
+            p(f"Static time text: {self.static_time_text and 'yes' or 'no'}")
+        if self.delay is not None:
+            p(f"Delay: {self.delay}")
+        if self.announcer_action is not None:
+            p(f"Announcer action: {self.announcer_action}")
+
+
 @PROBER.for_type('GravityTrigger')
 class GravityTrigger(LevelObject):
 
