@@ -222,6 +222,36 @@ class CarScreenTextDecodeTrigger(unittest.TestCase):
             self.assertAlmostEqual(obj.per_char_speed, 0.0353)
             p.print_data_of(obj)
 
+    def test_ver0(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/decodetrigger v0.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
+            self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
+            self.assertEqual(obj.time_text, "Download")
+            self.assertAlmostEqual(obj.per_char_speed, 0.02)
+
+    def test_ver0_2(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/decodetrigger v0 2.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
+            self.assertEqual(obj.text, "INPUT(no_gravity);")
+            self.assertEqual(obj.time_text, "Download")
+            self.assertAlmostEqual(obj.per_char_speed, 0.02)
+
+    def test_ver0_3(self):
+        p = PrintContext.for_test()
+        with open(f"in/customobject/decodetrigger v0 3.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
+            self.assertIsNone(obj.text)
+            self.assertEqual(obj.time_text, "")
+            self.assertAlmostEqual(obj.per_char_speed, 0.03)
+            self.assertEqual(len(obj.announcer_phrases), 7)
+            self.assertEqual(obj.announcer_phrases[0], 'Analyzing')
+            self.assertEqual(obj.announcer_phrases[6], 'RotationalJetsRestored')
+
 
 if __name__ == '__main__':
     unittest.main()

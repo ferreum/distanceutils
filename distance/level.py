@@ -65,6 +65,15 @@ def format_flags(gen):
             yield name
 
 
+def read_weird_bool(dbytes):
+    b = dbytes.read_byte()
+    if b == 0xfd:
+        # value == FLOAT_SKIP_BYTES
+        dbytes.read_n(3)
+        return 0
+    else:
+        return b
+
 TRANSFORM_MIN_SIZE = 12
 
 
@@ -613,22 +622,66 @@ class CarScreenTextDecodeTrigger(LevelObject):
     static_time_text = None
     delay = None
     announcer_action = None
+    announcer_phrases = ()
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
             if sec.ident == 0x57:
-                try:
-                    self.text = dbytes.read_str()
-                    self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                    self.clear_on_finish = dbytes.read_byte()
-                    self.clear_on_trigger_exit = dbytes.read_byte()
-                    self.destroy_on_trigger_exit = dbytes.read_byte()
-                    self.time_text = dbytes.read_str()
-                    self.static_time_text = dbytes.read_byte()
-                    self.delay = dbytes.read_struct(S_FLOAT)[0]
-                    self.announcer_action = dbytes.read_int(4)
-                except EOFError:
-                    pass
+                if sec.version == 0:
+                    num_props = dbytes.read_int(4)
+                    for _ in range(num_props):
+                        propname = dbytes.read_str()
+                        self._add_unknown(8)
+                        spos = dbytes.pos
+                        if spos + 4 < sec.data_end:
+                            peek = dbytes.read_n(4)
+                            # this is weird
+                            if peek == FLOAT_SKIP_BYTES:
+                                continue
+                        dbytes.pos = spos
+                        if propname == 'Text':
+                            self.text = dbytes.read_str()
+                        elif propname == 'PerCharSpeed':
+                            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                        elif propname == 'ClearOnFinish':
+                            self.clear_on_finish = dbytes.read_byte()
+                        elif propname == 'ClearOnTriggerExit':
+                            self.clear_on_trigger_exit = dbytes.read_byte()
+                        elif propname == 'DestroyOnTriggerExit':
+                            self.destroy_on_trigger_exit = dbytes.read_byte()
+                        elif propname == 'TimeText':
+                            self.time_text = dbytes.read_str()
+                        elif propname == 'StaticTimeText':
+                            self.static_time_text = dbytes.read_byte()
+                        elif propname == 'Delay':
+                            self.delay = dbytes.read_float()
+                        elif propname == 'AnnouncerAction':
+                            self.announcer_action = dbytes.read_int(4)
+                        elif propname == 'AnnouncerPhrases':
+                            self._require_equal(MAGIC_1, 4)
+                            num_phrases = dbytes.read_int(4)
+                            self.announcer_phrases = phrases = []
+                            for _ in range(num_phrases):
+                                phrases.append(dbytes.read_str())
+                        else:
+                            # unknown property, don't know length
+                            return True
+                    return True
+                else:
+                    try:
+                        self.text = dbytes.read_str()
+                        self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                        self.clear_on_finish = dbytes.read_byte()
+                        self.clear_on_trigger_exit = dbytes.read_byte()
+                        self.destroy_on_trigger_exit = dbytes.read_byte()
+                        self.time_text = dbytes.read_str()
+                        self.static_time_text = dbytes.read_byte()
+                        self.delay = dbytes.read_struct(S_FLOAT)[0]
+                        self.announcer_action = dbytes.read_int(4)
+                    except EOFError:
+                        pass
+                    return True
+        return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
@@ -650,6 +703,10 @@ class CarScreenTextDecodeTrigger(LevelObject):
             p(f"Delay: {self.delay}")
         if self.announcer_action is not None:
             p(f"Announcer action: {self.announcer_action}")
+        if self.announcer_phrases:
+            p(f"Announcer phrases: {len(self.announcer_phrases)}")
+            for phrase in self.announcer_phrases:
+                p(f"Phrase: {phrase!r}")
 
 
 @PROBER.for_type('GravityTrigger')
@@ -804,12 +861,7 @@ class EnableAbilitiesBox(LevelObject):
                     for i in range(num_props):
                         propname = dbytes.read_str()
                         dbytes.pos = value_start = dbytes.pos + 8
-                        byte = dbytes.read_byte()
-                        if byte not in (0, 1): # probably NaN
-                            value = 0
-                            dbytes.pos = value_start + 4
-                        else:
-                            value = byte
+                        value = read_weird_bool(dbytes)
                         if propname in self.KNOWN_ABILITIES:
                             abilities[propname] = value
                 return True
