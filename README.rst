@@ -264,6 +264,12 @@ Various Level Objects
 
   * Text #0..4
 
+* CarScreenTextDecodeTrigger
+
+  * Text and time text
+
+  * Other miscellaneous trigger properties
+
 * GravityTrigger
 
   * Disable gravity
