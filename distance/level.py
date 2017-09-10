@@ -170,7 +170,6 @@ class LevelObject(BytesModel):
     child_prober = SUBOBJ_PROBER
     is_object_group = False
 
-    num_sections = None
     transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
     _children = None
     has_children = False
@@ -179,7 +178,6 @@ class LevelObject(BytesModel):
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
-        self.num_sections = ts.num_sections
         self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
 
@@ -429,7 +427,6 @@ class Group(LevelObject):
     child_prober = PROBER
     is_object_group = True
     has_children = True
-    num_sections = 3
     type = 'Group'
 
     custom_name = None
@@ -883,7 +880,6 @@ class EnableAbilitiesBox(LevelObject):
 class WedgeGS(LevelObject):
 
     type = "WedgeGS"
-    num_sections = 3
     has_children = True
 
     mat_color = (.3, .3, .3, 1)
