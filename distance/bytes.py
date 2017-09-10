@@ -240,7 +240,7 @@ class BytesModel(object):
         self._print_data(p)
         self._print_children(p)
         if self.exception:
-            p(f"Error when parsing:")
+            p(f"Exception occurred:")
             p.print_exception(self.exception)
 
     def _print_type(self, p):
