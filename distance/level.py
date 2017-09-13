@@ -954,7 +954,7 @@ class Level(BytesModel):
     def _read(self, dbytes):
         sec = self._get_start_section()
         if sec.magic != MAGIC_9:
-            raise IOError("Unexcpected section: {sec.magic}")
+            raise IOError(f"Unexpected section: {sec.magic}")
         self.level_name = sec.level_name
 
     def get_settings(self):
