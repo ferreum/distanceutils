@@ -24,8 +24,7 @@ class Version0Test(unittest.TestCase):
         with open("in/workshoplevelinfos/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
-            results = list(infos.iter_levels())
-            levels = [l for l, _, _ in results]
+            levels = list(infos.iter_levels())
             self.assertEqual([l.id for l in levels],
                              Version0Test.LEVEL_IDS)
             self.assertEqual([l.title for l in levels],
@@ -56,34 +55,34 @@ class Version0Test(unittest.TestCase):
             self.assertEqual([l.rating for l in levels][:9],
                              [1, 0, 0, 1, 2, 0, 0, 0, 1])
             self.assertEqual(39, len(levels))
-            self.assertEqual([(s, e) for _, s, e in results], [(True, None)] * 39)
+            self.assertEqual([(o.sane_end_pos, o.exception) for o in levels], [(True, None)] * 39)
 
     def test_truncated(self):
         with open("in/workshoplevelinfos/version_0_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
             gen = infos.iter_levels()
-            level, sane, exc = next(gen)
+            level = next(gen)
             self.assertEqual(level.id, 469806096)
-            self.assertIsNone(exc)
-            self.assertTrue(sane)
-            level, sane, exc = next(gen)
+            self.assertIsNone(level.exception)
+            self.assertTrue(level.sane_end_pos)
+            level = next(gen)
             self.assertEqual(level.id, 822049253)
             self.assertIsNone(level.author)
             self.assertIsNone(level.authorid)
-            self.assertIsInstance(exc, UnexpectedEOFError)
-            self.assertFalse(sane)
-            self.assertIsNotNone(level.exception)
+            self.assertIsInstance(level.exception, UnexpectedEOFError)
+            self.assertFalse(level.sane_end_pos)
 
     def test_truncated_2(self):
         with open("in/workshoplevelinfos/version_0_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
             gen = infos.iter_levels()
-            level, sane, exc = next(gen)
-            self.assertIsNone(exc)
-            with self.assertRaises(UnexpectedEOFError):
-                raise AssertionError(next(gen))
+            level = next(gen)
+            self.assertIsNone(level.exception)
+            level = next(gen)
+            self.assertIsInstance(level.exception, UnexpectedEOFError)
+            self.assertFalse(level.sane_end_pos)
 
     def test_print(self):
         p = PrintContext.for_test()

@@ -37,6 +37,7 @@ class Leaderboard(BytesModel):
 
     entries_s2 = None
     version = None
+    num_entries = 0
 
     def _read(self, dbytes):
         ts = self._require_type(FTYPE_LEADERBOARD)
@@ -61,13 +62,14 @@ class Leaderboard(BytesModel):
 
     def read_entries(self):
         if self.move_to_first_entry():
-            return Entry.read_all_maybe(self.dbytes, version=self.version)
+            return Entry.read_n_maybe(self.dbytes, self.num_entries,
+                                      version=self.version)
         else:
             return ()
 
     def _print_data(self, p):
         p(f"Version: {self.version}")
-        entries, sane, exception = self.read_entries()
+        entries = self.read_entries()
         if 'nosort' not in p.flags:
             nones = [e for e in entries if e.time is None]
             entries = [e for e in entries if e.time is not None]
@@ -83,8 +85,6 @@ class Leaderboard(BytesModel):
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:
                 p.print_exception(entry.exception)
-        if exception:
-            p.print_exception(exception)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

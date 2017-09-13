@@ -311,14 +311,9 @@ class ProfileProgress(BytesModel):
         with dbytes.limit(data_end):
             num = self.num_levels
             if num:
-                for res in LevelProgress.iter_maybe(
-                        dbytes, max_pos=data_end, version=s2.version):
-                    yield res
-                    if not res[1]:
-                        break
-                    num -= 1
-                    if num <= 0:
-                        break
+                for obj in LevelProgress.iter_n_maybe(
+                        dbytes, num, version=s2.version):
+                    yield obj
         self.off_mapname_start = dbytes.pos
 
     def iter_official_levels(self):
@@ -384,7 +379,7 @@ class ProfileProgress(BytesModel):
             p(f"Level progress version: {self.level_s2.version}")
             p(f"Level count: {self.num_levels}")
             with p.tree_children():
-                for level, sane, exc in self.iter_levels():
+                for level in self.iter_levels():
                     p.tree_next_child()
                     p.print_data_of(level)
             gen, length = self.iter_official_levels()
@@ -421,7 +416,7 @@ class ProfileProgress(BytesModel):
                 for somelevel in gen:
                     p.tree_next_child()
                     p(f"Level: {somelevel!r}")
-            stats, sane, exc = self.read_stats()
+            stats = self.read_stats()
             if stats:
                 p.print_data_of(stats)
         else:

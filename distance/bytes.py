@@ -59,39 +59,45 @@ class BytesModel(object):
     reported_end_pos = None
     recoverable = False
     start_section = None
+    sane_end_pos = False
 
     @classmethod
-    def maybe(clazz, *args, **kw):
+    def maybe(clazz, dbytes, **kw):
+
+        """Read an object as far as possible.
+
+        If an error occurs, return the partially read object.
+        The exception is stored in the object's `exception` attribute."""
+
+        obj = clazz()
         try:
-            return clazz(*args, **kw), True, None
+            obj.read(dbytes, **kw)
         except Exception as e:
-            try:
-                obj = e.partial_object
-            except AttributeError:
-                raise e
-            else:
-                return obj, obj.sane_end_pos, e
+            obj.exception = e
+        return obj
 
     @classmethod
-    def iter_maybe(clazz, dbytes, *args, max_pos=None, **kw):
-        try:
-            while max_pos is None or dbytes.pos < max_pos:
-                yield clazz.maybe(dbytes, *args, **kw)
-        except EOFError:
-            pass
+    def iter_n_maybe(clazz, dbytes, n, **kw):
+        for _ in range(n):
+            obj = clazz.maybe(dbytes, **kw)
+            yield obj
+            if not obj.sane_end_pos:
+                break
 
     @classmethod
-    def read_all_maybe(clazz, *args, **kw):
-        entries = []
-        try:
-            sane = True
-            for entry, sane, exc in clazz.iter_maybe(*args, **kw):
-                entries.append(entry)
-                if not sane:
-                    break
-            return entries, sane, None
-        except Exception as e:
-            return entries, False, e
+    def iter_maybe(clazz, dbytes, max_pos=None, **kw):
+        while max_pos is None or dbytes.pos < max_pos:
+            obj = clazz.maybe(dbytes, **kw)
+            yield obj
+            if not obj.sane_end_pos:
+                break
+
+    @classmethod
+    def read_n_maybe(clazz, *args, **kw):
+        objs = []
+        for obj in clazz.iter_n_maybe(*args, **kw):
+            objs.append(obj)
+        return objs
 
     def __init__(self, dbytes=None, **kw):
 

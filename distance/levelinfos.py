@@ -82,7 +82,10 @@ class LevelInfos(BytesModel):
         def gen():
             with dbytes.limit(s2.data_end):
                 for _ in range(length):
-                    yield Entry.maybe(dbytes)
+                    entry = Entry.maybe(dbytes)
+                    yield entry
+                    if not entry.sane_end_pos:
+                        break
         return gen(), length
 
     def _print_data(self, p):
@@ -91,11 +94,9 @@ class LevelInfos(BytesModel):
         if length:
             p(f"Level entries: {length}")
         with p.tree_children():
-            for entry, sane, exc in gen:
+            for entry in gen:
                 p.tree_next_child()
                 p.print_data_of(entry)
-                if not sane:
-                    break
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

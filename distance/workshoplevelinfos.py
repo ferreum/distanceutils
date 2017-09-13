@@ -75,15 +75,14 @@ class WorkshopLevelInfos(BytesModel):
         dbytes = self.dbytes
         if self.levels_s2:
             dbytes.pos = self.levels_s2.data_start + 20
-            return Level.iter_maybe(dbytes)
+            return Level.iter_n_maybe(dbytes, self.num_levels)
         else:
             return ()
 
     def _print_data(self, p):
-        unk_str = ""
         p(f"Levelinfos: {self.num_levels}")
         with p.tree_children():
-            for level, sane, exc in self.iter_levels():
+            for level in self.iter_levels():
                 p.tree_next_child()
                 p(f"Title: {level.title!r} ({level.id})")
                 p(f"Author: {level.author!r} ({level.authorid})")
@@ -103,10 +102,8 @@ class WorkshopLevelInfos(BytesModel):
                     p(f"Rating: {Rating.to_name(level.rating)}")
                 if 'unknown' in p.flags:
                     p(f"Unknown: {format_bytes(level.unknown)}")
-                if exc:
-                    p.print_exception(exc)
-                if not sane:
-                    break
+                if level.exception:
+                    p.print_exception(level.exception)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

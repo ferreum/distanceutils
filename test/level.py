@@ -41,7 +41,7 @@ class LevelTest(unittest.TestCase):
             level = Level(dbytes)
             self.assertEqual(level.level_name, "Test-straightroad")
             gen = level.iter_objects()
-            obj, sane, exc = next(gen)
+            obj = next(gen)
             with self.assertRaises(UnexpectedEOFError):
                 raise AssertionError(next(gen))
 
@@ -51,14 +51,13 @@ class LevelTest(unittest.TestCase):
             self.assertEqual(level.level_name, "Test Group")
             results = list(level.iter_objects())
             self.assertEqual(len(results), 5)
-            for i, (obj, sane, exc) in enumerate(results):
+            for i, obj in enumerate(results):
                 self.assertIsNotNone(obj, f"i == {i}")
-                self.assertTrue(sane, f"i == {i}")
-                self.assertEqual(exc, obj.exception)
+                self.assertTrue(obj.sane_end_pos, f"i == {i}")
                 if i == 2:
-                    self.assertIsInstance(exc, UnicodeError)
+                    self.assertIsInstance(obj.exception, UnicodeError)
                 else:
-                    self.assertIsNone(exc, f"i == {i}")
+                    self.assertIsNone(obj.exception, f"i == {i}")
 
 
 if __name__ == '__main__':

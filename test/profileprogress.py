@@ -28,17 +28,17 @@ class ProfileProgressTest(unittest.TestCase):
             obj = ProfileProgress(DstBytes(f))
             levels = list(obj.iter_levels())
             self.assertEqual(len(levels), 1)
-            self.assertEqual(levels[0][0].completion[Mode.SPRINT], Completion.STARTED)
+            self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.STARTED)
 
     def test_read_single_map_diamond(self):
         with open("in/profileprogress/diamond acclivity.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
             levels = list(obj.iter_levels())
             self.assertEqual(len(levels), 1)
-            self.assertEqual(levels[0][0].completion[Mode.SPRINT], Completion.DIAMOND)
-            stats, sane, exc = obj.read_stats()
-            if exc:
-                raise exc
+            self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.DIAMOND)
+            stats = obj.read_stats()
+            if stats.exception:
+                raise stats.exception
             self.assertEqual(13, stats.stats['impacts'])
 
     def test_print_data(self):

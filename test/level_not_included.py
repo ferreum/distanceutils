@@ -49,7 +49,7 @@ class BaseTest(unittest.TestCase):
                  with_subobjects=False):
         f = self.open(filename)
         self.level = level = Level(DstBytes(f))
-        gen = (res[0] for res in level.iter_objects(with_layers=with_layers))
+        gen = level.iter_objects(with_layers=with_layers)
         if with_groups:
             gen = objects_with_groups(gen)
         self.objects = objects = [level.get_settings()] + list(gen)

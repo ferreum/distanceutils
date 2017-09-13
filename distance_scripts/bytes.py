@@ -41,7 +41,7 @@ def main():
                 if len(args.FILE) > 1:
                     p("")
                     p(f"File: {f.name!r}")
-                obj, _, exception = types.maybe(DstBytes(f))
+                obj = types.maybe(DstBytes(f))
                 p.print_data_of(obj)
             except Exception as e:
                 p.print_exception(e)

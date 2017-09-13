@@ -76,12 +76,26 @@ class BytesProber(object):
         kw.update(add_kw)
         return cls.maybe(dbytes, **kw)
 
+    def iter_n_maybe(self, dbytes, n, *args, **kw):
+        for _ in range(n):
+            obj = self.maybe(dbytes, *args, **kw)
+            yield obj
+            if not obj.sane_end_pos:
+                break
+
     def iter_maybe(self, dbytes, *args, max_pos=None, **kw):
-        try:
-            while max_pos is None or dbytes.pos < max_pos:
-                yield self.maybe(dbytes, *args, **kw)
-        except EOFError:
-            pass
+        while max_pos is None or dbytes.pos < max_pos:
+            obj = self.maybe(dbytes, *args, **kw)
+            yield obj
+            if not obj.sane_end_pos:
+                break
+
+    def read_n_maybe(self, *args, **kw):
+        objs = []
+        for obj in self.iter_n_maybe(*args, **kw):
+            objs.append(obj)
+        return objs
+
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

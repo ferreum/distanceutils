@@ -53,11 +53,6 @@ def read_n_floats(dbytes, n, default):
         return (f, *(read_float() for _ in range(n - 1)))
 
 
-def obj_only(gen):
-    for obj, sane, exc in gen:
-        yield obj
-
-
 def format_flags(gen):
     for flag, names in gen:
         name = names.get(flag, f"Unknown({flag})")
@@ -204,12 +199,9 @@ class LevelObject(BytesModel):
                 old_pos = dbytes.pos
                 try:
                     dbytes.pos = s5.children_start
-                    gen = self.child_prober.iter_maybe(
-                        dbytes, max_pos=s5.data_end)
-                    for obj, sane, exc in gen:
-                        objs.append(obj)
-                        if not sane:
-                            break
+                    objs = self.child_prober.read_n_maybe(
+                        dbytes, s5.num_objects)
+                    self._children = objs
                 finally:
                     dbytes.pos = old_pos
             else:
@@ -398,10 +390,8 @@ class Layer(BytesModel):
             return
         dbytes = self.dbytes
         dbytes.pos = self.objects_start
-        for obj, sane, exc in PROBER.iter_maybe(dbytes, max_pos=self.end_pos):
-            yield obj, sane, exc
-            if not sane:
-                break
+        for obj in PROBER.iter_maybe(dbytes, max_pos=self.end_pos):
+            yield obj
 
     def _print_data(self, p):
         with need_counters(p) as counters:
@@ -416,7 +406,7 @@ class Layer(BytesModel):
             p.counters.num_layers += 1
             p.counters.layer_objects += self.num_objects
             with p.tree_children():
-                _print_objects(p, obj_only(self.iter_objects()))
+                _print_objects(p, self.iter_objects())
             if counters:
                 counters.print_data(p)
 
@@ -960,8 +950,8 @@ class Level(BytesModel):
     def get_settings(self):
         s = self.settings
         if not s:
-            s, sane, exc = LevelSettings.maybe(self.dbytes)
-            self.settings = s
+            # TODO move dbytes to start of settings
+            self.settings = s = LevelSettings.maybe(self.dbytes)
         return s
 
     def move_to_first_layer(self):
@@ -974,24 +964,23 @@ class Level(BytesModel):
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer, layer_sane, exc in Layer.iter_maybe(dbytes):
-            sane = layer_sane or layer.objects_start is not None
+        for layer in Layer.iter_maybe(dbytes):
+            if isinstance(layer.exception, EOFError):
+                break
             if with_layers:
-                yield layer, sane, exc
+                yield layer
             if with_objects:
-                for obj, sane, exc in layer.iter_objects():
-                    yield obj, sane, exc
-            if not layer_sane:
-                return
+                for obj in layer.iter_objects():
+                    yield obj
             dbytes.pos = layer.end_pos
 
     def iter_layers(self):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer, sane, exc in Layer.iter_maybe(dbytes):
+        for layer in Layer.iter_maybe(dbytes):
+            if isinstance(layer.exception, EOFError):
+                break
             yield layer
-            if not sane:
-                return
             dbytes.pos = layer.end_pos
 
     def _print_data(self, p):
