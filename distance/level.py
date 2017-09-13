@@ -940,12 +940,15 @@ class WedgeGS(LevelObject):
 class Level(BytesModel):
 
     settings = None
+    num_sections = 0
 
     def _read(self, dbytes):
         sec = self._get_start_section()
         if sec.magic != MAGIC_9:
             raise IOError(f"Unexpected section: {sec.magic}")
+        self._report_end_pos(sec.data_end)
         self.level_name = sec.level_name
+        self.num_layers = sec.num_layers
 
     def get_settings(self):
         s = self.settings
@@ -964,9 +967,7 @@ class Level(BytesModel):
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer in Layer.iter_maybe(dbytes):
-            if isinstance(layer.exception, EOFError):
-                break
+        for layer in Layer.iter_n_maybe(dbytes, self.num_layers):
             if with_layers:
                 yield layer
             if with_objects:
@@ -977,9 +978,7 @@ class Level(BytesModel):
     def iter_layers(self):
         dbytes = self.dbytes
         self.move_to_first_layer()
-        for layer in Layer.iter_maybe(dbytes):
-            if isinstance(layer.exception, EOFError):
-                break
+        for layer in Layer.iter_n_maybe(dbytes, self.num_layers):
             yield layer
             dbytes.pos = layer.end_pos
 

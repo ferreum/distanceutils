@@ -348,9 +348,10 @@ class Section(BytesModel):
             self.layer_name = dbytes.read_str()
             self.num_objects = dbytes.read_int(4)
         elif magic == MAGIC_9:
-            self._add_unknown(8)
+            self.data_size = dbytes.read_int(8)
             self.level_name = dbytes.read_str()
-            self._add_unknown(8)
+            self.num_layers = dbytes.read_int(4)
+            dbytes.pos += 4 # secnum
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
