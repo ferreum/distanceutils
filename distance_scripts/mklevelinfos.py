@@ -43,7 +43,7 @@ def main():
             dbytes = DstBytes(infos_file)
             infos = WorkshopLevelInfos(dbytes)
             count = 0
-            for level, sane, exc in infos.iter_levels():
+            for level in infos.iter_levels():
                 values = [level.id, level.title, level.description, level.updated_date,
                           level.published_date, level.tags, level.author, level.authorid,
                           level.path, level.published_by_user, level.upvotes,
@@ -55,8 +55,6 @@ def main():
                           rating, unknown)
                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
                 count += 1
-                if not sane:
-                    break
 
             conn.commit()
             print(f"found {count} levels")
