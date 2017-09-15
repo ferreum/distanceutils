@@ -43,7 +43,7 @@ def main():
                 l.append(value)
 
         for i, (obj, teles) in enumerate(
-                get_teleporters(obj for obj, _, _ in level.iter_objects())):
+                get_teleporters(level.iter_objects())):
             for tele in teles:
                 sub_to_main[tele] = obj
                 label = ""
