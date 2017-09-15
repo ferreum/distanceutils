@@ -5,12 +5,8 @@
 
 
 import unittest
-import sys
 from io import StringIO
 from textwrap import dedent
-
-if '../' not in sys.path:
-    sys.path.append('../')
 
 from distance.printing import PrintContext
 

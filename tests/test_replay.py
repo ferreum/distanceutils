@@ -5,10 +5,6 @@
 
 
 import unittest
-import sys
-
-if '../' not in sys.path:
-    sys.path.append('../')
 
 from distance.replay import Replay
 from distance.bytes import DstBytes, PrintContext
@@ -25,7 +21,7 @@ def assertColor(first, second):
 class Version1Test(unittest.TestCase):
 
     def test_version1(self):
-        with open("in/replay/version_1.bytes", 'rb') as f:
+        with open("tests/in/replay/version_1.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
@@ -42,14 +38,14 @@ class Version1Test(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        with open("in/replay/version_1.bytes", 'rb') as f:
+        with open("tests/in/replay/version_1.bytes", 'rb') as f:
             p.print_data_of(Replay(DstBytes(f)))
 
 
 class Version2Test(unittest.TestCase):
 
     def test_version2(self):
-        with open("in/replay/version_2.bytes", 'rb') as f:
+        with open("tests/in/replay/version_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
@@ -66,14 +62,14 @@ class Version2Test(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        with open("in/replay/version_2.bytes", 'rb') as f:
+        with open("tests/in/replay/version_2.bytes", 'rb') as f:
             p.print_data_of(Replay(DstBytes(f)))
 
 
 class Version3Test(unittest.TestCase):
 
     def test_version3(self):
-        with open("in/replay/version_3.bytes", 'rb') as f:
+        with open("tests/in/replay/version_3.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
@@ -90,14 +86,14 @@ class Version3Test(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        with open("in/replay/version_3.bytes", 'rb') as f:
+        with open("tests/in/replay/version_3.bytes", 'rb') as f:
             p.print_data_of(Replay(DstBytes(f)))
 
 
 class Version4Test(unittest.TestCase):
 
     def test_version4(self):
-        with open("in/replay/version_4.bytes", 'rb') as f:
+        with open("tests/in/replay/version_4.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             replay = Replay(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
@@ -113,7 +109,7 @@ class Version4Test(unittest.TestCase):
             self.assertEqual(replay.version, 4)
 
     def test_partial(self):
-        with open("in/replay/version_4_truncated.bytes", 'rb') as f:
+        with open("tests/in/replay/version_4_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             replay = Replay.maybe(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
@@ -130,7 +126,7 @@ class Version4Test(unittest.TestCase):
             self.assertIsNotNone(replay.exception)
 
     def test_partial_2(self):
-        with open("in/replay/version_4_truncated_2.bytes", 'rb') as f:
+        with open("tests/in/replay/version_4_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             replay = Replay.maybe(dbytes)
             self.assertEqual(replay.player_name, "Ferreus")
@@ -148,7 +144,7 @@ class Version4Test(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        with open("in/replay/version_4.bytes", 'rb') as f:
+        with open("tests/in/replay/version_4.bytes", 'rb') as f:
             p.print_data_of(Replay(DstBytes(f)))
 
 

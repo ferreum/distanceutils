@@ -5,10 +5,6 @@
 
 
 import unittest
-import sys
-
-if '../' not in sys.path:
-    sys.path.append('../')
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance.bytes import DstBytes, UnexpectedEOFError
@@ -21,7 +17,7 @@ class Version0Test(unittest.TestCase):
     LEVEL_NAMES = ['Lost Fortress', 'Main Menu Datastream', 'Linear Green', 'Impurity', 'Canyon Realm (Hot Wheels Acceleracers)', 'The-fall_00', 'Futuristic Highway - Tech District', 'SimpleRace?', 'Stretch Your Wings', '2caKe', 'Jaded Sphere', 'Corrupted Flight', 'Space menu', 'Spirit', 'Laserrush', 'Micro realm (hotwheels acceleracers)', 'Crash Corse MainMenu', 'Sacrifical', '', 'Egypt (Full)', 'Test Lab', 'Test-1A', 'Fog Realm', 'SpeedRun', 'Speed-1', 'Departure', 'Broken Road', 'Death', 'Absurdly Impractical Level', 'storm realm 2.0 (unanimated)', 'The Arctic', 'A Long Way Down', 'Cybergrid Realm (Hot Wheels Acceleracers)', 'Zedron Landing', 'Konna Mondaze', 'Fear', 'Sand', 'Skyline Realm', 'Recovering']
 
     def test_version0(self):
-        with open("in/workshoplevelinfos/version_0.bytes", 'rb') as f:
+        with open("tests/in/workshoplevelinfos/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
             levels = list(infos.iter_levels())
@@ -58,7 +54,7 @@ class Version0Test(unittest.TestCase):
             self.assertEqual([(o.sane_end_pos, o.exception) for o in levels], [(True, None)] * 39)
 
     def test_truncated(self):
-        with open("in/workshoplevelinfos/version_0_truncated.bytes", 'rb') as f:
+        with open("tests/in/workshoplevelinfos/version_0_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
             gen = infos.iter_levels()
@@ -74,7 +70,7 @@ class Version0Test(unittest.TestCase):
             self.assertFalse(level.sane_end_pos)
 
     def test_truncated_2(self):
-        with open("in/workshoplevelinfos/version_0_truncated_2.bytes", 'rb') as f:
+        with open("tests/in/workshoplevelinfos/version_0_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
             gen = infos.iter_levels()
@@ -86,7 +82,7 @@ class Version0Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        with open("in/workshoplevelinfos/version_0.bytes", 'rb') as f:
+        with open("tests/in/workshoplevelinfos/version_0.bytes", 'rb') as f:
             p.print_data_of(WorkshopLevelInfos(DstBytes(f)))
 
 

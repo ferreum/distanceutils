@@ -5,11 +5,7 @@
 
 
 import unittest
-import sys
 from io import BytesIO
-
-if '../' not in sys.path:
-    sys.path.append('../')
 
 from distance.bytes import DstBytes
 
