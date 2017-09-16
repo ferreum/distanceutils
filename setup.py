@@ -3,10 +3,11 @@
 
 from setuptools import setup
 
+import distance
 
 setup(
     name='distanceutils',
-    version='0.1',
+    version=distance.__version__,
     description='Utilities for the Refract Studios game Distance',
     license='MIT',
     author_email='code.danielk@gmail.com',
