@@ -942,6 +942,7 @@ class Level(BytesModel):
     _settings = None
     level_name = None
     num_layers = 0
+    settings_start = None
 
     def _read(self, dbytes):
         sec = self._get_start_section()
@@ -950,12 +951,14 @@ class Level(BytesModel):
         self._report_end_pos(sec.data_end)
         self.level_name = sec.level_name
         self.num_layers = sec.num_layers
+        self.settings_start = dbytes.pos
 
     @property
     def settings(self):
         s = self._settings
         if not s:
-            # TODO move dbytes to start of settings
+            dbytes = self.dbytes
+            dbytes.pos = self.settings_start
             self._settings = s = LevelSettings.maybe(self.dbytes)
         return s
 
