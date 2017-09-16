@@ -940,6 +940,7 @@ class WedgeGS(LevelObject):
 class Level(BytesModel):
 
     settings = None
+    level_name = None
     num_layers = 0
 
     def _read(self, dbytes):
