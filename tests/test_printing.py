@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        printing.py
-# Description: printing tests
 # Created:     2017-07-10
 
 

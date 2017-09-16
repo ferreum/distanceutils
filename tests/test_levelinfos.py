@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        test_levelinfos.py
-# Description: test_levelinfos
 # Created:     2017-09-16
 
 

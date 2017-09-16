@@ -1,7 +1,7 @@
-#!/usr/bin/python
-# File:        objtobytes.py
-# Description: Converts wavefront .obj to CustomObject made from simples
 # Created:     2017-08-20
+
+
+"""Convert wavefront .obj to CustomObject made from simples."""
 
 
 import sys
@@ -212,7 +212,7 @@ def obj_to_simples(obj, scale=1):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Converts wavefront .obj to CustomObject made from simples.")
+        description=__doc__)
     parser.add_argument("--name", help="Custom object name")
     parser.add_argument("--scale", type=int, help="Set object scale")
     parser.add_argument("OBJIN", nargs=1, help=".obj filename to read")

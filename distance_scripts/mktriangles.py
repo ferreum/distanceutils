@@ -1,7 +1,7 @@
-#!/usr/bin/python
-# File:        mktriangles.py
-# Description: Sandbox for trying out simples generation
 # Created:     2017-08-16
+
+
+"""Sandbox for trying out simples generation."""
 
 
 import argparse
@@ -11,7 +11,7 @@ from distance.level import WedgeGS, Group
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("FILE", nargs=1, help=".bytes filename")
     args = parser.parse_args()
 

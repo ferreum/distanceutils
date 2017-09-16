@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        leaderboard.py
-# Description: leaderboard test
 # Created:     2017-06-27
 
 

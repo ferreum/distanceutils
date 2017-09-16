@@ -1,7 +1,7 @@
-#!/usr/bin/python
-# File:        mklevelinfos.py
-# Description: Creates WorkshopLevelInfos cache database
 # Created:     2017-06-25
+
+
+"""Create WorkshopLevelInfos cache database."""
 
 
 import argparse
@@ -14,7 +14,7 @@ from distance.common import get_cache_filename, get_profile_filename
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Creates WorkshopLevelInfos cache database.")
+        description=__doc__)
     parser.add_argument("--db", help="database filename.")
     parser.add_argument("FILE", nargs='?',
                         help="WorkshopLevelInfos.bytes filename.")
@@ -65,5 +65,6 @@ def main():
 
 if __name__ == '__main__':
     exit(main())
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

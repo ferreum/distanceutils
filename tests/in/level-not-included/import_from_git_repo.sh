@@ -1,9 +1,5 @@
 #!/usr/bin/bash
-# File:        import_from_git_repo.sh
-# Description: import_from_git_repo
 # Created:     2017-08-25
-
-mypath=$(dirname -- "$0")
 
 usage() {
   cat <<EOM
@@ -13,6 +9,8 @@ Usage: ${0##*/} [REPO]
   Copies level files used for tests from the given git repository.
 EOM
 }
+
+mypath=$(dirname -- "$0")
 
 if [[ -z $1 ]]; then
   echo "${0##*/}: missing source repository" >&2

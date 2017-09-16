@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        write.py
-# Description: write
 # Created:     2017-08-16
 
 

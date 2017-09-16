@@ -1,6 +1,7 @@
-# File:        workshoplevelinfos.py
-# Description: workshoplevelinfos
 # Created:     2017-06-24
+
+
+"""WorkshopLevelInfos .bytes support."""
 
 
 from .bytes import BytesModel, MAGIC_2

@@ -1,7 +1,7 @@
-#!/usr/bin/python
-# File:        smallobjs.py
-# Description: Finds objects with very small y or z scale in CustomObject
 # Created:     2017-08-20
+
+
+"""Find objects with very small y or z scale in CustomObject."""
 
 
 import argparse
@@ -12,7 +12,7 @@ from distance.level import PROBER
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Finds objects with very small y or z scale in CustomObject.")
+        description=__doc__)
     parser.add_argument("FILE", nargs=1, help=".bytes CustomObject filename")
     args = parser.parse_args()
 

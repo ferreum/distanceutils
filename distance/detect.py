@@ -1,6 +1,7 @@
-# File:        detect.py
-# Description: detect
 # Created:     2017-06-28
+
+
+"""Probe DstBytes for objects based on .bytes sections."""
 
 
 from .bytes import Section, MAGIC_6

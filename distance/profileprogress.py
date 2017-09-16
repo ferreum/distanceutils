@@ -1,6 +1,7 @@
-# File:        profileprogress.py
-# Description: profileprogress
 # Created:     2017-07-05
+
+
+"""ProfilePrgress .bytes support."""
 
 
 from collections import OrderedDict

@@ -1,6 +1,7 @@
-# File:        common.py
-# Description: common
 # Created:     2017-06-15
+
+
+"""Common utility functions."""
 
 
 import os

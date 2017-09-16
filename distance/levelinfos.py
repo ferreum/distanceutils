@@ -1,6 +1,7 @@
-# File:        levelinfos.py
-# Description: levelinfos
 # Created:     2017-07-07
+
+
+"""LevelInfos .bytes support."""
 
 
 from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT

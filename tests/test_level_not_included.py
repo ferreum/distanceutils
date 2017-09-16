@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        level_not_included.py
-# Description: level_not_included
 # Created:     2017-06-29
 
 

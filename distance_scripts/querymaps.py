@@ -1,7 +1,8 @@
-#!/usr/bin/python
-# File:        querymaps.py
-# Description: Queries WorkshopLevelInfos cache database
 # Created:     2017-06-15
+
+
+"""Query WorkshopLevelInfos cache database."""
+
 
 import sys
 import argparse
@@ -24,7 +25,7 @@ def format_col(col):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Queries WorkshopLevelInfos cache database.")
+        description=__doc__)
     parser.add_argument("--db", help="map database filename.")
     parser.add_argument("--stdin-paths", action='store_true',
                         help="filter by path read from stdin.")

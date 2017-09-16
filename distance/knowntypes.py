@@ -1,6 +1,7 @@
-# File:        knowntypes.py
-# Description: knowntypes
 # Created:     2017-07-01
+
+
+"""Probe top-level objects in .bytes files"""
 
 
 from .bytes import MAGIC_6, MAGIC_9

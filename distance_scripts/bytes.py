@@ -1,7 +1,7 @@
-#!/usr/bin/python
-# File:        bytes.py
-# Description: Dumps data found in .bytes files
 # Created:     2017-06-28
+
+
+"""Dump data found in .bytes files."""
 
 
 import sys
@@ -14,7 +14,7 @@ from distance import knowntypes as types
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Dumps data found in .bytes files.")
+        description=__doc__)
     parser.add_argument("FILE", nargs='+', help=".bytes filename")
     parser.add_argument("-f", "--flags", action='append',
                         help="Add flags.")

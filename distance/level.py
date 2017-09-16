@@ -1,6 +1,7 @@
-# File:        level.py
-# Description: level
 # Created:     2017-06-28
+
+
+"""Level and level object (CustomObject) support."""
 
 
 from struct import Struct

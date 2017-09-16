@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        detect.py
-# Description: detect
 # Created:     2017-06-28
 
 

@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        customobject.py
-# Description: customobject
 # Created:     2017-07-03
 
 

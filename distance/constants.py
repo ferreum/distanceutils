@@ -1,6 +1,7 @@
-# File:        constants.py
-# Description: constants
 # Created:     2017-07-05
+
+
+"""Common game constants, enums, flags."""
 
 
 class FancyEnum(object):

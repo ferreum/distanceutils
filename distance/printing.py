@@ -1,7 +1,7 @@
-#!/usr/bin/python
-# File:        printing.py
-# Description: printing
 # Created:     2017-09-03
+
+
+"""Utilities for printing object data."""
 
 
 from contextlib import contextmanager
@@ -9,6 +9,8 @@ import traceback
 
 
 class PrintContext(object):
+
+    """Context class for printing objects."""
 
     def __init__(self, file, flags):
         self.file = file

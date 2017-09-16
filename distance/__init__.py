@@ -1,5 +1,3 @@
-# File:        __init__.py
-# Description: __init__
 # Created:     2017-09-02
 
 __version__ = '0.1.0'

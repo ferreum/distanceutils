@@ -1,6 +1,7 @@
-# File:        replay.py
-# Description: replay
 # Created:     2017-06-28
+
+
+"""Read replay metadata."""
 
 
 from .bytes import (BytesModel, S_COLOR_RGBA,

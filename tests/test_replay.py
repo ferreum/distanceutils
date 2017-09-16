@@ -1,6 +1,3 @@
-#!/usr/bin/python
-# File:        replay.py
-# Description: replay
 # Created:     2017-06-28
 
 
