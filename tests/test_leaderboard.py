@@ -5,10 +5,6 @@
 
 
 import unittest
-import sys
-
-if '../' not in sys.path:
-    sys.path.append('../')
 
 from distance.leaderboard import Leaderboard
 from distance.bytes import DstBytes, PrintContext, UnexpectedEOFError
@@ -17,7 +13,7 @@ from distance.bytes import DstBytes, PrintContext, UnexpectedEOFError
 class Version0Test(unittest.TestCase):
 
     def test_version0(self):
-        with open("in/leaderboard/version_0.bytes", 'rb') as f:
+        with open("tests/in/leaderboard/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
             entries = lb.read_entries()
@@ -33,14 +29,14 @@ class Version0Test(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        with open("in/leaderboard/version_0.bytes", 'rb') as f:
+        with open("tests/in/leaderboard/version_0.bytes", 'rb') as f:
             p.print_data_of(Leaderboard(DstBytes(f)))
 
 
 class Version1Test(unittest.TestCase):
 
     def test_version1(self):
-        with open("in/leaderboard/version_1.bytes", 'rb') as f:
+        with open("tests/in/leaderboard/version_1.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
             entries = lb.read_entries()
@@ -55,7 +51,7 @@ class Version1Test(unittest.TestCase):
             self.assertTrue(entries[-1].sane_end_pos)
 
     def test_truncated(self):
-        with open("in/leaderboard/version_1_truncated.bytes", 'rb') as f:
+        with open("tests/in/leaderboard/version_1_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
             entries = lb.read_entries()
@@ -67,7 +63,7 @@ class Version1Test(unittest.TestCase):
             self.assertFalse(entries[-1].sane_end_pos)
 
     def test_truncated2(self):
-        with open("in/leaderboard/version_1_truncated_2.bytes", 'rb') as f:
+        with open("tests/in/leaderboard/version_1_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
             entries = lb.read_entries()
@@ -79,7 +75,7 @@ class Version1Test(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        with open("in/leaderboard/version_1.bytes", 'rb') as f:
+        with open("tests/in/leaderboard/version_1.bytes", 'rb') as f:
             p.print_data_of(Leaderboard(DstBytes(f)))
 
 

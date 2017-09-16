@@ -1,5 +1,12 @@
+*.log
 *.pyc
 __pycache__
-/build
-/dist
-/*.egg-info
+.cache/
+.coverage
+.idea/
+.vscode/
+/build/
+/dist/
+/*.egg-info/
+docs/build/
+wheelhouse/

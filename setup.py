@@ -3,10 +3,11 @@
 
 from setuptools import setup
 
+import distance
 
 setup(
     name='distanceutils',
-    version='0.1',
+    version=distance.__version__,
     description='Utilities for the Refract Studios game Distance',
     license='MIT',
     author_email='code.danielk@gmail.com',
@@ -15,6 +16,8 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
