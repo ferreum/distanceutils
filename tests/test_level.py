@@ -28,7 +28,7 @@ class LevelTest(unittest.TestCase):
             dbytes = DstBytes(f)
             level = Level(dbytes)
             self.assertEqual(level.level_name, "Test-straightroad")
-            results = [level.get_settings()] + list(level.iter_objects())
+            results = [level.settings] + list(level.iter_objects())
             self.assertEqual(len(results), 3)
 
     def test_truncated2(self):

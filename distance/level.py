@@ -939,7 +939,7 @@ class WedgeGS(LevelObject):
 
 class Level(BytesModel):
 
-    settings = None
+    _settings = None
     level_name = None
     num_layers = 0
 
@@ -951,15 +951,16 @@ class Level(BytesModel):
         self.level_name = sec.level_name
         self.num_layers = sec.num_layers
 
-    def get_settings(self):
-        s = self.settings
+    @property
+    def settings(self):
+        s = self._settings
         if not s:
             # TODO move dbytes to start of settings
-            self.settings = s = LevelSettings.maybe(self.dbytes)
+            self._settings = s = LevelSettings.maybe(self.dbytes)
         return s
 
     def move_to_first_layer(self):
-        settings = self.get_settings()
+        settings = self.settings
         if settings.sane_end_pos:
             self.dbytes.pos = settings.reported_end_pos
         else:
@@ -986,7 +987,7 @@ class Level(BytesModel):
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
         try:
-            settings = self.get_settings()
+            settings = self.settings
             p.print_data_of(settings)
             if not settings.sane_end_pos:
                 return

@@ -48,7 +48,7 @@ class BaseTest(unittest.TestCase):
         gen = level.iter_objects(with_layers=with_layers)
         if with_groups:
             gen = objects_with_groups(gen)
-        self.objects = objects = [level.get_settings()] + list(gen)
+        self.objects = objects = [level.settings] + list(gen)
         def get_subobjects(objs, is_sub):
             for obj in objs:
                 if is_sub:
