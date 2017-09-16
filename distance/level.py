@@ -196,14 +196,11 @@ class LevelObject(BytesModel):
             if s5 and s5.num_objects:
                 self._children = objs = []
                 dbytes = self.dbytes
-                old_pos = dbytes.pos
-                try:
+                with dbytes.saved_pos():
                     dbytes.pos = s5.children_start
                     objs = self.child_prober.read_n_maybe(
                         dbytes, s5.num_objects)
                     self._children = objs
-                finally:
-                    dbytes.pos = old_pos
             else:
                 self._children = objs = ()
         return objs
@@ -958,8 +955,9 @@ class Level(BytesModel):
         s = self._settings
         if not s:
             dbytes = self.dbytes
-            dbytes.pos = self.settings_start
-            self._settings = s = LevelSettings.maybe(self.dbytes)
+            with dbytes.saved_pos():
+                dbytes.pos = self.settings_start
+                self._settings = s = LevelSettings.maybe(self.dbytes)
         return s
 
     def move_to_first_layer(self):

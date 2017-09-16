@@ -563,5 +563,13 @@ class DstBytes(object):
         finally:
             self.num_subsections = old_count
 
+    @contextmanager
+    def saved_pos(self):
+        old_pos = self.pos
+        try:
+            yield
+        finally:
+            self.pos = old_pos
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
