@@ -15,7 +15,7 @@ from .bytes import (BytesModel, Section, S_FLOAT,
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .common import format_duration
-from .detect import BytesProber
+from .probe import BytesProber
 
 
 S_ABILITIES = Struct("5b")

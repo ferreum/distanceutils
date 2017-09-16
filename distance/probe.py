@@ -48,7 +48,7 @@ class BytesProber(object):
                 return cls
         return None
 
-    def detect_class(self, dbytes):
+    def probe(self, dbytes):
         start_pos = dbytes.pos
         section = Section(dbytes)
         start_section = section
@@ -66,14 +66,14 @@ class BytesProber(object):
         return cls, {'start_section': start_section, 'start_pos': start_pos}
 
     def read(self, dbytes, **kw):
-        cls, add_kw = self.detect_class(dbytes)
+        cls, add_kw = self.probe(dbytes)
         kw.update(add_kw)
         obj = cls()
         obj.read(dbytes, **kw)
         return obj
 
     def maybe(self, dbytes, **kw):
-        cls, add_kw = self.detect_class(dbytes)
+        cls, add_kw = self.probe(dbytes)
         kw.update(add_kw)
         return cls.maybe(dbytes, **kw)
 

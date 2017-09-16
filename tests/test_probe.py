@@ -14,7 +14,7 @@ def bytes_from(name):
         yield DstBytes(f)
 
 
-class DetectTest(unittest.TestCase):
+class ProberTest(unittest.TestCase):
 
     def test_levelinfos(self):
         for ver in range(0, 1):
