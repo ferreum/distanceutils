@@ -52,5 +52,9 @@ class Version0LevelsTest(unittest.TestCase):
         self.assertEqual([0, 0, 0, 0], self.levels[0].medal_scores)
         self.assertEqual([-1, -1, -1, -1], self.levels[1].medal_scores)
 
+    def test_printing_works(self):
+        p = PrintContext.for_test()
+        p.print_data_of(self.infos)
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
