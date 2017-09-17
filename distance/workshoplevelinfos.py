@@ -2,7 +2,7 @@
 
 
 from .bytes import BytesModel, MAGIC_2
-from .common import format_bytes
+from .printing import format_bytes
 from .constants import Rating
 
 

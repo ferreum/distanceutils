@@ -4,7 +4,7 @@
 from operator import attrgetter
 
 from .bytes import BytesModel, MAGIC_2
-from .common import format_bytes, format_duration
+from .printing import format_bytes, format_duration
 
 
 NO_REPLAY = 0xffffffffffffffff

@@ -5,8 +5,7 @@ import struct
 from struct import Struct
 from contextlib import contextmanager
 
-from .printing import PrintContext
-from .common import format_unknown
+from .printing import PrintContext, format_unknown
 
 
 S_COLOR_RGBA = Struct("4f")

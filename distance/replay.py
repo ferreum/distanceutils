@@ -3,7 +3,7 @@
 
 from .bytes import (BytesModel, S_COLOR_RGBA,
                     MAGIC_2, MAGIC_1)
-from .common import format_duration, format_color
+from .printing import format_duration, format_color
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "

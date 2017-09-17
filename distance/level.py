@@ -11,7 +11,7 @@ from .bytes import (BytesModel, Section, S_FLOAT,
                     MAGIC_8, MAGIC_1)
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
-from .common import format_duration
+from .printing import format_duration
 from .probe import BytesProber
 
 

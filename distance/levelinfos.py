@@ -2,7 +2,7 @@
 
 
 from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
-from .common import format_duration
+from .printing import format_duration
 from .constants import Mode
 
 
