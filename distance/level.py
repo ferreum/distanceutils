@@ -58,15 +58,6 @@ def format_flags(gen):
             yield name
 
 
-def read_weird_bool(dbytes):
-    b = dbytes.read_byte()
-    if b == 0xfd:
-        # value == FLOAT_SKIP_BYTES
-        dbytes.read_n(3)
-        return 0
-    else:
-        return b
-
 TRANSFORM_MIN_SIZE = 12
 
 
@@ -847,7 +838,17 @@ class EnableAbilitiesBox(LevelObject):
                     for i in range(num_props):
                         propname = dbytes.read_str()
                         dbytes.pos = value_start = dbytes.pos + 8
-                        value = read_weird_bool(dbytes)
+                        spos = dbytes.pos
+                        value = None
+                        if spos + 4 <= sec.data_end:
+                            peek = dbytes.read_n(4)
+                            # this is weird
+                            if peek == FLOAT_SKIP_BYTES:
+                                value = 0
+                            else:
+                                dbytes.pos = spos
+                        if value is None:
+                            value = dbytes.read_int(1)
                         if propname in self.KNOWN_ABILITIES:
                             abilities[propname] = value
                 return True
