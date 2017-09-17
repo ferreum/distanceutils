@@ -162,7 +162,7 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
             p.print_data_of(obj)
 
 
-class S5Offset(unittest.TestCase):
+class S5OffsetTest(unittest.TestCase):
 
     def test_glasssplineroadstraight(self):
         p = PrintContext.for_test()
@@ -179,7 +179,7 @@ class S5Offset(unittest.TestCase):
             p.print_data_of(obj)
 
 
-class EmpireEndZone(unittest.TestCase):
+class EmpireEndZoneTest(unittest.TestCase):
 
     def test_normal(self):
         p = PrintContext.for_test(flags=('children'))
@@ -201,7 +201,7 @@ class EmpireEndZone(unittest.TestCase):
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
 
 
-class CarScreenTextDecodeTrigger(unittest.TestCase):
+class CarScreenTextDecodeTriggerTest(unittest.TestCase):
 
     def test_trigger(self):
         p = PrintContext.for_test()
