@@ -1,6 +1,3 @@
-# Created:     2017-08-20
-
-
 """Find objects with very small y or z scale in CustomObject."""
 
 

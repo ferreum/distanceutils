@@ -1,6 +1,3 @@
-# Created:     2017-08-20
-
-
 """Convert wavefront .obj to CustomObject made from simples."""
 
 

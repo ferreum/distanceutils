@@ -1,6 +1,3 @@
-# Created:     2017-07-03
-
-
 import unittest
 
 from distance.level import PROBER, SubTeleporter, WinLogic

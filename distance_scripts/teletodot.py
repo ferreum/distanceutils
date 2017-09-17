@@ -1,7 +1,3 @@
-#!/usr/bin/python
-# Created:     2017-08-26
-
-
 """Generate GraphViz DOT from teleporter connections in a level."""
 
 

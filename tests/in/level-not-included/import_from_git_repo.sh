@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-# Created:     2017-08-25
 
 usage() {
   cat <<EOM

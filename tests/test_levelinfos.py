@@ -1,6 +1,3 @@
-# Created:     2017-09-16
-
-
 import unittest
 
 from distance.constants import Mode

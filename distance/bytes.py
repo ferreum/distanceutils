@@ -1,6 +1,3 @@
-# Created:     2017-06-24
-
-
 """.bytes file reading and writing primitives."""
 
 

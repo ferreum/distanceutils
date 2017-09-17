@@ -1,6 +1,3 @@
-# Created:     2017-06-29
-
-
 import unittest
 import math
 

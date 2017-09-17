@@ -1,6 +1,3 @@
-# Created:     2017-07-07
-
-
 """LevelInfos .bytes support."""
 
 

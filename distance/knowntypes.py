@@ -1,6 +1,3 @@
-# Created:     2017-07-01
-
-
 """Probe top-level objects in .bytes files"""
 
 

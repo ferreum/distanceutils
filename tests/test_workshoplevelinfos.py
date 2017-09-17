@@ -1,6 +1,3 @@
-# Created:     2017-06-27
-
-
 import unittest
 
 from distance.workshoplevelinfos import WorkshopLevelInfos

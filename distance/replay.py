@@ -1,6 +1,3 @@
-# Created:     2017-06-28
-
-
 """Read replay metadata."""
 
 

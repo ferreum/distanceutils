@@ -1,6 +1,3 @@
-# Created:     2017-06-28
-
-
 """Probe DstBytes for objects based on .bytes sections."""
 
 

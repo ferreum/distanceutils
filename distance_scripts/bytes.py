@@ -1,6 +1,3 @@
-# Created:     2017-06-28
-
-
 """Dump data found in .bytes files."""
 
 

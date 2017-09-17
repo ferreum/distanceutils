@@ -1,6 +1,3 @@
-# Created:     2017-07-05
-
-
 import unittest
 
 from distance.profileprogress import ProfileProgress

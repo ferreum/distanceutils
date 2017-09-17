@@ -1,6 +1,3 @@
-# Created:     2017-06-15
-
-
 """Query WorkshopLevelInfos cache database."""
 
 

@@ -1,6 +1,3 @@
-# Created:     2017-07-10
-
-
 import unittest
 from io import StringIO
 from textwrap import dedent

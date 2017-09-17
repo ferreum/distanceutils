@@ -1,6 +1,3 @@
-# Created:     2017-08-16
-
-
 import unittest
 from io import BytesIO
 
