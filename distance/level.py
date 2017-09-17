@@ -547,6 +547,7 @@ class InfoDisplayBox(LevelObject):
 
     version = None
     texts = ()
+    per_char_speed = None
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
@@ -558,14 +559,21 @@ class InfoDisplayBox(LevelObject):
                     self.texts = texts = [None] * 5
                     for i in range(num_props):
                         propname = dbytes.read_str()
+                        self._add_unknown(8)
+                        spos = dbytes.pos
+                        if spos + 4 <= sec.data_end:
+                            peek = dbytes.read_n(4)
+                            # this is weird
+                            if peek == FLOAT_SKIP_BYTES:
+                                continue
+                        dbytes.pos = spos
                         if propname.startswith("InfoText"):
-                            dbytes.pos = value_start = dbytes.pos + 8
-                            if not math.isnan(dbytes.read_struct(S_FLOAT)[0]):
-                                dbytes.pos = value_start
-                                index = int(propname[-1])
-                                texts[index] = dbytes.read_str()
+                            index = int(propname[-1])
+                            texts[index] = dbytes.read_str()
+                        elif propname == "PerCharSpeed":
+                            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
                         else:
-                            dbytes.read_n(12) # unknown
+                            break # don't know length of unknown property
                 else:
                     # only verified in v2
                     self.fadeout_time = dbytes.read_struct(S_FLOAT)

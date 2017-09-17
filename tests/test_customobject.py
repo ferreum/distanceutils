@@ -20,9 +20,17 @@ class InfoDisplayBoxTest(unittest.TestCase):
 
     def test_ver_0(self):
         p = PrintContext.for_test()
-        with open("tests/in/customobject/infodisplaybox ver_0.bytes", 'rb') as f:
+        with open("tests/in/customobject/infodisplaybox ver_0 1.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
             self.assertEqual(obj.texts[0], "Flight ability\ncorrupted")
+            p.print_data_of(obj)
+
+    def test_ver_0_2(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/infodisplaybox ver_0 2.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            self.assertEqual(obj.texts[0], "Synchronizing with\r\nold <color=#00ff77>checkpoint</color>\r\nnetwork")
+            self.assertAlmostEqual(obj.per_char_speed, 0.02)
             p.print_data_of(obj)
 
     def test_print_data(self):
