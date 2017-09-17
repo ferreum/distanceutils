@@ -320,7 +320,7 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.type = dbytes.read_str()
             self._add_unknown(1) # unknown, always 0
-            dbytes.pos += 4 # secnum
+            dbytes.read_n(4) # secnum
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
@@ -332,13 +332,13 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.pos += 4 # secnum
+            dbytes.read_n(4) # secnum
         elif magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.pos += 4 # secnum
+            dbytes.read_n(4) # secnum
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = data_start = dbytes.pos
@@ -348,7 +348,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.level_name = dbytes.read_str()
             self.num_layers = dbytes.read_int(4)
-            dbytes.pos += 4 # secnum
+            dbytes.read_n(4) # secnum
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos

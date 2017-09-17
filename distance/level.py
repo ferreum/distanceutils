@@ -565,7 +565,7 @@ class InfoDisplayBox(LevelObject):
                                 index = int(propname[-1])
                                 texts[index] = dbytes.read_str()
                         else:
-                            dbytes.pos += 12
+                            dbytes.read_n(12) # unknown
                 else:
                     # only verified in v2
                     self.fadeout_time = dbytes.read_struct(S_FLOAT)

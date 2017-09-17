@@ -50,10 +50,10 @@ class Replay(BytesModel):
                 if version <= 1:
                     self._require_equal(MAGIC_1, 4)
                     section_size = dbytes.read_int(4) * 4
-                    dbytes.pos += section_size
+                    dbytes.read_n(section_size)
                     self._require_equal(MAGIC_1, 4)
                     section_size = dbytes.read_int(4)
-                    dbytes.pos += section_size - 8
+                    dbytes.read_n(section_size - 8)
                     self.finish_time = dbytes.read_int(4)
                 return True
         return BytesModel._read_section_data(self, dbytes, sec)
