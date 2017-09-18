@@ -108,6 +108,24 @@ def format_transform(trans):
     return ', '.join(f"({format_floats(f)})" for f in trans)
 
 
+def iter_named_properties(dbytes, end):
+    num_props = dbytes.read_int(4)
+    for i in range(num_props):
+        propname = dbytes.read_str()
+        dbytes.read_n(8) # unknown
+        spos = dbytes.pos
+        if spos + 4 <= end:
+            peek = dbytes.read_n(4)
+            # this is weird
+            if peek == FLOAT_SKIP_BYTES:
+                yield propname, True
+            else:
+                dbytes.pos = spos
+                yield propname, False
+        else:
+            yield propname, False
+
+
 class Counters(object):
 
     num_objects = 0
@@ -499,15 +517,15 @@ class WinLogic(SubObject):
         if sec.magic == MAGIC_2:
             if sec.ident == 0x5d:
                 if sec.data_size >= 16:
-                    num_props = dbytes.read_int(4)
-                    for _ in range(num_props):
-                        propname = dbytes.read_str()
-                        self._add_unknown(8)
+                    for propname, is_skip in iter_named_properties(
+                            dbytes, sec.data_end):
                         if propname == "DelayBeforeBroadcast":
-                            value = dbytes.read_struct(S_FLOAT)[0]
+                            value = 0.0
+                            if not is_skip:
+                                value = dbytes.read_struct(S_FLOAT)[0]
                             self.delay_before_broadcast = value
                         else:
-                            # don't know format/length of other properties
+                            # don't know format/size of other properties
                             break
                 return True
         return SubObject._read_section_data(self, dbytes, sec)
@@ -555,18 +573,11 @@ class InfoDisplayBox(LevelObject):
                 texts = self.texts
                 self.version = version = sec.version
                 if version == 0:
-                    num_props = dbytes.read_int(4)
                     self.texts = texts = [None] * 5
-                    for i in range(num_props):
-                        propname = dbytes.read_str()
-                        self._add_unknown(8)
-                        spos = dbytes.pos
-                        if spos + 4 <= sec.data_end:
-                            peek = dbytes.read_n(4)
-                            # this is weird
-                            if peek == FLOAT_SKIP_BYTES:
-                                continue
-                        dbytes.pos = spos
+                    for propname, is_skip in iter_named_properties(
+                            dbytes, sec.data_end):
+                        if is_skip:
+                            continue
                         if propname.startswith("InfoText"):
                             index = int(propname[-1])
                             texts[index] = dbytes.read_str()
@@ -611,17 +622,10 @@ class CarScreenTextDecodeTrigger(LevelObject):
         if sec.magic == MAGIC_2:
             if sec.ident == 0x57:
                 if sec.version == 0:
-                    num_props = dbytes.read_int(4)
-                    for _ in range(num_props):
-                        propname = dbytes.read_str()
-                        self._add_unknown(8)
-                        spos = dbytes.pos
-                        if spos + 4 <= sec.data_end:
-                            peek = dbytes.read_n(4)
-                            # this is weird
-                            if peek == FLOAT_SKIP_BYTES:
-                                continue
-                        dbytes.pos = spos
+                    for propname, is_skip in iter_named_properties(
+                            dbytes, sec.data_end):
+                        if is_skip:
+                            continue
                         if propname == 'Text':
                             self.text = dbytes.read_str()
                         elif propname == 'PerCharSpeed':
@@ -648,7 +652,7 @@ class CarScreenTextDecodeTrigger(LevelObject):
                                 phrases.append(dbytes.read_str())
                         else:
                             # unknown property, don't know length
-                            return True
+                            break
                     return True
                 else:
                     try:
@@ -842,23 +846,16 @@ class EnableAbilitiesBox(LevelObject):
                 # Abilities
                 if sec.data_size > 16:
                     self.abilities = abilities = {}
-                    num_props = dbytes.read_int(4)
-                    for i in range(num_props):
-                        propname = dbytes.read_str()
-                        dbytes.pos = value_start = dbytes.pos + 8
-                        spos = dbytes.pos
-                        value = None
-                        if spos + 4 <= sec.data_end:
-                            peek = dbytes.read_n(4)
-                            # this is weird
-                            if peek == FLOAT_SKIP_BYTES:
-                                value = 0
-                            else:
-                                dbytes.pos = spos
-                        if value is None:
-                            value = dbytes.read_int(1)
+                    for propname, is_skip in iter_named_properties(
+                            dbytes, sec.data_end):
                         if propname in self.KNOWN_ABILITIES:
+                            value = 0
+                            if not is_skip:
+                                value = dbytes.read_int(1)
                             abilities[propname] = value
+                        else:
+                            # don't know format/size of other properties
+                            break
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
