@@ -525,8 +525,7 @@ class WinLogic(SubObject):
                                 value = dbytes.read_struct(S_FLOAT)[0]
                             self.delay_before_broadcast = value
                         else:
-                            # don't know format/size of other properties
-                            break
+                            raise ValueError(f"unknown property: {propname!r}")
                 return True
         return SubObject._read_section_data(self, dbytes, sec)
 
@@ -565,7 +564,10 @@ class InfoDisplayBox(LevelObject):
 
     version = None
     texts = ()
+    delays = ()
     per_char_speed = None
+    destroy_on_trigger_exit = None
+    random_char_count = None
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
@@ -574,17 +576,25 @@ class InfoDisplayBox(LevelObject):
                 self.version = version = sec.version
                 if version == 0:
                     self.texts = texts = [None] * 5
+                    self.delays = delays = [None] * 5
                     for propname, is_skip in iter_named_properties(
                             dbytes, sec.data_end):
                         if is_skip:
                             continue
-                        if propname.startswith("InfoText"):
+                        if propname.startswith('InfoText'):
                             index = int(propname[-1])
                             texts[index] = dbytes.read_str()
-                        elif propname == "PerCharSpeed":
+                        elif propname.startswith('Delay'):
+                            index = int(propname[-1])
+                            delays[index] = dbytes.read_struct(S_FLOAT)[0]
+                        elif propname == 'PerCharSpeed':
                             self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                        elif propname == 'DestroyOnTriggerExit':
+                            self.destroy_on_trigger_exit = dbytes.read_int(1)
+                        elif propname == 'RandomCharCount':
+                            self.random_char_count = dbytes.read_int(4)
                         else:
-                            break # don't know length of unknown property
+                            raise ValueError(f"unknown property: {propname!r}")
                 else:
                     # only verified in v2
                     self.fadeout_time = dbytes.read_struct(S_FLOAT)
@@ -602,6 +612,12 @@ class InfoDisplayBox(LevelObject):
         for i, text in enumerate(self.texts):
             if text:
                 p(f"Text {i}: {text!r}")
+        if self.per_char_speed is not None:
+            p(f"Per char speed: {self.per_char_speed}")
+        if self.destroy_on_trigger_exit is not None:
+            p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
+        if self.random_char_count is not None:
+            p(f"Random char count: {self.random_char_count}")
 
 
 @PROBER.for_type('CarScreenTextDecodeTrigger')
@@ -651,8 +667,7 @@ class CarScreenTextDecodeTrigger(LevelObject):
                             for _ in range(num_phrases):
                                 phrases.append(dbytes.read_str())
                         else:
-                            # unknown property, don't know length
-                            break
+                            raise ValueError(f"unknown property: {propname!r}")
                     return True
                 else:
                     try:
@@ -835,6 +850,7 @@ class EnableAbilitiesBox(LevelObject):
     abilities = {}
     KNOWN_ABILITIES = {'EnableFlying', 'EnableJumping',
                        'EnableBoosting', 'EnableJetRotating'}
+    bloom_out = 0
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_3:
@@ -853,9 +869,13 @@ class EnableAbilitiesBox(LevelObject):
                             if not is_skip:
                                 value = dbytes.read_int(1)
                             abilities[propname] = value
+                        elif propname == 'BloomOut':
+                            value = 0
+                            if not is_skip:
+                                value = dbytes.read_int(1)
+                            self.bloom_out = value
                         else:
-                            # don't know format/size of other properties
-                            break
+                            raise ValueError(f"unknown property: {propname!r}")
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
@@ -865,6 +885,8 @@ class EnableAbilitiesBox(LevelObject):
         if not ab_str:
             ab_str = "None"
         p(f"Abilities: {ab_str}")
+        if self.bloom_out is not None:
+            p(f"Bloom out: {self.bloom_out}")
 
 
 @PROBER.for_type("WedgeGS")
