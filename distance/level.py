@@ -16,7 +16,7 @@ from .probe import BytesProber
 
 
 S_ABILITIES = Struct("5b")
-FLOAT_SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
+SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
 S_FLOAT3 = Struct("fff")
 S_FLOAT4 = Struct("ffff")
@@ -65,17 +65,17 @@ def read_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
     f = dbytes.read_n(4)
-    if f == FLOAT_SKIP_BYTES:
+    if f == SKIP_BYTES:
         pos = (0.0, 0.0, 0.0)
     else:
         pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
     f = dbytes.read_n(4)
-    if f == FLOAT_SKIP_BYTES:
+    if f == SKIP_BYTES:
         rot = (0.0, 0.0, 0.0, 1.0)
     else:
         rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
     f = dbytes.read_n(4)
-    if f == FLOAT_SKIP_BYTES:
+    if f == SKIP_BYTES:
         scale = (1.0, 1.0, 1.0)
     else:
         scale = (S_FLOAT.unpack(f)[0], read_float(), read_float())
@@ -89,17 +89,17 @@ def write_transform(dbytes, trans):
         pos = trans[0]
         dbytes.write_bytes(S_FLOAT3.pack(*pos))
     else:
-        dbytes.write_bytes(FLOAT_SKIP_BYTES)
+        dbytes.write_bytes(SKIP_BYTES)
     if len(trans) > 1 and len(trans[1]):
         rot = trans[1]
         dbytes.write_bytes(S_FLOAT4.pack(*rot))
     else:
-        dbytes.write_bytes(FLOAT_SKIP_BYTES)
+        dbytes.write_bytes(SKIP_BYTES)
     if len(trans) > 2 and len(trans[2]):
         scale = trans[2]
         dbytes.write_bytes(S_FLOAT3.pack(*scale))
     else:
-        dbytes.write_bytes(FLOAT_SKIP_BYTES)
+        dbytes.write_bytes(SKIP_BYTES)
 
 
 def format_transform(trans):
@@ -117,7 +117,7 @@ def iter_named_properties(dbytes, end):
         if spos + 4 <= end:
             peek = dbytes.read_n(4)
             # this is weird
-            if peek == FLOAT_SKIP_BYTES:
+            if peek == SKIP_BYTES:
                 yield propname, True
             else:
                 dbytes.pos = spos
