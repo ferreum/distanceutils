@@ -40,6 +40,10 @@ def main():
                     p(f"File: {f.name!r}")
                 obj = types.maybe(DstBytes(f))
                 p.print_data_of(obj)
+            except BrokenPipeError:
+                # suppress warning message when stdout gets closed
+                sys.stderr.close()
+                break
             except Exception as e:
                 p.print_exception(e)
                 have_error = True
