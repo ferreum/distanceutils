@@ -29,13 +29,15 @@ def main():
     if 'section' in flags:
         flags.append('sections')
 
+    print_filename = 'filename' in flags or len(args.FILE) > 1
+
     p = PrintContext(file=sys.stdout, flags=flags)
 
     have_error = False
     for fname in args.FILE:
         with open(fname, 'rb') as f:
             try:
-                if len(args.FILE) > 1:
+                if print_filename:
                     p("")
                     p(f"File: {f.name!r}")
                 obj = types.maybe(DstBytes(f))
