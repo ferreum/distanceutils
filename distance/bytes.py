@@ -198,7 +198,8 @@ class BytesModel(object):
                 sec = Section(dbytes)
                 sections.append(sec)
                 with dbytes.limit(sec.data_end):
-                    self._read_section_data(dbytes, sec)
+                    if not self._read_section_data(dbytes, sec):
+                        sec.read_raw_data(dbytes)
                 dbytes.pos = sec.data_end
 
     def _read_section_data(self, dbytes, sec):
@@ -208,7 +209,7 @@ class BytesModel(object):
         for sec in self.sections:
             with dbytes.write_section(sec):
                 if not self._write_section_data(dbytes, sec):
-                    raise ValueError(f"failed to write section {sec}")
+                    dbytes.write_bytes(sec.raw_data)
 
     def _write_section_data(self, dbytes, sec):
         return False
@@ -334,6 +335,7 @@ class Section(BytesModel):
     ident = None
     version = None
     num_sections = None
+    raw_data = None
 
     def __init__(self, *args, **kw):
         if args:
@@ -403,6 +405,9 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
         else:
             raise IOError(f"unknown section: {magic} (0x{magic:08x})")
+
+    def read_raw_data(self, dbytes):
+        self.raw_data = dbytes.read_n(self.data_end - dbytes.pos)
 
     def match(self, magic, ident=None, version=None):
         if magic != self.magic:
