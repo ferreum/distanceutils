@@ -5,7 +5,7 @@ from struct import Struct
 import math
 from contextlib import contextmanager
 
-from .bytes import (BytesModel, SectionObject,
+from .bytes import (BytesModel, SectionObject, Section,
                     S_FLOAT, S_FLOAT3, S_FLOAT4,
                     MAGIC_9, MAGIC_7, MAGIC_6,
                     MAGIC_2, MAGIC_3,
@@ -309,6 +309,12 @@ class Group(LevelObject):
 
     custom_name = None
 
+    default_sections = (
+        *LevelObject.default_sections,
+        Section(MAGIC_2, 0x1d, version=1),
+        Section(MAGIC_2, 0x63, version=0)
+    )
+
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
             if sec.ident == 0x1d: # Group / inspect Children
@@ -322,14 +328,17 @@ class Group(LevelObject):
     def _write_sections(self, dbytes):
         LevelObject._write_sections(self, dbytes)
 
-        with dbytes.write_section(MAGIC_2, ident=0x1d, version=1):
+    def _write_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_2, ident=0x1d, version=1):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 0) # num values
             dbytes.write_int(4, 0) # inspect Children: None
-
-        with dbytes.write_section(MAGIC_2, ident=0x63, version=0):
+            return True
+        elif sec.match(MAGIC_2, ident=0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
+            return True
+        return LevelObject._write_section_data(self, dbytes, sec)
 
     def _print_children(self, p):
         with need_counters(p) as counters:
@@ -782,6 +791,12 @@ class WedgeGS(LevelObject):
     type = "WedgeGS"
     has_children = True
 
+    default_sections = (
+        *LevelObject.default_sections,
+        Section(MAGIC_3, 3, 2),
+        Section(MAGIC_2, 0x83, 3),
+    )
+
     mat_color = (.3, .3, .3, 1)
     mat_emit = (.8, .8, .8, .5)
     mat_reflect = (.3, .3, .3, .9)
@@ -813,10 +828,8 @@ class WedgeGS(LevelObject):
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
-    def _write_sections(self, dbytes):
-        LevelObject._write_sections(self, dbytes)
-
-        with dbytes.write_section(MAGIC_3, ident=3, version=2):
+    def _write_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_3, ident=3, version=2):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 1) # num values?
             dbytes.write_str("SimplesMaterial")
@@ -830,8 +843,9 @@ class WedgeGS(LevelObject):
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_reflect))
             dbytes.write_str("_SpecColor")
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
+            return True
 
-        with dbytes.write_section(MAGIC_2, ident=0x83, version=3):
+        elif sec.match(MAGIC_2, ident=0x83, version=3):
             dbytes.write_int(4, self.image_index)
             dbytes.write_int(4, self.emit_index)
             dbytes.write_int(4, 0) # preset
@@ -847,6 +861,9 @@ class WedgeGS(LevelObject):
             dbytes.write_int(1, self.additive_transp)
             dbytes.write_int(1, self.multip_transp)
             dbytes.write_int(1, self.invert_emit)
+            return True
+
+        return LevelObject._write_section_data(self, dbytes, sec)
 
 
 class Level(BytesModel):

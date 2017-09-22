@@ -6,6 +6,7 @@ from struct import Struct
 from contextlib import contextmanager
 
 from .printing import PrintContext, format_unknown, format_transform
+from .argtaker import ArgTaker
 
 
 S_COLOR_RGBA = Struct("4f")
@@ -63,6 +64,8 @@ class BytesModel(object):
     start_section = None
     sane_end_pos = False
 
+    default_sections = ()
+
     @classmethod
     def maybe(clazz, dbytes, **kw):
 
@@ -116,8 +119,12 @@ class BytesModel(object):
         if dbytes is not None:
             self.read(dbytes, **kw)
         elif kw:
+            self.sections = self._init_sections()
             for k, v in kw.items():
                 setattr(self, k, v)
+
+    def _init_sections(self):
+        return ()
 
     def read(self, dbytes, start_section=None,
              start_pos=None, **kw):
@@ -195,6 +202,15 @@ class BytesModel(object):
                 dbytes.pos = sec.data_end
 
     def _read_section_data(self, dbytes, sec):
+        return False
+
+    def _write_sections(self, dbytes):
+        for sec in self.sections:
+            with dbytes.write_section(sec):
+                if not self._write_section_data(dbytes, sec):
+                    raise ValueError(f"failed to write section {sec}")
+
+    def _write_section_data(self, dbytes, sec):
         return False
 
     def _report_end_pos(self, pos):
@@ -319,6 +335,29 @@ class Section(BytesModel):
     version = None
     num_sections = None
 
+    def __init__(self, *args, **kw):
+        if args:
+            first = args[0]
+            if not isinstance(first, int):
+                self.read(*args, **kw)
+                return
+        if args or kw:
+            self._init_from_args(*args, **kw)
+
+    def _init_from_args(self, *args, **kw):
+        arg = ArgTaker(*args, **kw)
+
+        self.magic = magic = arg(0, 'magic')
+        if magic in (MAGIC_3, MAGIC_2):
+            self.ident = arg(1, 'ident')
+            self.version = arg(2, 'version')
+        elif magic == MAGIC_6:
+            self.type = arg(1, 'type')
+        else:
+            raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
+
+        arg.verify()
+
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
         self.recoverable = True
@@ -365,40 +404,34 @@ class Section(BytesModel):
         else:
             raise IOError(f"unknown section: {magic} (0x{magic:08x})")
 
-    @staticmethod
-    @contextmanager
-    def write_header(dbytes, magic, *args, **kw):
-        maxarg = -1
-        def arg(pos, name):
-            nonlocal maxarg
-            maxarg = max(maxarg, pos)
-            if pos < len(args):
-                return args[pos]
-            else:
-                try:
-                    return kw.pop(name)
-                except KeyError:
-                    raise ValueError(f"missing argument: {name!r}")
+    def match(self, magic, ident=None, version=None):
+        if magic != self.magic:
+            return False
+        if ident is not None and ident != self.ident:
+            return False
+        if version is not None and version != self.version:
+            return False
+        return True
 
+    @contextmanager
+    def write_header(self, dbytes):
+        magic = self.magic
         dbytes.write_int(4, magic)
         if magic in (MAGIC_3, MAGIC_2):
             with dbytes.write_size():
-                dbytes.write_int(4, arg(0, 'ident'))
-                dbytes.write_int(4, arg(1, 'version'))
+                dbytes.write_int(4, self.ident)
+                dbytes.write_int(4, self.version)
                 dbytes.write_secnum()
                 yield
         elif magic == MAGIC_6:
             with dbytes.write_size():
-                dbytes.write_str(arg(0, 'type'))
+                dbytes.write_str(self.type)
                 dbytes.write_bytes(b'\x00') # unknown, always 0
                 dbytes.write_secnum()
                 with dbytes.write_num_subsections():
                     yield
-
-        if len(args) > maxarg + 1:
-            raise ValueError(f"too many arguments (expected {maxarg})")
-        if kw:
-            raise ValueError(f"invalid kwargs: {kw}")
+        else:
+            raise NotImplementedError(f"cannot write section {self.magic}")
 
     @property
     def data_end(self):
@@ -479,6 +512,13 @@ class SectionObject(BytesModel):
     has_children = False
     children_section = None
 
+    default_sections = (
+        Section(MAGIC_3, 0x01, 0),
+    )
+
+    def _init_sections(self):
+        return self.default_sections
+
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
@@ -486,16 +526,27 @@ class SectionObject(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x01: # base object props
-                end = sec.data_end
-                if dbytes.pos + TRANSFORM_MIN_SIZE < end:
-                    self.transform = read_transform(dbytes)
-                if dbytes.pos + Section.MIN_SIZE < end:
-                    self.children_section = Section(dbytes)
-                    self.has_children = True
-                return True
+        if sec.match(MAGIC_3, 0x01):
+            end = sec.data_end
+            if dbytes.pos + TRANSFORM_MIN_SIZE < end:
+                self.transform = read_transform(dbytes)
+            if dbytes.pos + Section.MIN_SIZE < end:
+                self.children_section = Section(dbytes)
+                self.has_children = True
+            return True
         return BytesModel._read_section_data(self, dbytes, sec)
+
+    def _write_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_3, 0x01):
+            write_transform(dbytes, self.transform)
+            if self.has_children or self.children:
+                dbytes.write_int(4, MAGIC_5)
+                with dbytes.write_size():
+                    dbytes.write_int(4, len(self.children))
+                    for obj in self.children:
+                        obj.write(dbytes)
+            return True
+        return BytesModel._write_section_data(self, dbytes, sec)
 
     @property
     def children(self):
@@ -540,16 +591,6 @@ class SectionObject(BytesModel):
                 for obj in self.children:
                     p.tree_next_child()
                     p.print_data_of(obj)
-
-    def _write_sections(self, dbytes):
-        with dbytes.write_section(MAGIC_3, ident=1, version=0):
-            write_transform(dbytes, self.transform)
-            if self.has_children or self.children:
-                dbytes.write_int(4, MAGIC_5)
-                with dbytes.write_size():
-                    dbytes.write_int(4, len(self.children))
-                    for obj in self.children:
-                        obj.write(dbytes)
 
 
 class DstBytes(object):
@@ -686,12 +727,16 @@ class DstBytes(object):
                 self.pos = end
 
     @contextmanager
-    def write_section(self, magic, *args, **kw):
+    def write_section(self, *args, **kw):
         # add this section and save the counter
         old_count = self.num_subsections + 1
         self.num_subsections = 0
         try:
-            with Section.write_header(self, magic, *args, **kw):
+            if args and not isinstance(args[0], int):
+                sec = args[0]
+            else:
+                sec = Section(*args, **kw)
+            with sec.write_header(self):
                 yield
         finally:
             self.num_subsections = old_count
