@@ -171,4 +171,12 @@ def format_unknown(unknown):
     return ', '.join(format_unknown_value(v) for v in unknown)
 
 
+def format_transform(trans):
+    if trans is None:
+        return 'None'
+    def format_floats(floats):
+        return ', '.join(format(f, '.3f') for f in floats)
+    return ', '.join(f"({format_floats(f)})" for f in trans)
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -5,10 +5,12 @@ from struct import Struct
 import math
 from contextlib import contextmanager
 
-from .bytes import (BytesModel, Section, S_FLOAT,
+from .bytes import (BytesModel, SectionObject,
+                    S_FLOAT, S_FLOAT3, S_FLOAT4,
                     MAGIC_9, MAGIC_7, MAGIC_6,
-                    MAGIC_2, MAGIC_3, MAGIC_5,
-                    MAGIC_8, MAGIC_1)
+                    MAGIC_2, MAGIC_3,
+                    MAGIC_8, MAGIC_1,
+                    SKIP_BYTES)
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .printing import format_duration
@@ -16,11 +18,6 @@ from .probe import BytesProber
 
 
 S_ABILITIES = Struct("5b")
-SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
-
-S_FLOAT3 = Struct("fff")
-S_FLOAT4 = Struct("ffff")
-
 
 PROBER = BytesProber()
 
@@ -56,56 +53,6 @@ def format_flags(gen):
         name = names.get(flag, f"Unknown({flag})")
         if name:
             yield name
-
-
-TRANSFORM_MIN_SIZE = 12
-
-
-def read_transform(dbytes):
-    def read_float():
-        return dbytes.read_struct(S_FLOAT)[0]
-    f = dbytes.read_n(4)
-    if f == SKIP_BYTES:
-        pos = (0.0, 0.0, 0.0)
-    else:
-        pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
-    f = dbytes.read_n(4)
-    if f == SKIP_BYTES:
-        rot = (0.0, 0.0, 0.0, 1.0)
-    else:
-        rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
-    f = dbytes.read_n(4)
-    if f == SKIP_BYTES:
-        scale = (1.0, 1.0, 1.0)
-    else:
-        scale = (S_FLOAT.unpack(f)[0], read_float(), read_float())
-    return pos, rot, scale
-
-
-def write_transform(dbytes, trans):
-    if trans is None:
-        trans = ()
-    if len(trans) > 0 and len(trans[0]):
-        pos = trans[0]
-        dbytes.write_bytes(S_FLOAT3.pack(*pos))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 1 and len(trans[1]):
-        rot = trans[1]
-        dbytes.write_bytes(S_FLOAT4.pack(*rot))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 2 and len(trans[2]):
-        scale = trans[2]
-        dbytes.write_bytes(S_FLOAT3.pack(*scale))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-
-
-def format_transform(trans):
-    def format_floats(floats):
-        return ', '.join(format(f, '.3f') for f in floats)
-    return ', '.join(f"({format_floats(f)})" for f in trans)
 
 
 def iter_named_properties(dbytes, end):
@@ -167,80 +114,17 @@ def _print_objects(p, gen):
         p.print_data_of(obj)
 
 
-class LevelObject(BytesModel):
+class LevelObject(SectionObject):
 
     child_prober = SUBOBJ_PROBER
-    is_object_group = False
 
     transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
-    _children = None
-    has_children = False
-    children_section = None
 
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
         self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x01: # base object props
-                end = sec.data_end
-                if dbytes.pos + TRANSFORM_MIN_SIZE < end:
-                    self.transform = read_transform(dbytes)
-                if dbytes.pos + Section.MIN_SIZE < end:
-                    self.children_section = Section(dbytes)
-                    self.has_children = True
-                return True
-        return BytesModel._read_section_data(self, dbytes, sec)
-
-    @property
-    def children(self):
-        objs = self._children
-        if objs is None:
-            s5 = self.children_section
-            if s5 and s5.num_objects:
-                self._children = objs = []
-                dbytes = self.dbytes
-                with dbytes.saved_pos():
-                    dbytes.pos = s5.children_start
-                    objs = self.child_prober.read_n_maybe(
-                        dbytes, s5.num_objects)
-                    self._children = objs
-            else:
-                self._children = objs = ()
-        return objs
-
-    @children.setter
-    def children(self, objs):
-        self._children = objs
-
-    def write(self, dbytes):
-        with dbytes.write_section(MAGIC_6, self.type):
-            with dbytes.write_section(MAGIC_3, ident=1, version=0):
-                write_transform(dbytes, self.transform)
-                if self.has_children or self.children:
-                    dbytes.write_int(4, MAGIC_5)
-                    with dbytes.write_size():
-                        dbytes.write_int(4, len(self.children))
-                        for obj in self.children:
-                            obj.write(dbytes)
-
-            self._write_sub(dbytes)
-
-    def _write_sub(self, dbytes):
-        pass
-
-    def iter_children(self, ty=None, name=None):
-        for obj in self.children:
-            if ty is None or isinstance(obj, ty):
-                if name is None or obj.type == name:
-                    yield obj
-
-    def _print_data(self, p):
-        if 'transform' in p.flags:
-            p(f"Transform: {format_transform(self.transform)}")
 
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.children:
@@ -435,11 +319,14 @@ class Group(LevelObject):
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
-    def _write_sub(self, dbytes):
+    def _write_sections(self, dbytes):
+        LevelObject._write_sections(self, dbytes)
+
         with dbytes.write_section(MAGIC_2, ident=0x1d, version=1):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 0) # num values
             dbytes.write_int(4, 0) # inspect Children: None
+
         with dbytes.write_section(MAGIC_2, ident=0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
@@ -926,7 +813,9 @@ class WedgeGS(LevelObject):
                 return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
-    def _write_sub(self, dbytes):
+    def _write_sections(self, dbytes):
+        LevelObject._write_sections(self, dbytes)
+
         with dbytes.write_section(MAGIC_3, ident=3, version=2):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 1) # num values?
