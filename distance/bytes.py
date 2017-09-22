@@ -469,17 +469,17 @@ def read_transform(dbytes):
         return dbytes.read_struct(S_FLOAT)[0]
     f = dbytes.read_n(4)
     if f == SKIP_BYTES:
-        pos = (0.0, 0.0, 0.0)
+        pos = ()
     else:
         pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
     f = dbytes.read_n(4)
     if f == SKIP_BYTES:
-        rot = (0.0, 0.0, 0.0, 1.0)
+        rot = ()
     else:
         rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
     f = dbytes.read_n(4)
     if f == SKIP_BYTES:
-        scale = (1.0, 1.0, 1.0)
+        scale = ()
     else:
         scale = (S_FLOAT.unpack(f)[0], read_float(), read_float())
     return pos, rot, scale
@@ -512,7 +512,7 @@ class SectionObject(BytesModel):
     child_prober = None
     is_object_group = False
 
-    transform = ((), (), ())
+    transform = None
     _children = None
     has_children = False
     children_section = None
@@ -543,7 +543,11 @@ class SectionObject(BytesModel):
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, 0x01):
-            write_transform(dbytes, self.transform)
+            transform = self.transform
+            children = self.children
+            has_children = self.has_children or children
+            if self.transform or has_children:
+                write_transform(dbytes, self.transform)
             if self.has_children or self.children:
                 dbytes.write_int(4, MAGIC_5)
                 with dbytes.write_size():

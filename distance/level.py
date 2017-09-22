@@ -118,8 +118,6 @@ class LevelObject(SectionObject):
 
     child_prober = SUBOBJ_PROBER
 
-    transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
-
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
@@ -358,11 +356,11 @@ class Group(LevelObject):
             p(f"Custom name: {self.custom_name!r}")
 
     def recenter(self, center):
-        pos, rot, scale = self.transform
+        pos, rot, scale = self.transform or ((0, 0, 0), (), ())
         self.transform = center, rot, scale
         diff = tuple(c - o for c, o in zip(pos, center))
         for obj in self.children:
-            pos, rot, scale = obj.transform
+            pos, rot, scale = obj.transform or ((0, 0, 0), (), ())
             pos = tuple(o + d for o, d in zip(pos, diff))
             obj.transform = pos, rot, scale
 
