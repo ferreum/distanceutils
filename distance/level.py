@@ -118,12 +118,6 @@ class LevelObject(SectionObject):
 
     child_prober = SUBOBJ_PROBER
 
-    def _read(self, dbytes):
-        ts = self._get_start_section()
-        self.type = ts.type
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
-
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.children:
             num = len(self.children)
