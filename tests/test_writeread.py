@@ -19,12 +19,19 @@ def check_exceptions(obj):
         check_exceptions(child)
 
 
+def disable_writes(dbytes):
+    def do_raise(*args, **kwargs):
+        raise AssertionError("attempted to write")
+    dbytes.write_bytes = do_raise
+
+
 def write_read(obj):
     buf = BytesIO()
     dbytes = DstBytes(buf)
 
     obj.write(dbytes)
     dbytes.pos = 0
+    disable_writes(dbytes)
     result = type(obj)(dbytes)
 
     inflate(result)
