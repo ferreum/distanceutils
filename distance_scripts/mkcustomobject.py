@@ -102,6 +102,7 @@ def main():
                     p.tree_next_child()
                     p(f"Candidate: {i}")
                     p.print_data_of(obj)
+            p(f"Use -n to specify candidate.")
         else:
             print("no matching object found", file=sys.stderr)
 
