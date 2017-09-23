@@ -810,30 +810,63 @@ class WedgeGS(LevelObject):
     invert_emit = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 3:
-                # Material
-                return True
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x83:
-                # GoldenSimples
-                return True
+        if sec.match(MAGIC_3, 3): # Material
+            self._require_equal(MAGIC_1, 4)
+            num_entries = dbytes.read_int(4)
+            have_unknown = False
+            for i in range(num_entries):
+                entry_name = dbytes.read_str()
+                if entry_name == 'SimplesMaterial':
+                    self._require_equal(MAGIC_1, 4)
+                    num_values = dbytes.read_int(4)
+                    name = dbytes.read_str()
+                    value = dbytes.read_struct(S_FLOAT4)
+                    if name == '_Color':
+                        self.mat_color = value
+                    elif name == '_EmitColor':
+                        self.mat_emit = value
+                    elif name == '_ReflectColor':
+                        self.mat_reflect = value
+                    elif name == '_SpecColor':
+                        self.mat_spec = value
+                    else:
+                        return False # unknown name
+                else:
+                    return False # unknown entry
+            return True
+        elif sec.match(MAGIC_2, 0x83): # GoldenSimples
+            self.image_index = dbytes.read_int(4)
+            self.emit_index = dbytes.read_int(4)
+            dbytes.read_int(4) # preset
+            self.tex_scale = dbytes.read_struct(S_FLOAT3)
+            self.tex_offset = dbytes.read_struct(S_FLOAT3)
+            self.flip_tex_uv = dbytes.read_int(1)
+            self.world_mapped = dbytes.read_int(1)
+            self.disable_diffuse = dbytes.read_int(1)
+            self.disable_bump = dbytes.read_int(1)
+            self.bump_strength = dbytes.read_struct(S_FLOAT)
+            self.disable_reflect = dbytes.read_int(1)
+            self.disable_collision = dbytes.read_int(1)
+            self.additive_transp = dbytes.read_int(1)
+            self.multip_transp = dbytes.read_int(1)
+            self.invert_emit = dbytes.read_int(1)
+            return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, ident=3, version=2):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 1) # num values?
-            dbytes.write_str("SimplesMaterial")
+            dbytes.write_str('SimplesMaterial')
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 4) # num values?
-            dbytes.write_str("_Color")
+            dbytes.write_str('_Color')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_color))
-            dbytes.write_str("_EmitColor")
+            dbytes.write_str('_EmitColor')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_emit))
-            dbytes.write_str("_ReflectColor")
+            dbytes.write_str('_ReflectColor')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_reflect))
-            dbytes.write_str("_SpecColor")
+            dbytes.write_str('_SpecColor')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
             return True
 
