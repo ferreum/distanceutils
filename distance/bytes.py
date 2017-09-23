@@ -201,6 +201,16 @@ class BytesModel(object):
                 dbytes.pos = sec.data_end
 
     def _read_section_data(self, dbytes, sec):
+
+        """Reads the data of the given section.
+
+        Returns `True` if the raw section data is not needed.
+
+        Returns `False` to indicate that raw data of the section
+        shall be saved (e.g. for _write_section_data).
+
+        """
+
         return False
 
     def _write_sections(self, dbytes):
@@ -214,6 +224,18 @@ class BytesModel(object):
                     dbytes.write_bytes(data)
 
     def _write_section_data(self, dbytes, sec):
+
+        """Write the data of the given section.
+
+        Returns `True` if the section has been written.
+
+        Returns `False` if the raw section data shall be copied
+        from the source that this object has been read from. This
+        is an error if raw data has not been saved for the section
+        (e.g. by returning False from _read_section_data).
+
+        """
+
         return False
 
     def _report_end_pos(self, pos):
