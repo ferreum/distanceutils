@@ -9,6 +9,22 @@ import argparse
 
 from distance.level import Level
 from distance.bytes import DstBytes
+from distance.printing import PrintContext
+
+
+def iter_objects(source, recurse=-1):
+    for obj in source:
+        yield obj
+        if recurse != 0 and obj.is_object_group:
+            yield from iter_objects(obj.children, recurse=recurse-1)
+
+
+def select_candidates(source, objnum, maxrecurse):
+    res = []
+    for i, obj in enumerate(iter_objects(source, maxrecurse)):
+        if objnum is None or i == objnum:
+            res.append(obj)
+    return res
 
 
 def main():
@@ -18,13 +34,17 @@ def main():
                         help="Allow overwriting OUT file.")
     parser.add_argument("-n", "--objnum", type=int,
                         help="Object number to extract.")
+    parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
+                        help="Maximum of recursions. 0 only lists layer objects.")
     parser.add_argument("IN",
                         help="Level .bytes filename.")
     parser.add_argument("OUT",
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    objnum = args.objnum or 0
+    objnum = args.objnum or None
+
+    maxrecurse = args.maxrecurse
 
     write_mode = 'xb'
     if args.force:
@@ -36,11 +56,27 @@ def main():
 
     with open(args.IN, 'rb') as in_f:
         level = Level(DstBytes(in_f))
-        for i, obj in enumerate(level.iter_objects()):
-            if i == objnum:
-                with open(args.OUT, write_mode) as out_f:
-                    obj.write(DstBytes(out_f))
-                    return 0
+        candidates = select_candidates(level.iter_objects(), objnum, maxrecurse)
+
+        tosave = None
+        if len(candidates) == 1:
+            tosave = candidates[0]
+        elif len(candidates) > 1:
+            p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+            p(f"Candidates: {len(candidates)}")
+            with p.tree_children():
+                for i, obj in enumerate(candidates):
+                    p.tree_next_child()
+                    p(f"Candidate: {i}")
+                    p.print_data_of(obj)
+
+        if tosave is not None:
+            with open(args.OUT, write_mode) as out_f:
+                tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+                dbytes = DstBytes(out_f)
+                tosave.write(dbytes)
+                print(f"{dbytes.pos} bytes written")
+                return 0
 
     print("no matching object found", file=sys.stderr)
     return 1
