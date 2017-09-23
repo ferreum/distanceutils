@@ -119,12 +119,8 @@ class BytesModel(object):
         if dbytes is not None:
             self.read(dbytes, **kw)
         elif kw:
-            self.sections = self._init_sections()
             for k, v in kw.items():
                 setattr(self, k, v)
-
-    def _init_sections(self):
-        return ()
 
     def read(self, dbytes, start_section=None,
              start_pos=None, **kw):
@@ -521,9 +517,6 @@ class SectionObject(BytesModel):
         Section(MAGIC_3, 0x01, 0),
     )
 
-    def _init_sections(self):
-        return self.default_sections
-
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
@@ -542,8 +535,13 @@ class SectionObject(BytesModel):
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
+        if self.sections is ():
+            self.sections = self._init_sections()
         with dbytes.write_section(MAGIC_6, self.type):
             self._write_sections(dbytes)
+
+    def _init_sections(self):
+        return self.default_sections
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, 0x01):
