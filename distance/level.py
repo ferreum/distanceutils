@@ -81,9 +81,11 @@ class Counters(object):
     grouped_objects = 0
 
     def print_data(self, p):
-        p(f"Total layers: {self.num_layers}")
-        p(f"Total objects in layers: {self.layer_objects}")
-        if self.grouped_objects:
+        if self.num_layers:
+            p(f"Total layers: {self.num_layers}")
+        if self.layer_objects:
+            p(f"Total objects in layers: {self.layer_objects}")
+        if self.grouped_objects != self.num_objects:
             p(f"Total objects in groups: {self.grouped_objects}")
         if self.num_objects != self.layer_objects:
             p(f"Total objects: {self.num_objects}")
