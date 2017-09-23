@@ -541,6 +541,10 @@ class SectionObject(BytesModel):
             return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
+    def write(self, dbytes):
+        with dbytes.write_section(MAGIC_6, self.type):
+            self._write_sections(dbytes)
+
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, 0x01):
             transform = self.transform
@@ -583,10 +587,6 @@ class SectionObject(BytesModel):
             if ty is None or isinstance(obj, ty):
                 if name is None or obj.type == name:
                     yield obj
-
-    def write(self, dbytes):
-        with dbytes.write_section(MAGIC_6, self.type):
-            self._write_sections(dbytes)
 
     def _print_data(self, p):
         if 'transform' in p.flags:
