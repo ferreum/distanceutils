@@ -1,8 +1,8 @@
 import unittest
 from io import BytesIO
 
-from distance.level import WedgeGS, Group
-from distance.bytes import DstBytes
+from distance.level import WedgeGS, Group, InfoDisplayBox
+from distance.bytes import DstBytes, SectionObject
 from distance.printing import PrintContext
 from distance.constants import ForceType
 
@@ -25,14 +25,17 @@ def disable_writes(dbytes):
     dbytes.write_bytes = do_raise
 
 
-def write_read(obj):
+def write_read(obj, cls=None):
+    if cls is None:
+        cls = type(obj)
+
     buf = BytesIO()
     dbytes = DstBytes(buf)
 
     obj.write(dbytes)
     dbytes.pos = 0
     disable_writes(dbytes)
-    result = type(obj)(dbytes)
+    result = cls(dbytes)
 
     inflate(result)
     check_exceptions(result)
@@ -119,6 +122,18 @@ class GroupTest(unittest.TestCase):
         res = write_read(orig)
 
         self.assertEqual('test group', res.custom_name)
+
+
+class UnknownTest(unittest.TestCase):
+
+    def test_persist(self):
+        with open("tests/in/customobject/infodisplaybox 1.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            obj = SectionObject(dbytes)
+
+            res = write_read(obj, cls=InfoDisplayBox)
+
+            self.assertEqual(["Text0", "Text1", "Text2", "", "Text4"], res.texts)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
