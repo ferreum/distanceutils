@@ -441,7 +441,8 @@ class Section(BytesModel):
             raise IOError(f"unknown section: {magic} (0x{magic:08x})")
 
     def read_raw_data(self, dbytes):
-        self.raw_data = dbytes.read_n(self.data_end - dbytes.pos)
+        self.raw_data = dbytes.read_n(self.data_end - dbytes.pos,
+                                      or_to_eof=True)
 
     def match(self, magic, ident=None, version=None):
         if magic != self.magic:
