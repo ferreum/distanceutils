@@ -36,7 +36,7 @@ def iter_objects(source, recurse=-1):
 
 
 def select_candidates(source, args):
-    objnum = args.objnum or None
+    objnum = args.objnum
 
     maxrecurse = args.maxrecurse
 
@@ -62,7 +62,7 @@ def main():
         description=__doc__)
     parser.add_argument("-f", "--force", action='store_true',
                         help="Allow overwriting OUT file.")
-    parser.add_argument("-n", "--objnum", type=int,
+    parser.add_argument("-n", "--objnum", type=int, default=None,
                         help="Object number to extract.")
     parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
                         help="Maximum of recursions. 0 only lists layer objects.")
