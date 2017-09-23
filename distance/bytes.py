@@ -205,7 +205,11 @@ class BytesModel(object):
         for sec in self.sections:
             with dbytes.write_section(sec):
                 if not self._write_section_data(dbytes, sec):
-                    dbytes.write_bytes(sec.raw_data)
+                    data = sec.raw_data
+                    if data is None:
+                        raise ValueError(
+                            f"Raw data not available for section {sec}")
+                    dbytes.write_bytes(data)
 
     def _write_section_data(self, dbytes, sec):
         return False
