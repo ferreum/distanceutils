@@ -9,8 +9,23 @@ import argparse
 import re
 
 from distance.level import Level
-from distance.bytes import DstBytes
+from distance.level import PROBER as LEVEL_PROBER
+from distance.bytes import DstBytes, MAGIC_9
 from distance.printing import PrintContext
+from distance.probe import BytesProber
+
+
+PROBER = BytesProber()
+
+
+@PROBER.func
+def _detect_other(section):
+    if section.magic == MAGIC_9:
+        return Level
+    return None
+
+
+PROBER.extend(LEVEL_PROBER)
 
 
 def iter_objects(source, recurse=-1):
@@ -68,8 +83,13 @@ def main():
         return 1
 
     with open(args.IN, 'rb') as in_f:
-        level = Level(DstBytes(in_f))
-        candidates = select_candidates(level.iter_objects(), args)
+        content = PROBER.read(DstBytes(in_f))
+        if isinstance(content, Level):
+            object_source = content.iter_objects()
+        else:
+            # CustomObject
+            object_source = [content]
+        candidates = select_candidates(object_source, args)
 
         tosave = None
         if len(candidates) == 1:
