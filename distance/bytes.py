@@ -208,7 +208,7 @@ class BytesModel(object):
                     data = sec.raw_data
                     if data is None:
                         raise ValueError(
-                            f"Raw data not available for section {sec}")
+                            f"Raw data not available for {sec}")
                     dbytes.write_bytes(data)
 
     def _write_section_data(self, dbytes, sec):
@@ -327,6 +327,7 @@ class Section(BytesModel):
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
     layer_name = None
+    level_name = None
     num_objects = None
     layer_flags = ()
     data_start = None
@@ -359,6 +360,15 @@ class Section(BytesModel):
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
 
         arg.verify()
+
+    def __repr__(self):
+        magic = self.magic
+        argstr = str(magic)
+        if magic in (MAGIC_2, MAGIC_3):
+            argstr += f", ident=0x{self.ident:x}, version={self.version}"
+        elif magic == MAGIC_6:
+            argstr += f", {self.type!r}"
+        return f"Section({argstr})"
 
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
