@@ -289,14 +289,13 @@ class ProfileProgress(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x6A:
-                self.level_s2 = sec
-                self.num_levels = dbytes.read_int(4)
-                return True
-            elif sec.ident == 0x8E:
-                self.stats_s2 = sec
-                return True
+        if sec.match(MAGIC_2, 0x6a):
+            self.level_s2 = sec
+            self.num_levels = dbytes.read_int(4)
+            return True
+        elif sec.match(MAGIC_2, 0x8e):
+            self.stats_s2 = sec
+            return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):

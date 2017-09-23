@@ -165,39 +165,38 @@ class LevelSettings(LevelObject):
         LevelObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x52:
-                self.version = version = sec.version
+        if sec.match(MAGIC_2, 0x52):
+            self.version = version = sec.version
 
-                self._add_unknown(8)
-                self.name = dbytes.read_str()
-                self._add_unknown(4)
-                self.modes = modes = {}
-                num_modes = dbytes.read_int(4)
-                for i in range(num_modes):
-                    mode = dbytes.read_int(4)
-                    modes[mode] = dbytes.read_byte()
-                self.music_id = dbytes.read_int(4)
-                if version <= 3:
-                    self.skybox_name = dbytes.read_str()
-                    self._add_unknown(57)
-                elif version == 4:
-                    self._add_unknown(141)
-                elif version == 5:
-                    self._add_unknown(172)
-                elif 6 <= version:
-                    # confirmed only for v6..v9
-                    self._add_unknown(176)
-                self.medal_times = times = []
-                self.medal_scores = scores = []
-                for i in range(4):
-                    times.append(dbytes.read_struct(S_FLOAT)[0])
-                    scores.append(dbytes.read_int(4, signed=True))
-                if version >= 1:
-                    self.abilities = dbytes.read_struct(S_ABILITIES)
-                if version >= 2:
-                    self.difficulty = dbytes.read_int(4)
-                return False
+            self._add_unknown(8)
+            self.name = dbytes.read_str()
+            self._add_unknown(4)
+            self.modes = modes = {}
+            num_modes = dbytes.read_int(4)
+            for i in range(num_modes):
+                mode = dbytes.read_int(4)
+                modes[mode] = dbytes.read_byte()
+            self.music_id = dbytes.read_int(4)
+            if version <= 3:
+                self.skybox_name = dbytes.read_str()
+                self._add_unknown(57)
+            elif version == 4:
+                self._add_unknown(141)
+            elif version == 5:
+                self._add_unknown(172)
+            elif 6 <= version:
+                # confirmed only for v6..v9
+                self._add_unknown(176)
+            self.medal_times = times = []
+            self.medal_scores = scores = []
+            for i in range(4):
+                times.append(dbytes.read_struct(S_FLOAT)[0])
+                scores.append(dbytes.read_int(4, signed=True))
+            if version >= 1:
+                self.abilities = dbytes.read_struct(S_ABILITIES)
+            if version >= 2:
+                self.difficulty = dbytes.read_int(4)
+            return False
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def _print_type(self, p):
@@ -310,25 +309,24 @@ class Group(LevelObject):
     )
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x1d: # Group / inspect Children
-                return False
-            elif sec.ident == 0x63: # Group name
-                if sec.data_size > 12:
-                    self.custom_name = dbytes.read_str()
-                return True
+        if sec.match(MAGIC_2, 0x1d): # Group / inspect Children
+            return False
+        elif sec.match(MAGIC_2, 0x63): # Group name
+            if sec.data_size > 12:
+                self.custom_name = dbytes.read_str()
+            return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _write_sections(self, dbytes):
         LevelObject._write_sections(self, dbytes)
 
     def _write_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, ident=0x1d, version=1):
+        if sec.match(MAGIC_2, 0x1d, version=1):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 0) # num values
             dbytes.write_int(4, 0) # inspect Children: None
             return True
-        elif sec.match(MAGIC_2, ident=0x63, version=0):
+        elif sec.match(MAGIC_2, 0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
             return True
@@ -369,23 +367,22 @@ class SubTeleporter(SubObject):
     trigger_checkpoint = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x3E:
-                value = dbytes.read_int(4)
-                self.destination = value
-                return False
-            elif sec.ident == 0x3F:
-                value = dbytes.read_int(4)
-                self.link_id = value
-                return False
-            elif sec.ident == 0x51:
-                if sec.data_size > 12:
-                    check = dbytes.read_byte()
-                else:
-                    # if section is too short, the checkpoint is enabled
-                    check = 1
-                self.trigger_checkpoint = check
-                return False
+        if sec.match(MAGIC_2, 0x3e):
+            value = dbytes.read_int(4)
+            self.destination = value
+            return False
+        elif sec.match(MAGIC_2, 0x3f):
+            value = dbytes.read_int(4)
+            self.link_id = value
+            return False
+        elif sec.match(MAGIC_2, 0x51):
+            if sec.data_size > 12:
+                check = dbytes.read_byte()
+            else:
+                # if section is too short, the checkpoint is enabled
+                check = 1
+            self.trigger_checkpoint = check
+            return False
         return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -404,19 +401,18 @@ class WinLogic(SubObject):
     delay_before_broadcast = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x5d:
-                if sec.data_size >= 16:
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if propname == "DelayBeforeBroadcast":
-                            value = 0.0
-                            if not is_skip:
-                                value = dbytes.read_struct(S_FLOAT)[0]
-                            self.delay_before_broadcast = value
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                return False
+        if sec.match(MAGIC_2, 0x5d):
+            if sec.data_size >= 16:
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if propname == "DelayBeforeBroadcast":
+                        value = 0.0
+                        if not is_skip:
+                            value = dbytes.read_struct(S_FLOAT)[0]
+                        self.delay_before_broadcast = value
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            return False
         return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -430,17 +426,16 @@ class WorldText(LevelObject):
     text = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x07:
-                pos = sec.data_start + 12
-                if pos < sec.data_end:
-                    dbytes.pos = pos
-                    self.text = dbytes.read_str()
-                    for i in range((sec.data_end - dbytes.pos) // 4):
-                        self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
-                else:
-                    self.text = f"Hello World"
-                return False
+        if sec.match(MAGIC_3, 0x07):
+            pos = sec.data_start + 12
+            if pos < sec.data_end:
+                dbytes.pos = pos
+                self.text = dbytes.read_str()
+                for i in range((sec.data_end - dbytes.pos) // 4):
+                    self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
+            else:
+                self.text = f"Hello World"
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -460,40 +455,39 @@ class InfoDisplayBox(LevelObject):
     random_char_count = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x4A:
-                texts = self.texts
-                self.version = version = sec.version
-                if version == 0:
-                    self.texts = texts = [None] * 5
-                    self.delays = delays = [None] * 5
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if is_skip:
-                            continue
-                        if propname.startswith('InfoText'):
-                            index = int(propname[-1])
-                            texts[index] = dbytes.read_str()
-                        elif propname.startswith('Delay'):
-                            index = int(propname[-1])
-                            delays[index] = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'PerCharSpeed':
-                            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'DestroyOnTriggerExit':
-                            self.destroy_on_trigger_exit = dbytes.read_int(1)
-                        elif propname == 'RandomCharCount':
-                            self.random_char_count = dbytes.read_int(4)
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                else:
-                    # only verified in v2
-                    self.fadeout_time = dbytes.read_struct(S_FLOAT)
-                    for i in range(5):
-                        self._add_unknown(4) # f32 delay
-                        if texts is ():
-                            self.texts = texts = []
-                        texts.append(dbytes.read_str())
-                return False
+        if sec.match(MAGIC_2, 0x4A):
+            texts = self.texts
+            self.version = version = sec.version
+            if version == 0:
+                self.texts = texts = [None] * 5
+                self.delays = delays = [None] * 5
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if is_skip:
+                        continue
+                    if propname.startswith('InfoText'):
+                        index = int(propname[-1])
+                        texts[index] = dbytes.read_str()
+                    elif propname.startswith('Delay'):
+                        index = int(propname[-1])
+                        delays[index] = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'PerCharSpeed':
+                        self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'DestroyOnTriggerExit':
+                        self.destroy_on_trigger_exit = dbytes.read_int(1)
+                    elif propname == 'RandomCharCount':
+                        self.random_char_count = dbytes.read_int(4)
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            else:
+                # only verified in v2
+                self.fadeout_time = dbytes.read_struct(S_FLOAT)
+                for i in range(5):
+                    self._add_unknown(4) # f32 delay
+                    if texts is ():
+                        self.texts = texts = []
+                    texts.append(dbytes.read_str())
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -525,53 +519,52 @@ class CarScreenTextDecodeTrigger(LevelObject):
     announcer_phrases = ()
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x57:
-                if sec.version == 0:
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if is_skip:
-                            continue
-                        if propname == 'Text':
-                            self.text = dbytes.read_str()
-                        elif propname == 'PerCharSpeed':
-                            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'ClearOnFinish':
-                            self.clear_on_finish = dbytes.read_byte()
-                        elif propname == 'ClearOnTriggerExit':
-                            self.clear_on_trigger_exit = dbytes.read_byte()
-                        elif propname == 'DestroyOnTriggerExit':
-                            self.destroy_on_trigger_exit = dbytes.read_byte()
-                        elif propname == 'TimeText':
-                            self.time_text = dbytes.read_str()
-                        elif propname == 'StaticTimeText':
-                            self.static_time_text = dbytes.read_byte()
-                        elif propname == 'Delay':
-                            self.delay = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'AnnouncerAction':
-                            self.announcer_action = dbytes.read_int(4)
-                        elif propname == 'AnnouncerPhrases':
-                            self._require_equal(MAGIC_1, 4)
-                            num_phrases = dbytes.read_int(4)
-                            self.announcer_phrases = phrases = []
-                            for _ in range(num_phrases):
-                                phrases.append(dbytes.read_str())
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                else:
-                    try:
+        if sec.match(MAGIC_2, 0x57):
+            if sec.version == 0:
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if is_skip:
+                        continue
+                    if propname == 'Text':
                         self.text = dbytes.read_str()
+                    elif propname == 'PerCharSpeed':
                         self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'ClearOnFinish':
                         self.clear_on_finish = dbytes.read_byte()
+                    elif propname == 'ClearOnTriggerExit':
                         self.clear_on_trigger_exit = dbytes.read_byte()
+                    elif propname == 'DestroyOnTriggerExit':
                         self.destroy_on_trigger_exit = dbytes.read_byte()
+                    elif propname == 'TimeText':
                         self.time_text = dbytes.read_str()
+                    elif propname == 'StaticTimeText':
                         self.static_time_text = dbytes.read_byte()
+                    elif propname == 'Delay':
                         self.delay = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'AnnouncerAction':
                         self.announcer_action = dbytes.read_int(4)
-                    except EOFError:
-                        pass
-                return False
+                    elif propname == 'AnnouncerPhrases':
+                        self._require_equal(MAGIC_1, 4)
+                        num_phrases = dbytes.read_int(4)
+                        self.announcer_phrases = phrases = []
+                        for _ in range(num_phrases):
+                            phrases.append(dbytes.read_str())
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            else:
+                try:
+                    self.text = dbytes.read_str()
+                    self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    self.clear_on_finish = dbytes.read_byte()
+                    self.clear_on_trigger_exit = dbytes.read_byte()
+                    self.destroy_on_trigger_exit = dbytes.read_byte()
+                    self.time_text = dbytes.read_str()
+                    self.static_time_text = dbytes.read_byte()
+                    self.delay = dbytes.read_struct(S_FLOAT)[0]
+                    self.announcer_action = dbytes.read_int(4)
+                except EOFError:
+                    pass
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -618,38 +611,36 @@ class GravityTrigger(LevelObject):
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x0e:
-                # SphereCollider
-                self.trigger_center = (0.0, 0.0, 0.0)
-                self.trigger_radius = 50.0
-                with dbytes.limit(sec.data_end, True):
-                    self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
-                    self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
-                return False
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x45:
-                # GravityTrigger
-                self.disable_gravity = 1
-                self.drag_scale = 1.0
-                self.drag_scale_angular = 1.0
-                with dbytes.limit(sec.data_end, True):
-                    self.disable_gravity = dbytes.read_byte()
-                    self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
-                    self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
-                return False
-            elif sec.ident == 0x4b:
-                # MusicTrigger
-                self.music_id = 19
-                self.one_time_trigger = 1
-                self.reset_before_trigger = 0
-                self.disable_music_trigger = 0
-                with dbytes.limit(sec.data_end, True):
-                    self.music_id = dbytes.read_int(4)
-                    self.one_time_trigger = dbytes.read_byte()
-                    self.reset_before_trigger = dbytes.read_byte()
-                    self.disable_music_trigger = dbytes.read_byte()
-                return False
+        if sec.match(MAGIC_3, 0x0e):
+            # SphereCollider
+            self.trigger_center = (0.0, 0.0, 0.0)
+            self.trigger_radius = 50.0
+            with dbytes.limit(sec.data_end, True):
+                self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
+                self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
+            return False
+        elif sec.match(MAGIC_2, 0x45):
+            # GravityTrigger
+            self.disable_gravity = 1
+            self.drag_scale = 1.0
+            self.drag_scale_angular = 1.0
+            with dbytes.limit(sec.data_end, True):
+                self.disable_gravity = dbytes.read_byte()
+                self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
+                self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
+            return False
+        elif sec.match(MAGIC_2, 0x4b):
+            # MusicTrigger
+            self.music_id = 19
+            self.one_time_trigger = 1
+            self.reset_before_trigger = 0
+            self.disable_music_trigger = 0
+            with dbytes.limit(sec.data_end, True):
+                self.music_id = dbytes.read_int(4)
+                self.one_time_trigger = dbytes.read_byte()
+                self.reset_before_trigger = dbytes.read_byte()
+                self.disable_music_trigger = dbytes.read_byte()
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -683,32 +674,30 @@ class ForceZoneBox(LevelObject):
     drag_multiplier = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x0f: # collider
-                return False
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x63: # CustomName
-                if dbytes.pos < sec.data_end:
-                    with dbytes.limit(sec.data_end):
-                        self.custom_name = dbytes.read_str()
-                return False
-            elif sec.ident == 0xa0:
-                self.force_direction = (0.0, 0.0, 1.0)
-                self.global_force = 0
-                self.force_type = ForceType.WIND
-                self.gravity_magnitude = 25.0
-                self.disable_global_gravity = 0
-                self.wind_speed = 300.0
-                self.drag_multiplier = 1.0
-                with dbytes.limit(sec.data_end, True):
-                    self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
-                    self.global_force = dbytes.read_byte()
-                    self.force_type = dbytes.read_int(4)
-                    self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
-                    self.disable_global_gravity = dbytes.read_byte()
-                    self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
-                    self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
-                return False
+        if sec.match(MAGIC_3, 0x0f): # collider
+            return False
+        elif sec.match(MAGIC_2, 0x63): # CustomName
+            if dbytes.pos < sec.data_end:
+                with dbytes.limit(sec.data_end):
+                    self.custom_name = dbytes.read_str()
+            return False
+        elif sec.match(MAGIC_2, 0xa0):
+            self.force_direction = (0.0, 0.0, 1.0)
+            self.global_force = 0
+            self.force_type = ForceType.WIND
+            self.gravity_magnitude = 25.0
+            self.disable_global_gravity = 0
+            self.wind_speed = 300.0
+            self.drag_multiplier = 1.0
+            with dbytes.limit(sec.data_end, True):
+                self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
+                self.global_force = dbytes.read_byte()
+                self.force_type = dbytes.read_int(4)
+                self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
+                self.disable_global_gravity = dbytes.read_byte()
+                self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
+                self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -740,30 +729,28 @@ class EnableAbilitiesBox(LevelObject):
     bloom_out = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x0f:
-                # BoxCollider
-                return False
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x5e:
-                # Abilities
-                if sec.data_size > 16:
-                    self.abilities = abilities = {}
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if propname in self.KNOWN_ABILITIES:
-                            value = 0
-                            if not is_skip:
-                                value = dbytes.read_int(1)
-                            abilities[propname] = value
-                        elif propname == 'BloomOut':
-                            value = 0
-                            if not is_skip:
-                                value = dbytes.read_int(1)
-                            self.bloom_out = value
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                return False
+        if sec.match(MAGIC_3, 0x0f):
+            # BoxCollider
+            return False
+        elif sec.match(MAGIC_2, 0x5e):
+            # Abilities
+            if sec.data_size > 16:
+                self.abilities = abilities = {}
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if propname in self.KNOWN_ABILITIES:
+                        value = 0
+                        if not is_skip:
+                            value = dbytes.read_int(1)
+                        abilities[propname] = value
+                    elif propname == 'BloomOut':
+                        value = 0
+                        if not is_skip:
+                            value = dbytes.read_int(1)
+                        self.bloom_out = value
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
