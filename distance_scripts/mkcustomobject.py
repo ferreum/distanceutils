@@ -6,6 +6,7 @@
 import os
 import sys
 import argparse
+import re
 
 from distance.level import Level
 from distance.bytes import DstBytes
@@ -19,9 +20,23 @@ def iter_objects(source, recurse=-1):
             yield from iter_objects(obj.children, recurse=recurse-1)
 
 
-def select_candidates(source, objnum, maxrecurse):
+def select_candidates(source, args):
+    objnum = args.objnum or None
+
+    maxrecurse = args.maxrecurse
+
+    type_patterns = [re.compile(r) for r in args.type]
+
+    def match_object(obj):
+        if type_patterns:
+            typename = obj.type
+            if not any(r.search(typename) for r in type_patterns):
+                return False
+        return True
+
     res = []
-    for i, obj in enumerate(iter_objects(source, maxrecurse)):
+    for i, obj in enumerate(obj for obj in iter_objects(source, maxrecurse)
+                            if match_object(obj)):
         if objnum is None or i == objnum:
             res.append(obj)
     return res
@@ -36,15 +51,13 @@ def main():
                         help="Object number to extract.")
     parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
                         help="Maximum of recursions. 0 only lists layer objects.")
+    parser.add_argument("-t", "--type", action='append', default=[],
+                        help="Match object type (regex).")
     parser.add_argument("IN",
                         help="Level .bytes filename.")
     parser.add_argument("OUT",
                         help="output .bytes filename.")
     args = parser.parse_args()
-
-    objnum = args.objnum or None
-
-    maxrecurse = args.maxrecurse
 
     write_mode = 'xb'
     if args.force:
@@ -56,7 +69,7 @@ def main():
 
     with open(args.IN, 'rb') as in_f:
         level = Level(DstBytes(in_f))
-        candidates = select_candidates(level.iter_objects(), objnum, maxrecurse)
+        candidates = select_candidates(level.iter_objects(), args)
 
         tosave = None
         if len(candidates) == 1:
@@ -69,6 +82,8 @@ def main():
                     p.tree_next_child()
                     p(f"Candidate: {i}")
                     p.print_data_of(obj)
+        else:
+            print("no matching object found", file=sys.stderr)
 
         if tosave is not None:
             with open(args.OUT, write_mode) as out_f:
@@ -78,7 +93,6 @@ def main():
                 print(f"{dbytes.pos} bytes written")
                 return 0
 
-    print("no matching object found", file=sys.stderr)
     return 1
 
 
