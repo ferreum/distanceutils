@@ -159,6 +159,7 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         with open(f"tests/in/customobject/enableabilitiesbox default.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
             self.assertEqual(obj.abilities.get('EnableFlying', 0), 0)
+            self.assertEqual(obj.bloom_out, 1)
             p.print_data_of(obj)
 
     def test_flyboost(self):
@@ -167,6 +168,16 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
             obj = PROBER.read(DstBytes(f))
             self.assertEqual(obj.abilities['EnableFlying'], 1)
             self.assertEqual(obj.abilities['EnableBoosting'], 1)
+            self.assertEqual(obj.bloom_out, 1)
+            p.print_data_of(obj)
+
+    def test_all_off(self):
+        p = PrintContext.for_test()
+        with open(f"tests/in/customobject/enableabilitiesbox all off.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            self.assertEqual(obj.abilities['EnableFlying'], 0)
+            self.assertEqual(obj.abilities['EnableBoosting'], 0)
+            self.assertEqual(obj.bloom_out, 0)
             p.print_data_of(obj)
 
 

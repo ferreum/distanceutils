@@ -850,7 +850,7 @@ class EnableAbilitiesBox(LevelObject):
     abilities = {}
     KNOWN_ABILITIES = {'EnableFlying', 'EnableJumping',
                        'EnableBoosting', 'EnableJetRotating'}
-    bloom_out = 0
+    bloom_out = 1
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_3:
@@ -870,7 +870,7 @@ class EnableAbilitiesBox(LevelObject):
                                 value = dbytes.read_int(1)
                             abilities[propname] = value
                         elif propname == 'BloomOut':
-                            value = 0
+                            value = 1
                             if not is_skip:
                                 value = dbytes.read_int(1)
                             self.bloom_out = value
