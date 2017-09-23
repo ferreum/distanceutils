@@ -197,7 +197,7 @@ class LevelSettings(LevelObject):
                     self.abilities = dbytes.read_struct(S_ABILITIES)
                 if version >= 2:
                     self.difficulty = dbytes.read_int(4)
-                return True
+                return False
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def _print_type(self, p):
@@ -312,7 +312,7 @@ class Group(LevelObject):
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_2:
             if sec.ident == 0x1d: # Group / inspect Children
-                return True
+                return False
             elif sec.ident == 0x63: # Group name
                 if sec.data_size > 12:
                     self.custom_name = dbytes.read_str()
@@ -373,11 +373,11 @@ class SubTeleporter(SubObject):
             if sec.ident == 0x3E:
                 value = dbytes.read_int(4)
                 self.destination = value
-                return True
+                return False
             elif sec.ident == 0x3F:
                 value = dbytes.read_int(4)
                 self.link_id = value
-                return True
+                return False
             elif sec.ident == 0x51:
                 if sec.data_size > 12:
                     check = dbytes.read_byte()
@@ -385,7 +385,7 @@ class SubTeleporter(SubObject):
                     # if section is too short, the checkpoint is enabled
                     check = 1
                 self.trigger_checkpoint = check
-                return True
+                return False
         return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -416,7 +416,7 @@ class WinLogic(SubObject):
                             self.delay_before_broadcast = value
                         else:
                             raise ValueError(f"unknown property: {propname!r}")
-                return True
+                return False
         return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -440,7 +440,7 @@ class WorldText(LevelObject):
                         self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
                 else:
                     self.text = f"Hello World"
-                return True
+                return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -493,7 +493,7 @@ class InfoDisplayBox(LevelObject):
                         if texts is ():
                             self.texts = texts = []
                         texts.append(dbytes.read_str())
-                return True
+                return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -558,7 +558,6 @@ class CarScreenTextDecodeTrigger(LevelObject):
                                 phrases.append(dbytes.read_str())
                         else:
                             raise ValueError(f"unknown property: {propname!r}")
-                    return True
                 else:
                     try:
                         self.text = dbytes.read_str()
@@ -572,7 +571,7 @@ class CarScreenTextDecodeTrigger(LevelObject):
                         self.announcer_action = dbytes.read_int(4)
                     except EOFError:
                         pass
-                    return True
+                return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -627,7 +626,7 @@ class GravityTrigger(LevelObject):
                 with dbytes.limit(sec.data_end, True):
                     self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
                     self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
-                return True
+                return False
         elif sec.magic == MAGIC_2:
             if sec.ident == 0x45:
                 # GravityTrigger
@@ -638,7 +637,7 @@ class GravityTrigger(LevelObject):
                     self.disable_gravity = dbytes.read_byte()
                     self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
                     self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
-                return True
+                return False
             elif sec.ident == 0x4b:
                 # MusicTrigger
                 self.music_id = 19
@@ -650,7 +649,7 @@ class GravityTrigger(LevelObject):
                     self.one_time_trigger = dbytes.read_byte()
                     self.reset_before_trigger = dbytes.read_byte()
                     self.disable_music_trigger = dbytes.read_byte()
-                return True
+                return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -685,16 +684,14 @@ class ForceZoneBox(LevelObject):
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic == MAGIC_3:
-            if sec.ident == 0x0f:
-                # collider
-                return True
+            if sec.ident == 0x0f: # collider
+                return False
         elif sec.magic == MAGIC_2:
-            if sec.ident == 0x63:
-                # CustomName
+            if sec.ident == 0x63: # CustomName
                 if dbytes.pos < sec.data_end:
                     with dbytes.limit(sec.data_end):
                         self.custom_name = dbytes.read_str()
-                return True
+                return False
             elif sec.ident == 0xa0:
                 self.force_direction = (0.0, 0.0, 1.0)
                 self.global_force = 0
@@ -711,7 +708,7 @@ class ForceZoneBox(LevelObject):
                     self.disable_global_gravity = dbytes.read_byte()
                     self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
                     self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
-                return True
+                return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -746,7 +743,7 @@ class EnableAbilitiesBox(LevelObject):
         if sec.magic == MAGIC_3:
             if sec.ident == 0x0f:
                 # BoxCollider
-                return True
+                return False
         elif sec.magic == MAGIC_2:
             if sec.ident == 0x5e:
                 # Abilities
@@ -766,7 +763,7 @@ class EnableAbilitiesBox(LevelObject):
                             self.bloom_out = value
                         else:
                             raise ValueError(f"unknown property: {propname!r}")
-                return True
+                return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
