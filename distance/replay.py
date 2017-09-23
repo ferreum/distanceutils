@@ -54,7 +54,7 @@ class Replay(BytesModel):
                 section_size = dbytes.read_int(4)
                 dbytes.read_n(section_size - 8)
                 self.finish_time = dbytes.read_int(4)
-            return True
+            return False
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):

@@ -47,7 +47,7 @@ class Leaderboard(BytesModel):
             self.entries_s2 = sec
             self.version = sec.version
             self.num_entries = dbytes.read_int(4)
-            return True
+            return False
 
     def move_to_first_entry(self):
         s2 = self.entries_s2

@@ -65,7 +65,7 @@ class WorkshopLevelInfos(BytesModel):
         if sec.match(MAGIC_2, 0x6d):
             self.levels_s2 = sec
             self.num_levels = dbytes.read_int(4)
-            return True
+            return False
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):

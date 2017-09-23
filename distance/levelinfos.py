@@ -66,7 +66,7 @@ class LevelInfos(BytesModel):
         if sec.match(MAGIC_2, 0x97):
             self.version = sec.version
             self.entries_s2 = sec
-            return True
+            return False
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
