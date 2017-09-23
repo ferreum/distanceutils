@@ -1,7 +1,7 @@
 """Read replay metadata."""
 
 
-from .bytes import (BytesModel, S_COLOR_RGBA,
+from .bytes import (SectionObject, S_COLOR_RGBA,
                     MAGIC_2, MAGIC_1)
 from .printing import format_duration, format_color
 
@@ -9,7 +9,7 @@ from .printing import format_duration, format_color
 FTYPE_REPLAY_PREFIX = "Replay: "
 
 
-class Replay(BytesModel):
+class Replay(SectionObject):
 
     version = None
     player_name = None
@@ -24,9 +24,8 @@ class Replay(BytesModel):
     car_color_sparkle = None
 
     def _read(self, dbytes):
-        ts = self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+        self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+        SectionObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x7f):
@@ -55,7 +54,7 @@ class Replay(BytesModel):
                 dbytes.read_n(section_size - 8)
                 self.finish_time = dbytes.read_int(4)
             return False
-        return BytesModel._read_section_data(self, dbytes, sec)
+        return SectionObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

@@ -1,7 +1,7 @@
 """LevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
+from .bytes import BytesModel, SectionObject, MAGIC_2, MAGIC_12, S_FLOAT
 from .printing import format_duration
 from .constants import Mode
 
@@ -52,22 +52,21 @@ class Entry(BytesModel):
             p(f"Medal scores: {scores_str}")
 
 
-class LevelInfos(BytesModel):
+class LevelInfos(SectionObject):
 
     version = None
     entries_s2 = None
 
     def _read(self, dbytes):
-        ts = self._require_type(FTYPE_LEVELINFOS)
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+        self._require_type(FTYPE_LEVELINFOS)
+        SectionObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x97):
             self.version = sec.version
             self.entries_s2 = sec
             return False
-        return BytesModel._read_section_data(self, dbytes, sec)
+        return SectionObject._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         s2 = self.entries_s2

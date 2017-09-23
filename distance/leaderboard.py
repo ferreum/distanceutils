@@ -3,7 +3,7 @@
 
 from operator import attrgetter
 
-from .bytes import BytesModel, MAGIC_2
+from .bytes import BytesModel, SectionObject, MAGIC_2
 from .printing import format_bytes, format_duration
 
 
@@ -31,7 +31,7 @@ class Entry(BytesModel):
             raise IOError(f"unknown version: {version}")
 
 
-class Leaderboard(BytesModel):
+class Leaderboard(SectionObject):
 
     entries_s2 = None
     version = None
@@ -48,6 +48,7 @@ class Leaderboard(BytesModel):
             self.version = sec.version
             self.num_entries = dbytes.read_int(4)
             return False
+        return SectionObject._read_section_data(self, dbytes, sec)
 
     def move_to_first_entry(self):
         s2 = self.entries_s2

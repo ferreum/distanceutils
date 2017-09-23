@@ -1,7 +1,7 @@
 """WorkshopLevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, MAGIC_2
+from .bytes import BytesModel, SectionObject, MAGIC_2
 from .printing import format_bytes
 from .constants import Rating
 
@@ -52,21 +52,20 @@ class Level(BytesModel):
         self._add_unknown(3)
 
 
-class WorkshopLevelInfos(BytesModel):
+class WorkshopLevelInfos(SectionObject):
 
     num_levels = 0
 
     def _read(self, dbytes):
-        ts = self._require_type(FTYPE_WSLEVELINFOS)
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+        self._require_type(FTYPE_WSLEVELINFOS)
+        SectionObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x6d):
             self.levels_s2 = sec
             self.num_levels = dbytes.read_int(4)
             return False
-        return BytesModel._read_section_data(self, dbytes, sec)
+        return SectionObject._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         dbytes = self.dbytes
