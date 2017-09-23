@@ -194,7 +194,9 @@ class BytesModel(object):
                 sec = Section(dbytes)
                 sections.append(sec)
                 with dbytes.limit(sec.data_end):
+                    prevpos = dbytes.pos
                     if not self._read_section_data(dbytes, sec):
+                        dbytes.pos = prevpos
                         sec.read_raw_data(dbytes)
                 dbytes.pos = sec.data_end
 
