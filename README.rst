@@ -341,7 +341,31 @@ properties pane in the editor.
 Writing objects
 ---------------
 
-Writing is only supported for Group and WedgeGS:
+Single objects read from a file can be written as-is to a different file.
+
+There are some problems with this: .bytes files contain a lot of IDs that need
+to be consistent within a file. If an ID occurs multiple times in a single
+file, it cannot be loaded (with varying effects). This means that extracting
+objects from one file works fine, but duplicating objects or merging objects
+from different files into a new file is not as easy.
+
+To address this, most IDs are re-assigned when objects are written. But some
+object-specific IDs are not implemented yet, so objects containing such IDs
+cannot be written reliably.
+
+These objects can be generated:
+
+* Group
+
+* WedgeGS (and any compatible GS, see properties below)
+
+The following properties can be modified:
+
+* any level object
+
+  * transform (position, rotation, scale)
+
+  * Subobjects
 
 * Group
 
