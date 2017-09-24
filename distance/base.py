@@ -12,17 +12,17 @@ TRANSFORM_MIN_SIZE = 12
 def read_transform(dbytes):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
-    f = dbytes.read_n(4)
+    f = dbytes.read_bytes(4)
     if f == SKIP_BYTES:
         pos = ()
     else:
         pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
-    f = dbytes.read_n(4)
+    f = dbytes.read_bytes(4)
     if f == SKIP_BYTES:
         rot = ()
     else:
         rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
-    f = dbytes.read_n(4)
+    f = dbytes.read_bytes(4)
     if f == SKIP_BYTES:
         scale = ()
     else:

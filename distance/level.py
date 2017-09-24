@@ -60,10 +60,10 @@ def iter_named_properties(dbytes, end):
     num_props = dbytes.read_int(4)
     for i in range(num_props):
         propname = dbytes.read_str()
-        dbytes.read_n(8) # unknown
+        dbytes.read_bytes(8) # unknown
         spos = dbytes.pos
         if spos + 4 <= end:
-            peek = dbytes.read_n(4)
+            peek = dbytes.read_bytes(4)
             # this is weird
             if peek == SKIP_BYTES:
                 yield propname, True

@@ -48,10 +48,10 @@ class Replay(BaseObject):
             if version <= 1:
                 self._require_equal(MAGIC_1, 4)
                 section_size = dbytes.read_int(4) * 4
-                dbytes.read_n(section_size)
+                dbytes.read_bytes(section_size)
                 self._require_equal(MAGIC_1, 4)
                 section_size = dbytes.read_int(4)
-                dbytes.read_n(section_size - 8)
+                dbytes.read_bytes(section_size - 8)
                 self.finish_time = dbytes.read_int(4)
             return False
         return BaseObject._read_section_data(self, dbytes, sec)

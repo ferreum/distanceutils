@@ -76,7 +76,7 @@ class Stat(object):
                 return dbytes.read_int(8)
         elif type == 'unk':
             def _read(dbytes):
-                return dbytes.read_n(nbytes)
+                return dbytes.read_bytes(nbytes)
         else:
             raise ValueError(f"invalid type: {type!r}")
         self.read_value = _read

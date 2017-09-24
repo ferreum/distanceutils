@@ -335,7 +335,7 @@ class BytesModel(object):
         if unknown is ():
             self.unknown = unknown = []
         if value is None:
-            value = self.dbytes.read_n(nbytes, or_to_eof=or_to_eof)
+            value = self.dbytes.read_bytes(nbytes, or_to_eof=or_to_eof)
         unknown.append(value)
         return value
 
@@ -402,7 +402,7 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.type = dbytes.read_str()
             self._add_unknown(1) # unknown, always 0
-            dbytes.read_n(4) # secnum
+            dbytes.read_bytes(4) # secnum
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
@@ -414,13 +414,13 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.read_n(4) # secnum
+            dbytes.read_bytes(4) # secnum
         elif magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.read_n(4) # secnum
+            dbytes.read_bytes(4) # secnum
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -430,7 +430,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.level_name = dbytes.read_str()
             self.num_layers = dbytes.read_int(4)
-            dbytes.read_n(4) # secnum
+            dbytes.read_bytes(4) # secnum
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -441,7 +441,7 @@ class Section(BytesModel):
             raise IOError(f"unknown section: {magic} (0x{magic:08x})")
 
     def read_raw_data(self, dbytes):
-        self.raw_data = dbytes.read_n(self.data_end - dbytes.pos,
+        self.raw_data = dbytes.read_bytes(self.data_end - dbytes.pos,
                                       or_to_eof=True)
 
     def match(self, magic, ident=None, version=None):
@@ -534,7 +534,7 @@ class DstBytes(object):
         finally:
             self._max_pos = old_max
 
-    def read_n(self, n, or_to_eof=False):
+    def read_bytes(self, n, or_to_eof=False):
         if n == 0:
             return b''
         if n < 0:
@@ -548,7 +548,7 @@ class DstBytes(object):
         return result
 
     def read_byte(self):
-        return self.read_n(1)[0]
+        return self.read_bytes(1)[0]
 
     def read_var_int(self):
         n = 0
@@ -562,18 +562,18 @@ class DstBytes(object):
                 return n | (b << bits)
 
     def read_int(self, length, signed=False):
-        data = self.read_n(length)
+        data = self.read_bytes(length)
         return int.from_bytes(data, 'little', signed=signed)
 
     def read_struct(self, st):
         if isinstance(st, str):
             st = struct.Struct(st)
-        data = self.read_n(st.size)
+        data = self.read_bytes(st.size)
         return st.unpack(data)
 
     def read_str(self):
         length = self.read_var_int()
-        data = self.read_n(length)
+        data = self.read_bytes(length)
         return data.decode('utf-16', 'surrogateescape')
 
     def write_bytes(self, data):
