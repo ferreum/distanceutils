@@ -800,23 +800,24 @@ class WedgeGS(LevelObject):
         if sec.match(MAGIC_3, 3): # Material
             self._require_equal(MAGIC_1, 4)
             num_entries = dbytes.read_int(4)
-            for i in range(num_entries):
+            for _ in range(num_entries):
                 entry_name = dbytes.read_str()
                 if entry_name == 'SimplesMaterial':
                     self._require_equal(MAGIC_1, 4)
                     num_values = dbytes.read_int(4)
-                    name = dbytes.read_str()
-                    value = dbytes.read_struct(S_FLOAT4)
-                    if name == '_Color':
-                        self.mat_color = value
-                    elif name == '_EmitColor':
-                        self.mat_emit = value
-                    elif name == '_ReflectColor':
-                        self.mat_reflect = value
-                    elif name == '_SpecColor':
-                        self.mat_spec = value
-                    else:
-                        return False # unknown name
+                    for _ in range(num_values):
+                        name = dbytes.read_str()
+                        value = dbytes.read_struct(S_FLOAT4)
+                        if name == '_Color':
+                            self.mat_color = value
+                        elif name == '_EmitColor':
+                            self.mat_emit = value
+                        elif name == '_ReflectColor':
+                            self.mat_reflect = value
+                        elif name == '_SpecColor':
+                            self.mat_spec = value
+                        else:
+                            return False # unknown name
                 else:
                     return False # unknown entry
             return True
@@ -830,7 +831,7 @@ class WedgeGS(LevelObject):
             self.world_mapped = dbytes.read_int(1)
             self.disable_diffuse = dbytes.read_int(1)
             self.disable_bump = dbytes.read_int(1)
-            self.bump_strength = dbytes.read_struct(S_FLOAT)
+            self.bump_strength = dbytes.read_struct(S_FLOAT)[0]
             self.disable_reflect = dbytes.read_int(1)
             self.disable_collision = dbytes.read_int(1)
             self.additive_transp = dbytes.read_int(1)

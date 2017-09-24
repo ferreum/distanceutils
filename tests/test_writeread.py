@@ -46,6 +46,11 @@ def write_read(obj, cls=None):
 
 class WedgeGSTest(unittest.TestCase):
 
+    def assertSeqAlmostEqual(self, a, b):
+        self.assertEqual(len(a), len(b), msg=f"\na={a}\nb={b}")
+        for i, (va, vb) in enumerate(zip(a, b)):
+            self.assertAlmostEqual(va, vb, msg=f"\ni={i}\na={a}\nb={b}")
+
     def test_simple(self):
         orig = WedgeGS()
         orig.image_index = 39
@@ -79,25 +84,25 @@ class WedgeGSTest(unittest.TestCase):
 
         res = write_read(orig)
 
-        self.assertEqual((.1, .1, .1, .2), orig.mat_color)
-        self.assertEqual((.3, .3, .3, .3), orig.mat_emit)
-        self.assertEqual((.1, .1, .1, .4), orig.mat_reflect)
-        self.assertEqual((.3, .3, .3, .3), orig.mat_spec)
+        self.assertSeqAlmostEqual((.1, .1, .1, .2), res.mat_color)
+        self.assertSeqAlmostEqual((.3, .3, .3, .3), res.mat_emit)
+        self.assertSeqAlmostEqual((.1, .1, .1, .4), res.mat_reflect)
+        self.assertSeqAlmostEqual((.3, .3, .3, .3), res.mat_spec)
 
-        self.assertEqual(orig.tex_scale, (2, 2, 2))
-        self.assertEqual(orig.tex_offset, (10, 10, -20))
-        self.assertEqual(orig.image_index, 23)
-        self.assertEqual(orig.emit_index, 5)
-        self.assertEqual(orig.flip_tex_uv, 1)
-        self.assertEqual(orig.world_mapped, 1)
-        self.assertEqual(orig.disable_diffuse, 1)
-        self.assertEqual(orig.disable_bump, 1)
-        self.assertEqual(orig.bump_strength, 12.5)
-        self.assertEqual(orig.disable_reflect, 1)
-        self.assertEqual(orig.disable_collision, 1)
-        self.assertEqual(orig.additive_transp, 1)
-        self.assertEqual(orig.multip_transp, 1)
-        self.assertEqual(orig.invert_emit, 1)
+        self.assertSeqAlmostEqual(res.tex_scale, (2, 2, 2))
+        self.assertSeqAlmostEqual(res.tex_offset, (10, 10, -20))
+        self.assertEqual(res.image_index, 23)
+        self.assertEqual(res.emit_index, 5)
+        self.assertEqual(res.flip_tex_uv, 1)
+        self.assertEqual(res.world_mapped, 1)
+        self.assertEqual(res.disable_diffuse, 1)
+        self.assertEqual(res.disable_bump, 1)
+        self.assertEqual(res.bump_strength, 12.5)
+        self.assertEqual(res.disable_reflect, 1)
+        self.assertEqual(res.disable_collision, 1)
+        self.assertEqual(res.additive_transp, 1)
+        self.assertEqual(res.multip_transp, 1)
+        self.assertEqual(res.invert_emit, 1)
 
 
 class GroupTest(unittest.TestCase):
