@@ -9,17 +9,26 @@ from distance.level import WedgeGS, Group
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("FILE", nargs=1, help=".bytes filename")
+    parser.add_argument("-v", "--vertices", action='store_true',
+                        help="Create vertex points.")
+    parser.add_argument("-n",
+                        help="Specify object count.")
+    parser.add_argument("FILE", help=".bytes filename")
     args = parser.parse_args()
+
+    maxes = [3, 3, 3]
+    if args.n:
+        maxes = [int(s.strip()) for s in args.n.split(",")]
+        maxes += [1] * (3 - len(maxes))
 
     import numpy as np, quaternion
     from numpy import pi, sin, cos
-    from distance.transform import (rtri_to_transform, rotpoint, SIMPLE_SIZE,
+    from distance.transform import (rotpoint, SIMPLE_SIZE,
                                     create_triangle_simples)
 
     quaternion # suppress warning
 
-    maxes = np.array([1, 1, 1])
+    maxes = np.array(maxes)
     speed = pi/6
 
     maxhalf = (maxes - 1) / 2
@@ -54,10 +63,11 @@ def main():
 
                 create_triangle_simples(verts, objs, simple_args=options)
 
-                # objs.extend(
-                #     WedgeGS(type='SphereGS',
-                #             transform=[point, (), [.7/SIMPLE_SIZE]*3])
-                #     for point in itertools.chain(verts))
+                if args.vertices:
+                    objs.extend(
+                        WedgeGS(type='SphereGS',
+                                transform=[point, (), [.7/SIMPLE_SIZE]*3])
+                        for point in verts)
 
     group = Group(children=objs)
     with open(args.FILE[0], 'wb') as f:
