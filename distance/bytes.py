@@ -476,6 +476,9 @@ class Section(BytesModel):
                 dbytes.write_secnum()
                 with dbytes.write_num_subsections():
                     yield
+        elif magic == MAGIC_32:
+            with dbytes.write_size():
+                yield
         else:
             raise NotImplementedError(f"cannot write section {self.magic}")
 

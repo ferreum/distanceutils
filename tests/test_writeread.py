@@ -1,7 +1,8 @@
 import unittest
 from io import BytesIO
 
-from distance.level import WedgeGS, Group, InfoDisplayBox, WinLogic
+from distance.level import (WedgeGS, Group, InfoDisplayBox, WinLogic,
+                            SubTeleporter)
 from distance.level import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
@@ -133,8 +134,7 @@ class UnknownTest(unittest.TestCase):
 
     def test_persist(self):
         with open("tests/in/customobject/infodisplaybox 1.bytes", 'rb') as f:
-            dbytes = DstBytes(f)
-            obj = BaseObject(dbytes)
+            obj = BaseObject(DstBytes(f))
 
             res = write_read(obj, read_func=InfoDisplayBox)
 
@@ -142,13 +142,20 @@ class UnknownTest(unittest.TestCase):
 
     def test_with_subobjects(self):
         with open("tests/in/customobject/endzone delay.bytes", 'rb') as f:
-            dbytes = DstBytes(f)
-            obj = BaseObject(dbytes)
+            obj = BaseObject(DstBytes(f))
 
             res = write_read(obj, read_func=LEVEL_PROBER.read)
 
             win_logic = next(res.iter_children(ty=WinLogic))
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
+
+    def test_old_section32(self):
+        with open("tests/in/customobject/gravtrigger old.bytes", 'rb') as f:
+            obj = BaseObject(DstBytes(f))
+
+            res = write_read(obj, read_func=LEVEL_PROBER.read)
+
+            self.assertAlmostEqual(3, res.music_id)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
