@@ -116,15 +116,15 @@ class BaseObject(BytesModel):
         if objs is None:
             s5 = self.children_section
             if s5 and s5.num_objects:
-                self._children = objs = []
+                objs = []
                 dbytes = self.dbytes
                 with dbytes.saved_pos():
                     dbytes.pos = s5.children_start
                     objs = self.child_prober.read_n_maybe(
                         dbytes, s5.num_objects)
-                    self._children = objs
             else:
-                self._children = objs = ()
+                objs = ()
+            self._children = objs
         return objs
 
     @children.setter
