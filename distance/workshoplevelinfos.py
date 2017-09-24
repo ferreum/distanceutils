@@ -1,7 +1,8 @@
 """WorkshopLevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, SectionObject, MAGIC_2
+from .bytes import BytesModel, MAGIC_2
+from .base import SectionObject
 from .printing import format_bytes
 from .constants import Rating
 

@@ -5,12 +5,13 @@ from struct import Struct
 import math
 from contextlib import contextmanager
 
-from .bytes import (BytesModel, SectionObject, Section,
+from .bytes import (BytesModel, Section,
                     S_FLOAT, S_FLOAT3, S_FLOAT4,
                     MAGIC_9, MAGIC_7, MAGIC_6,
                     MAGIC_2, MAGIC_3,
                     MAGIC_8, MAGIC_1,
                     SKIP_BYTES)
+from .base import SectionObject
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .printing import format_duration

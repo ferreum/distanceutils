@@ -2,7 +2,8 @@ import unittest
 from io import BytesIO
 
 from distance.level import WedgeGS, Group, InfoDisplayBox
-from distance.bytes import DstBytes, SectionObject
+from distance.bytes import DstBytes
+from distance.base import SectionObject
 from distance.printing import PrintContext
 from distance.constants import ForceType
 

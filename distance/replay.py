@@ -1,8 +1,8 @@
 """Read replay metadata."""
 
 
-from .bytes import (SectionObject, S_COLOR_RGBA,
-                    MAGIC_2, MAGIC_1)
+from .bytes import (S_COLOR_RGBA, MAGIC_2, MAGIC_1)
+from .base import SectionObject
 from .printing import format_duration, format_color
 
 

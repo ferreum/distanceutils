@@ -1,7 +1,8 @@
 """LevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, SectionObject, MAGIC_2, MAGIC_12, S_FLOAT
+from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
+from .base import SectionObject
 from .printing import format_duration
 from .constants import Mode
 
