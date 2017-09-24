@@ -218,6 +218,7 @@ class EmpireEndZoneTest(unittest.TestCase):
             win_logic = next(obj.iter_children(name='WinLogic'))
             self.assertEqual(WinLogic, type(win_logic))
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
+            p.print_data_of(obj)
 
 
 class CarScreenTextDecodeTriggerTest(unittest.TestCase):

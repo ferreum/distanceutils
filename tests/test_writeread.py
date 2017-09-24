@@ -5,8 +5,6 @@ from distance.level import WedgeGS, Group, InfoDisplayBox, WinLogic
 from distance.level import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
-from distance.printing import PrintContext
-from distance.constants import ForceType
 
 
 def inflate(obj):

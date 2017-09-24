@@ -31,7 +31,7 @@ class LevelTest(unittest.TestCase):
             level = Level(dbytes)
             self.assertEqual(level.level_name, "Test-straightroad")
             gen = level.iter_objects()
-            obj = next(gen)
+            next(gen)
             with self.assertRaises(UnexpectedEOFError):
                 raise AssertionError(next(gen))
 

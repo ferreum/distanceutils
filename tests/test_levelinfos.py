@@ -1,6 +1,5 @@
 import unittest
 
-from distance.constants import Mode
 from distance.levelinfos import LevelInfos
 from distance.bytes import DstBytes, PrintContext
 
