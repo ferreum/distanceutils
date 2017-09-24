@@ -70,7 +70,7 @@ def main():
                         for point in verts)
 
     group = Group(children=objs)
-    with open(args.FILE[0], 'wb') as f:
+    with open(args.FILE, 'wb') as f:
         group.write(DstBytes(f))
 
     return 0
