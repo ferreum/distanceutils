@@ -6,7 +6,7 @@ from itertools import islice
 
 from .bytes import (BytesModel, S_DOUBLE,
                     MAGIC_1, MAGIC_2)
-from .base import SectionObject
+from .base import BaseObject
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
 
@@ -32,7 +32,7 @@ def format_score(mode, score, comp):
     return f"{mode_str} {type_str}: {score_str} ({comp_str})"
 
 
-class LevelProgress(SectionObject):
+class LevelProgress(BaseObject):
 
     level_path = None
     completion = ()
@@ -278,7 +278,7 @@ class PlayerStats(BytesModel):
                     p(f"Found: {mods_str}")
 
 
-class ProfileProgress(SectionObject):
+class ProfileProgress(BaseObject):
 
     level_s2 = None
     num_levels = None
@@ -286,7 +286,7 @@ class ProfileProgress(SectionObject):
 
     def _read(self, dbytes):
         self._require_type(FTYPE_PROFILEPROGRESS)
-        SectionObject._read(self, dbytes)
+        BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x6a):
@@ -296,7 +296,7 @@ class ProfileProgress(SectionObject):
         elif sec.match(MAGIC_2, 0x8e):
             self.stats_s2 = sec
             return False
-        return SectionObject._read_section_data(self, dbytes, sec)
+        return BaseObject._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         s2 = self.level_s2

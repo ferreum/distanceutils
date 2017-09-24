@@ -2,14 +2,14 @@
 
 
 from .bytes import (S_COLOR_RGBA, MAGIC_2, MAGIC_1)
-from .base import SectionObject
+from .base import BaseObject
 from .printing import format_duration, format_color
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
 
-class Replay(SectionObject):
+class Replay(BaseObject):
 
     version = None
     player_name = None
@@ -25,7 +25,7 @@ class Replay(SectionObject):
 
     def _read(self, dbytes):
         self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
-        SectionObject._read(self, dbytes)
+        BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x7f):
@@ -54,7 +54,7 @@ class Replay(SectionObject):
                 dbytes.read_n(section_size - 8)
                 self.finish_time = dbytes.read_int(4)
             return False
-        return SectionObject._read_section_data(self, dbytes, sec)
+        return BaseObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

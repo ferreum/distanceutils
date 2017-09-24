@@ -1,4 +1,4 @@
-"""Provides SectionObject."""
+"""Provides BaseObject."""
 
 
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
@@ -50,7 +50,7 @@ def write_transform(dbytes, trans):
         dbytes.write_bytes(SKIP_BYTES)
 
 
-class SectionObject(BytesModel):
+class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""
 

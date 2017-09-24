@@ -11,7 +11,7 @@ from .bytes import (BytesModel, Section,
                     MAGIC_2, MAGIC_3,
                     MAGIC_8, MAGIC_1,
                     SKIP_BYTES)
-from .base import SectionObject
+from .base import BaseObject
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .printing import format_duration
@@ -117,7 +117,7 @@ def _print_objects(p, gen):
         p.print_data_of(obj)
 
 
-class LevelObject(SectionObject):
+class LevelObject(BaseObject):
 
     child_prober = SUBOBJ_PROBER
 

@@ -2,7 +2,7 @@
 
 
 from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
-from .base import SectionObject
+from .base import BaseObject
 from .printing import format_duration
 from .constants import Mode
 
@@ -53,21 +53,21 @@ class Entry(BytesModel):
             p(f"Medal scores: {scores_str}")
 
 
-class LevelInfos(SectionObject):
+class LevelInfos(BaseObject):
 
     version = None
     entries_s2 = None
 
     def _read(self, dbytes):
         self._require_type(FTYPE_LEVELINFOS)
-        SectionObject._read(self, dbytes)
+        BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x97):
             self.version = sec.version
             self.entries_s2 = sec
             return False
-        return SectionObject._read_section_data(self, dbytes, sec)
+        return BaseObject._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         s2 = self.entries_s2

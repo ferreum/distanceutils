@@ -2,7 +2,7 @@
 
 
 from .bytes import BytesModel, MAGIC_2
-from .base import SectionObject
+from .base import BaseObject
 from .printing import format_bytes
 from .constants import Rating
 
@@ -53,20 +53,20 @@ class Level(BytesModel):
         self._add_unknown(3)
 
 
-class WorkshopLevelInfos(SectionObject):
+class WorkshopLevelInfos(BaseObject):
 
     num_levels = 0
 
     def _read(self, dbytes):
         self._require_type(FTYPE_WSLEVELINFOS)
-        SectionObject._read(self, dbytes)
+        BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x6d):
             self.levels_s2 = sec
             self.num_levels = dbytes.read_int(4)
             return False
-        return SectionObject._read_section_data(self, dbytes, sec)
+        return BaseObject._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         dbytes = self.dbytes

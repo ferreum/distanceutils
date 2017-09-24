@@ -3,7 +3,7 @@ from io import BytesIO
 
 from distance.level import WedgeGS, Group, InfoDisplayBox
 from distance.bytes import DstBytes
-from distance.base import SectionObject
+from distance.base import BaseObject
 from distance.printing import PrintContext
 from distance.constants import ForceType
 
@@ -130,7 +130,7 @@ class UnknownTest(unittest.TestCase):
     def test_persist(self):
         with open("tests/in/customobject/infodisplaybox 1.bytes", 'rb') as f:
             dbytes = DstBytes(f)
-            obj = SectionObject(dbytes)
+            obj = BaseObject(dbytes)
 
             res = write_read(obj, cls=InfoDisplayBox)
 
