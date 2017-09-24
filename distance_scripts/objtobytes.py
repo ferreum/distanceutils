@@ -5,7 +5,7 @@ import sys
 import argparse
 
 from distance.bytes import DstBytes
-from distance.level import WedgeGS, Group
+from distance.level import Group
 
 
 def read_floats(s):
@@ -151,6 +151,7 @@ def read_mtllib(file, mtls, base=None):
 def obj_to_simples(obj, scale=1):
     from distance.transform import create_triangle_simples
     import numpy as np, quaternion
+    quaternion # suppress warning
 
     objs = []
     root_objs = objs
