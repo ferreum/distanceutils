@@ -102,9 +102,7 @@ class BaseObject(BytesModel):
             if self.transform or has_children:
                 write_transform(dbytes, self.transform)
             if self.has_children or self.children:
-                dbytes.write_int(4, MAGIC_5)
-                with dbytes.write_size():
-                    dbytes.write_int(4, len(self.children))
+                with dbytes.write_section(MAGIC_5):
                     for obj in self.children:
                         obj.write(dbytes)
             return True

@@ -378,6 +378,8 @@ class Section(BytesModel):
         if magic in (MAGIC_2, MAGIC_3):
             self.ident = arg(1, 'ident')
             self.version = arg(2, 'version')
+        elif magic == MAGIC_5:
+            pass # no data
         elif magic == MAGIC_6:
             self.type = arg(1, 'type')
         else:
@@ -463,6 +465,10 @@ class Section(BytesModel):
                 dbytes.write_int(4, self.version)
                 dbytes.write_secnum()
                 yield
+        elif magic == MAGIC_5:
+            with dbytes.write_size():
+                with dbytes.write_num_subsections():
+                    yield
         elif magic == MAGIC_6:
             with dbytes.write_size():
                 dbytes.write_str(self.type)
