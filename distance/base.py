@@ -4,7 +4,10 @@
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
+from .prober import BytesProber
 
+
+BASE_PROBER = BytesProber()
 
 TRANSFORM_MIN_SIZE = 12
 
@@ -54,7 +57,7 @@ class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""
 
-    child_prober = None
+    child_prober = BASE_PROBER
     is_object_group = False
 
     transform = None
@@ -146,6 +149,13 @@ class BaseObject(BytesModel):
                 for obj in self.children:
                     p.tree_next_child()
                     p.print_data_of(obj)
+
+
+@BASE_PROBER.func
+def _probe_fallback(sec):
+    if sec.magic == MAGIC_6:
+        return BaseObject
+    return None
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

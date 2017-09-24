@@ -1,7 +1,8 @@
 import unittest
 from io import BytesIO
 
-from distance.level import WedgeGS, Group, InfoDisplayBox
+from distance.level import WedgeGS, Group, InfoDisplayBox, WinLogic
+from distance.level import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
 from distance.printing import PrintContext
@@ -26,9 +27,9 @@ def disable_writes(dbytes):
     dbytes.write_bytes = do_raise
 
 
-def write_read(obj, cls=None):
-    if cls is None:
-        cls = type(obj)
+def write_read(obj, read_func=None):
+    if read_func is None:
+        read_func = type(obj)
 
     buf = BytesIO()
     dbytes = DstBytes(buf)
@@ -36,7 +37,7 @@ def write_read(obj, cls=None):
     obj.write(dbytes)
     dbytes.pos = 0
     disable_writes(dbytes)
-    result = cls(dbytes)
+    result = read_func(dbytes)
 
     inflate(result)
     check_exceptions(result)
@@ -137,9 +138,19 @@ class UnknownTest(unittest.TestCase):
             dbytes = DstBytes(f)
             obj = BaseObject(dbytes)
 
-            res = write_read(obj, cls=InfoDisplayBox)
+            res = write_read(obj, read_func=InfoDisplayBox)
 
             self.assertEqual(["Text0", "Text1", "Text2", "", "Text4"], res.texts)
+
+    def test_with_subobjects(self):
+        with open("tests/in/customobject/endzone delay.bytes", 'rb') as f:
+            dbytes = DstBytes(f)
+            obj = BaseObject(dbytes)
+
+            res = write_read(obj, read_func=LEVEL_PROBER.read)
+
+            win_logic = next(res.iter_children(ty=WinLogic))
+            self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
