@@ -4,8 +4,7 @@
 from collections import OrderedDict
 from itertools import islice
 
-from .bytes import (BytesModel, S_DOUBLE,
-                    MAGIC_1, MAGIC_2)
+from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
 from .base import BaseObject
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES

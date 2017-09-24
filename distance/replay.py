@@ -1,7 +1,7 @@
 """Read replay metadata."""
 
 
-from .bytes import (S_COLOR_RGBA, MAGIC_2, MAGIC_1)
+from .bytes import S_COLOR_RGBA, MAGIC_1, MAGIC_2
 from .base import BaseObject
 from .printing import format_duration, format_color
 

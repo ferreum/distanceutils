@@ -7,9 +7,8 @@ from contextlib import contextmanager
 
 from .bytes import (BytesModel, Section,
                     S_FLOAT, S_FLOAT3, S_FLOAT4,
-                    MAGIC_9, MAGIC_7, MAGIC_6,
-                    MAGIC_2, MAGIC_3,
-                    MAGIC_8, MAGIC_1,
+                    MAGIC_1, MAGIC_2, MAGIC_3,
+                    MAGIC_6, MAGIC_7, MAGIC_8, MAGIC_9,
                     SKIP_BYTES)
 from .base import BaseObject
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,

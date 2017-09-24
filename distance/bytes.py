@@ -19,8 +19,17 @@ S_FLOAT4 = Struct("ffff")
 
 SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
-"""Level container"""
-MAGIC_9 = 99999999
+"""Used for some properties"""
+MAGIC_1 = 11111111
+
+"""Data container"""
+MAGIC_2 = 22222222
+
+"""Data container"""
+MAGIC_3 = 33333333
+
+"""Subobject list container"""
+MAGIC_5 = 55555555
 
 """Container for most objects"""
 MAGIC_6 = 66666666
@@ -31,17 +40,8 @@ MAGIC_7 = 77777777
 """Levelinfo found in some v1 levels"""
 MAGIC_8 = 88888888
 
-"""Subobject list container"""
-MAGIC_5 = 55555555
-
-"""Data container"""
-MAGIC_3 = 33333333
-
-"""Data container"""
-MAGIC_2 = 22222222
-
-"""Used for some properties"""
-MAGIC_1 = 11111111
+"""Level container"""
+MAGIC_9 = 99999999
 
 MAGIC_12 = 12121212
 
@@ -375,7 +375,7 @@ class Section(BytesModel):
         arg = ArgTaker(*args, **kw)
 
         self.magic = magic = arg(0, 'magic')
-        if magic in (MAGIC_3, MAGIC_2):
+        if magic in (MAGIC_2, MAGIC_3):
             self.ident = arg(1, 'ident')
             self.version = arg(2, 'version')
         elif magic == MAGIC_6:
@@ -397,30 +397,30 @@ class Section(BytesModel):
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
         self.recoverable = True
-        if magic == MAGIC_6:
+        if magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.type = dbytes.read_str()
-            self._add_unknown(1) # unknown, always 0
+            self.ident = dbytes.read_int(4)
+            self.version = dbytes.read_int(4)
             dbytes.read_bytes(4) # secnum
-            self.num_sections = dbytes.read_int(4)
-        elif magic == MAGIC_5:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.pos
-            self.num_objects = dbytes.read_int(4)
-            self.children_start = dbytes.pos
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             dbytes.read_bytes(4) # secnum
-        elif magic == MAGIC_2:
+        elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.ident = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
+            self.num_objects = dbytes.read_int(4)
+            self.children_start = dbytes.pos
+        elif magic == MAGIC_6:
+            self.data_size = dbytes.read_int(8)
+            self.data_start = dbytes.pos
+            self.type = dbytes.read_str()
+            self._add_unknown(1) # unknown, always 0
             dbytes.read_bytes(4) # secnum
+            self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -457,7 +457,7 @@ class Section(BytesModel):
     def write_header(self, dbytes):
         magic = self.magic
         dbytes.write_int(4, magic)
-        if magic in (MAGIC_3, MAGIC_2):
+        if magic in (MAGIC_2, MAGIC_3):
             with dbytes.write_size():
                 dbytes.write_int(4, self.ident)
                 dbytes.write_int(4, self.version)
