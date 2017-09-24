@@ -800,7 +800,6 @@ class WedgeGS(LevelObject):
         if sec.match(MAGIC_3, 3): # Material
             self._require_equal(MAGIC_1, 4)
             num_entries = dbytes.read_int(4)
-            have_unknown = False
             for i in range(num_entries):
                 entry_name = dbytes.read_str()
                 if entry_name == 'SimplesMaterial':

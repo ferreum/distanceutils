@@ -94,7 +94,6 @@ class BaseObject(BytesModel):
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, 0x01):
-            transform = self.transform
             children = self.children
             has_children = self.has_children or children
             if self.transform or has_children:

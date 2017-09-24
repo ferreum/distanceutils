@@ -5,7 +5,7 @@ import struct
 from struct import Struct
 from contextlib import contextmanager
 
-from .printing import PrintContext, format_unknown, format_transform
+from .printing import PrintContext, format_unknown
 from .argtaker import ArgTaker
 
 
