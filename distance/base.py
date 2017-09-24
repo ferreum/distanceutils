@@ -118,8 +118,7 @@ class BaseObject(BytesModel):
             if s5 and s5.num_objects:
                 objs = []
                 dbytes = self.dbytes
-                with dbytes.saved_pos():
-                    dbytes.pos = s5.children_start
+                with dbytes.saved_pos(s5.children_start):
                     objs = self.child_prober.read_n_maybe(
                         dbytes, s5.num_objects)
             else:

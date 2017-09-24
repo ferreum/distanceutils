@@ -645,8 +645,10 @@ class DstBytes(object):
             self.num_subsections = old_count
 
     @contextmanager
-    def saved_pos(self):
+    def saved_pos(self, set_to=None):
         old_pos = self.pos
+        if set_to is not None:
+            self.pos = set_to
         try:
             yield
         finally:

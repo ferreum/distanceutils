@@ -899,8 +899,7 @@ class Level(BytesModel):
         s = self._settings
         if not s:
             dbytes = self.dbytes
-            with dbytes.saved_pos():
-                dbytes.pos = self.settings_start
+            with dbytes.saved_pos(self.settings_start):
                 self._settings = s = LevelSettings.maybe(self.dbytes)
         return s
 
