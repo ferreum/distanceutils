@@ -129,6 +129,8 @@ class BaseObject(BytesModel):
 
     @children.setter
     def children(self, objs):
+        if objs is None:
+            raise ValueError("cannot set children to None")
         self._children = objs
 
     def iter_children(self, ty=None, name=None):
