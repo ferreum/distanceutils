@@ -609,11 +609,8 @@ class DstBytes(object):
             yield
         finally:
             end = self.pos
-            try:
-                self.pos = start
+            with self.saved_pos(start):
                 self.write_int(8, end - start - 8)
-            finally:
-                self.pos = end
 
     @contextmanager
     def write_num_subsections(self):
@@ -622,12 +619,8 @@ class DstBytes(object):
         try:
             yield
         finally:
-            end = self.pos
-            try:
-                self.pos = start
+            with self.saved_pos(start):
                 self.write_int(4, self.num_subsections)
-            finally:
-                self.pos = end
 
     @contextmanager
     def write_section(self, *args, **kw):
