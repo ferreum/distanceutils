@@ -2,7 +2,7 @@
 
 
 from .bytes import MAGIC_6, MAGIC_9
-from .probe import BytesProber
+from .prober import BytesProber
 from .replay import Replay, FTYPE_REPLAY_PREFIX
 from .leaderboard import Leaderboard, FTYPE_LEADERBOARD
 from .workshoplevelinfos import WorkshopLevelInfos, FTYPE_WSLEVELINFOS

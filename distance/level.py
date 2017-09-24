@@ -15,7 +15,7 @@ from .base import BaseObject
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .printing import format_duration
-from .probe import BytesProber
+from .prober import BytesProber
 
 
 S_ABILITIES = Struct("5b")

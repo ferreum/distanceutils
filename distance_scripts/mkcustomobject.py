@@ -12,7 +12,7 @@ from distance.level import Level
 from distance.level import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes, MAGIC_9
 from distance.printing import PrintContext
-from distance.probe import BytesProber
+from distance.prober import BytesProber
 
 
 PROBER = BytesProber()
