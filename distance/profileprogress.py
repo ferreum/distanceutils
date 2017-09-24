@@ -6,6 +6,7 @@ from itertools import islice
 
 from .bytes import (BytesModel, S_DOUBLE,
                     MAGIC_1, MAGIC_2)
+from .base import BaseObject
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
 
@@ -31,7 +32,7 @@ def format_score(mode, score, comp):
     return f"{mode_str} {type_str}: {score_str} ({comp_str})"
 
 
-class LevelProgress(BytesModel):
+class LevelProgress(BaseObject):
 
     level_path = None
     completion = ()
@@ -75,7 +76,7 @@ class Stat(object):
                 return dbytes.read_int(8)
         elif type == 'unk':
             def _read(dbytes):
-                return dbytes.read_n(nbytes)
+                return dbytes.read_bytes(nbytes)
         else:
             raise ValueError(f"invalid type: {type!r}")
         self.read_value = _read
@@ -277,27 +278,25 @@ class PlayerStats(BytesModel):
                     p(f"Found: {mods_str}")
 
 
-class ProfileProgress(BytesModel):
+class ProfileProgress(BaseObject):
 
     level_s2 = None
     num_levels = None
     stats_s2 = None
 
     def _read(self, dbytes):
-        ts = self._require_type(FTYPE_PROFILEPROGRESS)
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+        self._require_type(FTYPE_PROFILEPROGRESS)
+        BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x6A:
-                self.level_s2 = sec
-                self.num_levels = dbytes.read_int(4)
-                return True
-            elif sec.ident == 0x8E:
-                self.stats_s2 = sec
-                return True
-        return BytesModel._read_section_data(self, dbytes, sec)
+        if sec.match(MAGIC_2, 0x6a):
+            self.level_s2 = sec
+            self.num_levels = dbytes.read_int(4)
+            return False
+        elif sec.match(MAGIC_2, 0x8e):
+            self.stats_s2 = sec
+            return False
+        return BaseObject._read_section_data(self, dbytes, sec)
 
     def iter_levels(self):
         s2 = self.level_s2

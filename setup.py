@@ -30,6 +30,7 @@ setup(
             'dst-querymaps = distance_scripts.querymaps:main',
             'dst-mklevelinfos = distance_scripts.mklevelinfos:main',
             'dst-teletodot = distance_scripts.teletodot:main',
+            'dst-mkcustomobject = distance_scripts.mkcustomobject:main',
         ]
     },
 )

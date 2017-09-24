@@ -5,22 +5,20 @@ from struct import Struct
 import math
 from contextlib import contextmanager
 
-from .bytes import (BytesModel, Section, S_FLOAT,
+from .bytes import (BytesModel, Section,
+                    S_FLOAT, S_FLOAT3, S_FLOAT4,
                     MAGIC_9, MAGIC_7, MAGIC_6,
-                    MAGIC_2, MAGIC_3, MAGIC_5,
-                    MAGIC_8, MAGIC_1)
+                    MAGIC_2, MAGIC_3,
+                    MAGIC_8, MAGIC_1,
+                    SKIP_BYTES)
+from .base import BaseObject
 from .constants import (Difficulty, Mode, AbilityToggle, ForceType,
                         LAYER_FLAG_NAMES)
 from .printing import format_duration
-from .probe import BytesProber
+from .prober import BytesProber
 
 
 S_ABILITIES = Struct("5b")
-SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
-
-S_FLOAT3 = Struct("fff")
-S_FLOAT4 = Struct("ffff")
-
 
 PROBER = BytesProber()
 
@@ -58,64 +56,14 @@ def format_flags(gen):
             yield name
 
 
-TRANSFORM_MIN_SIZE = 12
-
-
-def read_transform(dbytes):
-    def read_float():
-        return dbytes.read_struct(S_FLOAT)[0]
-    f = dbytes.read_n(4)
-    if f == SKIP_BYTES:
-        pos = (0.0, 0.0, 0.0)
-    else:
-        pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
-    f = dbytes.read_n(4)
-    if f == SKIP_BYTES:
-        rot = (0.0, 0.0, 0.0, 1.0)
-    else:
-        rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
-    f = dbytes.read_n(4)
-    if f == SKIP_BYTES:
-        scale = (1.0, 1.0, 1.0)
-    else:
-        scale = (S_FLOAT.unpack(f)[0], read_float(), read_float())
-    return pos, rot, scale
-
-
-def write_transform(dbytes, trans):
-    if trans is None:
-        trans = ()
-    if len(trans) > 0 and len(trans[0]):
-        pos = trans[0]
-        dbytes.write_bytes(S_FLOAT3.pack(*pos))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 1 and len(trans[1]):
-        rot = trans[1]
-        dbytes.write_bytes(S_FLOAT4.pack(*rot))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 2 and len(trans[2]):
-        scale = trans[2]
-        dbytes.write_bytes(S_FLOAT3.pack(*scale))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-
-
-def format_transform(trans):
-    def format_floats(floats):
-        return ', '.join(format(f, '.3f') for f in floats)
-    return ', '.join(f"({format_floats(f)})" for f in trans)
-
-
 def iter_named_properties(dbytes, end):
     num_props = dbytes.read_int(4)
     for i in range(num_props):
         propname = dbytes.read_str()
-        dbytes.read_n(8) # unknown
+        dbytes.read_bytes(8) # unknown
         spos = dbytes.pos
         if spos + 4 <= end:
-            peek = dbytes.read_n(4)
+            peek = dbytes.read_bytes(4)
             # this is weird
             if peek == SKIP_BYTES:
                 yield propname, True
@@ -134,9 +82,11 @@ class Counters(object):
     grouped_objects = 0
 
     def print_data(self, p):
-        p(f"Total layers: {self.num_layers}")
-        p(f"Total objects in layers: {self.layer_objects}")
-        if self.grouped_objects:
+        if self.num_layers:
+            p(f"Total layers: {self.num_layers}")
+        if self.layer_objects:
+            p(f"Total objects in layers: {self.layer_objects}")
+        if self.grouped_objects != self.num_objects:
             p(f"Total objects in groups: {self.grouped_objects}")
         if self.num_objects != self.layer_objects:
             p(f"Total objects: {self.num_objects}")
@@ -167,80 +117,9 @@ def _print_objects(p, gen):
         p.print_data_of(obj)
 
 
-class LevelObject(BytesModel):
+class LevelObject(BaseObject):
 
     child_prober = SUBOBJ_PROBER
-    is_object_group = False
-
-    transform = ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1))
-    _children = None
-    has_children = False
-    children_section = None
-
-    def _read(self, dbytes):
-        ts = self._get_start_section()
-        self.type = ts.type
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x01: # base object props
-                end = sec.data_end
-                if dbytes.pos + TRANSFORM_MIN_SIZE < end:
-                    self.transform = read_transform(dbytes)
-                if dbytes.pos + Section.MIN_SIZE < end:
-                    self.children_section = Section(dbytes)
-                    self.has_children = True
-                return True
-        return BytesModel._read_section_data(self, dbytes, sec)
-
-    @property
-    def children(self):
-        objs = self._children
-        if objs is None:
-            s5 = self.children_section
-            if s5 and s5.num_objects:
-                self._children = objs = []
-                dbytes = self.dbytes
-                with dbytes.saved_pos():
-                    dbytes.pos = s5.children_start
-                    objs = self.child_prober.read_n_maybe(
-                        dbytes, s5.num_objects)
-                    self._children = objs
-            else:
-                self._children = objs = ()
-        return objs
-
-    @children.setter
-    def children(self, objs):
-        self._children = objs
-
-    def write(self, dbytes):
-        with dbytes.write_section(MAGIC_6, self.type):
-            with dbytes.write_section(MAGIC_3, ident=1, version=0):
-                write_transform(dbytes, self.transform)
-                if self.has_children or self.children:
-                    dbytes.write_int(4, MAGIC_5)
-                    with dbytes.write_size():
-                        dbytes.write_int(4, len(self.children))
-                        for obj in self.children:
-                            obj.write(dbytes)
-
-            self._write_sub(dbytes)
-
-    def _write_sub(self, dbytes):
-        pass
-
-    def iter_children(self, ty=None, name=None):
-        for obj in self.children:
-            if ty is None or isinstance(obj, ty):
-                if name is None or obj.type == name:
-                    yield obj
-
-    def _print_data(self, p):
-        if 'transform' in p.flags:
-            p(f"Transform: {format_transform(self.transform)}")
 
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.children:
@@ -287,39 +166,38 @@ class LevelSettings(LevelObject):
         LevelObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x52:
-                self.version = version = sec.version
+        if sec.match(MAGIC_2, 0x52):
+            self.version = version = sec.version
 
-                self._add_unknown(8)
-                self.name = dbytes.read_str()
-                self._add_unknown(4)
-                self.modes = modes = {}
-                num_modes = dbytes.read_int(4)
-                for i in range(num_modes):
-                    mode = dbytes.read_int(4)
-                    modes[mode] = dbytes.read_byte()
-                self.music_id = dbytes.read_int(4)
-                if version <= 3:
-                    self.skybox_name = dbytes.read_str()
-                    self._add_unknown(57)
-                elif version == 4:
-                    self._add_unknown(141)
-                elif version == 5:
-                    self._add_unknown(172)
-                elif 6 <= version:
-                    # confirmed only for v6..v9
-                    self._add_unknown(176)
-                self.medal_times = times = []
-                self.medal_scores = scores = []
-                for i in range(4):
-                    times.append(dbytes.read_struct(S_FLOAT)[0])
-                    scores.append(dbytes.read_int(4, signed=True))
-                if version >= 1:
-                    self.abilities = dbytes.read_struct(S_ABILITIES)
-                if version >= 2:
-                    self.difficulty = dbytes.read_int(4)
-                return True
+            self._add_unknown(8)
+            self.name = dbytes.read_str()
+            self._add_unknown(4)
+            self.modes = modes = {}
+            num_modes = dbytes.read_int(4)
+            for i in range(num_modes):
+                mode = dbytes.read_int(4)
+                modes[mode] = dbytes.read_byte()
+            self.music_id = dbytes.read_int(4)
+            if version <= 3:
+                self.skybox_name = dbytes.read_str()
+                self._add_unknown(57)
+            elif version == 4:
+                self._add_unknown(141)
+            elif version == 5:
+                self._add_unknown(172)
+            elif 6 <= version:
+                # confirmed only for v6..v9
+                self._add_unknown(176)
+            self.medal_times = times = []
+            self.medal_scores = scores = []
+            for i in range(4):
+                times.append(dbytes.read_struct(S_FLOAT)[0])
+                scores.append(dbytes.read_int(4, signed=True))
+            if version >= 1:
+                self.abilities = dbytes.read_struct(S_ABILITIES)
+            if version >= 2:
+                self.difficulty = dbytes.read_int(4)
+            return False
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def _print_type(self, p):
@@ -425,24 +303,35 @@ class Group(LevelObject):
 
     custom_name = None
 
+    default_sections = (
+        *LevelObject.default_sections,
+        Section(MAGIC_2, 0x1d, version=1),
+        Section(MAGIC_2, 0x63, version=0)
+    )
+
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x1d: # Group / inspect Children
-                return True
-            elif sec.ident == 0x63: # Group name
-                if sec.data_size > 12:
-                    self.custom_name = dbytes.read_str()
-                return True
+        if sec.match(MAGIC_2, 0x1d): # Group / inspect Children
+            return False
+        elif sec.match(MAGIC_2, 0x63): # Group name
+            if sec.data_size > 12:
+                self.custom_name = dbytes.read_str()
+            return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
-    def _write_sub(self, dbytes):
-        with dbytes.write_section(MAGIC_2, ident=0x1d, version=1):
+    def _write_sections(self, dbytes):
+        LevelObject._write_sections(self, dbytes)
+
+    def _write_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_2, 0x1d, version=1):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 0) # num values
             dbytes.write_int(4, 0) # inspect Children: None
-        with dbytes.write_section(MAGIC_2, ident=0x63, version=0):
+            return True
+        elif sec.match(MAGIC_2, 0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
+            return True
+        return LevelObject._write_section_data(self, dbytes, sec)
 
     def _print_children(self, p):
         with need_counters(p) as counters:
@@ -462,11 +351,11 @@ class Group(LevelObject):
             p(f"Custom name: {self.custom_name!r}")
 
     def recenter(self, center):
-        pos, rot, scale = self.transform
+        pos, rot, scale = self.transform or ((0, 0, 0), (), ())
         self.transform = center, rot, scale
         diff = tuple(c - o for c, o in zip(pos, center))
         for obj in self.children:
-            pos, rot, scale = obj.transform
+            pos, rot, scale = obj.transform or ((0, 0, 0), (), ())
             pos = tuple(o + d for o, d in zip(pos, diff))
             obj.transform = pos, rot, scale
 
@@ -479,23 +368,22 @@ class SubTeleporter(SubObject):
     trigger_checkpoint = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x3E:
-                value = dbytes.read_int(4)
-                self.destination = value
-                return True
-            elif sec.ident == 0x3F:
-                value = dbytes.read_int(4)
-                self.link_id = value
-                return True
-            elif sec.ident == 0x51:
-                if sec.data_size > 12:
-                    check = dbytes.read_byte()
-                else:
-                    # if section is too short, the checkpoint is enabled
-                    check = 1
-                self.trigger_checkpoint = check
-                return True
+        if sec.match(MAGIC_2, 0x3e):
+            value = dbytes.read_int(4)
+            self.destination = value
+            return False
+        elif sec.match(MAGIC_2, 0x3f):
+            value = dbytes.read_int(4)
+            self.link_id = value
+            return False
+        elif sec.match(MAGIC_2, 0x51):
+            if sec.data_size > 12:
+                check = dbytes.read_byte()
+            else:
+                # if section is too short, the checkpoint is enabled
+                check = 1
+            self.trigger_checkpoint = check
+            return False
         return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -514,19 +402,18 @@ class WinLogic(SubObject):
     delay_before_broadcast = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x5d:
-                if sec.data_size >= 16:
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if propname == "DelayBeforeBroadcast":
-                            value = 0.0
-                            if not is_skip:
-                                value = dbytes.read_struct(S_FLOAT)[0]
-                            self.delay_before_broadcast = value
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                return True
+        if sec.match(MAGIC_2, 0x5d):
+            if sec.data_size >= 16:
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if propname == "DelayBeforeBroadcast":
+                        value = 0.0
+                        if not is_skip:
+                            value = dbytes.read_struct(S_FLOAT)[0]
+                        self.delay_before_broadcast = value
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            return False
         return SubObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -540,17 +427,16 @@ class WorldText(LevelObject):
     text = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x07:
-                pos = sec.data_start + 12
-                if pos < sec.data_end:
-                    dbytes.pos = pos
-                    self.text = dbytes.read_str()
-                    for i in range((sec.data_end - dbytes.pos) // 4):
-                        self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
-                else:
-                    self.text = f"Hello World"
-                return True
+        if sec.match(MAGIC_3, 0x07):
+            pos = sec.data_start + 12
+            if pos < sec.data_end:
+                dbytes.pos = pos
+                self.text = dbytes.read_str()
+                for i in range((sec.data_end - dbytes.pos) // 4):
+                    self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
+            else:
+                self.text = f"Hello World"
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -570,40 +456,39 @@ class InfoDisplayBox(LevelObject):
     random_char_count = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x4A:
-                texts = self.texts
-                self.version = version = sec.version
-                if version == 0:
-                    self.texts = texts = [None] * 5
-                    self.delays = delays = [None] * 5
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if is_skip:
-                            continue
-                        if propname.startswith('InfoText'):
-                            index = int(propname[-1])
-                            texts[index] = dbytes.read_str()
-                        elif propname.startswith('Delay'):
-                            index = int(propname[-1])
-                            delays[index] = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'PerCharSpeed':
-                            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'DestroyOnTriggerExit':
-                            self.destroy_on_trigger_exit = dbytes.read_int(1)
-                        elif propname == 'RandomCharCount':
-                            self.random_char_count = dbytes.read_int(4)
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                else:
-                    # only verified in v2
-                    self.fadeout_time = dbytes.read_struct(S_FLOAT)
-                    for i in range(5):
-                        self._add_unknown(4) # f32 delay
-                        if texts is ():
-                            self.texts = texts = []
-                        texts.append(dbytes.read_str())
-                return True
+        if sec.match(MAGIC_2, 0x4A):
+            texts = self.texts
+            self.version = version = sec.version
+            if version == 0:
+                self.texts = texts = [None] * 5
+                self.delays = delays = [None] * 5
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if is_skip:
+                        continue
+                    if propname.startswith('InfoText'):
+                        index = int(propname[-1])
+                        texts[index] = dbytes.read_str()
+                    elif propname.startswith('Delay'):
+                        index = int(propname[-1])
+                        delays[index] = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'PerCharSpeed':
+                        self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'DestroyOnTriggerExit':
+                        self.destroy_on_trigger_exit = dbytes.read_int(1)
+                    elif propname == 'RandomCharCount':
+                        self.random_char_count = dbytes.read_int(4)
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            else:
+                # only verified in v2
+                self.fadeout_time = dbytes.read_struct(S_FLOAT)
+                for i in range(5):
+                    self._add_unknown(4) # f32 delay
+                    if texts is ():
+                        self.texts = texts = []
+                    texts.append(dbytes.read_str())
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -635,54 +520,52 @@ class CarScreenTextDecodeTrigger(LevelObject):
     announcer_phrases = ()
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_2:
-            if sec.ident == 0x57:
-                if sec.version == 0:
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if is_skip:
-                            continue
-                        if propname == 'Text':
-                            self.text = dbytes.read_str()
-                        elif propname == 'PerCharSpeed':
-                            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'ClearOnFinish':
-                            self.clear_on_finish = dbytes.read_byte()
-                        elif propname == 'ClearOnTriggerExit':
-                            self.clear_on_trigger_exit = dbytes.read_byte()
-                        elif propname == 'DestroyOnTriggerExit':
-                            self.destroy_on_trigger_exit = dbytes.read_byte()
-                        elif propname == 'TimeText':
-                            self.time_text = dbytes.read_str()
-                        elif propname == 'StaticTimeText':
-                            self.static_time_text = dbytes.read_byte()
-                        elif propname == 'Delay':
-                            self.delay = dbytes.read_struct(S_FLOAT)[0]
-                        elif propname == 'AnnouncerAction':
-                            self.announcer_action = dbytes.read_int(4)
-                        elif propname == 'AnnouncerPhrases':
-                            self._require_equal(MAGIC_1, 4)
-                            num_phrases = dbytes.read_int(4)
-                            self.announcer_phrases = phrases = []
-                            for _ in range(num_phrases):
-                                phrases.append(dbytes.read_str())
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                    return True
-                else:
-                    try:
+        if sec.match(MAGIC_2, 0x57):
+            if sec.version == 0:
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if is_skip:
+                        continue
+                    if propname == 'Text':
                         self.text = dbytes.read_str()
+                    elif propname == 'PerCharSpeed':
                         self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'ClearOnFinish':
                         self.clear_on_finish = dbytes.read_byte()
+                    elif propname == 'ClearOnTriggerExit':
                         self.clear_on_trigger_exit = dbytes.read_byte()
+                    elif propname == 'DestroyOnTriggerExit':
                         self.destroy_on_trigger_exit = dbytes.read_byte()
+                    elif propname == 'TimeText':
                         self.time_text = dbytes.read_str()
+                    elif propname == 'StaticTimeText':
                         self.static_time_text = dbytes.read_byte()
+                    elif propname == 'Delay':
                         self.delay = dbytes.read_struct(S_FLOAT)[0]
+                    elif propname == 'AnnouncerAction':
                         self.announcer_action = dbytes.read_int(4)
-                    except EOFError:
-                        pass
-                    return True
+                    elif propname == 'AnnouncerPhrases':
+                        self._require_equal(MAGIC_1, 4)
+                        num_phrases = dbytes.read_int(4)
+                        self.announcer_phrases = phrases = []
+                        for _ in range(num_phrases):
+                            phrases.append(dbytes.read_str())
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            else:
+                try:
+                    self.text = dbytes.read_str()
+                    self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+                    self.clear_on_finish = dbytes.read_byte()
+                    self.clear_on_trigger_exit = dbytes.read_byte()
+                    self.destroy_on_trigger_exit = dbytes.read_byte()
+                    self.time_text = dbytes.read_str()
+                    self.static_time_text = dbytes.read_byte()
+                    self.delay = dbytes.read_struct(S_FLOAT)[0]
+                    self.announcer_action = dbytes.read_int(4)
+                except EOFError:
+                    pass
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -729,38 +612,36 @@ class GravityTrigger(LevelObject):
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x0e:
-                # SphereCollider
-                self.trigger_center = (0.0, 0.0, 0.0)
-                self.trigger_radius = 50.0
-                with dbytes.limit(sec.data_end, True):
-                    self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
-                    self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
-                return True
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x45:
-                # GravityTrigger
-                self.disable_gravity = 1
-                self.drag_scale = 1.0
-                self.drag_scale_angular = 1.0
-                with dbytes.limit(sec.data_end, True):
-                    self.disable_gravity = dbytes.read_byte()
-                    self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
-                    self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
-                return True
-            elif sec.ident == 0x4b:
-                # MusicTrigger
-                self.music_id = 19
-                self.one_time_trigger = 1
-                self.reset_before_trigger = 0
-                self.disable_music_trigger = 0
-                with dbytes.limit(sec.data_end, True):
-                    self.music_id = dbytes.read_int(4)
-                    self.one_time_trigger = dbytes.read_byte()
-                    self.reset_before_trigger = dbytes.read_byte()
-                    self.disable_music_trigger = dbytes.read_byte()
-                return True
+        if sec.match(MAGIC_3, 0x0e):
+            # SphereCollider
+            self.trigger_center = (0.0, 0.0, 0.0)
+            self.trigger_radius = 50.0
+            with dbytes.limit(sec.data_end, True):
+                self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
+                self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
+            return False
+        elif sec.match(MAGIC_2, 0x45):
+            # GravityTrigger
+            self.disable_gravity = 1
+            self.drag_scale = 1.0
+            self.drag_scale_angular = 1.0
+            with dbytes.limit(sec.data_end, True):
+                self.disable_gravity = dbytes.read_byte()
+                self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
+                self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
+            return False
+        elif sec.match(MAGIC_2, 0x4b):
+            # MusicTrigger
+            self.music_id = 19
+            self.one_time_trigger = 1
+            self.reset_before_trigger = 0
+            self.disable_music_trigger = 0
+            with dbytes.limit(sec.data_end, True):
+                self.music_id = dbytes.read_int(4)
+                self.one_time_trigger = dbytes.read_byte()
+                self.reset_before_trigger = dbytes.read_byte()
+                self.disable_music_trigger = dbytes.read_byte()
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -794,34 +675,30 @@ class ForceZoneBox(LevelObject):
     drag_multiplier = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x0f:
-                # collider
-                return True
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x63:
-                # CustomName
-                if dbytes.pos < sec.data_end:
-                    with dbytes.limit(sec.data_end):
-                        self.custom_name = dbytes.read_str()
-                return True
-            elif sec.ident == 0xa0:
-                self.force_direction = (0.0, 0.0, 1.0)
-                self.global_force = 0
-                self.force_type = ForceType.WIND
-                self.gravity_magnitude = 25.0
-                self.disable_global_gravity = 0
-                self.wind_speed = 300.0
-                self.drag_multiplier = 1.0
-                with dbytes.limit(sec.data_end, True):
-                    self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
-                    self.global_force = dbytes.read_byte()
-                    self.force_type = dbytes.read_int(4)
-                    self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
-                    self.disable_global_gravity = dbytes.read_byte()
-                    self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
-                    self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
-                return True
+        if sec.match(MAGIC_3, 0x0f): # collider
+            return False
+        elif sec.match(MAGIC_2, 0x63): # CustomName
+            if dbytes.pos < sec.data_end:
+                with dbytes.limit(sec.data_end):
+                    self.custom_name = dbytes.read_str()
+            return False
+        elif sec.match(MAGIC_2, 0xa0):
+            self.force_direction = (0.0, 0.0, 1.0)
+            self.global_force = 0
+            self.force_type = ForceType.WIND
+            self.gravity_magnitude = 25.0
+            self.disable_global_gravity = 0
+            self.wind_speed = 300.0
+            self.drag_multiplier = 1.0
+            with dbytes.limit(sec.data_end, True):
+                self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
+                self.global_force = dbytes.read_byte()
+                self.force_type = dbytes.read_int(4)
+                self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
+                self.disable_global_gravity = dbytes.read_byte()
+                self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
+                self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -853,30 +730,28 @@ class EnableAbilitiesBox(LevelObject):
     bloom_out = 1
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 0x0f:
-                # BoxCollider
-                return True
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x5e:
-                # Abilities
-                if sec.data_size > 16:
-                    self.abilities = abilities = {}
-                    for propname, is_skip in iter_named_properties(
-                            dbytes, sec.data_end):
-                        if propname in self.KNOWN_ABILITIES:
-                            value = 0
-                            if not is_skip:
-                                value = dbytes.read_int(1)
-                            abilities[propname] = value
-                        elif propname == 'BloomOut':
-                            value = 1
-                            if not is_skip:
-                                value = dbytes.read_int(1)
-                            self.bloom_out = value
-                        else:
-                            raise ValueError(f"unknown property: {propname!r}")
-                return True
+        if sec.match(MAGIC_3, 0x0f):
+            # BoxCollider
+            return False
+        elif sec.match(MAGIC_2, 0x5e):
+            # Abilities
+            if sec.data_size > 16:
+                self.abilities = abilities = {}
+                for propname, is_skip in iter_named_properties(
+                        dbytes, sec.data_end):
+                    if propname in self.KNOWN_ABILITIES:
+                        value = 0
+                        if not is_skip:
+                            value = dbytes.read_int(1)
+                        abilities[propname] = value
+                    elif propname == 'BloomOut':
+                        value = 1
+                        if not is_skip:
+                            value = dbytes.read_int(1)
+                        self.bloom_out = value
+                    else:
+                        raise ValueError(f"unknown property: {propname!r}")
+            return False
         return LevelObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
@@ -894,6 +769,12 @@ class WedgeGS(LevelObject):
 
     type = "WedgeGS"
     has_children = True
+
+    default_sections = (
+        *LevelObject.default_sections,
+        Section(MAGIC_3, 3, 2),
+        Section(MAGIC_2, 0x83, 3),
+    )
 
     mat_color = (.3, .3, .3, 1)
     mat_emit = (.8, .8, .8, .5)
@@ -916,33 +797,67 @@ class WedgeGS(LevelObject):
     invert_emit = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic == MAGIC_3:
-            if sec.ident == 3:
-                # Material
-                return True
-        elif sec.magic == MAGIC_2:
-            if sec.ident == 0x83:
-                # GoldenSimples
-                return True
+        if sec.match(MAGIC_3, 3): # Material
+            self._require_equal(MAGIC_1, 4)
+            num_entries = dbytes.read_int(4)
+            for _ in range(num_entries):
+                entry_name = dbytes.read_str()
+                if entry_name == 'SimplesMaterial':
+                    self._require_equal(MAGIC_1, 4)
+                    num_values = dbytes.read_int(4)
+                    for _ in range(num_values):
+                        name = dbytes.read_str()
+                        value = dbytes.read_struct(S_FLOAT4)
+                        if name == '_Color':
+                            self.mat_color = value
+                        elif name == '_EmitColor':
+                            self.mat_emit = value
+                        elif name == '_ReflectColor':
+                            self.mat_reflect = value
+                        elif name == '_SpecColor':
+                            self.mat_spec = value
+                        else:
+                            return False # unknown name
+                else:
+                    return False # unknown entry
+            return True
+        elif sec.match(MAGIC_2, 0x83): # GoldenSimples
+            self.image_index = dbytes.read_int(4)
+            self.emit_index = dbytes.read_int(4)
+            dbytes.read_int(4) # preset
+            self.tex_scale = dbytes.read_struct(S_FLOAT3)
+            self.tex_offset = dbytes.read_struct(S_FLOAT3)
+            self.flip_tex_uv = dbytes.read_int(1)
+            self.world_mapped = dbytes.read_int(1)
+            self.disable_diffuse = dbytes.read_int(1)
+            self.disable_bump = dbytes.read_int(1)
+            self.bump_strength = dbytes.read_struct(S_FLOAT)[0]
+            self.disable_reflect = dbytes.read_int(1)
+            self.disable_collision = dbytes.read_int(1)
+            self.additive_transp = dbytes.read_int(1)
+            self.multip_transp = dbytes.read_int(1)
+            self.invert_emit = dbytes.read_int(1)
+            return True
         return LevelObject._read_section_data(self, dbytes, sec)
 
-    def _write_sub(self, dbytes):
-        with dbytes.write_section(MAGIC_3, ident=3, version=2):
+    def _write_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_3, ident=3, version=2):
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 1) # num values?
-            dbytes.write_str("SimplesMaterial")
+            dbytes.write_str('SimplesMaterial')
             dbytes.write_int(4, MAGIC_1)
             dbytes.write_int(4, 4) # num values?
-            dbytes.write_str("_Color")
+            dbytes.write_str('_Color')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_color))
-            dbytes.write_str("_EmitColor")
+            dbytes.write_str('_EmitColor')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_emit))
-            dbytes.write_str("_ReflectColor")
+            dbytes.write_str('_ReflectColor')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_reflect))
-            dbytes.write_str("_SpecColor")
+            dbytes.write_str('_SpecColor')
             dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
+            return True
 
-        with dbytes.write_section(MAGIC_2, ident=0x83, version=3):
+        elif sec.match(MAGIC_2, ident=0x83, version=3):
             dbytes.write_int(4, self.image_index)
             dbytes.write_int(4, self.emit_index)
             dbytes.write_int(4, 0) # preset
@@ -958,6 +873,9 @@ class WedgeGS(LevelObject):
             dbytes.write_int(1, self.additive_transp)
             dbytes.write_int(1, self.multip_transp)
             dbytes.write_int(1, self.invert_emit)
+            return True
+
+        return LevelObject._write_section_data(self, dbytes, sec)
 
 
 class Level(BytesModel):
