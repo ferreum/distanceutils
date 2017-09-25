@@ -49,6 +49,21 @@ to the `-f` option:
 * unknown - Prints unknown data for each object
 
 
+dst-mkcustomobject
+------------------
+
+Extract a CustomObject from a level or from another CustomObject.
+
+Example::
+
+  $ dst-mkcustomobject Levels/MyLevels/my_level.bytes CustomObjects/my_obj.bytes -n 0 -t Zone
+
+The above extracts the first object of which the type name contains `Zone`.
+
+If multiple objects match and `-n` is not used, a numbered list of candidates
+is printed.
+
+
 dst-objtobytes
 --------------
 
