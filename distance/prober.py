@@ -1,12 +1,13 @@
 """Probe DstBytes for objects based on .bytes sections."""
 
 
-from .bytes import Section, MAGIC_6
+from .bytes import BytesModel, Section, MAGIC_6
 
 
 class BytesProber(object):
 
-    def __init__(self, types=None, funcs=None):
+    def __init__(self, types=None, funcs=None, baseclass=BytesModel):
+        self.baseclass = baseclass
         self._types = types or {}
         self._funcs = funcs or []
 
@@ -70,7 +71,12 @@ class BytesProber(object):
         return obj
 
     def maybe(self, dbytes, **kw):
-        cls, add_kw = self.probe(dbytes)
+        try:
+            cls, add_kw = self.probe(dbytes)
+        except Exception as e:
+            ins = self.baseclass()
+            ins.exception = e
+            return ins
         kw.update(add_kw)
         return cls.maybe(dbytes, **kw)
 

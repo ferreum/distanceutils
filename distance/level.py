@@ -118,6 +118,7 @@ class Layer(BytesModel):
     num_objects = 0
     objects_start = None
     layer_flags = (0, 0, 0)
+    _objects = None
 
     def _read(self, dbytes):
         s7 = self._get_start_section()
@@ -147,13 +148,15 @@ class Layer(BytesModel):
 
         self.objects_start = dbytes.pos
 
-    def iter_objects(self):
-        if not self.num_objects:
-            return
-        dbytes = self.dbytes
-        dbytes.pos = self.objects_start
-        for obj in PROBER.iter_maybe(dbytes, max_pos=self.end_pos):
-            yield obj
+    @property
+    def objects(self):
+        l = self._objects
+        if l is None:
+            dbytes = self.dbytes
+            with dbytes.saved_pos(self.objects_start):
+                l = PROBER.read_n_maybe(dbytes, self.num_objects)
+                self._objects = l
+        return l
 
     def _print_data(self, p):
         with need_counters(p) as counters:
@@ -168,7 +171,7 @@ class Layer(BytesModel):
             p.counters.num_layers += 1
             p.counters.layer_objects += self.num_objects
             with p.tree_children():
-                print_objects(p, self.iter_objects())
+                print_objects(p, self.objects)
             if counters:
                 counters.print_data(p)
 
@@ -232,8 +235,7 @@ class Level(BytesModel):
             if with_layers:
                 yield layer
             if with_objects:
-                for obj in layer.iter_objects():
-                    yield obj
+                yield from layer.objects
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
