@@ -194,6 +194,47 @@ class SubTeleporter(SubObject):
             p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
 
 
+class SubBezierSplineTrackEmpty(SubObject):
+
+    parent_id = 0
+    snap_id = 0
+    conn_id = 0
+    primary = 0
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_2, 0x16, 2):
+            self.parent_id = dbytes.read_int(4)
+            self.snap_id = dbytes.read_int(4)
+            self.unk_2 = dbytes.read_int(4)
+            self.primary = dbytes.read_byte()
+            return True
+        return SubObject._read_section_data(self, dbytes, sec)
+
+    def _write_section_data(self, dbytes, sec):
+        if sec.match(MAGIC_2, 0x16, 2):
+            dbytes.write_int(4, self.parent_id)
+            dbytes.write_int(4, self.snap_id)
+            dbytes.write_int(4, self.conn_id)
+            dbytes.write_int(1, self.primary)
+            return True
+        return SubObject._write_section_data(self, dbytes, sec)
+
+    def _print_data(self, p):
+        if 'sections' in p.flags:
+            p(f"Parent ID: {self.parent_id}")
+            p(f"Snapped to: {self.snap_id}")
+            p(f"Connection ID: {self.conn_id}")
+            p(f"Primary: {self.primary and 'yes' or 'no'}")
+
+
+@SUBOBJ_PROBER.func(high_prio=True)
+def _probe_splinetrack(sec):
+    if sec.magic == MAGIC_6:
+        if sec.type.startswith('BezierSplineTrackEmpty'):
+            return SubBezierSplineTrackEmpty
+    return None
+
+
 @SUBOBJ_PROBER.for_type('WinLogic')
 class WinLogic(SubObject):
 

@@ -15,15 +15,25 @@ class BytesProber(object):
     def add_type(self, type, cls):
         self._types[type] = cls
 
-    def add_func(self, func):
-        self._funcs.append(func)
+    def add_func(self, func, high_prio=False):
+        if high_prio:
+            self._funcs.insert(0, func)
+        else:
+            self._funcs.append(func)
 
-    def func(self, func):
+    def func(self, *args, high_prio=False):
 
         """Decorator for conveniently adding a function."""
 
-        self.add_func(func)
-        return func
+        def decorate(func):
+            self.add_func(func, high_prio=high_prio)
+            return func
+
+        if args:
+            func = args[0]
+            return decorate(func)
+        else:
+            return decorate
 
     def for_type(self, *types):
 
