@@ -1,6 +1,9 @@
 """Handling of *args and **kw."""
 
 
+DO_THROW = object()
+
+
 class ArgTaker(object):
 
     def __init__(self, *args, **kw):
@@ -8,7 +11,7 @@ class ArgTaker(object):
         self.kwargs = kw
         self.maxarg = 0
 
-    def __call__(self, index, kwname):
+    def __call__(self, index, kwname, default=DO_THROW):
         maxarg = self.maxarg
         if index > maxarg:
             self.maxarg = index
@@ -19,7 +22,10 @@ class ArgTaker(object):
             try:
                 return self.kwargs.pop(kwname)
             except KeyError:
-                raise ValueError(f"missing argument: {kwname!r}")
+                if default == DO_THROW:
+                    raise ValueError(f"missing argument: {kwname!r}")
+                else:
+                    return default
 
     def verify(self):
         if len(self.args) > self.maxarg + 1:
