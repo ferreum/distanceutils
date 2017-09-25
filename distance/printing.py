@@ -98,6 +98,39 @@ class PrintContext(object):
             pass
 
 
+class Counters(object):
+
+    num_objects = 0
+    num_layers = 0
+    layer_objects = 0
+    grouped_objects = 0
+
+    def print_data(self, p):
+        if self.num_layers:
+            p(f"Total layers: {self.num_layers}")
+        if self.layer_objects:
+            p(f"Total objects in layers: {self.layer_objects}")
+        if self.grouped_objects != self.num_objects:
+            p(f"Total objects in groups: {self.grouped_objects}")
+        if self.num_objects != self.layer_objects:
+            p(f"Total objects: {self.num_objects}")
+
+
+@contextmanager
+def need_counters(p):
+    try:
+        p.counters
+    except AttributeError:
+        pass
+    else:
+        yield None
+        return
+    c = Counters()
+    p.counters = c
+    yield c
+    del p.counters
+
+
 def format_bytes(data, fmt='02x'):
     if isinstance(data, (tuple, list)):
         return ', '.join(format_bytes(d) for d in data)

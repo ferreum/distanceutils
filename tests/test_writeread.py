@@ -1,8 +1,10 @@
 import unittest
 from io import BytesIO
 
-from distance.level import (WedgeGS, Group, InfoDisplayBox, WinLogic,
-                            SubTeleporter)
+from distance.levelobjects import (
+    WedgeGS, Group, InfoDisplayBox, WinLogic,
+    SubTeleporter
+)
 from distance.level import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject

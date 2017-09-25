@@ -1,6 +1,6 @@
 import unittest
 
-from distance.level import PROBER, SubTeleporter, WinLogic
+from distance.levelobjects import PROBER, SubTeleporter, WinLogic
 from distance.bytes import DstBytes
 from distance.printing import PrintContext
 from distance.constants import ForceType
