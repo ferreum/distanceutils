@@ -158,8 +158,8 @@ class Layer(BytesModel):
                 flags = self.layer_flags
                 dbytes.write_int(4, self.flags_version)
                 if self.flags_version == 0:
-                    dbytes.write_int(1, flags[1])
-                    dbytes.write_int(1, 0 if flags[0] else 1)
+                    dbytes.write_int(1, 0 if flags[1] else 1)
+                    dbytes.write_int(1, flags[0])
                     dbytes.write_int(1, flags[2])
                 else:
                     dbytes.write_int(1, flags[0])
