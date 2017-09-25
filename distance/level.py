@@ -115,8 +115,6 @@ class LevelSettings(BaseObject):
 class Layer(BytesModel):
 
     layer_name = None
-    num_objects = 0
-    objects_start = None
     layer_flags = (0, 0, 0)
     objects = ()
 
@@ -127,7 +125,6 @@ class Layer(BytesModel):
         self._report_end_pos(s7.data_end)
 
         self.layer_name = s7.layer_name
-        self.num_objects = s7.num_objects
 
         pos = dbytes.pos
         if pos + 4 >= s7.data_end:
@@ -146,13 +143,12 @@ class Layer(BytesModel):
                 self.layer_flags = flags
                 self._add_unknown(1)
 
-        self.objects_start = dbytes.pos
-        self.objects = PROBER.lazy_n_maybe(dbytes, self.num_objects)
+        self.objects = PROBER.lazy_n_maybe(dbytes, s7.num_objects)
 
     def _print_data(self, p):
         with need_counters(p) as counters:
             p(f"Layer: {self.layer_name!r}")
-            p(f"Layer object count: {self.num_objects}")
+            p(f"Layer object count: {len(self.objects)}")
             if self.layer_flags:
                 flag_str = ', '.join(
                     format_layer_flags(zip(self.layer_flags, LAYER_FLAG_NAMES)))
@@ -160,7 +156,7 @@ class Layer(BytesModel):
                     flag_str = "None"
                 p(f"Layer flags: {flag_str}")
             p.counters.num_layers += 1
-            p.counters.layer_objects += self.num_objects
+            p.counters.layer_objects += len(self.objects)
             with p.tree_children():
                 print_objects(p, self.objects)
             if counters:
