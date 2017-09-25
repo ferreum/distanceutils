@@ -5,7 +5,8 @@ from distance.levelobjects import (
     WedgeGS, Group, InfoDisplayBox, WinLogic,
     SubTeleporter
 )
-from distance.level import PROBER as LEVEL_PROBER
+from distance.level import Level, Layer
+from distance.levelobjects import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
 
@@ -18,8 +19,15 @@ def inflate(obj):
 def check_exceptions(obj):
     if obj.exception:
         raise obj.exception
-    for child in obj.children:
-        check_exceptions(child)
+    if isinstance(obj, Level):
+        for layer in obj.layers:
+            check_exceptions(layer)
+    elif isinstance(obj, Layer):
+        for obj in obj.objects:
+            check_exceptions(obj)
+    else:
+        for child in obj.children:
+            check_exceptions(child)
 
 
 def disable_writes(dbytes):
@@ -40,7 +48,6 @@ def write_read(obj, read_func=None):
     disable_writes(dbytes)
     result = read_func(dbytes)
 
-    inflate(result)
     check_exceptions(result)
 
     return result
@@ -158,6 +165,17 @@ class UnknownTest(unittest.TestCase):
             res = write_read(obj, read_func=LEVEL_PROBER.read)
 
             self.assertAlmostEqual(3, res.music_id)
+
+
+class LevelTest(unittest.TestCase):
+
+    def test_persist(self):
+        with open("tests/in/level/test-straightroad.bytes", 'rb') as f:
+            level = Level(DstBytes(f))
+
+            res = write_read(level)
+
+            self.assertEqual(6, len(res.layers[0].objects))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

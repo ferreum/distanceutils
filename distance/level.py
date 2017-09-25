@@ -117,6 +117,9 @@ class Layer(BytesModel):
     layer_name = None
     layer_flags = (0, 0, 0)
     objects = ()
+    has_layer_flags = True
+    flags_version = 1
+    unknown_flag = 0
 
     def _read(self, dbytes):
         s7 = self._get_start_section()
@@ -130,20 +133,41 @@ class Layer(BytesModel):
         if pos + 4 >= s7.data_end:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
+            self.has_layer_flags = False
             return
-        tmp = dbytes.read_int(4)
-        dbytes.pos = pos
-        if tmp == 0 or tmp == 1:
-            self._add_unknown(4)
+        version = dbytes.read_int(4)
+        if version == 0 or version == 1:
+            self.flags_version = version
             flags = dbytes.read_struct("bbb")
-            if tmp == 0:
+            if version == 0:
                 frozen = 1 if flags[0] == 0 else 0
                 self.layer_flags = (flags[1], frozen, flags[2])
             else:
                 self.layer_flags = flags
-                self._add_unknown(1)
+                self.unknown_flag = dbytes.read_byte()
+        else:
+            self.has_layer_flags = False
+            # We read start of first object - need to rewind.
+            dbytes.pos = pos
 
         self.objects = PROBER.lazy_n_maybe(dbytes, s7.num_objects)
+
+    def write(self, dbytes):
+        with dbytes.write_section(MAGIC_7, self.layer_name, len(self.objects)):
+            if self.has_layer_flags:
+                flags = self.layer_flags
+                dbytes.write_int(4, self.flags_version)
+                if self.flags_version == 0:
+                    dbytes.write_int(1, flags[1])
+                    dbytes.write_int(1, 0 if flags[0] else 1)
+                    dbytes.write_int(1, flags[2])
+                else:
+                    dbytes.write_int(1, flags[0])
+                    dbytes.write_int(1, flags[1])
+                    dbytes.write_int(1, flags[2])
+                    dbytes.write_int(1, self.unknown_flag)
+            for obj in self.objects:
+                obj.write(dbytes)
 
     def _print_data(self, p):
         with need_counters(p) as counters:
@@ -182,6 +206,12 @@ class Level(BytesModel):
 
         self.layers = Layer.lazy_n_maybe(dbytes, sec.num_layers,
                                          start_pos=self.__get_layers_start)
+
+    def write(self, dbytes):
+        with dbytes.write_section(MAGIC_9, self.level_name, len(self.layers)):
+            self.settings.write(dbytes)
+            for layer in self.layers:
+                layer.write(dbytes)
 
     @property
     def settings(self):

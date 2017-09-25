@@ -388,6 +388,12 @@ class Section(BytesModel):
             pass # no data
         elif magic == MAGIC_6:
             self.type = arg(1, 'type')
+        elif magic == MAGIC_7:
+            self.layer_name = arg(1, 'layer_name')
+            self.num_objects = arg(2, 'num_objects')
+        elif magic == MAGIC_9:
+            self.level_name = arg(1, 'level_name')
+            self.num_layers = arg(2, 'num_layers')
         else:
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
 
@@ -482,6 +488,17 @@ class Section(BytesModel):
                 dbytes.write_secnum()
                 with dbytes.write_num_subsections():
                     yield
+        elif magic == MAGIC_7:
+            with dbytes.write_size():
+                dbytes.write_str(self.layer_name)
+                dbytes.write_int(4, self.num_objects)
+                yield
+        elif magic == MAGIC_9:
+            with dbytes.write_size():
+                dbytes.write_str(self.level_name)
+                dbytes.write_int(4, self.num_layers)
+                dbytes.write_secnum()
+                yield
         elif magic == MAGIC_32:
             with dbytes.write_size():
                 yield
