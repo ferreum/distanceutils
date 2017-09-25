@@ -15,18 +15,27 @@ class LazySequence(Sequence):
         return self._length
 
     def __getitem__(self, index):
-        if index >= self._length:
-            raise IndexError(f"{index} >= {self._length}")
-        if index < 0:
-            raise IndexError(f"{index} < 0")
         l = self._list
         current = len(l)
+        mylen = self._length
         if isinstance(index, slice):
-            if index.step < 0:
-                end = index.start
+            start, stop, stride = index.indices(mylen)
+            if stride < 0:
+                if start <= stop:
+                    return []
+                end = start
             else:
-                end = index.stop
+                if stop <= start:
+                    return []
+                end = stop - 1
+                end -= (mylen - end) % stride
         else:
+            if index < 0:
+                index = mylen + index
+            if index >= mylen:
+                raise IndexError(f"{index} >= {mylen}")
+            if index < 0:
+                raise IndexError(f"{index} < 0")
             end = index
         if end >= current:
             iterator = self._iterator
