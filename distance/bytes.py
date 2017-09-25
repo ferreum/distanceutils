@@ -283,16 +283,17 @@ class BytesModel(object):
         self._print_type(p)
         if 'offset' in p.flags:
             self._print_offset(p)
-        if 'sections' in p.flags and self.sections:
+        if 'sections' in p.flags:
             if self.start_section is not None:
                 p(f"Container:")
                 with p.tree_children():
                     p.print_data_of(self.start_section)
-            p(f"Subections: {len(self.sections)}")
-            with p.tree_children():
-                for sec in self.sections:
-                    p.tree_next_child()
-                    p.print_data_of(sec)
+            if self.sections:
+                p(f"Subections: {len(self.sections)}")
+                with p.tree_children():
+                    for sec in self.sections:
+                        p.tree_next_child()
+                        p.print_data_of(sec)
         if 'unknown' in p.flags and self.unknown:
             p(f"Unknown: {format_unknown(self.unknown)}")
         self._print_data(p)
