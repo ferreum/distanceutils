@@ -16,9 +16,9 @@ class LazySequence(Sequence):
 
     def __getitem__(self, index):
         if index >= self._length:
-            raise IndexError(f"index {{index}} >= len ({self._length})")
+            raise IndexError(f"{index} >= {self._length}")
         if index < 0:
-            raise IndexError(f"index {{index}} < 0")
+            raise IndexError(f"{index} < 0")
         l = self._list
         current = len(l)
         if isinstance(index, slice):
