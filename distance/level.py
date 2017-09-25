@@ -880,6 +880,7 @@ class WedgeGS(LevelObject):
 class Level(BytesModel):
 
     _settings = None
+    _layers = None
     level_name = None
     num_layers = 0
     settings_start = None
@@ -896,36 +897,48 @@ class Level(BytesModel):
     @property
     def settings(self):
         s = self._settings
-        if not s:
+        if s is None:
             dbytes = self.dbytes
             with dbytes.saved_pos(self.settings_start):
                 self._settings = s = LevelSettings.maybe(self.dbytes)
         return s
 
-    def move_to_first_layer(self):
+    @settings.setter
+    def settings(self, s):
+        self._settings = s
+
+    def __move_to_first_layer(self):
         settings = self.settings
         if settings.sane_end_pos:
             self.dbytes.pos = settings.reported_end_pos
         else:
             raise settings.exception
 
+    @property
+    def layers(self):
+        l = self._layers
+        if l is None:
+            dbytes = self.dbytes
+            with dbytes.saved_pos():
+                self.__move_to_first_layer()
+                l = Layer.read_n_maybe(dbytes, self.num_layers)
+                self._layers = l
+        return l
+
+    @layers.setter
+    def layers(self, l):
+        if l is None:
+            raise ValueError("cannot set layers to None")
+        self._layers = l
+
     def iter_objects(self, with_layers=False, with_objects=True):
         dbytes = self.dbytes
-        self.move_to_first_layer()
-        for layer in Layer.iter_n_maybe(dbytes, self.num_layers):
+        for layer in self.layers:
             if with_layers:
                 yield layer
             if with_objects:
                 for obj in layer.iter_objects():
                     yield obj
-            dbytes.pos = layer.end_pos
-
-    def iter_layers(self):
-        dbytes = self.dbytes
-        self.move_to_first_layer()
-        for layer in Layer.iter_n_maybe(dbytes, self.num_layers):
-            yield layer
-            dbytes.pos = layer.end_pos
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
@@ -935,7 +948,7 @@ class Level(BytesModel):
             if not settings.sane_end_pos:
                 return
             with need_counters(p) as counters:
-                for layer in self.iter_layers():
+                for layer in self.layers:
                     p.print_data_of(layer)
                 if counters:
                     counters.print_data(p)
