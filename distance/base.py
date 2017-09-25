@@ -61,7 +61,7 @@ class BaseObject(BytesModel):
     is_object_group = False
 
     transform = None
-    _children = None
+    children = ()
     has_children = False
     children_section = None
 
@@ -81,8 +81,10 @@ class BaseObject(BytesModel):
             if dbytes.pos + TRANSFORM_MIN_SIZE < end:
                 self.transform = read_transform(dbytes)
             if dbytes.pos + Section.MIN_SIZE < end:
-                self.children_section = Section(dbytes)
+                s5 = Section(dbytes)
                 self.has_children = True
+                self.children = self.child_prober.lazy_n_maybe(
+                    dbytes, s5.num_objects, start_pos=s5.children_start)
             return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
@@ -107,28 +109,6 @@ class BaseObject(BytesModel):
                         obj.write(dbytes)
             return True
         return BytesModel._write_section_data(self, dbytes, sec)
-
-    @property
-    def children(self):
-        objs = self._children
-        if objs is None:
-            s5 = self.children_section
-            if s5 and s5.num_objects:
-                objs = []
-                dbytes = self.dbytes
-                with dbytes.saved_pos(s5.children_start):
-                    objs = self.child_prober.read_n_maybe(
-                        dbytes, s5.num_objects)
-            else:
-                objs = ()
-            self._children = objs
-        return objs
-
-    @children.setter
-    def children(self, objs):
-        if objs is None:
-            raise ValueError("cannot set children to None")
-        self._children = objs
 
     def iter_children(self, ty=None, name=None):
         for obj in self.children:
