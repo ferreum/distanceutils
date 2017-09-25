@@ -196,7 +196,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Author steam user name
 
-    * Level unique identifier (path below `<Userdir>/Levels/`, always starts with `WorkshopLevels/`)
+    * Level unique identifier (path within `<Userdir>/Levels/`, always starts with `WorkshopLevels/`)
 
     * Published by this steam user
 
