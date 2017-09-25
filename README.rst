@@ -23,11 +23,12 @@ The following executable scripts are provided:
 dst-bytes
 ---------
 
-Prints various contents of .bytes files.
+Dump various data from .bytes files.
 
 See `.bytes Support`_ for a list of supported files.
 
-Output can be modified by passing flags to the `-f` option:
+Output can be modified by passing flags (comma-separated, or multiple options)
+to the `-f` option:
 
 * transform - Prints transform (position, rotation, scale) of level objects
 
@@ -51,7 +52,7 @@ Output can be modified by passing flags to the `-f` option:
 dst-objtobytes
 --------------
 
-Takes a wavefront .obj file and generates a .bytes CustomObject made from
+Take a wavefront .obj file and generate a .bytes CustomObject made from
 simples.
 
 * The resulting object is a Group containing WedgeGS objects.
@@ -70,7 +71,7 @@ simples.
 dst-teletodot
 -------------
 
-Takes a level .bytes file and generates a Graphviz dot document of teleporter
+Take a level .bytes file and generate a Graphviz dot document of teleporter
 connections.
 
 For example, the connections can be viewed using xdot::
@@ -88,14 +89,14 @@ generated from WorkshopLevelInfos.bytes, followed by querying this database.
 dst-mklevelinfos
 ''''''''''''''''
 
-Generates the cache database from WorkshopLevelInfos.bytes. See --help for
+Generate the cache database from WorkshopLevelInfos.bytes. See --help for
 options.
 
 
 dst-querymaps
 '''''''''''''
 
-Queries the cache database. See --help for options.
+Query the cache database. See --help for options.
 
 
 _`.bytes Support`
