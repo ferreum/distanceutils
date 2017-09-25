@@ -59,7 +59,7 @@ simples.
 
 * Subgroups are generated if the .obj contains groups.
 
-* Supports material colors if matching .mtl file is found.
+* Uses material colors if matching .mtl file is found.
 
 * Generates between one and two WedgeGS for each triangle (two are needed for
   non-right triangles).
