@@ -368,6 +368,7 @@ class Section(BytesModel):
     version = None
     num_sections = None
     raw_data = None
+    secnum = None
 
     def __init__(self, *args, **kw):
         if args:
@@ -417,13 +418,13 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.read_bytes(4) # secnum
+            self.secnum = dbytes.read_int(4)
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.read_bytes(4) # secnum
+            self.secnum = dbytes.read_int(4)
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -434,7 +435,7 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.type = dbytes.read_str()
             self._add_unknown(1) # unknown, always 0
-            dbytes.read_bytes(4) # secnum
+            self.secnum = dbytes.read_int(4)
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
@@ -445,7 +446,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.level_name = dbytes.read_str()
             self.num_layers = dbytes.read_int(4)
-            dbytes.read_bytes(4) # secnum
+            self.secnum = dbytes.read_int(4)
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -521,6 +522,10 @@ class Section(BytesModel):
         if self.version is not None:
             type_str += f" ver {self.version}"
         p(f"Section: {self.magic}{type_str}")
+
+    def _print_data(self, p):
+        if self.secnum:
+            p(f"Secnum: {self.secnum}")
 
     def _print_offset(self, p):
         start = self.data_start
