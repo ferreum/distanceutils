@@ -459,7 +459,7 @@ class Section(BytesModel):
 
     def read_raw_data(self, dbytes):
         self.raw_data = dbytes.read_bytes(self.data_end - dbytes.pos,
-                                      or_to_eof=True)
+                                          or_to_eof=True)
 
     def match(self, magic, ident=None, version=None):
         if magic != self.magic:
