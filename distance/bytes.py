@@ -105,6 +105,11 @@ class BytesModel(object):
             objs.append(obj)
         return objs
 
+    @classmethod
+    def lazy_n_maybe(clazz, dbytes, n, *args, start_pos=None, **kw):
+        gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
+        return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
+
     def __init__(self, dbytes=None, **kw):
 
         """Constructor.
@@ -616,7 +621,10 @@ class DstBytes(object):
             start_pos = self.pos
         def gen():
             iterator = iter(source)
-            pos = start_pos
+            if callable(start_pos):
+                pos = start_pos()
+            else:
+                pos = start_pos
             while True:
                 with self.saved_pos(pos):
                     try:

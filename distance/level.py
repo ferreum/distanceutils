@@ -166,7 +166,7 @@ class Layer(BytesModel):
 class Level(BytesModel):
 
     _settings = None
-    _layers = None
+    layers = ()
     level_name = None
     num_layers = 0
     settings_start = None
@@ -179,6 +179,9 @@ class Level(BytesModel):
         self.level_name = sec.level_name
         self.num_layers = sec.num_layers
         self.settings_start = dbytes.pos
+
+        self.layers = Layer.lazy_n_maybe(dbytes, sec.num_layers,
+                                         start_pos=self.__get_layers_start)
 
     @property
     def settings(self):
@@ -193,29 +196,12 @@ class Level(BytesModel):
     def settings(self, s):
         self._settings = s
 
-    def __move_to_first_layer(self):
+    def __get_layers_start(self):
         settings = self.settings
         if settings.sane_end_pos:
-            self.dbytes.pos = settings.reported_end_pos
+            return settings.reported_end_pos
         else:
             raise settings.exception
-
-    @property
-    def layers(self):
-        l = self._layers
-        if l is None:
-            dbytes = self.dbytes
-            with dbytes.saved_pos():
-                self.__move_to_first_layer()
-                l = Layer.read_n_maybe(dbytes, self.num_layers)
-                self._layers = l
-        return l
-
-    @layers.setter
-    def layers(self, l):
-        if l is None:
-            raise ValueError("cannot set layers to None")
-        self._layers = l
 
     def iter_objects(self, with_layers=False, with_objects=True):
         for layer in self.layers:

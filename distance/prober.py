@@ -101,9 +101,9 @@ class BytesProber(object):
             objs.append(obj)
         return objs
 
-    def lazy_n_maybe(self, dbytes, n, *args, **kw):
+    def lazy_n_maybe(self, dbytes, n, *args, start_pos=None, **kw):
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
-        return LazySequence(dbytes.stable_iter(gen), n)
+        return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
