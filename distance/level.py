@@ -8,7 +8,6 @@ from .base import BaseObject
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER, print_objects
-from .lazy import LazySequence
 
 
 S_ABILITIES = Struct("5b")
@@ -148,18 +147,7 @@ class Layer(BytesModel):
                 self._add_unknown(1)
 
         self.objects_start = dbytes.pos
-        self.objects = LazySequence(self.__iter_objects(), self.num_objects)
-
-    def __iter_objects(self):
-        dbytes = self.dbytes
-        pos = self.objects_start
-        for _ in range(self.num_objects):
-            with dbytes.saved_pos(pos):
-                obj = PROBER.maybe(dbytes)
-            yield obj
-            if not obj.sane_end_pos:
-                break
-            pos = obj.end_pos
+        self.objects = PROBER.lazy_n_maybe(dbytes, self.num_objects)
 
     def _print_data(self, p):
         with need_counters(p) as counters:

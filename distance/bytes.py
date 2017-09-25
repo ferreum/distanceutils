@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from .printing import PrintContext, format_unknown
 from .argtaker import ArgTaker
+from .lazy import LazySequence
 
 
 S_COLOR_RGBA = Struct("4f")
@@ -609,6 +610,22 @@ class DstBytes(object):
         n += 1
         self.section_counter = n
         self.write_int(4, n)
+
+    def stable_iter(self, source, start_pos=None):
+        if start_pos is None:
+            start_pos = self.pos
+        def gen():
+            iterator = iter(source)
+            pos = start_pos
+            while True:
+                with self.saved_pos(pos):
+                    try:
+                        obj = next(iterator)
+                    except StopIteration:
+                        break
+                    pos = self.pos
+                yield obj
+        return gen()
 
     @contextmanager
     def write_size(self):

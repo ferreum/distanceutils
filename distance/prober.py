@@ -2,6 +2,7 @@
 
 
 from .bytes import BytesModel, Section, MAGIC_6
+from .lazy import LazySequence
 
 
 class BytesProber(object):
@@ -100,6 +101,9 @@ class BytesProber(object):
             objs.append(obj)
         return objs
 
+    def lazy_n_maybe(self, dbytes, n, *args, **kw):
+        gen = self.iter_n_maybe(dbytes, n, *args, **kw)
+        return LazySequence(dbytes.stable_iter(gen), n)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
