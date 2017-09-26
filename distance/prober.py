@@ -70,7 +70,7 @@ class BytesProber(object):
         self._fragments.extend(other._fragments)
         self._funcs.extend(other._funcs)
 
-    def _get_fragment(self, section):
+    def _probe_fragment(self, section):
         for args, kw, cls in self._fragments:
             if section.match(*args, **kw):
                 return cls
@@ -83,6 +83,21 @@ class BytesProber(object):
                 return cls
         return None
 
+    def probe_section(self, section):
+        if section.magic == MAGIC_6:
+            cls = self._types.get(section.type, None)
+            if cls is not None:
+                return cls
+        cls = self._probe_fragment(section)
+        if cls is not None:
+            return cls
+        cls = self._get_from_funcs(section)
+        if cls is not None:
+            return cls
+        if section.magic == MAGIC_6:
+            raise ProbeError(f"Unknown object type: {section.type!r}")
+        raise ProbeError(f"Unknown object section: {section.magic}")
+
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:
             start_pos = dbytes.pos
@@ -90,23 +105,8 @@ class BytesProber(object):
         else:
             start_pos = probe_section.start_pos
             section = probe_section
-        start_section = section
-        if section.magic == MAGIC_6:
-            ty = section.type
-            cls = self._types.get(ty, None)
-            if cls is None:
-                cls = self._get_fragment(section)
-            if cls is None:
-                cls = self._get_from_funcs(section)
-            if cls is None:
-                raise ProbeError(f"Unknown object type: {ty!r}")
-        else:
-            cls = self._get_fragment(section)
-            if cls is None:
-                cls = self._get_from_funcs(section)
-        if cls is None:
-            raise ProbeError(f"Unknown object section: {section.magic}")
-        return cls, {'start_section': start_section, 'start_pos': start_pos}
+        cls = self.probe_section(section)
+        return cls, {'start_section': section, 'start_pos': start_pos}
 
     def read(self, dbytes, probe_section=None, **kw):
         cls, add_kw = self.probe(dbytes, probe_section=probe_section)
