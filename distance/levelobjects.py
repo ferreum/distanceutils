@@ -715,7 +715,7 @@ class TrackNodeFragment(Fragment):
         p(f"Fragment: TrackNode")
 
     def _print_data(self, p):
-        if 'sections' in p.flags:
+        if 'sections' in p.flags or 'track' in p.flags:
             p(f"Parent ID: {self.parent_id}")
             p(f"Snapped to: {self.snap_id}")
             p(f"Connection ID: {self.conn_id}")
