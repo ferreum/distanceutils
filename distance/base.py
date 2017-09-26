@@ -86,7 +86,8 @@ class BaseObject(BytesModel):
                 s5 = Section(dbytes)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.num_objects, start_pos=s5.children_start)
+                    dbytes, s5.num_objects, start_pos=s5.children_start,
+                    opts=self.opts)
             return True
         if self.fragment_prober:
             try:

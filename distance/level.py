@@ -120,6 +120,14 @@ class Layer(BytesModel):
     has_layer_flags = True
     flags_version = 1
     unknown_flag = 0
+    obj_prober = PROBER
+
+    def _handle_opts(self, opts):
+        BytesModel._handle_opts(self, opts)
+        try:
+            self.child_prober = opts['level_obj_prober']
+        except KeyError:
+            pass
 
     def _read(self, dbytes):
         s7 = self._get_start_section()
@@ -150,7 +158,7 @@ class Layer(BytesModel):
             # We read start of first object - need to rewind.
             dbytes.pos = pos
 
-        self.objects = PROBER.lazy_n_maybe(dbytes, s7.num_objects)
+        self.objects = self.obj_prober.lazy_n_maybe(dbytes, s7.num_objects, opts=self.opts)
 
     def write(self, dbytes):
         with dbytes.write_section(MAGIC_7, self.layer_name, len(self.objects)):
@@ -207,7 +215,8 @@ class Level(BytesModel):
         self.settings_start = dbytes.pos
 
         self.layers = Layer.lazy_n_maybe(dbytes, sec.num_layers,
-                                         start_pos=self.__get_layers_start)
+                                         start_pos=self.__get_layers_start,
+                                         opts=self.opts)
 
     def write(self, dbytes):
         with dbytes.write_section(MAGIC_9, self.level_name, len(self.layers)):

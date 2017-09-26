@@ -64,6 +64,7 @@ class BytesModel(object):
     recoverable = False
     start_section = None
     sane_end_pos = False
+    opts = None
 
     default_sections = ()
 
@@ -128,7 +129,10 @@ class BytesModel(object):
             for k, v in kw.items():
                 setattr(self, k, v)
 
-    def read(self, dbytes, start_section=None, **kw):
+    def _handle_opts(self, opts):
+        pass
+
+    def read(self, dbytes, start_section=None, opts=None, **kw):
 
         """Read data of this object from the given dbytes.
 
@@ -160,6 +164,9 @@ class BytesModel(object):
             start_pos = dbytes.pos
         self.start_pos = start_pos
         self.dbytes = dbytes
+        if opts:
+            self.opts = opts
+            self._handle_opts(opts)
         try:
             self._read(dbytes, **kw)
             self.__apply_end_pos(dbytes)
