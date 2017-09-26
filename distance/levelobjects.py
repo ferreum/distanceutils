@@ -12,6 +12,7 @@ from .base import BaseObject, Fragment
 from .constants import ForceType
 from .prober import BytesProber
 from .printing import need_counters
+from .data import NamedPropertyList, MaterialSet
 
 
 def read_n_floats(dbytes, n, default):
@@ -715,6 +716,51 @@ class TrackNodeFragment(Fragment):
             p(f"Snapped to: {self.snap_id}")
             p(f"Connection ID: {self.conn_id}")
             p(f"Primary: {self.primary and 'yes' or 'no'}")
+
+
+@FRAG_PROBER.fragment(MAGIC_2, 0x42)
+class ObjectSpawnCircleFragment(Fragment):
+
+    def __init__(self, *args, **kw):
+        self.props = NamedPropertyList()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size >= 16:
+            self.props.read(dbytes)
+
+    def _write_section_data(self, dbytes, sec):
+        if self.props:
+            self.props.write(dbytes)
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags and self.props:
+            self.props.print_data(p)
+
+
+@FRAG_PROBER.fragment(MAGIC_3, 0x3, 1)
+class MaterialFragment(Fragment):
+
+    def __init__(self, *args, **kw):
+        self.materials = MaterialSet()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size > 16:
+            self.materials.read(dbytes)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        if self.materials:
+            self.materials.write(dbytes)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: Material")
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags and self.materials:
+            self.materials.print_data(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -201,7 +201,7 @@ class Fragment(BytesModel):
         return False
 
     def _write_section_data(self, dbytes, sec):
-        pass
+        return False
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
