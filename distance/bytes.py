@@ -221,13 +221,16 @@ class BytesModel(object):
 
     def _write_sections(self, dbytes):
         for sec in self.sections:
-            with dbytes.write_section(sec):
-                if not self._write_section_data(dbytes, sec):
-                    data = sec.raw_data
-                    if data is None:
-                        raise ValueError(
-                            f"Raw data not available for {sec}")
-                    dbytes.write_bytes(data)
+            self._write_section(dbytes, sec)
+
+    def _write_section(self, dbytes, sec):
+        with dbytes.write_section(sec):
+            if not self._write_section_data(dbytes, sec):
+                data = sec.raw_data
+                if data is None:
+                    raise ValueError(
+                        f"Raw data not available for {sec}")
+                dbytes.write_bytes(data)
 
     def _write_section_data(self, dbytes, sec):
 
@@ -368,7 +371,7 @@ class Section(BytesModel):
     version = None
     num_sections = None
     raw_data = None
-    secnum = None
+    id = None
 
     def __init__(self, *args, **kw):
         if args:
@@ -386,10 +389,12 @@ class Section(BytesModel):
         if magic in (MAGIC_2, MAGIC_3):
             self.ident = arg(1, 'ident')
             self.version = arg(2, 'version')
+            self.id = arg(3, 'id', default=None)
         elif magic == MAGIC_5:
             pass # no data
         elif magic == MAGIC_6:
             self.type = arg(1, 'type')
+            self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
             self.layer_name = arg(1, 'layer_name')
             self.num_objects = arg(2, 'num_objects')
@@ -419,13 +424,13 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            self.secnum = dbytes.read_int(4)
+            self.id = dbytes.read_id()
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            self.secnum = dbytes.read_int(4)
+            self.id = dbytes.read_id()
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -436,7 +441,7 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.type = dbytes.read_str()
             self._add_unknown(1) # unknown, always 0
-            self.secnum = dbytes.read_int(4)
+            self.id = dbytes.read_id()
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
@@ -478,7 +483,7 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_int(4, self.ident)
                 dbytes.write_int(4, self.version)
-                dbytes.write_secnum()
+                dbytes.write_id(self.id)
                 yield
         elif magic == MAGIC_5:
             with dbytes.write_size():
@@ -488,7 +493,7 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_str(self.type)
                 dbytes.write_bytes(b'\x00') # unknown, always 0
-                dbytes.write_secnum()
+                dbytes.write_id(self.id)
                 with dbytes.write_num_subsections():
                     yield
         elif magic == MAGIC_7:
@@ -522,11 +527,9 @@ class Section(BytesModel):
             type_str += f" type 0x{self.ident:02x}"
         if self.version is not None:
             type_str += f" ver {self.version}"
+        if self.id is not None:
+            type_str += f" id {self.id}"
         p(f"Section: {self.magic}{type_str}")
-
-    def _print_data(self, p):
-        if self.secnum:
-            p(f"Secnum: {self.secnum}")
 
     def _print_offset(self, p):
         start = self.data_start
@@ -544,8 +547,8 @@ class DstBytes(object):
 
     _max_pos = None
     _expect_overread = False
-    section_counter = 0
     num_subsections = 0
+    section_counter = 0x10000000
 
     def __init__(self, file):
         self.file = file
@@ -615,6 +618,9 @@ class DstBytes(object):
         data = self.read_bytes(length)
         return data.decode('utf-16', 'surrogateescape')
 
+    def read_id(self):
+        return self.read_int(4)
+
     def write_bytes(self, data):
         self.file.write(data)
 
@@ -634,11 +640,11 @@ class DstBytes(object):
         self.write_var_int(len(data))
         self.write_bytes(data)
 
-    def write_secnum(self):
-        n = self.section_counter
-        n += 1
-        self.section_counter = n
-        self.write_int(4, n)
+    def write_id(self, id_):
+        if id_ is None:
+            id_ = self.section_counter + 1
+            self.section_counter = id_
+        self.write_int(4, id_)
 
     def stable_iter(self, source, start_pos=None):
         if start_pos is None:

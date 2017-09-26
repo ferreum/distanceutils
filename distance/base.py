@@ -103,13 +103,25 @@ class BaseObject(BytesModel):
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
+        if self.start_section is None:
+            self.start_section = Section(MAGIC_6, self.type)
         if self.sections is ():
             self.sections = self._init_sections()
-        with dbytes.write_section(MAGIC_6, self.type):
+        with dbytes.write_section(self.start_section):
             self._write_sections(dbytes)
 
     def _init_sections(self):
         return self.default_sections
+
+    def _write_section(self, dbytes, sec):
+        try:
+            fragment = sec.__fragment
+        except AttributeError:
+            pass
+        else:
+            fragment.write(dbytes, section=sec)
+            return True
+        return BytesModel._write_section(self, dbytes, sec)
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, 0x01):
@@ -121,13 +133,6 @@ class BaseObject(BytesModel):
                 with dbytes.write_section(MAGIC_5):
                     for obj in self.children:
                         obj.write(dbytes)
-            return True
-        try:
-            fragment = sec.__fragment
-        except AttributeError:
-            pass
-        else:
-            fragment.write(dbytes, section=sec)
             return True
         return BytesModel._write_section_data(self, dbytes, sec)
 

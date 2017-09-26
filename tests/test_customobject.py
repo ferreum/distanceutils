@@ -288,10 +288,10 @@ class SplineRoadTest(unittest.TestCase):
             obj = PROBER.read(DstBytes(f))
             node0 = obj.children[0].fragments[0]
             node1 = obj.children[1].fragments[0]
-            self.assertEqual(59, node0.snap_id)
             self.assertEqual(79, node0.parent_id)
-            self.assertEqual(100, node1.snap_id)
+            self.assertEqual(59, node0.snap_id)
             self.assertEqual(79, node1.parent_id)
+            self.assertEqual(100, node1.snap_id)
             p.print_data_of(obj)
 
 

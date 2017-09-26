@@ -118,9 +118,9 @@ class WriteSecnumTest(unittest.TestCase):
     def test_multiple(self):
         buf, dbytes = new_bytes()
 
-        dbytes.write_secnum()
-        dbytes.write_secnum()
-        dbytes.write_secnum()
+        dbytes.write_id(1)
+        dbytes.write_id(2)
+        dbytes.write_id(3)
 
         self.assertEqual(buf.getvalue(),
                          b'\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00')

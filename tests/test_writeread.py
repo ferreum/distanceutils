@@ -2,7 +2,7 @@ import unittest
 from io import BytesIO
 
 from distance.levelobjects import (
-    WedgeGS, Group, InfoDisplayBox, WinLogic,
+    LevelObject, WedgeGS, Group, InfoDisplayBox, WinLogic,
     SubTeleporter
 )
 from distance.level import Level, Layer
@@ -165,6 +165,22 @@ class UnknownTest(unittest.TestCase):
             res = write_read(obj, read_func=LEVEL_PROBER.read)
 
             self.assertAlmostEqual(3, res.music_id)
+
+
+class FragmentTest(unittest.TestCase):
+
+    def test_tracknode(self):
+        with open("tests/in/customobject/splineroad.bytes", 'rb') as f:
+            obj = LevelObject(DstBytes(f))
+
+            res = write_read(obj)
+
+            node0 = res.children[0].fragments[0]
+            node1 = res.children[1].fragments[0]
+            self.assertEqual(79, node0.parent_id)
+            self.assertEqual(59, node0.snap_id)
+            self.assertEqual(79, node1.parent_id)
+            self.assertEqual(100, node1.snap_id)
 
 
 class LevelTest(unittest.TestCase):
