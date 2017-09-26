@@ -128,8 +128,7 @@ class BytesModel(object):
             for k, v in kw.items():
                 setattr(self, k, v)
 
-    def read(self, dbytes, start_section=None,
-             start_pos=None, **kw):
+    def read(self, dbytes, start_section=None, **kw):
 
         """Read data of this object from the given dbytes.
 
@@ -138,8 +137,8 @@ class BytesModel(object):
 
         Exceptions raised in self._read() gain the following attributes:
 
-        start_pos - dbytes.pos before starting self._read(), or parameter
-                    start_pos, if set.
+        start_pos - dbytes.pos when entering this method, or start_pos of
+                    parameter start_section, if set.
         exc_pos   - dbytes.pos where the exception occurred.
         sane_end_pos - Whether dbytes.pos is considered sane (see below).
         partial_object - Set to self only if self.recoverable is set to true.
@@ -156,7 +155,8 @@ class BytesModel(object):
 
         if start_section:
             self.start_section = start_section
-        if start_pos is None:
+            start_pos = start_section.start_pos
+        else:
             start_pos = dbytes.pos
         self.start_pos = start_pos
         self.dbytes = dbytes

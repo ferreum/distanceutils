@@ -100,13 +100,11 @@ class BytesProber(object):
 
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:
-            start_pos = dbytes.pos
             section = Section(dbytes)
         else:
-            start_pos = probe_section.start_pos
             section = probe_section
         cls = self.probe_section(section)
-        return cls, {'start_section': section, 'start_pos': start_pos}
+        return cls, {'start_section': section}
 
     def read(self, dbytes, probe_section=None, **kw):
         cls, add_kw = self.probe(dbytes, probe_section=probe_section)
