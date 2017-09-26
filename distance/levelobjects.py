@@ -712,13 +712,14 @@ class TrackNodeFragment(Fragment):
         return True
 
     def _print_type(self, p):
-        p(f"TrackNode:")
+        p(f"Fragment: TrackNode")
 
     def _print_data(self, p):
-        p(f"Parent ID: {self.parent_id}")
-        p(f"Snapped to: {self.snap_id}")
-        p(f"Connection ID: {self.conn_id}")
-        p(f"Primary: {self.primary and 'yes' or 'no'}")
+        if 'sections' in p.flags:
+            p(f"Parent ID: {self.parent_id}")
+            p(f"Snapped to: {self.snap_id}")
+            p(f"Connection ID: {self.conn_id}")
+            p(f"Primary: {self.primary and 'yes' or 'no'}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
