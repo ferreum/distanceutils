@@ -104,7 +104,7 @@ class FragmentMatcher(object):
             except Exception:
                 pass
             else:
-                if i >= offset and i <= offset + len(data):
+                if offset <= i <= offset + len(data):
                     matches.append(("Offset", f"0x{i:08x}"))
             pos += 1
         return matches
