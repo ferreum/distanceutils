@@ -1,6 +1,4 @@
-#!/usr/bin/python
-
-"""Creates a CustomObject from a level."""
+"""Create a CustomObject from a level."""
 
 
 import os
@@ -9,7 +7,7 @@ import argparse
 import re
 
 from distance.level import Level
-from distance.level import PROBER as LEVEL_PROBER
+from distance.levelobjects import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes, MAGIC_9
 from distance.printing import PrintContext
 from distance.prober import BytesProber
@@ -57,6 +55,17 @@ def select_candidates(source, args):
     return res
 
 
+def print_candidates(candidates):
+    p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+    p(f"Candidates: {len(candidates)}")
+    with p.tree_children():
+        for i, obj in enumerate(candidates):
+            p.tree_next_child()
+            p(f"Candidate: {i}")
+            p.print_data_of(obj)
+    p(f"Use -n to specify candidate.")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
@@ -79,7 +88,7 @@ def main():
         write_mode = 'wb'
 
     if not args.force and os.path.exists(args.OUT):
-        print("file {args.OUT} exists. pass -f to force.", file=sys.stderr)
+        print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
         return 1
 
     with open(args.IN, 'rb') as in_f:
@@ -95,14 +104,7 @@ def main():
         if len(candidates) == 1:
             tosave = candidates[0]
         elif len(candidates) > 1:
-            p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
-            p(f"Candidates: {len(candidates)}")
-            with p.tree_children():
-                for i, obj in enumerate(candidates):
-                    p.tree_next_child()
-                    p(f"Candidate: {i}")
-                    p.print_data_of(obj)
-            p(f"Use -n to specify candidate.")
+            print_candidates(candidates)
         else:
             print("no matching object found", file=sys.stderr)
 

@@ -9,7 +9,7 @@ from .workshoplevelinfos import WorkshopLevelInfos, FTYPE_WSLEVELINFOS
 from .levelinfos import LevelInfos, FTYPE_LEVELINFOS
 from .profileprogress import ProfileProgress, FTYPE_PROFILEPROGRESS
 from .level import Level
-from .level import PROBER as LEVEL_PROBER
+from .levelobjects import PROBER as LEVEL_PROBER
 
 
 PROBER = BytesProber({

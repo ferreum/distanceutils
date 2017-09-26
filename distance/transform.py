@@ -3,7 +3,7 @@
 
 import numpy as np, quaternion
 
-from .level import WedgeGS
+from .levelobjects import WedgeGS
 
 
 quaternion # suppress warning

@@ -4,7 +4,7 @@
 import argparse
 
 from distance.bytes import DstBytes
-from distance.level import PROBER
+from distance.levelobjects import PROBER
 
 
 def main():

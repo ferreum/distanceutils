@@ -4,7 +4,7 @@
 import argparse
 
 from distance.bytes import DstBytes
-from distance.level import Level, SubTeleporter
+from distance.levelobjects import Level, SubTeleporter
 
 
 def main():

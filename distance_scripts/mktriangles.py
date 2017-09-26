@@ -4,7 +4,7 @@
 import argparse
 
 from distance.bytes import DstBytes
-from distance.level import WedgeGS, Group
+from distance.levelobjects import WedgeGS, Group
 
 
 def main():

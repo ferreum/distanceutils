@@ -17,7 +17,9 @@ class PrintContext(object):
         self._tree_data = [], []
 
     @classmethod
-    def for_test(clazz, file=None, flags=()):
+    def for_test(clazz, file=None, flags=None):
+        if flags is None:
+            flags = ('groups', 'subobjects', 'fragments')
         p = PrintContext(file=file, flags=flags)
         def print_exc(e):
             raise e
@@ -96,6 +98,39 @@ class PrintContext(object):
             self(f"Exception pos:   0x{exc.exc_pos:08x}")
         except AttributeError:
             pass
+
+
+class Counters(object):
+
+    num_objects = 0
+    num_layers = 0
+    layer_objects = 0
+    grouped_objects = 0
+
+    def print_data(self, p):
+        if self.num_layers:
+            p(f"Total layers: {self.num_layers}")
+        if self.layer_objects:
+            p(f"Total objects in layers: {self.layer_objects}")
+        if self.grouped_objects != self.num_objects:
+            p(f"Total objects in groups: {self.grouped_objects}")
+        if self.num_objects != self.layer_objects:
+            p(f"Total objects: {self.num_objects}")
+
+
+@contextmanager
+def need_counters(p):
+    try:
+        p.counters
+    except AttributeError:
+        pass
+    else:
+        yield None
+        return
+    c = Counters()
+    p.counters = c
+    yield c
+    del p.counters
 
 
 def format_bytes(data, fmt='02x'):

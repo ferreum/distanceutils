@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from .printing import PrintContext, format_unknown
 from .argtaker import ArgTaker
+from .lazy import LazySequence
 
 
 S_COLOR_RGBA = Struct("4f")
@@ -104,6 +105,11 @@ class BytesModel(object):
             objs.append(obj)
         return objs
 
+    @classmethod
+    def lazy_n_maybe(clazz, dbytes, n, *args, start_pos=None, **kw):
+        gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
+        return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
+
     def __init__(self, dbytes=None, **kw):
 
         """Constructor.
@@ -122,8 +128,7 @@ class BytesModel(object):
             for k, v in kw.items():
                 setattr(self, k, v)
 
-    def read(self, dbytes, start_section=None,
-             start_pos=None, **kw):
+    def read(self, dbytes, start_section=None, **kw):
 
         """Read data of this object from the given dbytes.
 
@@ -132,8 +137,8 @@ class BytesModel(object):
 
         Exceptions raised in self._read() gain the following attributes:
 
-        start_pos - dbytes.pos before starting self._read(), or parameter
-                    start_pos, if set.
+        start_pos - dbytes.pos when entering this method, or start_pos of
+                    parameter start_section, if set.
         exc_pos   - dbytes.pos where the exception occurred.
         sane_end_pos - Whether dbytes.pos is considered sane (see below).
         partial_object - Set to self only if self.recoverable is set to true.
@@ -150,7 +155,8 @@ class BytesModel(object):
 
         if start_section:
             self.start_section = start_section
-        if start_pos is None:
+            start_pos = start_section.start_pos
+        else:
             start_pos = dbytes.pos
         self.start_pos = start_pos
         self.dbytes = dbytes
@@ -215,13 +221,16 @@ class BytesModel(object):
 
     def _write_sections(self, dbytes):
         for sec in self.sections:
-            with dbytes.write_section(sec):
-                if not self._write_section_data(dbytes, sec):
-                    data = sec.raw_data
-                    if data is None:
-                        raise ValueError(
-                            f"Raw data not available for {sec}")
-                    dbytes.write_bytes(data)
+            self._write_section(dbytes, sec)
+
+    def _write_section(self, dbytes, sec):
+        with dbytes.write_section(sec):
+            if not self._write_section_data(dbytes, sec):
+                data = sec.raw_data
+                if data is None:
+                    raise ValueError(
+                        f"Raw data not available for {sec}")
+                dbytes.write_bytes(data)
 
     def _write_section_data(self, dbytes, sec):
 
@@ -277,16 +286,17 @@ class BytesModel(object):
         self._print_type(p)
         if 'offset' in p.flags:
             self._print_offset(p)
-        if 'sections' in p.flags and self.sections:
+        if 'sections' in p.flags:
             if self.start_section is not None:
                 p(f"Container:")
                 with p.tree_children():
                     p.print_data_of(self.start_section)
-            p(f"Subections: {len(self.sections)}")
-            with p.tree_children():
-                for sec in self.sections:
-                    p.tree_next_child()
-                    p.print_data_of(sec)
+            if self.sections:
+                p(f"Subections: {len(self.sections)}")
+                with p.tree_children():
+                    for sec in self.sections:
+                        p.tree_next_child()
+                        p.print_data_of(sec)
         if 'unknown' in p.flags and self.unknown:
             p(f"Unknown: {format_unknown(self.unknown)}")
         self._print_data(p)
@@ -361,6 +371,7 @@ class Section(BytesModel):
     version = None
     num_sections = None
     raw_data = None
+    id = None
 
     def __init__(self, *args, **kw):
         if args:
@@ -378,10 +389,19 @@ class Section(BytesModel):
         if magic in (MAGIC_2, MAGIC_3):
             self.ident = arg(1, 'ident')
             self.version = arg(2, 'version')
+            self.id = arg(3, 'id', default=None)
         elif magic == MAGIC_5:
             pass # no data
         elif magic == MAGIC_6:
             self.type = arg(1, 'type')
+            self.id = arg(2, 'id', default=None)
+        elif magic == MAGIC_7:
+            self.layer_name = arg(1, 'layer_name')
+            self.num_objects = arg(2, 'num_objects')
+        elif magic == MAGIC_9:
+            self.level_name = arg(1, 'level_name')
+            self.num_layers = arg(2, 'num_layers')
+            self.version = arg(3, 'version', default=3)
         else:
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
 
@@ -404,13 +424,13 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.read_bytes(4) # secnum
+            self.id = dbytes.read_id()
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
             self.ident = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
-            dbytes.read_bytes(4) # secnum
+            self.id = dbytes.read_id()
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -421,7 +441,7 @@ class Section(BytesModel):
             self.data_start = dbytes.pos
             self.type = dbytes.read_str()
             self._add_unknown(1) # unknown, always 0
-            dbytes.read_bytes(4) # secnum
+            self.id = dbytes.read_id()
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
@@ -432,7 +452,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.level_name = dbytes.read_str()
             self.num_layers = dbytes.read_int(4)
-            dbytes.read_bytes(4) # secnum
+            self.version = dbytes.read_int(4)
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
@@ -444,7 +464,7 @@ class Section(BytesModel):
 
     def read_raw_data(self, dbytes):
         self.raw_data = dbytes.read_bytes(self.data_end - dbytes.pos,
-                                      or_to_eof=True)
+                                          or_to_eof=True)
 
     def match(self, magic, ident=None, version=None):
         if magic != self.magic:
@@ -463,7 +483,7 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_int(4, self.ident)
                 dbytes.write_int(4, self.version)
-                dbytes.write_secnum()
+                dbytes.write_id(self.id)
                 yield
         elif magic == MAGIC_5:
             with dbytes.write_size():
@@ -473,9 +493,20 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_str(self.type)
                 dbytes.write_bytes(b'\x00') # unknown, always 0
-                dbytes.write_secnum()
+                dbytes.write_id(self.id)
                 with dbytes.write_num_subsections():
                     yield
+        elif magic == MAGIC_7:
+            with dbytes.write_size():
+                dbytes.write_str(self.layer_name)
+                dbytes.write_int(4, self.num_objects)
+                yield
+        elif magic == MAGIC_9:
+            with dbytes.write_size():
+                dbytes.write_str(self.level_name)
+                dbytes.write_int(4, self.num_layers)
+                dbytes.write_int(4, self.version)
+                yield
         elif magic == MAGIC_32:
             with dbytes.write_size():
                 yield
@@ -496,6 +527,8 @@ class Section(BytesModel):
             type_str += f" type 0x{self.ident:02x}"
         if self.version is not None:
             type_str += f" ver {self.version}"
+        if self.id is not None:
+            type_str += f" id {self.id}"
         p(f"Section: {self.magic}{type_str}")
 
     def _print_offset(self, p):
@@ -514,8 +547,8 @@ class DstBytes(object):
 
     _max_pos = None
     _expect_overread = False
-    section_counter = 0
     num_subsections = 0
+    section_counter = 0x10000000
 
     def __init__(self, file):
         self.file = file
@@ -585,6 +618,9 @@ class DstBytes(object):
         data = self.read_bytes(length)
         return data.decode('utf-16', 'surrogateescape')
 
+    def read_id(self):
+        return self.read_int(4)
+
     def write_bytes(self, data):
         self.file.write(data)
 
@@ -604,11 +640,30 @@ class DstBytes(object):
         self.write_var_int(len(data))
         self.write_bytes(data)
 
-    def write_secnum(self):
-        n = self.section_counter
-        n += 1
-        self.section_counter = n
-        self.write_int(4, n)
+    def write_id(self, id_):
+        if id_ is None:
+            id_ = self.section_counter + 1
+            self.section_counter = id_
+        self.write_int(4, id_)
+
+    def stable_iter(self, source, start_pos=None):
+        if start_pos is None:
+            start_pos = self.pos
+        def gen():
+            iterator = iter(source)
+            if callable(start_pos):
+                pos = start_pos()
+            else:
+                pos = start_pos
+            while True:
+                with self.saved_pos(pos):
+                    try:
+                        obj = next(iterator)
+                    except StopIteration:
+                        break
+                    pos = self.pos
+                yield obj
+        return gen()
 
     @contextmanager
     def write_size(self):

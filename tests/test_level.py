@@ -32,8 +32,8 @@ class LevelTest(unittest.TestCase):
             self.assertEqual(level.level_name, "Test-straightroad")
             gen = level.iter_objects()
             next(gen)
-            with self.assertRaises(UnexpectedEOFError):
-                raise AssertionError(next(gen))
+            obj = next(gen)
+            self.assertEqual(UnexpectedEOFError, type(obj.exception))
 
     def test_invalid_str(self):
         with open("tests/in/level/invalid-groupname.bytes", 'rb') as f:

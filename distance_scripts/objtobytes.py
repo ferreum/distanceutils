@@ -5,7 +5,7 @@ import sys
 import argparse
 
 from distance.bytes import DstBytes
-from distance.level import Group
+from distance.levelobjects import Group
 
 
 def read_floats(s):

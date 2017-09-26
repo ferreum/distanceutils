@@ -24,6 +24,8 @@ def main():
         flags.append('groups')
     if not 'nosubobjects' in flags or 'nosubobject' in flags:
         flags.append('subobjects')
+    if not 'nofragments' in flags or 'nofragment' in flags:
+        flags.append('fragments')
     if 'offsets' in flags:
         flags.append('offset')
     if 'section' in flags:
