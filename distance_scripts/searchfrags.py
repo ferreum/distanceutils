@@ -66,8 +66,8 @@ class FragmentMatcher(object):
         self.real_frag_prober = real_frag_prober
 
     def find_matches(self, frag):
-        offset = frag.start_pos
         sec = frag.start_section
+        offset = sec.data_start
         data = frag.raw_data
         matches = []
 
