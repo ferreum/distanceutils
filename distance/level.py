@@ -169,9 +169,11 @@ class Layer(BytesModel):
             for obj in self.objects:
                 obj.write(dbytes)
 
+    def _print_type(self, p):
+        p(f"Layer: {self.layer_name!r}")
+
     def _print_data(self, p):
         with need_counters(p) as counters:
-            p(f"Layer: {self.layer_name!r}")
             p(f"Layer object count: {len(self.objects)}")
             if self.layer_flags:
                 flag_str = ', '.join(
