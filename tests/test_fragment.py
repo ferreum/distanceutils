@@ -6,6 +6,7 @@ from distance.levelobjects import (
     TrackNodeFragment,
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
+    ParticleEmitLogicFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -113,6 +114,18 @@ class ObjectSpawnCircleTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(b'\x00\x00\x2a\x43', props['TriggerRadius'])
         self.assertEqual(6, len(props))
+
+
+class ParticleEmitLogicTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/particleemitlogic brokensparkssmall.frag"
+
+    frag_class = ParticleEmitLogicFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['LightScale'])
+        self.assertEqual(4, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
