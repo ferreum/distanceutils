@@ -4,7 +4,7 @@
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
-from .prober import BytesProber
+from .prober import BytesProber, ProbeError
 
 
 BASE_PROBER = BytesProber()
@@ -89,13 +89,17 @@ class BaseObject(BytesModel):
                     dbytes, s5.num_objects, start_pos=s5.children_start)
             return True
         if self.fragment_prober:
-            fragment = self.fragment_prober.maybe(dbytes, probe_section=sec)
-            sec.__fragment = fragment
-            fragments = self.fragments
-            if fragments is ():
-                self.fragments = fragments = []
-            fragments.append(fragment)
-            return True
+            try:
+                fragment = self.fragment_prober.maybe(dbytes, probe_section=sec)
+            except ProbeError:
+                pass
+            else:
+                sec.__fragment = fragment
+                fragments = self.fragments
+                if fragments is ():
+                    self.fragments = fragments = []
+                fragments.append(fragment)
+                return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):

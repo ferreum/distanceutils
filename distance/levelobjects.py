@@ -73,11 +73,6 @@ def _fallback_subobject(section):
     return None
 
 
-@FRAG_PROBER.func
-def _fallback_frag(section):
-    return Fragment
-
-
 class LevelObject(BaseObject):
 
     child_prober = SUBOBJ_PROBER
