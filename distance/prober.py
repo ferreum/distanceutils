@@ -96,7 +96,7 @@ class BytesProber(object):
             return cls
         if section.magic == MAGIC_6:
             raise ProbeError(f"Unknown object type: {section.type!r}")
-        raise ProbeError(f"Unknown object section: {section.magic}")
+        raise ProbeError(f"Unknown object section: {section}")
 
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:
