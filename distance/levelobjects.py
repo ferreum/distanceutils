@@ -735,26 +735,6 @@ class TrackNodeFragment(Fragment):
             p(f"Primary: {self.primary and 'yes' or 'no'}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x42)
-class ObjectSpawnCircleFragment(Fragment):
-
-    def __init__(self, *args, **kw):
-        self.props = NamedPropertyList()
-        Fragment.__init__(self, *args, **kw)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
-            self.props.read(dbytes)
-
-    def _write_section_data(self, dbytes, sec):
-        if self.props:
-            self.props.write(dbytes)
-
-    def _print_data(self, p):
-        if 'allprops' in p.flags and self.props:
-            self.props.print_data(p)
-
-
 @FRAG_PROBER.fragment(MAGIC_3, 0x3, 1)
 class MaterialFragment(Fragment):
 
@@ -778,6 +758,26 @@ class MaterialFragment(Fragment):
     def _print_data(self, p):
         if 'allprops' in p.flags and self.materials:
             self.materials.print_data(p)
+
+
+@FRAG_PROBER.fragment(MAGIC_2, 0x42)
+class ObjectSpawnCircleFragment(Fragment):
+
+    def __init__(self, *args, **kw):
+        self.props = NamedPropertyList()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size >= 16:
+            self.props.read(dbytes)
+
+    def _write_section_data(self, dbytes, sec):
+        if self.props:
+            self.props.write(dbytes)
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags and self.props:
+            self.props.print_data(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
