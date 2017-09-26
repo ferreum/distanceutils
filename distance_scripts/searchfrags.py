@@ -23,6 +23,14 @@ from distance.base import Fragment
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 
+KNOWN_GOOD_SECTIONS = [
+    Section(MAGIC_2, 0x25, 2), # PopupLogic
+]
+
+
+KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
+
+
 class DetectFragment(Fragment):
     pass
 
@@ -62,8 +70,9 @@ def iter_objects(source, recurse=-1):
 
 class FragmentMatcher(object):
 
-    def __init__(self, real_frag_prober):
+    def __init__(self, real_frag_prober, all_):
         self.real_frag_prober = real_frag_prober
+        self.all = all_
 
     def find_matches(self, frag):
         sec = frag.start_section
@@ -71,7 +80,8 @@ class FragmentMatcher(object):
         data = frag.raw_data
         matches = []
 
-        if sec.magic in (MAGIC_2, MAGIC_3):
+        if sec.magic in (MAGIC_2, MAGIC_3) and (
+                self.all or not sec.to_key() in KNOWN_GOOD_SECTIONS):
             ver = sec.version
             versions = []
             if ver > 0:
@@ -152,7 +162,7 @@ def main():
         level_obj_prober=p_level,
     )
 
-    matcher = FragmentMatcher(LEVEL_FRAG_PROBER)
+    matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args.all)
 
     with open(args.IN, 'rb') as in_f:
         content = prober.read(DstBytes(in_f), opts=opts)
