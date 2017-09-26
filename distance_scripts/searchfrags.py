@@ -1,4 +1,4 @@
-"""Sandbox, try to find certain fragments."""
+"""Try to find properties of fragments."""
 
 
 import os
@@ -21,36 +21,34 @@ from distance.base import Fragment
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 
-PROBER = BytesProber()
-
-FRAG_PROBER = BytesProber(baseclass=Fragment)
-
-LEVEL_PROBER = BytesProber(baseclass=LevelObject)
-
-
-@PROBER.func
-def _detect_other(section):
-    if section.magic == MAGIC_9:
-        return Level
-    return None
-
-
-@PROBER.func
-def _fallback_levelobject(section):
-    return LevelObject
-
-
 class DetectFragment(Fragment):
     pass
 
 
-@FRAG_PROBER.func
-def _fallback_fragment(section):
-    return DetectFragment
+def setup_probers(args):
+    prober = BytesProber()
+    p_level = BytesProber(baseclass=LevelObject)
+    p_frag = BytesProber(baseclass=Fragment)
 
+    @prober.func
+    def _detect_other(section):
+        if section.magic == MAGIC_9:
+            return Level
+        return None
 
-FRAG_PROBER.extend(LEVEL_FRAG_PROBER)
-PROBER.extend(LEVEL_PROBER)
+    @p_level.func
+    def _fallback_levelobject(section):
+        return LevelObject
+
+    @p_frag.func
+    def _fallback_fragment(section):
+        return DetectFragment
+
+    if not args.all:
+        p_frag.extend(LEVEL_FRAG_PROBER)
+    prober.extend(p_level)
+
+    return prober, p_level, p_frag
 
 
 def iter_objects(source, recurse=-1):
@@ -60,8 +58,8 @@ def iter_objects(source, recurse=-1):
             yield from iter_objects(obj.children, recurse=recurse-1)
 
 
-def find_strings(data):
-    strs = []
+def find_matches(offset, data):
+    matches = []
     pos = 0
     buf = BytesIO(data)
     db = DstBytes(buf)
@@ -70,37 +68,44 @@ def find_strings(data):
         try:
             s = db.read_str()
         except Exception:
-            pos += 1
+            pass
         else:
             if s and len(list(STR_EXCLUDE_PATTERN.findall(s))) < len(s) // 3:
-                strs.append(s)
-                pos = db.pos
-            else:
-                pos += 1
-    return strs
+                matches.append(("String", repr(s)))
+        db.pos = pos
+        try:
+            i = db.read_int(8)
+        except Exception:
+            pass
+        else:
+            if i >= offset and i <= offset + len(data):
+                matches.append(("Offset", f"0x{i:08x}"))
+        pos += 1
+    return matches
 
 
 def visit_object(obj, p):
     frags = []
     for frag in obj.fragments:
         if isinstance(frag, DetectFragment):
-            strs = find_strings(frag.raw_data)
-            if strs:
-                frags.append((frag, strs))
+            matches = find_matches(frag.start_pos, frag.raw_data)
+            if matches:
+                frags.append((frag, matches))
 
     if frags:
         p(f"Object: {obj.type!r}")
         p(f"Offset: 0x{obj.start_pos:08x}")
         p(f"Candidates: {len(frags)}")
         with p.tree_children():
-            for frag, strs in frags:
+            for frag, matches in frags:
                 p.tree_next_child()
                 p(f"Section: {frag.start_section}")
-                p(f"Strings: {len(strs)}")
+                p(f"Offset: 0x{frag.start_pos:08x}")
+                p(f"Matches: {len(matches)}")
                 with p.tree_children():
-                    for s in strs:
+                    for name, text in matches:
                         p.tree_next_child()
-                        p(f"String: {s!r}")
+                        p(f"{name}: {text}")
 
 
 def main():
@@ -108,17 +113,21 @@ def main():
         description=__doc__)
     parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
                         help="Maximum of recursions. 0 only lists layer objects.")
+    parser.add_argument("-a", "--all", action='store_true',
+                        help="Also include known fragments.")
     parser.add_argument("IN",
                         help="Level .bytes filename.")
     args = parser.parse_args()
 
+    prober, p_level, p_frag = setup_probers(args)
+
     opts = dict(
-        level_frag_prober=FRAG_PROBER,
-        level_obj_prober=LEVEL_PROBER,
+        level_frag_prober=p_frag,
+        level_obj_prober=p_level,
     )
 
     with open(args.IN, 'rb') as in_f:
-        content = PROBER.read(DstBytes(in_f), opts=opts)
+        content = prober.read(DstBytes(in_f), opts=opts)
         if isinstance(content, Level):
             object_source = content.iter_objects()
         else:
