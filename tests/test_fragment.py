@@ -92,6 +92,22 @@ class MaterialTest(Base.WriteReadTest):
         self.assertEqual([2, 3, 3, 3], [len(cols) for cols in mats.values()])
 
 
+class MaterialV2Test(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/material v2.frag"
+
+    frag_class = MaterialFragment
+
+    def verify_fragment(self, frag):
+        mats = frag.materials
+        color = mats['KillGridInfinitePlaneEditorPreview']['_Color']
+        self.assertAlmostEqual(0.955882, color[0], places=5)
+        self.assertAlmostEqual(0.063257, color[1], places=5)
+        self.assertAlmostEqual(0.063257, color[2], places=5)
+        self.assertAlmostEqual(0.443137, color[3], places=5)
+        self.assertEqual(1, len(mats))
+
+
 class PopupBlockerLogicTest(Base.WriteReadTest):
 
     filename = "tests/in/fragment/popupblockerlogic empire.frag"

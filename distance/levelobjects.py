@@ -736,6 +736,7 @@ class TrackNodeFragment(Fragment):
 
 
 @FRAG_PROBER.fragment(MAGIC_3, 0x3, 1)
+@FRAG_PROBER.fragment(MAGIC_3, 0x3, 2)
 class MaterialFragment(Fragment):
 
     def __init__(self, *args, **kw):
