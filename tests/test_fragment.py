@@ -4,9 +4,10 @@ from io import BytesIO
 from distance.levelobjects import (
     MaterialFragment,
     TrackNodeFragment,
+    PopupBlockerLogicFragment,
 )
 from distance.levelobjects import FRAG_PROBER
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, SKIP_BYTES
 
 
 def disable_writes(dbytes):
@@ -87,6 +88,18 @@ class MaterialTest(Base.WriteReadTest):
         self.assertAlmostEqual(1.00000, panel_color[3], places=5)
         self.assertEqual(4, len(mats))
         self.assertEqual([2, 3, 3, 3], [len(cols) for cols in mats.values()])
+
+
+class PopupBlockerLogicTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/popupblockerlogic empire.frag"
+
+    frag_class = PopupBlockerLogicFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['HoloDistance'])
+        self.assertEqual(8, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

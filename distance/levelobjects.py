@@ -743,7 +743,7 @@ class MaterialFragment(Fragment):
         Fragment.__init__(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 16:
+        if sec.data_size >= 16:
             self.materials.read(dbytes)
         return True
 
@@ -760,8 +760,9 @@ class MaterialFragment(Fragment):
             self.materials.print_data(p)
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x42)
-class ObjectSpawnCircleFragment(Fragment):
+class NamedPropertiesFragment(Fragment):
+
+    _frag_name = "NamedProperties"
 
     def __init__(self, *args, **kw):
         self.props = NamedPropertyList()
@@ -770,14 +771,32 @@ class ObjectSpawnCircleFragment(Fragment):
     def _read_section_data(self, dbytes, sec):
         if sec.data_size >= 16:
             self.props.read(dbytes)
+        return True
 
     def _write_section_data(self, dbytes, sec):
         if self.props:
             self.props.write(dbytes)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: {self._frag_name}")
 
     def _print_data(self, p):
         if 'allprops' in p.flags and self.props:
             self.props.print_data(p)
+
+
+# only version 0 here, version 2 does not use named properties
+@FRAG_PROBER.fragment(MAGIC_2, 0x25, 0)
+class PopupBlockerLogicFragment(NamedPropertiesFragment):
+
+    _frag_name = "PopupBlockerLogic"
+
+
+@FRAG_PROBER.fragment(MAGIC_2, 0x42)
+class ObjectSpawnCircleFragment(NamedPropertiesFragment):
+
+    _frag_name = "ObjectSpawnCircle"
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -28,7 +28,7 @@ class NamedPropertyList(OrderedDict):
 
     def write_property(self, dbytes, propname, value):
         dbytes.write_str(propname)
-        dbytes.write_int(8, dbytes.pos + len(value))
+        dbytes.write_int(8, dbytes.pos + len(value) + 8)
         dbytes.write_bytes(value)
 
     def print_data(self, p):
