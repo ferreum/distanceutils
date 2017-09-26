@@ -56,6 +56,9 @@ class BaseTest(unittest.TestCase):
         for obj in self.subobjects:
             if obj.exception:
                 raise obj.exception
+            for frag in obj.fragments:
+                if frag.exception:
+                    raise frag.exception
         return level, objects
 
     def assertTimes(self, *times):

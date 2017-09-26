@@ -17,7 +17,9 @@ class PrintContext(object):
         self._tree_data = [], []
 
     @classmethod
-    def for_test(clazz, file=None, flags=()):
+    def for_test(clazz, file=None, flags=None):
+        if flags is None:
+            flags = ('groups', 'subobjects', 'fragments')
         p = PrintContext(file=file, flags=flags)
         def print_exc(e):
             raise e

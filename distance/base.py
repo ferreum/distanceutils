@@ -58,10 +58,12 @@ class BaseObject(BytesModel):
     """Base class of objects represented by a MAGIC_6 section."""
 
     child_prober = BASE_PROBER
+    fragment_prober = None
     is_object_group = False
 
     transform = None
     children = ()
+    fragments = ()
     has_children = False
     children_section = None
 
@@ -86,6 +88,14 @@ class BaseObject(BytesModel):
                 self.children = self.child_prober.lazy_n_maybe(
                     dbytes, s5.num_objects, start_pos=s5.children_start)
             return True
+        if self.fragment_prober:
+            fragment = self.fragment_prober.maybe(dbytes, probe_section=sec)
+            sec.__fragment = fragment
+            fragments = self.fragments
+            if fragments is ():
+                self.fragments = fragments = []
+            fragments.append(fragment)
+            return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
@@ -108,6 +118,13 @@ class BaseObject(BytesModel):
                     for obj in self.children:
                         obj.write(dbytes)
             return True
+        try:
+            fragment = sec.__fragment
+        except AttributeError:
+            pass
+        else:
+            fragment.write(dbytes, section=sec)
+            return True
         return BytesModel._write_section_data(self, dbytes, sec)
 
     def iter_children(self, ty=None, name=None):
@@ -119,6 +136,12 @@ class BaseObject(BytesModel):
     def _print_data(self, p):
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.transform)}")
+        if 'fragments' in p.flags and self.fragments:
+            p(f"Fragments: {len(self.fragments)}")
+            with p.tree_children():
+                for fragment in self.fragments:
+                    p.tree_next_child()
+                    p.print_data_of(fragment)
 
     def _print_children(self, p):
         if self.children:
@@ -135,6 +158,41 @@ def _probe_fallback(sec):
     if sec.magic == MAGIC_6:
         return BaseObject
     return None
+
+
+class Fragment(BytesModel):
+
+    default_section = None
+
+    raw_data = None
+
+    def _read(self, dbytes):
+        sec = self._get_start_section()
+        self._report_end_pos(sec.data_end)
+        if not self._read_section_data(dbytes, sec):
+            with dbytes.saved_pos(sec.data_start):
+                self.raw_data = dbytes.read_bytes(
+                    sec.data_size, or_to_eof=True)
+
+    def write(self, dbytes, section=None):
+        sec = self.start_section if section is None else section
+        if sec is None:
+            self.start_section = sec = self._init_section()
+        with dbytes.write_section(sec):
+            if not self._write_section_data(dbytes, sec):
+                data = self.raw_data
+                if data is None:
+                    raise ValueError("Raw data not available")
+                dbytes.write_bytes(data)
+
+    def _init_section(self):
+        return self.default_section
+
+    def _read_section_data(self, dbytes, sec):
+        return False
+
+    def _write_section_data(self, dbytes, sec):
+        pass
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -5,11 +5,17 @@ from .bytes import BytesModel, Section, MAGIC_6
 from .lazy import LazySequence
 
 
+class ProbeError(Exception):
+    pass
+
+
 class BytesProber(object):
 
-    def __init__(self, types=None, funcs=None, baseclass=BytesModel):
+    def __init__(self, types=None, fragments=None, funcs=None,
+                 baseclass=BytesModel):
         self.baseclass = baseclass
         self._types = types or {}
+        self._fragments = fragments or []
         self._funcs = funcs or []
 
     def add_type(self, type, cls):
@@ -20,6 +26,9 @@ class BytesProber(object):
             self._funcs.insert(0, func)
         else:
             self._funcs.append(func)
+
+    def add_fragment(self, cls, *args, **kw):
+        self._fragments.append((args, kw, cls))
 
     def func(self, *args, high_prio=False):
 
@@ -45,10 +54,27 @@ class BytesProber(object):
             return cls
         return decorate
 
+    def fragment(self, *args, **kw):
+
+        """Decorator for matching a section."""
+
+        def decorate(cls):
+            self.add_fragment(cls, *args, **kw)
+            return cls
+
+        return decorate
+
     def extend(self, other):
         self._types.update(((k, v) for k, v in other._types.items()
                             if k not in self._types))
+        self._fragments.extend(other._fragments)
         self._funcs.extend(other._funcs)
+
+    def _get_fragment(self, section):
+        for args, kw, cls in self._fragments:
+            if section.match(*args, **kw):
+                return cls
+        return None
 
     def _get_from_funcs(self, section):
         for func in self._funcs:
@@ -57,33 +83,43 @@ class BytesProber(object):
                 return cls
         return None
 
-    def probe(self, dbytes):
-        start_pos = dbytes.pos
-        section = Section(dbytes)
+    def probe(self, dbytes, probe_section=None):
+        if probe_section is None:
+            start_pos = dbytes.pos
+            section = Section(dbytes)
+        else:
+            start_pos = probe_section.start_pos
+            section = probe_section
         start_section = section
         if section.magic == MAGIC_6:
             ty = section.type
             cls = self._types.get(ty, None)
             if cls is None:
+                cls = self._get_fragment(section)
+            if cls is None:
                 cls = self._get_from_funcs(section)
             if cls is None:
-                raise IOError(f"Unknown object type: {ty!r}")
+                raise ProbeError(f"Unknown object type: {ty!r}")
         else:
-            cls = self._get_from_funcs(section)
+            cls = self._get_fragment(section)
+            if cls is None:
+                cls = self._get_from_funcs(section)
         if cls is None:
-            raise IOError(f"Unknown object section: {section.magic}")
+            raise ProbeError(f"Unknown object section: {section.magic}")
         return cls, {'start_section': start_section, 'start_pos': start_pos}
 
-    def read(self, dbytes, **kw):
-        cls, add_kw = self.probe(dbytes)
+    def read(self, dbytes, probe_section=None, **kw):
+        cls, add_kw = self.probe(dbytes, probe_section=probe_section)
         kw.update(add_kw)
         obj = cls()
         obj.read(dbytes, **kw)
         return obj
 
-    def maybe(self, dbytes, **kw):
+    def maybe(self, dbytes, probe_section=None, **kw):
         try:
-            cls, add_kw = self.probe(dbytes)
+            cls, add_kw = self.probe(dbytes, probe_section=probe_section)
+        except ProbeError:
+            raise
         except Exception as e:
             ins = self.baseclass()
             ins.exception = e
@@ -92,6 +128,8 @@ class BytesProber(object):
         return cls.maybe(dbytes, **kw)
 
     def iter_n_maybe(self, dbytes, n, *args, **kw):
+        if 'probe_section' in kw:
+            raise TypeError("probe_section not supported")
         for _ in range(n):
             obj = self.maybe(dbytes, *args, **kw)
             yield obj
@@ -99,6 +137,8 @@ class BytesProber(object):
                 break
 
     def iter_maybe(self, dbytes, *args, max_pos=None, **kw):
+        if 'probe_section' in kw:
+            raise TypeError("probe_section not supported")
         while max_pos is None or dbytes.pos < max_pos:
             obj = self.maybe(dbytes, *args, **kw)
             yield obj
