@@ -793,13 +793,13 @@ class PopupBlockerLogicFragment(NamedPropertiesFragment):
     _frag_name = "PopupBlockerLogic"
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x42)
+@FRAG_PROBER.fragment(MAGIC_2, 0x42, 0)
 class ObjectSpawnCircleFragment(NamedPropertiesFragment):
 
     _frag_name = "ObjectSpawnCircle"
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x39)
+@FRAG_PROBER.fragment(MAGIC_2, 0x39, 0)
 class ParticleEmitLogicFragment(NamedPropertiesFragment):
 
     _frag_name = "ParticleEmitLogic"

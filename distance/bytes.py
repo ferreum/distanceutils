@@ -423,6 +423,15 @@ class Section(BytesModel):
             argstr += f", {self.type!r}"
         return f"Section({argstr})"
 
+    def to_key(self):
+        magic = self.magic
+        if magic in (MAGIC_2, MAGIC_3):
+            return (magic, self.ident, self.version)
+        elif magic == MAGIC_6:
+            return (magic, self.type)
+        else:
+            return magic
+
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
         self.recoverable = True

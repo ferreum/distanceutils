@@ -15,7 +15,7 @@ class BytesProber(object):
                  baseclass=BytesModel):
         self.baseclass = baseclass
         self._types = types or {}
-        self._fragments = fragments or []
+        self._fragments = fragments or {}
         self._funcs = funcs or []
 
     def add_type(self, type, cls):
@@ -28,7 +28,7 @@ class BytesProber(object):
             self._funcs.append(func)
 
     def add_fragment(self, cls, *args, **kw):
-        self._fragments.append((args, kw, cls))
+        self._fragments[Section(*args, **kw).to_key()] = cls
 
     def func(self, *args, high_prio=False):
 
@@ -67,14 +67,12 @@ class BytesProber(object):
     def extend(self, other):
         self._types.update(((k, v) for k, v in other._types.items()
                             if k not in self._types))
-        self._fragments.extend(other._fragments)
+        self._fragments.update(((k, v) for k, v in other._fragments.items()
+                                if k not in self._fragments))
         self._funcs.extend(other._funcs)
 
     def _probe_fragment(self, section):
-        for args, kw, cls in self._fragments:
-            if section.match(*args, **kw):
-                return cls
-        return None
+        return self._fragments.get(section.to_key(), None)
 
     def _get_from_funcs(self, section):
         for func in self._funcs:
