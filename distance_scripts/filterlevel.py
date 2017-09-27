@@ -93,13 +93,15 @@ def main():
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    write_mode = 'xb'
-    if args.force:
-        write_mode = 'wb'
+    do_write = args.all or bool(args.objnum)
+    if do_write:
+        write_mode = 'xb'
+        if args.force:
+            write_mode = 'wb'
 
-    if not args.force and os.path.exists(args.OUT):
-        print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
-        return 1
+        if not args.force and os.path.exists(args.OUT):
+            print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
+            return 1
 
     with open(args.IN, 'rb') as in_f:
         content = PROBER.read(DstBytes(in_f))
@@ -109,17 +111,17 @@ def main():
         else:
             result.children = matcher.filter_objects(result.children)
 
-        if not args.all and not args.objnum:
+        if not do_write:
             from .mkcustomobject import print_candidates
             print_candidates(matcher.matches)
             return 1
-
-        with open(args.OUT, write_mode) as out_f:
-            result.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
-            dbytes = DstBytes(out_f)
-            result.write(dbytes)
-            print(f"{dbytes.pos} bytes written")
-            return 0
+        else:
+            with open(args.OUT, write_mode) as out_f:
+                result.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+                dbytes = DstBytes(out_f)
+                result.write(dbytes)
+                print(f"{dbytes.pos} bytes written")
+                return 0
 
 
 if __name__ == '__main__':
