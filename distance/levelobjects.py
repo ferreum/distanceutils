@@ -799,6 +799,15 @@ PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x45, 0), "GravityToggle"),
     (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
     (Section(MAGIC_2, 0x50, 0), "Pulse"),
+    # found on Damnation
+    (Section(22222222, 0x59, 0), None),
+    (Section(22222222, 0x4b, 0), None),
+    (Section(22222222, 0x4a, 0), None),
+    (Section(22222222, 0x4e, 0), None),
+    (Section(22222222, 0x57, 0), None),
+    (Section(22222222, 0x3a, 0), None),
+    (Section(22222222, 0x58, 0), None),
+    (Section(22222222, 0x2c, 0), None),
 )
 
 
@@ -806,7 +815,7 @@ def _create_property_fragment_classes():
     globs = globals()
     created = set()
     for sec, name in PROPERTY_FRAGS:
-        if name not in created:
+        if name and name not in created:
             typename = name + "Fragment"
             cls = type(typename, (NamedPropertiesFragment,), {
                 '_frag_name': name,
@@ -818,7 +827,10 @@ def _create_property_fragment_classes():
 def add_property_fragments_to_prober(prober):
     globs = globals()
     for sec, name in PROPERTY_FRAGS:
-        typename = name + "Fragment"
+        if name:
+            typename = name + "Fragment"
+        else:
+            typename = "NamedPropertiesFragment"
         cls = globs[typename]
         prober.add_fragment(cls, sec)
 
