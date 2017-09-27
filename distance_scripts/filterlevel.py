@@ -60,7 +60,7 @@ class ObjectMatcher(object):
             if self.match(obj):
                 continue
             result.append(obj)
-            if obj.is_object_group and recurse > 0:
+            if obj.is_object_group and recurse != 0:
                 obj.children = self._filter_objects(obj.children, recurse - 1)
         return result
 
