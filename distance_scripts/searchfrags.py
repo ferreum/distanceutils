@@ -132,7 +132,8 @@ class FragmentMatcher(object):
                 pass
             else:
                 if offset <= i <= offset + len(data):
-                    matches.append(("Offset", pos, f"0x{i:08x}"))
+                    relative = offset - pos
+                    matches.append(("Offset", pos, f"0x{i:08x} ({relative:+})"))
             pos += 1
         return matches
 
