@@ -812,6 +812,12 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x1b, 0), None),
     # found on "Brief Chaos" object EmpireBrokenBuilding006_PiecesSeparated
     (Section(22222222, 0x44, 0), None),
+    # from v5 AudioEventTrigger
+    (Section(22222222, 0x74, 0), None),
+    # from v5 CubeMIDI
+    (Section(22222222, 0x3d, 0), None),
+    # from v9 RumbleZone
+    (Section(22222222, 0x66, 0), None),
 )
 
 

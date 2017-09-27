@@ -35,6 +35,10 @@ KNOWN_GOOD_SECTIONS = [
     Section(33333333, ident=0x7, version=2), # from v8 SectorNumberTextCeiling
     Section(22222222, ident=0x50, version=2), # from v9 LevelEditorCarSpawner
     Section(22222222, ident=0x77, version=4), # from v9 Biodome
+    Section(22222222, ident=0x9a, version=7), # from v9 Light
+    Section(22222222, ident=0x89, version=2), # from v9 EventTriggerBox
+    Section(22222222, ident=0x8a, version=1), # from v9 RotatingSpotLight
+    Section(22222222, ident=0x2c, version=2), # from v9 BrightenCarHeadlights
 ]
 
 
