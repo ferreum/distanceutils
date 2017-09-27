@@ -84,9 +84,10 @@ def iter_objects(source, recurse=-1):
 
 class FragmentMatcher(object):
 
-    def __init__(self, real_frag_prober, all_):
+    def __init__(self, real_frag_prober, args):
         self.real_frag_prober = real_frag_prober
-        self.all = all_
+        self.all = args.all
+        self.closeversions = not args.noversion
         self.sections = {}
 
     def find_matches(self, frag):
@@ -98,7 +99,7 @@ class FragmentMatcher(object):
         if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
             return []
 
-        if sec.magic in (MAGIC_2, MAGIC_3):
+        if self.closeversions and sec.magic in (MAGIC_2, MAGIC_3):
             ver = sec.version
             versions = []
             if ver > 0:
@@ -175,6 +176,8 @@ def main():
                         help="Maximum of recursions. 0 only lists layer objects.")
     parser.add_argument("-a", "--all", action='store_true',
                         help="Also include known fragments.")
+    parser.add_argument("--noversion", action='store_true',
+                        help="Do not detect close versions.")
     parser.add_argument("IN",
                         help="Level .bytes filename.")
     args = parser.parse_args()
@@ -187,7 +190,7 @@ def main():
         level_obj_prober=p_level,
     )
 
-    matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args.all)
+    matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args)
 
     with open(args.IN, 'rb') as in_f:
         content = prober.read(DstBytes(in_f), opts=opts)
