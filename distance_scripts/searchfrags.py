@@ -25,6 +25,7 @@ STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 KNOWN_GOOD_SECTIONS = [
     Section(MAGIC_2, 0x25, 2), # PopupLogic
+    Section(22222222, ident=0x63, version=0), # Group name
 ]
 
 
@@ -80,8 +81,10 @@ class FragmentMatcher(object):
         data = frag.raw_data
         matches = []
 
-        if sec.magic in (MAGIC_2, MAGIC_3) and (
-                self.all or not sec.to_key() in KNOWN_GOOD_SECTIONS):
+        if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
+            return []
+
+        if sec.magic in (MAGIC_2, MAGIC_3):
             ver = sec.version
             versions = []
             if ver > 0:
