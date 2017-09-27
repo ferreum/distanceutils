@@ -64,6 +64,7 @@ class BytesModel(object):
     recoverable = False
     start_section = None
     sane_end_pos = False
+    opts = None
 
     default_sections = ()
 
@@ -128,7 +129,10 @@ class BytesModel(object):
             for k, v in kw.items():
                 setattr(self, k, v)
 
-    def read(self, dbytes, start_section=None, **kw):
+    def _handle_opts(self, opts):
+        pass
+
+    def read(self, dbytes, start_section=None, opts=None, **kw):
 
         """Read data of this object from the given dbytes.
 
@@ -160,6 +164,9 @@ class BytesModel(object):
             start_pos = dbytes.pos
         self.start_pos = start_pos
         self.dbytes = dbytes
+        if opts:
+            self.opts = opts
+            self._handle_opts(opts)
         try:
             self._read(dbytes, **kw)
             self.__apply_end_pos(dbytes)
@@ -396,11 +403,13 @@ class Section(BytesModel):
             self.type = arg(1, 'type')
             self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
-            self.layer_name = arg(1, 'layer_name')
-            self.num_objects = arg(2, 'num_objects')
+            self.layer_name = arg(1, 'layer_name', default=None)
+            self.num_objects = arg(2, 'num_objects', default=None)
+        elif magic == MAGIC_8:
+            pass # no data
         elif magic == MAGIC_9:
-            self.level_name = arg(1, 'level_name')
-            self.num_layers = arg(2, 'num_layers')
+            self.level_name = arg(1, 'level_name', default=None)
+            self.num_layers = arg(2, 'num_layers', default=None)
             self.version = arg(3, 'version', default=3)
         else:
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
@@ -415,6 +424,15 @@ class Section(BytesModel):
         elif magic == MAGIC_6:
             argstr += f", {self.type!r}"
         return f"Section({argstr})"
+
+    def to_key(self):
+        magic = self.magic
+        if magic in (MAGIC_2, MAGIC_3):
+            return (magic, self.ident, self.version)
+        elif magic == MAGIC_6:
+            return (magic, self.type)
+        else:
+            return magic
 
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
@@ -500,6 +518,9 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_str(self.layer_name)
                 dbytes.write_int(4, self.num_objects)
+                yield
+        elif magic == MAGIC_8:
+            with dbytes.write_size():
                 yield
         elif magic == MAGIC_9:
             with dbytes.write_size():

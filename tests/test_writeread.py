@@ -9,6 +9,7 @@ from distance.level import Level, Layer
 from distance.levelobjects import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
+from tests import common
 
 
 def inflate(obj):
@@ -139,6 +140,17 @@ class GroupTest(unittest.TestCase):
         self.assertEqual('test group', res.custom_name)
 
 
+class GroupWriteReadTest(common.WriteReadTest):
+
+    read_obj = Group
+
+    filename = "tests/in/customobject/2cubes.bytes"
+
+    def verify_obj(self, obj):
+        self.assertEqual(3, len(obj.sections))
+        self.assertEqual("2cubes", obj.custom_name)
+
+
 class UnknownTest(unittest.TestCase):
 
     def test_persist(self):
@@ -181,6 +193,22 @@ class FragmentTest(unittest.TestCase):
             self.assertEqual(59, node0.snap_id)
             self.assertEqual(79, node1.parent_id)
             self.assertEqual(100, node1.snap_id)
+
+    def test_material(self):
+        with open("tests/in/customobject/splineroad.bytes", 'rb') as f:
+            obj = LevelObject(DstBytes(f))
+
+            res = write_read(obj)
+
+            frag = res.fragments[0]
+            mats = frag.materials
+            panel_color = mats['empire_panel_light']['_Color']
+            self.assertAlmostEqual(0.50588, panel_color[0], places=5)
+            self.assertAlmostEqual(0.50588, panel_color[1], places=5)
+            self.assertAlmostEqual(0.50588, panel_color[2], places=5)
+            self.assertAlmostEqual(1.00000, panel_color[3], places=5)
+            self.assertEqual(4, len(mats))
+            self.assertEqual([2, 3, 3, 3], [len(cols) for cols in mats.values()])
 
 
 class LevelTest(unittest.TestCase):

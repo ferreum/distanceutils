@@ -12,6 +12,7 @@ from .base import BaseObject, Fragment
 from .constants import ForceType
 from .prober import BytesProber
 from .printing import need_counters
+from .data import NamedPropertyList, MaterialSet
 
 
 def read_n_floats(dbytes, n, default):
@@ -78,6 +79,16 @@ class LevelObject(BaseObject):
     child_prober = SUBOBJ_PROBER
     fragment_prober = FRAG_PROBER
 
+    def _handle_opts(self, opts):
+        try:
+            self.fragment_prober = opts['level_frag_prober']
+        except KeyError:
+            pass
+        try:
+            self.children_prober = opts['level_subobj_prober']
+        except KeyError:
+            pass
+
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.children:
             num = len(self.children)
@@ -113,6 +124,13 @@ class Group(LevelObject):
         Section(MAGIC_2, 0x63, version=0)
     )
 
+    def _handle_opts(self, opts):
+        LevelObject._handle_opts(self, opts)
+        try:
+            self.child_prober = opts['level_obj_prober']
+        except KeyError:
+            pass
+
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x1d): # Group / inspect Children
             return False
@@ -127,10 +145,11 @@ class Group(LevelObject):
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x1d, version=1):
-            dbytes.write_int(4, MAGIC_1)
-            dbytes.write_int(4, 0) # num values
-            dbytes.write_int(4, 0) # inspect Children: None
-            return True
+            if sec.raw_data is None:
+                dbytes.write_int(4, MAGIC_1)
+                dbytes.write_int(4, 0) # num values
+                dbytes.write_int(4, 0) # inspect Children: None
+                return True
         elif sec.match(MAGIC_2, 0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
@@ -715,6 +734,163 @@ class TrackNodeFragment(Fragment):
             p(f"Snapped to: {self.snap_id}")
             p(f"Connection ID: {self.conn_id}")
             p(f"Primary: {self.primary and 'yes' or 'no'}")
+
+
+@FRAG_PROBER.fragment(MAGIC_3, 0x3, 1)
+@FRAG_PROBER.fragment(MAGIC_3, 0x3, 2)
+class MaterialFragment(Fragment):
+
+    def __init__(self, *args, **kw):
+        self.materials = MaterialSet()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size >= 16:
+            self.materials.read(dbytes)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        if self.materials:
+            self.materials.write(dbytes)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: Material")
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags and self.materials:
+            self.materials.print_data(p)
+
+
+class NamedPropertiesFragment(Fragment):
+
+    _frag_name = "NamedProperties"
+
+    def __init__(self, *args, **kw):
+        self.props = NamedPropertyList()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size >= 16:
+            self.props.read(dbytes)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        if self.props:
+            self.props.write(dbytes)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: {self._frag_name}")
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags and self.props:
+            self.props.print_data(p)
+
+
+PROPERTY_FRAGS = (
+    (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
+    (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
+    (Section(MAGIC_2, 0x39, 0), "ParticleEmitLogic"),
+    (Section(MAGIC_2, 0x26, 0), "Light"),
+    (Section(MAGIC_2, 0x27, 0), "PulseMaterial"),
+    (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
+    (Section(MAGIC_2, 0x43, 0), "InterpolateToPositionOnTrigger"),
+    (Section(MAGIC_2, 0x5e, 0), "EnableAbilitiesTrigger"),
+    (Section(MAGIC_2, 0x45, 0), "GravityToggle"),
+    (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
+    (Section(MAGIC_2, 0x50, 0), "Pulse"),
+    # found on Damnation
+    (Section(22222222, 0x59, 0), None),
+    (Section(22222222, 0x4b, 0), None),
+    (Section(22222222, 0x4a, 0), None),
+    (Section(22222222, 0x4e, 0), None),
+    (Section(22222222, 0x57, 0), None),
+    (Section(22222222, 0x3a, 0), None),
+    (Section(22222222, 0x58, 0), None),
+    (Section(22222222, 0x2c, 0), None),
+    # found on Hextreme
+    (Section(22222222, 0x1b, 0), None),
+    # found on "Brief Chaos" object EmpireBrokenBuilding006_PiecesSeparated
+    (Section(22222222, 0x44, 0), None),
+    # from v5 AudioEventTrigger
+    (Section(22222222, 0x74, 0), None),
+    # from v5 CubeMIDI
+    (Section(22222222, 0x3d, 0), None),
+    # from v9 RumbleZone
+    (Section(22222222, 0x66, 0), None),
+    # from v8 PulseCore
+    (Section(22222222, 0x4f, 0), None),
+    # from v8 KillGridBox
+    (Section(22222222, 0x82, 0), None),
+    # from v5 WarpAnchor
+    (Section(22222222, 0x6e, 0), None),
+    # from v7 PlanetWithSphericalGravity
+    (Section(22222222, 0x5f, 0), None),
+    # from s8 (map "Pumpkin Patch")
+    (Section(22222222, 0x29, 0), None), # from SoccerGoalLogic
+    (Section(22222222, 0x38, 0), None), # from HalloweenSpotlight1, RotatingSpotLight
+    # from v5 VirusSpiritShard
+    (Section(22222222, 0x67, 0), None),
+    # from v9 WingCorruptionZone
+    (Section(22222222, 0x53, 0), None),
+    # from v8 IntroCutsceneLight
+    (Section(22222222, 0x55, 0), None),
+    # from v9 CarScreenTextDecodeTrigger
+    (Section(22222222, 0x57, 1), None),
+    # from v9 CutsceneLightning
+    (Section(22222222, 0x6f, 0), None),
+    # from s8 (map "The Matrix Arena")
+    (Section(22222222, 0x17, 0), None), # from EmpireCircle
+    (Section(22222222, 0x1f, 0), None), # from Teleporter
+    # from v3 WarningPulseLight
+    (Section(22222222, 0x65, 0), None),
+    # from v1 LaserMid (sub of VirusLaserTriCircleRotating)
+    (Section(22222222, 0x1a, 0), None),
+    # from v5 EmpireProximityDoor
+    (Section(22222222, 0x76, 0), None),
+    # from v5 VirusSpiritWarpTeaser
+    (Section(22222222, 0x7e, 0), None),
+    # from v1 GlobalFog
+    (Section(22222222, 0x60, 0), None),
+    # from v8 DisableLocalCarWarnings
+    (Section(22222222, 0x62, 0), None),
+    # from v7 AdventureAbilitySettings
+    (Section(22222222, 0x4d, 0), None),
+)
+
+
+def _create_property_fragment_classes():
+    globs = globals()
+    created = set()
+    sections = set()
+    for sec, name in PROPERTY_FRAGS:
+        key = sec.to_key()
+        if key in sections:
+            raise ValueError(f"Duplicate section: {sec}")
+        sections.add(key)
+        if name and name not in created:
+            typename = name + "Fragment"
+            cls = type(typename, (NamedPropertiesFragment,), {
+                '_frag_name': name,
+            })
+            created.add(name)
+            globs[typename] = cls
+
+
+def add_property_fragments_to_prober(prober):
+    globs = globals()
+    for sec, name in PROPERTY_FRAGS:
+        if name:
+            typename = name + "Fragment"
+        else:
+            typename = "NamedPropertiesFragment"
+        cls = globs[typename]
+        prober.add_fragment(cls, sec)
+
+
+_create_property_fragment_classes()
+add_property_fragments_to_prober(FRAG_PROBER)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

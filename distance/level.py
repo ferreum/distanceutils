@@ -4,10 +4,15 @@
 from struct import Struct
 
 from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
-from .base import BaseObject
+from .base import BaseObject, Fragment
+from .lazy import LazySequence
+from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER, print_objects
+
+
+LEVEL_CONTENT_PROBER = BytesProber()
 
 
 S_ABILITIES = Struct("5b")
@@ -20,7 +25,7 @@ def format_layer_flags(gen):
             yield name
 
 
-class LevelSettings(BaseObject):
+class BaseLevelSettings(object):
 
     type = None
     version = None
@@ -32,18 +37,9 @@ class LevelSettings(BaseObject):
     abilities = ()
     difficulty = None
 
-    def _read(self, dbytes):
-        sec = self._get_start_section()
-        if sec.magic == MAGIC_8:
-            # Levelinfo section only found in old (v1) maps
-            self.type = 'Section 88888888'
-            self._report_end_pos(sec.data_start + sec.data_size)
-            self._add_unknown(4)
-            self.skybox_name = dbytes.read_str()
-            self._add_unknown(143)
-            self.name = dbytes.read_str()
-            return
-        BaseObject._read(self, dbytes)
+
+@LEVEL_CONTENT_PROBER.for_type('LevelSettings')
+class LevelSettings(BaseObject, BaseLevelSettings):
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x52):
@@ -112,7 +108,24 @@ class LevelSettings(BaseObject):
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
 
 
-class Layer(BytesModel):
+@LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
+class OldLevelSettings(Fragment, BaseLevelSettings):
+
+    def _read_section_data(self, dbytes, sec):
+        # Levelinfo section only found in old (v1) maps
+        self._report_end_pos(sec.data_start + sec.data_size)
+        self._add_unknown(4)
+        self.skybox_name = dbytes.read_str()
+        self._add_unknown(143)
+        self.name = dbytes.read_str()
+        return False
+
+    def _print_type(self, p):
+        p(f"Type: LevelSettings (old)")
+
+
+@LEVEL_CONTENT_PROBER.fragment(MAGIC_7)
+class Layer(Fragment):
 
     layer_name = None
     layer_flags = (0, 0, 0)
@@ -120,8 +133,16 @@ class Layer(BytesModel):
     has_layer_flags = True
     flags_version = 1
     unknown_flag = 0
+    obj_prober = PROBER
 
-    def _read(self, dbytes):
+    def _handle_opts(self, opts):
+        BytesModel._handle_opts(self, opts)
+        try:
+            self.obj_prober = opts['level_obj_prober']
+        except KeyError:
+            pass
+
+    def _read_section_data(self, dbytes, sec):
         s7 = self._get_start_section()
         if s7.magic != MAGIC_7:
             raise ValueError(f"Invalid layer section: {s7.magic}")
@@ -150,7 +171,7 @@ class Layer(BytesModel):
             # We read start of first object - need to rewind.
             dbytes.pos = pos
 
-        self.objects = PROBER.lazy_n_maybe(dbytes, s7.num_objects)
+        self.objects = self.obj_prober.lazy_n_maybe(dbytes, s7.num_objects, opts=self.opts)
 
     def write(self, dbytes):
         with dbytes.write_section(MAGIC_7, self.layer_name, len(self.objects)):
@@ -189,39 +210,44 @@ class Layer(BytesModel):
                 counters.print_data(p)
 
 
-class Level(BytesModel):
+class Level(Fragment):
 
-    _settings = None
+    _settings = Ellipsis
     layers = ()
     level_name = None
-    num_layers = 0
-    settings_start = None
 
-    def _read(self, dbytes):
-        sec = self._get_start_section()
+    def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise IOError(f"Unexpected section: {sec.magic}")
         self._report_end_pos(sec.data_end)
         self.level_name = sec.level_name
         self.num_layers = sec.num_layers
-        self.settings_start = dbytes.pos
 
-        self.layers = Layer.lazy_n_maybe(dbytes, sec.num_layers,
-                                         start_pos=self.__get_layers_start)
+        self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
+            dbytes, sec.num_layers + 1, opts=self.opts)
+        self.layers = LazySequence(
+            (obj for obj in self.content if isinstance(obj, Layer)),
+            sec.num_layers)
+        return True
 
-    def write(self, dbytes):
-        with dbytes.write_section(MAGIC_9, self.level_name, len(self.layers)):
-            self.settings.write(dbytes)
-            for layer in self.layers:
-                layer.write(dbytes)
+    def _write_section_data(self, dbytes, sec):
+        if sec.magic != MAGIC_9:
+            raise IOError(f"Unexpected section: {sec.magic}")
+        for obj in self.content:
+            obj.write(dbytes)
+        return True
 
     @property
     def settings(self):
         s = self._settings
-        if s is None:
-            dbytes = self.dbytes
-            with dbytes.saved_pos(self.settings_start):
-                self._settings = s = LevelSettings.maybe(self.dbytes)
+        if s is Ellipsis:
+            for obj in self.content:
+                if not isinstance(obj, Layer):
+                    s = obj
+                    break
+            else:
+                s = None
+            self._settings = s
         return s
 
     @settings.setter

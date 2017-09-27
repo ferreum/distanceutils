@@ -50,7 +50,7 @@ class ObjectMatcher(object):
             self.matches.append(obj)
             if self.all:
                 return True
-            if self.objnum is not None and self.objnum == num:
+            if num in self.objnum:
                 return True
         return False
 
@@ -60,7 +60,7 @@ class ObjectMatcher(object):
             if self.match(obj):
                 continue
             result.append(obj)
-            if obj.is_object_group and recurse > 0:
+            if obj.is_object_group and recurse != 0:
                 obj.children = self._filter_objects(obj.children, recurse - 1)
         return result
 
@@ -78,7 +78,8 @@ def main():
         description=__doc__)
     parser.add_argument("-f", "--force", action='store_true',
                         help="Allow overwriting OUT file.")
-    parser.add_argument("-n", "--objnum", type=int, default=None,
+    parser.add_argument("-n", "--objnum", action='append',
+                        type=int, default=[],
                         help="Object number to extract.")
     parser.add_argument("-a", "--all", action='store_true',
                         help="Filter out all matching objects.")
@@ -92,13 +93,15 @@ def main():
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    write_mode = 'xb'
-    if args.force:
-        write_mode = 'wb'
+    do_write = args.all or bool(args.objnum)
+    if do_write:
+        write_mode = 'xb'
+        if args.force:
+            write_mode = 'wb'
 
-    if not args.force and os.path.exists(args.OUT):
-        print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
-        return 1
+        if not args.force and os.path.exists(args.OUT):
+            print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
+            return 1
 
     with open(args.IN, 'rb') as in_f:
         content = PROBER.read(DstBytes(in_f))
@@ -108,17 +111,17 @@ def main():
         else:
             result.children = matcher.filter_objects(result.children)
 
-        if not args.all and args.objnum == None:
+        if not do_write:
             from .mkcustomobject import print_candidates
             print_candidates(matcher.matches)
             return 1
-
-        with open(args.OUT, write_mode) as out_f:
-            result.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
-            dbytes = DstBytes(out_f)
-            result.write(dbytes)
-            print(f"{dbytes.pos} bytes written")
-            return 0
+        else:
+            with open(args.OUT, write_mode) as out_f:
+                result.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+                dbytes = DstBytes(out_f)
+                result.write(dbytes)
+                print(f"{dbytes.pos} bytes written")
+                return 0
 
 
 if __name__ == '__main__':

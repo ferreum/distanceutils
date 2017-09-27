@@ -86,7 +86,8 @@ class BaseObject(BytesModel):
                 s5 = Section(dbytes)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.num_objects, start_pos=s5.children_start)
+                    dbytes, s5.num_objects, start_pos=s5.children_start,
+                    opts=self.opts)
             return True
         if self.fragment_prober:
             try:
@@ -201,7 +202,7 @@ class Fragment(BytesModel):
         return False
 
     def _write_section_data(self, dbytes, sec):
-        pass
+        return False
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
