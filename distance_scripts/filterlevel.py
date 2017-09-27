@@ -50,7 +50,7 @@ class ObjectMatcher(object):
             self.matches.append(obj)
             if self.all:
                 return True
-            if self.objnum is not None and self.objnum == num:
+            if num in self.objnum:
                 return True
         return False
 
@@ -78,7 +78,8 @@ def main():
         description=__doc__)
     parser.add_argument("-f", "--force", action='store_true',
                         help="Allow overwriting OUT file.")
-    parser.add_argument("-n", "--objnum", type=int, default=None,
+    parser.add_argument("-n", "--objnum", action='append',
+                        type=int, default=[],
                         help="Object number to extract.")
     parser.add_argument("-a", "--all", action='store_true',
                         help="Filter out all matching objects.")
@@ -108,7 +109,7 @@ def main():
         else:
             result.children = matcher.filter_objects(result.children)
 
-        if not args.all and args.objnum == None:
+        if not args.all and not args.objnum:
             from .mkcustomobject import print_candidates
             print_candidates(matcher.matches)
             return 1
