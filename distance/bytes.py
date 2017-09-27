@@ -403,11 +403,13 @@ class Section(BytesModel):
             self.type = arg(1, 'type')
             self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
-            self.layer_name = arg(1, 'layer_name')
-            self.num_objects = arg(2, 'num_objects')
+            self.layer_name = arg(1, 'layer_name', default=None)
+            self.num_objects = arg(2, 'num_objects', default=None)
+        elif magic == MAGIC_8:
+            pass # no data
         elif magic == MAGIC_9:
-            self.level_name = arg(1, 'level_name')
-            self.num_layers = arg(2, 'num_layers')
+            self.level_name = arg(1, 'level_name', default=None)
+            self.num_layers = arg(2, 'num_layers', default=None)
             self.version = arg(3, 'version', default=3)
         else:
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
@@ -516,6 +518,9 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_str(self.layer_name)
                 dbytes.write_int(4, self.num_objects)
+                yield
+        elif magic == MAGIC_8:
+            with dbytes.write_size():
                 yield
         elif magic == MAGIC_9:
             with dbytes.write_size():
