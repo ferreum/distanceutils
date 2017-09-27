@@ -804,14 +804,15 @@ PROPERTY_FRAGS = (
 
 def _create_property_fragment_classes():
     globs = globals()
+    created = set()
     for sec, name in PROPERTY_FRAGS:
-        typename = name + "Fragment"
-        if typename in globs:
-            raise ValueError(f"Class {typename} already exists")
-        cls = type(typename, (NamedPropertiesFragment,), {
-            '_frag_name': name,
-        })
-        globs[typename] = cls
+        if name not in created:
+            typename = name + "Fragment"
+            cls = type(typename, (NamedPropertiesFragment,), {
+                '_frag_name': name,
+            })
+            created.add(name)
+            globs[typename] = cls
 
 
 def add_property_fragments_to_prober(prober):
