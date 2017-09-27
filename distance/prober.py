@@ -28,7 +28,11 @@ class BytesProber(object):
             self._funcs.append(func)
 
     def add_fragment(self, cls, *args, **kw):
-        self._fragments[Section(*args, **kw).to_key()] = cls
+        if not kw and len(args) == 1:
+            sec = args[0]
+        else:
+            sec = Section(*args, **kw)
+        self._fragments[sec.to_key()] = cls
 
     def func(self, *args, high_prio=False):
 

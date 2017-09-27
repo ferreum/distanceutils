@@ -787,71 +787,33 @@ class NamedPropertiesFragment(Fragment):
             self.props.print_data(p)
 
 
-# only version 0 here, version 2 does not use named properties
-@FRAG_PROBER.fragment(MAGIC_2, 0x25, 0)
-class PopupBlockerLogicFragment(NamedPropertiesFragment):
-
-    _frag_name = "PopupBlockerLogic"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x42, 0)
-class ObjectSpawnCircleFragment(NamedPropertiesFragment):
-
-    _frag_name = "ObjectSpawnCircle"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x39, 0)
-class ParticleEmitLogicFragment(NamedPropertiesFragment):
-
-    _frag_name = "ParticleEmitLogic"
+PROPERTY_FRAGS = (
+    (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
+    (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
+    (Section(MAGIC_2, 0x39, 0), "ParticleEmitLogic"),
+    (Section(MAGIC_2, 0x26, 0), "Light"),
+    (Section(MAGIC_2, 0x27, 0), "PulseMaterial"),
+    (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
+    (Section(MAGIC_2, 0x43, 0), "InterpolateToPositionOnTrigger"),
+    (Section(MAGIC_2, 0x5e, 0), "EnableAbilitiesTrigger"),
+    (Section(MAGIC_2, 0x45, 0), "GravityToggle"),
+    (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
+    (Section(MAGIC_2, 0x50, 0), "Pulse"),
+)
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x26, 0)
-class LightFragment(NamedPropertiesFragment):
+def add_property_fragments_to_prober(prober):
+    globs = globals()
+    for sec, name in PROPERTY_FRAGS:
+        typename = name + "Fragment"
+        cls = type(typename, (NamedPropertiesFragment,), {
+            '_frag_name': name,
+        })
+        if typename not in globs:
+            globs[typename] = cls
+        prober.add_fragment(cls, sec)
 
-    _frag_name = "Light"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x27, 0)
-class PulseMaterialFragment(NamedPropertiesFragment):
-
-    _frag_name = "PulseMaterial"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x28, 0)
-class SmoothRandomPositionFragment(NamedPropertiesFragment):
-
-    _frag_name = "SmoothRandomPosition"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x43, 0)
-class InterpolateToPositionOnTriggerFragment(NamedPropertiesFragment):
-
-    _frag_name = "InterpolateToPositionOnTrigger"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x5e, 0)
-class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
-
-    _frag_name = "EnableAbilitiesTrigger"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x45, 0)
-class GravityToggleFragment(NamedPropertiesFragment):
-
-    _frag_name = "GravityToggle"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x24, 0)
-class OldFlyingRingLogicFragment(NamedPropertiesFragment):
-
-    _frag_name = "OldFlyingRingLogic"
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x50, 0)
-class PulseFragment(NamedPropertiesFragment):
-
-    _frag_name = "Pulse"
+add_property_fragments_to_prober(FRAG_PROBER)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
