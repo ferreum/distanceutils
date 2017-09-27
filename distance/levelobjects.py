@@ -842,4 +842,10 @@ class GravityToggleFragment(NamedPropertiesFragment):
     _frag_name = "GravityToggle"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x24, 0)
+class OldFlyingRingLogicFragment(NamedPropertiesFragment):
+
+    _frag_name = "OldFlyingRingLogic"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

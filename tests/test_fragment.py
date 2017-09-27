@@ -13,6 +13,7 @@ from distance.levelobjects import (
     InterpolateToPositionOnTriggerFragment,
     EnableAbilitiesTriggerFragment,
     GravityToggleFragment,
+    OldFlyingRingLogicFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -228,6 +229,18 @@ class GravityTriggerTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(SKIP_BYTES, props['AngDragScale'])
         self.assertEqual(3, len(props))
+
+
+class OldFlyingRingLogicTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/oldflyingringlogic.frag"
+
+    frag_class = OldFlyingRingLogicFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['FadeOutTime'])
+        self.assertEqual(4, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
