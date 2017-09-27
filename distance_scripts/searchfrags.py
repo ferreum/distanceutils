@@ -146,7 +146,9 @@ class FragmentMatcher(object):
                     p(f"Section: {frag.start_section}")
                     start = frag.start_pos
                     end = frag.end_pos
-                    p(f"Offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+                    sec = frag.start_section
+                    p(f"Offset: 0x{start:08x} to 0x{end:08x}"
+                      f" (0x{end - start:x} bytes, data 0x{sec.data_size:x} bytes)")
                     p(f"Matches: {len(matches)}")
                     with p.tree_children():
                         for name, offset, text in matches:
