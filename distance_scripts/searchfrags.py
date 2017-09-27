@@ -29,6 +29,12 @@ KNOWN_GOOD_SECTIONS = [
     Section(22222222, ident=0x16, version=1), # TrackNode
     Section(22222222, ident=0x43, version=1), # from VirusSpiritTeaser
     Section(22222222, ident=0x45, version=1), # from GravityTrigger
+    Section(33333333, ident=0x7, version=1), # from WorldText
+    Section(22222222, ident=0x50, version=1), # from VirusBuilding003Core
+    Section(22222222, ident=0x4b, version=1), # from MusicTrigger
+    Section(33333333, ident=0x7, version=2), # from v8 SectorNumberTextCeiling
+    Section(22222222, ident=0x50, version=2), # from v9 LevelEditorCarSpawner
+    Section(22222222, ident=0x77, version=4), # from v9 Biodome
 ]
 
 

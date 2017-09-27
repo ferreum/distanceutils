@@ -810,6 +810,8 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x2c, 0), None),
     # found on Hextreme
     (Section(22222222, 0x1b, 0), None),
+    # found on "Brief Chaos" object EmpireBrokenBuilding006_PiecesSeparated
+    (Section(22222222, 0x44, 0), None),
 )
 
 
