@@ -27,6 +27,7 @@ KNOWN_GOOD_SECTIONS = [
     Section(MAGIC_2, 0x25, 2), # PopupLogic
     Section(22222222, ident=0x63, version=0), # Group name
     Section(22222222, ident=0x16, version=1), # TrackNode
+    Section(22222222, ident=0x43, version=1), # from VirusSpiritTeaser
 ]
 
 
@@ -142,7 +143,9 @@ class FragmentMatcher(object):
                 for frag, matches in frags:
                     p.tree_next_child()
                     p(f"Section: {frag.start_section}")
-                    p(f"Offset: 0x{frag.start_pos:08x}")
+                    start = frag.start_pos
+                    end = frag.end_pos
+                    p(f"Offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
                     p(f"Matches: {len(matches)}")
                     with p.tree_children():
                         for name, offset, text in matches:
