@@ -30,13 +30,13 @@ class LazySequence(Sequence):
                 end = stop - 1
                 end -= (mylen - end) % stride
         else:
-            if index < 0:
-                index = mylen + index
-            if index >= mylen:
-                raise IndexError(f"{index} >= {mylen}")
-            if index < 0:
-                raise IndexError(f"{index} < 0")
             end = index
+            if end < 0:
+                end += mylen
+            if end >= mylen:
+                raise IndexError(f"{end} >= {mylen}")
+            if end < 0:
+                raise IndexError(f"{end} < 0")
         if end >= current:
             iterator = self._iterator
             try:
@@ -46,7 +46,17 @@ class LazySequence(Sequence):
                 # This means the iterator ended earlier than the
                 # reported length.
                 self._iterator = None
-                self._length = len(l)
+                mylen = len(l)
+                self._length = mylen
+        if isinstance(index, slice):
+            if start < 0:
+                start += mylen
+            if stop < 0:
+                stop += mylen
+            index = slice(start, stop, stride)
+        else:
+            if index < 0:
+                index += mylen
         return l[index]
 
     def __repr__(self):

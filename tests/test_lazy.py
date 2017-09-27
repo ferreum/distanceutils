@@ -40,9 +40,17 @@ class LazySequenceTest(unittest.TestCase):
         self.assertIndex(10, 0)
         self.assertEqual(13, next(self.iter))
 
+    def test_neg(self):
+        self.assertIndex(12, -3)
+        self.assertEqual(13, next(self.iter))
+
     def test_slice(self):
         self.assertIndex([10, 11], slice(0, 2))
         self.assertEqual(12, next(self.iter))
+
+    def test_slice_neg(self):
+        self.assertIndex([12, 13], slice(-3, -1))
+        self.assertEqual(14, next(self.iter))
 
     def test_slice_emptyend(self):
         self.assertIndex([11, 12, 13, 14], slice(1, None))
@@ -100,9 +108,42 @@ class LazySequenceTest(unittest.TestCase):
     def test_len(self):
         self.assertEqual(5, len(self.lazy))
 
-    def test_earlyexit(self):
+    def test_earlyexit_slice(self):
+        next(self.iter) # steal an item
+        # we get a shorter slice
+        self.assertEqual([14], self.lazy[3:5])
+        self.assertEqual(4, len(self.lazy))
+
+    def test_earlyexit_slice_full(self):
         next(self.iter) # steal an item
         self.assertEqual([11, 12, 13, 14], self.lazy[:])
+        self.assertEqual(4, len(self.lazy))
+
+    def test_earlyexit_neg(self):
+        next(self.iter) # steal
+        self.assertEqual(14, self.lazy[-1])
+        self.assertEqual(4, len(self.lazy))
+
+    def test_earlyexit_ascend_neg(self):
+        next(self.iter) # steal
+        # Yes, this is weird. But changing len() on the fly
+        # breaks negative indexing.
+        self.assertEqual(13, self.lazy[-3])
+        # lazy doesn't know this is the last item yet
+        self.assertEqual(14, self.lazy[-2])
+        self.assertEqual(14, self.lazy[-1])
+        # len changed, so suddenly we get a different value here
+        self.assertEqual(13, self.lazy[-2])
+        self.assertEqual(4, len(self.lazy))
+
+    def test_earlyexit_slice_neg(self):
+        next(self.iter) # steal
+        # same as above
+        self.assertEqual([12, 13], self.lazy[-4:-2])
+        self.assertEqual([14], self.lazy[-2:-1])
+        # we get a shorter slice on early exit
+        self.assertEqual([14], self.lazy[-2:])
+        self.assertEqual([12, 13], self.lazy[-3:-1])
         self.assertEqual(4, len(self.lazy))
 
 
