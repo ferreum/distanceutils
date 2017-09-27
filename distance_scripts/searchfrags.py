@@ -37,8 +37,33 @@ KNOWN_GOOD_SECTIONS = [
     Section(22222222, ident=0x77, version=4), # from v9 Biodome
     Section(22222222, ident=0x9a, version=7), # from v9 Light
     Section(22222222, ident=0x89, version=2), # from v9 EventTriggerBox
-    Section(22222222, ident=0x8a, version=1), # from v9 RotatingSpotLight
     Section(22222222, ident=0x2c, version=2), # from v9 BrightenCarHeadlights
+    Section(22222222, ident=0x8a, version=1), # v9 component EventListener
+    Section(22222222, ident=0x4a, version=2), # InfoDisplayLogic from v9 InfoDisplayBox
+    Section(22222222, ident=0x43, version=2), # from v9 VirusMazeCeiling001
+
+    # known good version
+    Section(22222222, ident=0x57, version=1), # from v9 CarScreenTextDecodeTrigger
+    Section(22222222, ident=0x38, version=1), # from v5 VirusMine, EmpireEndZoneCircle, ...
+    Section(22222222, ident=0x17, version=1), # from v5 EmpireCircle
+
+    # false positives
+    # bogus offset
+    Section(22222222, ident=0x81, version=7), # from v9 particle system
+    Section(22222222, ident=0x83, version=3), # from v9 GS
+    Section(33333333, ident=0x9, version=3), # from v8 LightbeamRays
+    Section(22222222, ident=0x77, version=3), # from v7 Biodome
+    Section(22222222, ident=0x77, version=2), # from v5 Biodome
+    Section(22222222, ident=0x19, version=1), # from v7 CheckpointLogic
+    Section(33333333, ident=0xa, version=1), # from v3 LensFlare
+    Section(33333333, ident=0x2, version=0), # from s8 (map The Virus Begins) VirusBuilding004
+    Section(33333333, ident=0x9, version=1), # from v3 Light2
+    Section(33333333, ident=0x9, version=4), # from v8 Light
+
+    # contains a string
+    Section(22222222, ident=0x65, version=1), # from v9 WarningPulseLight (shader property name)
+    Section(22222222, ident=0x9f, version=1), # from v9 DiscoverableStuntArea (area name)
+    Section(22222222, ident=0x61, version=1), # from v3 CreditsNameOrb
 ]
 
 

@@ -818,6 +818,44 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x3d, 0), None),
     # from v9 RumbleZone
     (Section(22222222, 0x66, 0), None),
+    # from v8 PulseCore
+    (Section(22222222, 0x4f, 0), None),
+    # from v8 KillGridBox
+    (Section(22222222, 0x82, 0), None),
+    # from v5 WarpAnchor
+    (Section(22222222, 0x6e, 0), None),
+    # from v7 PlanetWithSphericalGravity
+    (Section(22222222, 0x5f, 0), None),
+    # from s8 (map "Pumpkin Patch")
+    (Section(22222222, 0x29, 0), None), # from SoccerGoalLogic
+    (Section(22222222, 0x38, 0), None), # from HalloweenSpotlight1, RotatingSpotLight
+    # from v5 VirusSpiritShard
+    (Section(22222222, 0x67, 0), None),
+    # from v9 WingCorruptionZone
+    (Section(22222222, 0x53, 0), None),
+    # from v8 IntroCutsceneLight
+    (Section(22222222, 0x55, 0), None),
+    # from v9 CarScreenTextDecodeTrigger
+    (Section(22222222, 0x57, 1), None),
+    # from v9 CutsceneLightning
+    (Section(22222222, 0x6f, 0), None),
+    # from s8 (map "The Matrix Arena")
+    (Section(22222222, 0x17, 0), None), # from EmpireCircle
+    (Section(22222222, 0x1f, 0), None), # from Teleporter
+    # from v3 WarningPulseLight
+    (Section(22222222, 0x65, 0), None),
+    # from v1 LaserMid (sub of VirusLaserTriCircleRotating)
+    (Section(22222222, 0x1a, 0), None),
+    # from v5 EmpireProximityDoor
+    (Section(22222222, 0x76, 0), None),
+    # from v5 VirusSpiritWarpTeaser
+    (Section(22222222, 0x7e, 0), None),
+    # from v1 GlobalFog
+    (Section(22222222, 0x60, 0), None),
+    # from v8 DisableLocalCarWarnings
+    (Section(22222222, 0x62, 0), None),
+    # from v7 AdventureAbilitySettings
+    (Section(22222222, 0x4d, 0), None),
 )
 
 
