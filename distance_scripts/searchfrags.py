@@ -97,7 +97,7 @@ class FragmentMatcher(object):
                 except ProbeError:
                     pass
                 else:
-                    matches.append(("Other version", repr(probe_sec)))
+                    matches.append(("Other version", None, repr(probe_sec)))
 
         pos = 0
         buf = BytesIO(data)
@@ -144,7 +144,8 @@ class FragmentMatcher(object):
                     with p.tree_children():
                         for name, offset, text in matches:
                             p.tree_next_child()
-                            p(f"{name}: 0x{offset:x} {text}")
+                            offset = "None" if offset is None else f"0x{offset:x}"
+                            p(f"{name}: {offset} {text}")
 
 
 def main():
