@@ -74,6 +74,7 @@ class FragmentMatcher(object):
     def __init__(self, real_frag_prober, all_):
         self.real_frag_prober = real_frag_prober
         self.all = all_
+        self.sections = {}
 
     def find_matches(self, frag):
         sec = frag.start_section
@@ -130,6 +131,7 @@ class FragmentMatcher(object):
                 matches = self.find_matches(frag)
                 if matches:
                     frags.append((frag, matches))
+                    self.sections[frag.start_section.to_key()] = frag.start_section
 
         if frags:
             p(f"Object: {obj.type!r}")
@@ -179,6 +181,12 @@ def main():
         p = PrintContext(file=sys.stdout, flags=())
         for obj in object_source:
             matcher.visit_object(obj, p)
+        if matcher.sections:
+            p(f"Unique sections: {len(matcher.sections)}")
+            with p.tree_children():
+                for sec in matcher.sections.values():
+                    p.tree_next_child()
+                    p(f"Section: {sec}")
 
     return 0
 
