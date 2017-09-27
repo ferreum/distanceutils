@@ -848,4 +848,10 @@ class OldFlyingRingLogicFragment(NamedPropertiesFragment):
     _frag_name = "OldFlyingRingLogic"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x50, 0)
+class PulseFragment(NamedPropertiesFragment):
+
+    _frag_name = "Pulse"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

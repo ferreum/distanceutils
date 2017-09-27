@@ -14,6 +14,7 @@ from distance.levelobjects import (
     EnableAbilitiesTriggerFragment,
     GravityToggleFragment,
     OldFlyingRingLogicFragment,
+    PulseFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -241,6 +242,18 @@ class OldFlyingRingLogicTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(SKIP_BYTES, props['FadeOutTime'])
         self.assertEqual(4, len(props))
+
+
+class PulseTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/pulse holoblock015top.frag"
+
+    frag_class = PulseFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['IgnoreColorChannel'])
+        self.assertEqual(8, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
