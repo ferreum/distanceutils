@@ -808,6 +808,8 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x3a, 0), None),
     (Section(22222222, 0x58, 0), None),
     (Section(22222222, 0x2c, 0), None),
+    # found on Hextreme
+    (Section(22222222, 0x1b, 0), None),
 )
 
 

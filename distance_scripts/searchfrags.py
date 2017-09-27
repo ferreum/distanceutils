@@ -28,6 +28,7 @@ KNOWN_GOOD_SECTIONS = [
     Section(22222222, ident=0x63, version=0), # Group name
     Section(22222222, ident=0x16, version=1), # TrackNode
     Section(22222222, ident=0x43, version=1), # from VirusSpiritTeaser
+    Section(22222222, ident=0x45, version=1), # from GravityTrigger
 ]
 
 
