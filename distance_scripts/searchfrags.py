@@ -107,7 +107,7 @@ class FragmentMatcher(object):
                 pass
             else:
                 if s and len(list(STR_EXCLUDE_PATTERN.findall(s))) < len(s) // 3:
-                    matches.append(("String", repr(s)))
+                    matches.append(("String", pos, repr(s)))
             db.pos = pos
             try:
                 i = db.read_int(8)
@@ -115,7 +115,7 @@ class FragmentMatcher(object):
                 pass
             else:
                 if offset <= i <= offset + len(data):
-                    matches.append(("Offset", f"0x{i:08x}"))
+                    matches.append(("Offset", pos, f"0x{i:08x}"))
             pos += 1
         return matches
 
@@ -139,9 +139,9 @@ class FragmentMatcher(object):
                     p(f"Offset: 0x{frag.start_pos:08x}")
                     p(f"Matches: {len(matches)}")
                     with p.tree_children():
-                        for name, text in matches:
+                        for name, offset, text in matches:
                             p.tree_next_child()
-                            p(f"{name}: {text}")
+                            p(f"{name}: 0x{offset:x} {text}")
 
 
 def main():
