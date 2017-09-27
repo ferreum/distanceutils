@@ -49,5 +49,16 @@ class LazySequence(Sequence):
                 self._length = len(l)
         return l[index]
 
+    def __repr__(self):
+        l = self._list
+        mylen = self._length
+        curlen = len(l)
+        if curlen != mylen:
+            l = self._list
+            remaining = mylen - curlen
+            return f"<lazy {l!r}{remaining:+}>"
+        else:
+            return f"<lazy {l!r}>"
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
