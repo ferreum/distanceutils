@@ -159,6 +159,7 @@ def main():
 
     opts = dict(
         level_frag_prober=p_frag,
+        level_subobj_prober=p_level,
         level_obj_prober=p_level,
     )
 
@@ -167,10 +168,10 @@ def main():
     with open(args.IN, 'rb') as in_f:
         content = prober.read(DstBytes(in_f), opts=opts)
         if isinstance(content, Level):
-            object_source = content.iter_objects()
+            object_source = iter_objects(content.iter_objects())
         else:
             # CustomObject
-            object_source = [content]
+            object_source = iter_objects([content])
         p = PrintContext(file=sys.stdout, flags=())
         for obj in object_source:
             matcher.visit_object(obj, p)

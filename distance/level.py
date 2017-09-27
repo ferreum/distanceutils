@@ -125,7 +125,7 @@ class Layer(BytesModel):
     def _handle_opts(self, opts):
         BytesModel._handle_opts(self, opts)
         try:
-            self.child_prober = opts['level_obj_prober']
+            self.obj_prober = opts['level_obj_prober']
         except KeyError:
             pass
 
