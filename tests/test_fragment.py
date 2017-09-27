@@ -33,12 +33,14 @@ def write_read(obj, read_func=None):
     if result.exception:
         raise result.exception
 
-    return result, dbytes
+    return result, buf
 
 
 class Base(object):
 
     class WriteReadTest(unittest.TestCase):
+
+        exact = True
 
         def test_probe(self):
             with open(self.filename, 'rb') as f:
@@ -58,10 +60,14 @@ class Base(object):
                 dbr = DstBytes(f)
                 obj = self.frag_class(dbr)
 
-                res, dbw = write_read(obj)
+                res, buf = write_read(obj)
 
                 self.verify_fragment(res)
-                self.assertEqual(dbr.pos, dbw.pos)
+                self.assertEqual(dbr.pos, len(buf.getbuffer()))
+
+                if self.exact:
+                    f.seek(0)
+                    self.assertEqual(f.read(), buf.getbuffer())
 
 
 class TracknodeTest(Base.WriteReadTest):
