@@ -6,15 +6,6 @@ from distance.levelobjects import (
     TrackNodeFragment,
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
-    ParticleEmitLogicFragment,
-    LightFragment,
-    PulseMaterialFragment,
-    SmoothRandomPositionFragment,
-    InterpolateToPositionOnTriggerFragment,
-    EnableAbilitiesTriggerFragment,
-    GravityToggleFragment,
-    OldFlyingRingLogicFragment,
-    PulseFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -144,116 +135,6 @@ class ObjectSpawnCircleTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(b'\x00\x00\x2a\x43', props['TriggerRadius'])
         self.assertEqual(6, len(props))
-
-
-class ParticleEmitLogicTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/particleemitlogic brokensparkssmall.frag"
-
-    frag_class = ParticleEmitLogicFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(SKIP_BYTES, props['LightScale'])
-        self.assertEqual(4, len(props))
-
-
-class LightTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/light light.frag"
-
-    frag_class = LightFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(SKIP_BYTES, props['IgnoreColorChannel'])
-        self.assertEqual(5, len(props))
-
-
-class PulseMaterialTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/pulsematerial saw.frag"
-
-    frag_class = PulseMaterialFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(b'\0', props['IgnoreColorChannel'])
-        self.assertEqual(7, len(props))
-
-
-class SmoothRandomPositionTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/smoothrandomposition cameradrone.frag"
-
-    frag_class = SmoothRandomPositionFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(b'\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F',
-                         props['Range'])
-        self.assertEqual(2, len(props))
-
-
-class InterpolateToPositionOnTriggerTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/interpolatetopositionontrigger virusmaze.frag"
-
-    frag_class = InterpolateToPositionOnTriggerFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(b'\xBC\xB4\xAF\xC2\x08\xDC\x94\x43\x6A\xE6\x3A\xC5',
-                         props['EndPos'])
-        self.assertEqual(3, len(props))
-
-
-class EnableAbilitiesTriggerTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/enableabilitiestrigger enableabilitiesbox.frag"
-
-    frag_class = EnableAbilitiesTriggerFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(SKIP_BYTES, props['EnableJetRotating'])
-        self.assertEqual(4, len(props))
-
-
-class GravityTriggerTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/gravitytoggle gravitytrigger.frag"
-
-    frag_class = GravityToggleFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(SKIP_BYTES, props['AngDragScale'])
-        self.assertEqual(3, len(props))
-
-
-class OldFlyingRingLogicTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/oldflyingringlogic.frag"
-
-    frag_class = OldFlyingRingLogicFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(SKIP_BYTES, props['FadeOutTime'])
-        self.assertEqual(4, len(props))
-
-
-class PulseTest(Base.WriteReadTest):
-
-    filename = "tests/in/fragment/pulse holoblock015top.frag"
-
-    frag_class = PulseFragment
-
-    def verify_fragment(self, frag):
-        props = frag.props
-        self.assertEqual(SKIP_BYTES, props['IgnoreColorChannel'])
-        self.assertEqual(8, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
