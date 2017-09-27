@@ -26,6 +26,7 @@ STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 KNOWN_GOOD_SECTIONS = [
     Section(MAGIC_2, 0x25, 2), # PopupLogic
     Section(22222222, ident=0x63, version=0), # Group name
+    Section(22222222, ident=0x16, version=1), # TrackNode
 ]
 
 
