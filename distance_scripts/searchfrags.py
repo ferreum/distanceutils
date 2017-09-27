@@ -146,8 +146,8 @@ class FragmentMatcher(object):
                     with p.tree_children():
                         for name, offset, text in matches:
                             p.tree_next_child()
-                            offset = "None" if offset is None else f"0x{offset:x}"
-                            p(f"{name}: {offset} {text}")
+                            offset = "" if offset is None else f"0x{offset:x} "
+                            p(f"{name}: {offset}{text}")
 
 
 def main():
