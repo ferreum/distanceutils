@@ -6,8 +6,8 @@ from collections import Sequence
 
 class LazySequence(Sequence):
 
-    def __init__(self, iterator, length):
-        self._iterator = iterator
+    def __init__(self, source, length):
+        self._iterator = iter(source)
         self._length = length
         self._list = []
 
