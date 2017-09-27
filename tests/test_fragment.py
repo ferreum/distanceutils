@@ -8,6 +8,7 @@ from distance.levelobjects import (
     ObjectSpawnCircleFragment,
     ParticleEmitLogicFragment,
     LightFragment,
+    PulseMaterialFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -161,6 +162,18 @@ class LightTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(SKIP_BYTES, props['IgnoreColorChannel'])
         self.assertEqual(5, len(props))
+
+
+class PulseMaterialTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/pulsematerial saw.frag"
+
+    frag_class = PulseMaterialFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(b'\0', props['IgnoreColorChannel'])
+        self.assertEqual(7, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

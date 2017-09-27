@@ -812,4 +812,10 @@ class LightFragment(NamedPropertiesFragment):
     _frag_name = "Light"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x27, 0)
+class PulseMaterialFragment(NamedPropertiesFragment):
+
+    _frag_name = "PulseMaterial"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
