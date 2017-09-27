@@ -9,6 +9,7 @@ from distance.level import Level, Layer
 from distance.levelobjects import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
+from tests import common
 
 
 def inflate(obj):
@@ -137,6 +138,17 @@ class GroupTest(unittest.TestCase):
         res = write_read(orig)
 
         self.assertEqual('test group', res.custom_name)
+
+
+class GroupWriteReadTest(common.WriteReadTest):
+
+    read_obj = Group
+
+    filename = "tests/in/customobject/2cubes.bytes"
+
+    def verify_obj(self, obj):
+        self.assertEqual(3, len(obj.sections))
+        self.assertEqual("2cubes", obj.custom_name)
 
 
 class UnknownTest(unittest.TestCase):

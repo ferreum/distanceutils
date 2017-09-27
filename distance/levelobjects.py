@@ -145,10 +145,11 @@ class Group(LevelObject):
 
     def _write_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x1d, version=1):
-            dbytes.write_int(4, MAGIC_1)
-            dbytes.write_int(4, 0) # num values
-            dbytes.write_int(4, 0) # inspect Children: None
-            return True
+            if sec.raw_data is None:
+                dbytes.write_int(4, MAGIC_1)
+                dbytes.write_int(4, 0) # num values
+                dbytes.write_int(4, 0) # inspect Children: None
+                return True
         elif sec.match(MAGIC_2, 0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)

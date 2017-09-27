@@ -60,18 +60,20 @@ class WriteReadTest(unittest.TestCase):
 
     def test_write_read(self):
         with open(self.filename, 'rb') as f:
-            dbr = DstBytes(f)
-            orig = self.read_obj_pre(dbr)
-            orig_len = orig.layers[-1].end_pos
+            orig_bytes = f.read()
+            orig_buf = BytesIO(orig_bytes)
 
-            res, buf = write_read(orig)
+        dbr = DstBytes(orig_buf)
+        orig = self.read_obj_pre(dbr)
+        orig_len = len(orig_bytes)
 
-            self.verify_obj(res)
-            self.assertEqual(orig_len, len(buf.getbuffer()))
+        res, buf = write_read(orig)
 
-            if self.exact:
-                f.seek(0)
-                self.assertEqual(f.read(), buf.getbuffer())
+        self.verify_obj(res)
+        self.assertEqual(orig_len, len(buf.getbuffer()))
+
+        if self.exact:
+            self.assertEqual(orig_bytes, buf.getvalue())
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
