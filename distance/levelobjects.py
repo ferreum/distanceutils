@@ -818,4 +818,10 @@ class PulseMaterialFragment(NamedPropertiesFragment):
     _frag_name = "PulseMaterial"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x28, 0)
+class SmoothRandomPositionFragment(NamedPropertiesFragment):
+
+    _frag_name = "SmoothRandomPosition"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
