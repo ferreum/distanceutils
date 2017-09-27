@@ -7,6 +7,7 @@ from distance.levelobjects import (
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
     ParticleEmitLogicFragment,
+    LightFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -148,6 +149,18 @@ class ParticleEmitLogicTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(SKIP_BYTES, props['LightScale'])
         self.assertEqual(4, len(props))
+
+
+class LightTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/light light.frag"
+
+    frag_class = LightFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['IgnoreColorChannel'])
+        self.assertEqual(5, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

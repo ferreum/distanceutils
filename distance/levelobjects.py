@@ -806,4 +806,10 @@ class ParticleEmitLogicFragment(NamedPropertiesFragment):
     _frag_name = "ParticleEmitLogic"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x26, 0)
+class LightFragment(NamedPropertiesFragment):
+
+    _frag_name = "Light"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
