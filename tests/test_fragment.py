@@ -10,6 +10,8 @@ from distance.levelobjects import (
     LightFragment,
     PulseMaterialFragment,
     SmoothRandomPositionFragment,
+    InterpolateToPositionOnTriggerFragment,
+    EnableAbilitiesTriggerFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -188,6 +190,31 @@ class SmoothRandomPositionTest(Base.WriteReadTest):
         self.assertEqual(b'\x00\x00\x80\x3F\x00\x00\x80\x3F\x00\x00\x80\x3F',
                          props['Range'])
         self.assertEqual(2, len(props))
+
+
+class InterpolateToPositionOnTriggerTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/interpolatetopositionontrigger virusmaze.frag"
+
+    frag_class = InterpolateToPositionOnTriggerFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(b'\xBC\xB4\xAF\xC2\x08\xDC\x94\x43\x6A\xE6\x3A\xC5',
+                         props['EndPos'])
+        self.assertEqual(3, len(props))
+
+
+class EnableAbilitiesTriggerTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/enableabilitiestrigger enableabilitiesbox.frag"
+
+    frag_class = EnableAbilitiesTriggerFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['EnableJetRotating'])
+        self.assertEqual(4, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -824,4 +824,16 @@ class SmoothRandomPositionFragment(NamedPropertiesFragment):
     _frag_name = "SmoothRandomPosition"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x43, 0)
+class InterpolateToPositionOnTriggerFragment(NamedPropertiesFragment):
+
+    _frag_name = "InterpolateToPositionOnTrigger"
+
+
+@FRAG_PROBER.fragment(MAGIC_2, 0x5e, 0)
+class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
+
+    _frag_name = "EnableAbilitiesTrigger"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
