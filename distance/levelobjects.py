@@ -836,4 +836,10 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
     _frag_name = "EnableAbilitiesTrigger"
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x45, 0)
+class GravityToggleFragment(NamedPropertiesFragment):
+
+    _frag_name = "GravityToggle"
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

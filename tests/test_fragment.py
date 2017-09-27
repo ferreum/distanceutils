@@ -12,6 +12,7 @@ from distance.levelobjects import (
     SmoothRandomPositionFragment,
     InterpolateToPositionOnTriggerFragment,
     EnableAbilitiesTriggerFragment,
+    GravityToggleFragment,
 )
 from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
@@ -215,6 +216,18 @@ class EnableAbilitiesTriggerTest(Base.WriteReadTest):
         props = frag.props
         self.assertEqual(SKIP_BYTES, props['EnableJetRotating'])
         self.assertEqual(4, len(props))
+
+
+class GravityTriggerTest(Base.WriteReadTest):
+
+    filename = "tests/in/fragment/gravitytoggle gravitytrigger.frag"
+
+    frag_class = GravityToggleFragment
+
+    def verify_fragment(self, frag):
+        props = frag.props
+        self.assertEqual(SKIP_BYTES, props['AngDragScale'])
+        self.assertEqual(3, len(props))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
