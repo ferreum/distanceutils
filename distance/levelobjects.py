@@ -824,7 +824,12 @@ PROPERTY_FRAGS = (
 def _create_property_fragment_classes():
     globs = globals()
     created = set()
+    sections = set()
     for sec, name in PROPERTY_FRAGS:
+        key = sec.to_key()
+        if key in sections:
+            raise ValueError(f"Duplicate section: {sec}")
+        sections.add(key)
         if name and name not in created:
             typename = name + "Fragment"
             cls = type(typename, (NamedPropertiesFragment,), {
