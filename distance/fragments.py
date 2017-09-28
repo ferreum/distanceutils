@@ -482,7 +482,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragme
         return db.read_byte()
 
     @named_property_getter('DestroyOnTriggerExit')
-    def clear_on_trigger_exit(self, db):
+    def destroy_on_trigger_exit(self, db):
         return db.read_byte()
 
     @named_property_getter('TimeText')
@@ -494,11 +494,11 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragme
         return db.read_byte()
 
     @named_property_getter('AnnouncerAction')
-    def static_time_text(self, db):
+    def announcer_action(self, db):
         return db.read_int(4)
 
     @named_property_getter('AnnouncerPhrases')
-    def static_time_text(self, db):
+    def announcer_phrases(self, db):
         self._require_equal(MAGIC_1, 4)
         num_phrases = dbytes.read_int(4)
         for _ in range(num_phrases):
