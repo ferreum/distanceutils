@@ -2,6 +2,7 @@
 
 
 from collections import Sequence
+from itertools import islice
 
 
 class LazySequence(Sequence):
@@ -69,16 +70,17 @@ class LazySequence(Sequence):
         if iterator is None:
             return self._len
         l = self._list
-        try:
-            for _ in range(index - len(l) + 1):
-                l.append(next(iterator))
+        current = len(l)
+        if index < current:
             return self._len
-        except StopIteration:
-            # iterator ended earlier than the reported length.
-            # Try to patch our length and hope no one notices.
-            self._iterator = None
-            mylen = len(l)
-            self._len = mylen
-            return mylen
+        l.extend(islice(iterator, index - current + 1))
+        current = len(l)
+        if index < current:
+            return self._len
+        # iterator ended earlier than the reported length.
+        # Try to patch our length and hope no one notices.
+        self._iterator = None
+        self._len = current
+        return current
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
