@@ -13,6 +13,7 @@ from .bytes import (
 from .base import Fragment
 from .prober import BytesProber
 from .data import NamedPropertyList, MaterialSet
+from .constants import ForceType
 
 
 PROBER = BytesProber(baseclass=Fragment)
@@ -269,6 +270,51 @@ class MusicTriggerFragment(Fragment):
             p(f"Reset before trigger: {self.reset_before_trigger and 'yes' or 'no'}")
         if self.disable_music_trigger is not None:
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
+
+
+@PROBER.fragment(MAGIC_2, 0xa0, 0)
+class ForceZoneFragment(Fragment):
+
+    value_attrs = dict(
+        force_direction = (0.0, 0.0, 1.0),
+        global_force = 0,
+        force_type = ForceType.WIND,
+        gravity_magnitude = 25.0,
+        disable_global_gravity = 0,
+        wind_speed = 300.0,
+        drag_multiplier = 1.0,
+    )
+
+    locals().update((k, None) for k in value_attrs)
+
+    def _read_section_data(self, dbytes, sec):
+        self.__dict__.update(self.value_attrs)
+        if sec.data_size > 12:
+            self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
+            self.global_force = dbytes.read_byte()
+            self.force_type = dbytes.read_int(4)
+            self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
+            self.disable_global_gravity = dbytes.read_byte()
+            self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
+            self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
+        return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.force_direction:
+            dir_str = ', '.join(str(v) for v in self.force_direction)
+            p(f"Force direction: {dir_str}")
+        if self.global_force is not None:
+            p(f"Global force: {self.global_force and 'yes' or 'no'}")
+        if self.force_type is not None:
+            p(f"Force type: {ForceType.to_name(self.force_type)}")
+        if self.force_type == ForceType.WIND:
+            p(f"Wind speed: {self.wind_speed}")
+            p(f"Drag multiplier: {self.drag_multiplier}")
+        elif self.force_type == ForceType.GRAVITY:
+            p(f"Magnitude: {self.gravity_magnitude}")
+            p(f"Disable global gravity: {self.disable_global_gravity and 'yes' or 'no'}")
+            p(f"Drag multiplier: {self.drag_multiplier}")
 
 
 @PROBER.fragment(MAGIC_3, 0x7, 1)

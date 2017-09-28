@@ -20,6 +20,7 @@ from .fragments import (
     TeleporterExitFragment,
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
+    ForceZoneFragment,
     TextMeshFragment,
     EnableAbilitiesTriggerFragment,
     SphereColliderFragment,
@@ -258,54 +259,8 @@ class ForceZoneBox(ForwardFragmentAttrs, LevelObject):
 
     forward_fragment_attrs = (
         (CustomNameFragment, CustomNameFragment.value_attrs),
+        (ForceZoneFragment, ForceZoneFragment.value_attrs),
     )
-
-    force_direction = ()
-    global_force = None
-    force_type = None
-    gravity_magnitude = None
-    disable_global_gravity = None
-    wind_speed = None
-    drag_multiplier = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0xa0):
-            self.force_direction = (0.0, 0.0, 1.0)
-            self.global_force = 0
-            self.force_type = ForceType.WIND
-            self.gravity_magnitude = 25.0
-            self.disable_global_gravity = 0
-            self.wind_speed = 300.0
-            self.drag_multiplier = 1.0
-            with dbytes.limit(sec.data_end, True):
-                self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
-                self.global_force = dbytes.read_byte()
-                self.force_type = dbytes.read_int(4)
-                self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
-                self.disable_global_gravity = dbytes.read_byte()
-                self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
-                self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
-            return False
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.custom_name:
-            p(f"Custom name: {self.custom_name!r}")
-        if self.force_direction:
-            dir_str = ', '.join(str(v) for v in self.force_direction)
-            p(f"Force direction: {dir_str}")
-        if self.global_force is not None:
-            p(f"Global force: {self.global_force and 'yes' or 'no'}")
-        if self.force_type is not None:
-            p(f"Force type: {ForceType.to_name(self.force_type)}")
-        if self.force_type == ForceType.WIND:
-            p(f"Wind speed: {self.wind_speed}")
-            p(f"Drag multiplier: {self.drag_multiplier}")
-        elif self.force_type == ForceType.GRAVITY:
-            p(f"Magnitude: {self.gravity_magnitude}")
-            p(f"Disable global gravity: {self.disable_global_gravity and 'yes' or 'no'}")
-            p(f"Drag multiplier: {self.drag_multiplier}")
 
 
 @PROBER.for_type('EnableAbilitiesBox')
