@@ -248,44 +248,6 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
             self.assertEqual(obj.time_text, "Download")
             self.assertAlmostEqual(obj.per_char_speed, 0.02)
 
-    def test_ver0_2(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 2.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertEqual(obj.text, "INPUT(no_gravity);")
-            self.assertEqual(obj.time_text, "Download")
-            self.assertAlmostEqual(obj.per_char_speed, 0.02)
-
-    def test_ver0_3(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 3.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertIsNone(obj.text)
-            self.assertEqual(obj.time_text, "")
-            self.assertAlmostEqual(obj.per_char_speed, 0.03)
-            self.assertEqual(len(obj.announcer_phrases), 7)
-            self.assertEqual(obj.announcer_phrases[0], 'Analyzing')
-            self.assertEqual(obj.announcer_phrases[6], 'RotationalJetsRestored')
-
-    def test_ver0_4(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 4.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertEqual(len(obj.text), 245)
-            self.assertAlmostEqual(obj.per_char_speed, 0.01)
-
-    def test_ver0_5(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 5.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertEqual(obj.text, "Anomaly Detected")
-            self.assertAlmostEqual(obj.per_char_speed, 0.1)
-            self.assertAlmostEqual(obj.delay, 1.0)
-
 
 class SplineRoadTest(unittest.TestCase):
 
