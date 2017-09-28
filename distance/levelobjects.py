@@ -15,6 +15,7 @@ from .fragments import (
     ForwardFragmentColors,
     GoldenSimplesFragment,
     GroupFragment,
+    CustomNameFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -120,16 +121,15 @@ class Group(ForwardFragmentAttrs, LevelObject):
     has_children = True
     type = 'Group'
 
-    custom_name = None
-
     default_sections = (
         *LevelObject.default_sections,
         Section(MAGIC_2, 0x1d, version=1),
-        Section(MAGIC_2, 0x63, version=0)
+        Section(MAGIC_2, 0x63, version=0),
     )
 
     forward_fragment_attrs = (
         (GroupFragment, GroupFragment.value_attrs),
+        (CustomNameFragment, CustomNameFragment.value_attrs),
     )
 
     def _handle_opts(self, opts):
@@ -138,23 +138,6 @@ class Group(ForwardFragmentAttrs, LevelObject):
             self.child_prober = opts['level_obj_prober']
         except KeyError:
             pass
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x63): # Group name
-            if sec.data_size > 12:
-                self.custom_name = dbytes.read_str()
-            return True
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _write_sections(self, dbytes):
-        LevelObject._write_sections(self, dbytes)
-
-    def _write_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x63, version=0):
-            if self.custom_name is not None:
-                dbytes.write_str(self.custom_name)
-            return True
-        return LevelObject._write_section_data(self, dbytes, sec)
 
     def _print_children(self, p):
         with need_counters(p) as counters:

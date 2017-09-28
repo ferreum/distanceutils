@@ -46,6 +46,26 @@ class GroupFragment(Fragment):
         return False
 
 
+@PROBER.fragment(MAGIC_2, 0x63, 0)
+class CustomNameFragment(Fragment):
+
+    value_attrs = ('custom_name',)
+
+    custom_name = None
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size > 12:
+            self.custom_name = dbytes.read_str()
+        else:
+            self.custom_name = None
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        if self.custom_name is not None:
+            dbytes.write_str(self.custom_name)
+        return True
+
+
 @PROBER.fragment(MAGIC_2, 0x83, 3)
 class GoldenSimplesFragment(Fragment):
 
