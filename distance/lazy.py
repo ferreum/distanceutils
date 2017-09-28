@@ -8,36 +8,34 @@ class LazySequence(Sequence):
 
     def __init__(self, source, length):
         self._iterator = iter(source)
-        self._length = length
+        self._len = length
         self._list = []
 
     def __len__(self):
-        return self._length
+        return self._len
 
     def __getitem__(self, index):
-        mylen = self._length
+        mylen = self._len
         if isinstance(index, slice):
             start, stop, stride = index.indices(mylen)
             if stride < 0:
                 if start <= stop:
                     return []
-                end = start
+                last = start
             else:
                 if stop <= start:
                     return []
-                end = stop - 1
-                end -= (mylen - end) % stride
+                last = stop - 1
+                last -= (mylen - last) % stride
         else:
-            end = index
-            if end < 0:
-                end += mylen
-            if end >= mylen:
-                raise IndexError(f"{end} >= {mylen}")
-            if end < 0:
-                raise IndexError(f"{end} < 0")
-        l = self._list
-        if end >= len(l):
-            mylen = self._inflate_index(end)
+            last = index
+            if last < 0:
+                last += mylen
+            if last >= mylen:
+                raise IndexError(f"{last} >= {mylen}")
+            if last < 0:
+                raise IndexError(f"{last} < 0")
+        mylen = self._inflate_index(last)
         if isinstance(index, slice):
             if start < 0:
                 start += mylen
@@ -47,11 +45,11 @@ class LazySequence(Sequence):
         else:
             if index < 0:
                 index += mylen
-        return l[index]
+        return self._list[index]
 
     def __repr__(self):
         l = self._list
-        mylen = self._length
+        mylen = self._len
         curlen = len(l)
         if curlen != mylen:
             l = self._list
@@ -60,28 +58,27 @@ class LazySequence(Sequence):
         else:
             return f"<lazy {l!r}>"
 
-    def _inflate_index(self, end):
+    def _inflate_index(self, index):
         """Tries to inflate the given index in the backing list.
 
-        Updates self._length if iterator exits early.
-        Returns the new value of self._length.
+        Updates self._len if iterator exits early.
+        Returns the new value of self._len.
 
         """
         iterator = self._iterator
         if iterator is None:
-            return self._length
+            return self._len
         l = self._list
-        current = len(l)
         try:
-            for _ in range(end - current + 1):
+            for _ in range(index - len(l) + 1):
                 l.append(next(iterator))
-            return self._length
+            return self._len
         except StopIteration:
             # iterator ended earlier than the reported length.
             # Try to patch our length and hope no one notices.
             self._iterator = None
             mylen = len(l)
-            self._length = mylen
+            self._len = mylen
             return mylen
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
