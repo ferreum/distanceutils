@@ -358,15 +358,28 @@ class NamedPropertiesFragment(Fragment):
             self.props.print_data(p)
 
 
+def named_property_getter(propname, default=None):
+    """Decorate properties to create a getter for a named property."""
+
+    def decorate(func):
+
+        def fget(self):
+            data = self.props.get(propname, None)
+            if not data or data == SKIP_BYTES:
+                return default
+            db = DstBytes.from_data(data)
+            return func(self, db)
+        return property(fget, None, None, doc=func.__doc__)
+
+    return decorate
+
+
 @PROBER.fragment(MAGIC_2, 0x5d, 0)
 class RaceEndLogicFragment(NamedPropertiesFragment):
 
-    @property
-    def delay_before_broadcast(self):
-        data = self.props.get('DelayBeforeBroadcast', SKIP_BYTES)
-        if data != SKIP_BYTES:
-            return S_FLOAT.unpack(data)[0]
-        return None
+    @named_property_getter('DelayBeforeBroadcast')
+    def delay_before_broadcast(self, db):
+        return db.read_struct(S_FLOAT)[0]
 
     def _print_data(self, p):
         NamedPropertiesFragment._print_data(self, p)
@@ -396,12 +409,9 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
             abilities[k] = value
         return abilities
 
-    @property
-    def bloom_out(self):
-        data = self.props.get('BloomOut', SKIP_BYTES)
-        if not data or data == SKIP_BYTES:
-            return 1
-        return data[0]
+    @named_property_getter('BloomOut', default=1)
+    def bloom_out(self, db):
+        return db.read_byte()
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
@@ -455,19 +465,13 @@ class BaseCarScreenTextDecodeTriggerFragment(object):
 @PROBER.fragment(MAGIC_2, 0x57, 0)
 class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragment, NamedPropertiesFragment):
 
-    @property
-    def text(self):
-        data = self.props.get('Text', SKIP_BYTES)
-        if not data or data == SKIP_BYTES:
-            return None
-        return DstBytes.from_data(data).read_str()
+    @named_property_getter('Text')
+    def text(self, db):
+        return db.read_str()
 
-    @property
-    def time_text(self):
-        data = self.props.get('TimeText', SKIP_BYTES)
-        if not data or data == SKIP_BYTES:
-            return None
-        return DstBytes.from_data(data).read_str()
+    @named_property_getter('TimeText')
+    def time_text(self, db):
+        return db.read_str()
 
 
 @PROBER.fragment(MAGIC_2, 0x57, 1)
