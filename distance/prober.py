@@ -32,7 +32,10 @@ class BytesProber(object):
             sec = args[0]
         else:
             sec = Section(*args, **kw)
-        self._fragments[sec.to_key()] = cls
+        key = sec.to_key()
+        if key in self._fragments:
+            raise ValueError(f"{sec} is already registered")
+        self._fragments[key] = cls
 
     def func(self, *args, high_prio=False):
 
