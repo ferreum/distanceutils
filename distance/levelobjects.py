@@ -22,6 +22,7 @@ from .fragments import (
     RaceEndLogicFragment,
     EnableAbilitiesTriggerFragment,
     SphereColliderFragment,
+    GravityToggleFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -365,31 +366,23 @@ class GravityTrigger(ForwardFragmentAttrs, LevelObject):
 
     forward_fragment_attrs = (
         (SphereColliderFragment, dict(
-            trigger_center=None,
-            trigger_radius=None
+            trigger_center = None,
+            trigger_radius = None,
+        )),
+        (GravityToggleFragment, dict(
+            disable_gravity = None,
+            drag_scale = None,
+            drag_scale_angular = None,
         )),
     )
 
-    disable_gravity = None
-    drag_scale = None
-    drag_scale_angular = None
     music_id = None
     one_time_trigger = None
     reset_before_trigger = None
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x45):
-            # GravityToggle
-            self.disable_gravity = 1
-            self.drag_scale = 1.0
-            self.drag_scale_angular = 1.0
-            with dbytes.limit(sec.data_end, True):
-                self.disable_gravity = dbytes.read_byte()
-                self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
-                self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
-            return False
-        elif sec.match(MAGIC_2, 0x4b):
+        if sec.match(MAGIC_2, 0x4b):
             # MusicTrigger
             self.music_id = 19
             self.one_time_trigger = 1

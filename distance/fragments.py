@@ -218,6 +218,24 @@ class SphereColliderFragment(Fragment):
         return False
 
 
+@PROBER.fragment(MAGIC_2, 0x45, 1)
+class GravityToggleFragment(Fragment):
+
+    disable_gravity = 1
+    drag_scale = 1.0
+    drag_scale_angular = 1.0
+
+    def _read_section_data(self, dbytes, sec):
+        self.disable_gravity = 1
+        self.drag_scale = 1.0
+        self.drag_scale_angular = 1.0
+        with dbytes.limit(sec.data_end, True):
+            self.disable_gravity = dbytes.read_byte()
+            self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
+            self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
+        return False
+
+
 @PROBER.fragment(MAGIC_2, 0x16, 2)
 class TrackNodeFragment(Fragment):
 
@@ -371,7 +389,7 @@ PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x27, 0), "PulseMaterial"),
     (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
     (Section(MAGIC_2, 0x43, 0), "InterpolateToPositionOnTrigger"),
-    (Section(MAGIC_2, 0x45, 0), "GravityToggle"),
+    (Section(MAGIC_2, 0x45, 0), None),
     (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
     (Section(MAGIC_2, 0x50, 0), "Pulse"),
     # found on Damnation
