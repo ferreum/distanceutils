@@ -39,6 +39,11 @@ class InfoDisplayBoxTest(unittest.TestCase):
         with open("tests/in/customobject/infodisplaybox 1.bytes", 'rb') as f:
             p.print_data_of(PROBER.read(DstBytes(f)))
 
+    def test_quarantinetrigger(self):
+        with open("tests/in/customobject/quarantinetrigger empty infodisplaylogic.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+
 
 class WorldTextTest(unittest.TestCase):
 

@@ -655,11 +655,12 @@ class InfoDisplayLogicFragment(BaseInfoDisplayLogicFragment, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # only verified in v2
-        self.fadeout_time = dbytes.read_struct(S_FLOAT)
-        self.texts = texts = []
-        for i in range(5):
-            self._add_unknown(4) # f32 delay
-            texts.append(dbytes.read_str())
+        if sec.data_size > 12:
+            self.fadeout_time = dbytes.read_struct(S_FLOAT)
+            self.texts = texts = []
+            for i in range(5):
+                self._add_unknown(4) # f32 delay
+                texts.append(dbytes.read_str())
         return False
 
 
