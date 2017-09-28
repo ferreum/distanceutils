@@ -254,9 +254,12 @@ class GravityTrigger(ForwardFragmentAttrs, LevelObject):
 
 
 @PROBER.for_type('ForceZoneBox')
-class ForceZoneBox(LevelObject):
+class ForceZoneBox(ForwardFragmentAttrs, LevelObject):
 
-    custom_name = None
+    forward_fragment_attrs = (
+        (CustomNameFragment, CustomNameFragment.value_attrs),
+    )
+
     force_direction = ()
     global_force = None
     force_type = None
@@ -266,14 +269,7 @@ class ForceZoneBox(LevelObject):
     drag_multiplier = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 0x0f): # collider
-            return False
-        elif sec.match(MAGIC_2, 0x63): # CustomName
-            if dbytes.pos < sec.data_end:
-                with dbytes.limit(sec.data_end):
-                    self.custom_name = dbytes.read_str()
-            return False
-        elif sec.match(MAGIC_2, 0xa0):
+        if sec.match(MAGIC_2, 0xa0):
             self.force_direction = (0.0, 0.0, 1.0)
             self.global_force = 0
             self.force_type = ForceType.WIND

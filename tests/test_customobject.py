@@ -151,6 +151,7 @@ class ForceZoneBoxTest(unittest.TestCase):
             obj = PROBER.read(DstBytes(f))
             self.assertEqual(obj.force_type, ForceType.GRAVITY)
             self.assertEqual(obj.disable_global_gravity, 1)
+            self.assertEqual("Custom Zone", obj.custom_name)
 
     def test_print(self):
         for fname in self.files:
