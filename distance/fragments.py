@@ -418,12 +418,10 @@ class ForwardFragmentAttrs(object):
                 try:
                     return getattr(self.fragment_by_type(cls), name)
                 except AttributeError:
-                    pass
-                try:
-                    return attrs[name]
-                except TypeError:
-                    pass
-                raise_attribute_error(self, name)
+                    try:
+                        return attrs[name]
+                    except TypeError:
+                        raise_attribute_error(self, name)
         try:
             return super().__getattr__(name)
         except AttributeError:
