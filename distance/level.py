@@ -253,13 +253,6 @@ class Level(Fragment):
     def settings(self, s):
         self._settings = s
 
-    def __get_layers_start(self):
-        settings = self.settings
-        if settings.sane_end_pos:
-            return settings.reported_end_pos
-        else:
-            raise settings.exception
-
     def iter_objects(self, with_layers=False, with_objects=True):
         for layer in self.layers:
             if with_layers:
