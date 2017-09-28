@@ -198,10 +198,11 @@ class Fragment(BytesModel):
     def _read(self, dbytes):
         sec = self._get_start_section()
         self._report_end_pos(sec.data_end)
+        pos = dbytes.pos
         if not self._read_section_data(dbytes, sec):
-            with dbytes.saved_pos(sec.data_start):
+            with dbytes.saved_pos(pos):
                 self.raw_data = dbytes.read_bytes(
-                    sec.data_size, or_to_eof=True)
+                    sec.data_end - pos, or_to_eof=True)
 
     def write(self, dbytes, section=None):
         sec = self.start_section if section is None else section

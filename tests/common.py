@@ -84,7 +84,7 @@ class WriteReadTest(unittest.TestCase):
         orig = self.read_obj_pre(dbr)
         orig_len = len(orig_bytes)
 
-        res, buf = write_read(orig)
+        res, buf = write_read(orig, read_func=self.read_obj)
 
         self.verify_obj(res)
         self.assertEqual(orig_len, len(buf.getbuffer()))

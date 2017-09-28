@@ -1,6 +1,7 @@
 import unittest
 from io import BytesIO
 
+from distance.base import Fragment
 from distance.fragments import (
     PROBER,
     MaterialFragment,
@@ -9,6 +10,7 @@ from distance.fragments import (
     ObjectSpawnCircleFragment,
 )
 from distance.bytes import DstBytes, SKIP_BYTES
+from tests import common
 
 
 def disable_writes(dbytes):
@@ -37,7 +39,7 @@ def write_read(obj, read_func=None):
 
 class Base(object):
 
-    class WriteReadTest(unittest.TestCase):
+    class WriteReadTest(common.WriteReadTest):
 
         exact = True
 
@@ -45,37 +47,29 @@ class Base(object):
             with open(self.filename, 'rb') as f:
                 res = PROBER.read(DstBytes(f))
 
-                self.assertEqual(self.frag_class, type(res))
-                self.verify_fragment(res)
+                self.assertEqual(self.read_obj, type(res))
+                self.verify_obj(res)
 
-        def test_read(self):
-            with open(self.filename, 'rb') as f:
-                res = self.frag_class(DstBytes(f))
 
-                self.verify_fragment(res)
+class UnknownTest(Base.WriteReadTest):
 
-        def test_write_read(self):
-            with open(self.filename, 'rb') as f:
-                dbr = DstBytes(f)
-                obj = self.frag_class(dbr)
+    filename = "tests/in/fragment/material splineroad.frag"
 
-                res, buf = write_read(obj)
+    read_obj_pre = Fragment
 
-                self.verify_fragment(res)
-                self.assertEqual(dbr.pos, len(buf.getbuffer()))
+    read_obj = MaterialFragment
 
-                if self.exact:
-                    f.seek(0)
-                    self.assertEqual(f.read(), buf.getbuffer())
+    def verify_obj(self, frag):
+        MaterialTest.verify_obj(self, frag)
 
 
 class TracknodeTest(Base.WriteReadTest):
 
     filename = "tests/in/fragment/tracknode splineroad.frag"
 
-    frag_class = TrackNodeFragment
+    read_obj = TrackNodeFragment
 
-    def verify_fragment(self, frag):
+    def verify_obj(self, frag):
         self.assertEqual(79, frag.parent_id)
         self.assertEqual(100, frag.snap_id)
 
@@ -84,9 +78,9 @@ class MaterialTest(Base.WriteReadTest):
 
     filename = "tests/in/fragment/material splineroad.frag"
 
-    frag_class = MaterialFragment
+    read_obj = MaterialFragment
 
-    def verify_fragment(self, frag):
+    def verify_obj(self, frag):
         mats = frag.materials
         panel_color = mats['empire_panel_light']['_Color']
         self.assertAlmostEqual(0.50588, panel_color[0], places=5)
@@ -101,9 +95,9 @@ class MaterialV2Test(Base.WriteReadTest):
 
     filename = "tests/in/fragment/material v2.frag"
 
-    frag_class = MaterialFragment
+    read_obj = MaterialFragment
 
-    def verify_fragment(self, frag):
+    def verify_obj(self, frag):
         mats = frag.materials
         color = mats['KillGridInfinitePlaneEditorPreview']['_Color']
         self.assertAlmostEqual(0.955882, color[0], places=5)
@@ -117,9 +111,9 @@ class PopupBlockerLogicTest(Base.WriteReadTest):
 
     filename = "tests/in/fragment/popupblockerlogic empire.frag"
 
-    frag_class = PopupBlockerLogicFragment
+    read_obj = PopupBlockerLogicFragment
 
-    def verify_fragment(self, frag):
+    def verify_obj(self, frag):
         props = frag.props
         self.assertEqual(SKIP_BYTES, props['HoloDistance'])
         self.assertEqual(8, len(props))
@@ -129,9 +123,9 @@ class ObjectSpawnCircleTest(Base.WriteReadTest):
 
     filename = "tests/in/fragment/objectspawncircle lightningspawner.frag"
 
-    frag_class = ObjectSpawnCircleFragment
+    read_obj = ObjectSpawnCircleFragment
 
-    def verify_fragment(self, frag):
+    def verify_obj(self, frag):
         props = frag.props
         self.assertEqual(b'\x00\x00\x2a\x43', props['TriggerRadius'])
         self.assertEqual(6, len(props))
