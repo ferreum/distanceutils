@@ -25,6 +25,7 @@ from .fragments import (
     GravityToggleFragment,
     MusicTriggerFragment,
     BaseCarScreenTextDecodeTriggerFragment,
+    BaseInfoDisplayLogicFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -213,63 +214,17 @@ class WorldText(LevelObject):
 
 
 @PROBER.for_type('InfoDisplayBox')
-class InfoDisplayBox(LevelObject):
+class InfoDisplayBox(ForwardFragmentAttrs, LevelObject):
 
-    version = None
-    texts = ()
-    delays = ()
-    per_char_speed = None
-    destroy_on_trigger_exit = None
-    random_char_count = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x4A):
-            texts = self.texts
-            self.version = version = sec.version
-            if version == 0:
-                self.texts = texts = [None] * 5
-                self.delays = delays = [None] * 5
-                for propname, is_skip in iter_named_properties(
-                        dbytes, sec.data_end):
-                    if is_skip:
-                        continue
-                    if propname.startswith('InfoText'):
-                        index = int(propname[-1])
-                        texts[index] = dbytes.read_str()
-                    elif propname.startswith('Delay'):
-                        index = int(propname[-1])
-                        delays[index] = dbytes.read_struct(S_FLOAT)[0]
-                    elif propname == 'PerCharSpeed':
-                        self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                    elif propname == 'DestroyOnTriggerExit':
-                        self.destroy_on_trigger_exit = dbytes.read_int(1)
-                    elif propname == 'RandomCharCount':
-                        self.random_char_count = dbytes.read_int(4)
-                    else:
-                        raise ValueError(f"unknown property: {propname!r}")
-            else:
-                # only verified in v2
-                self.fadeout_time = dbytes.read_struct(S_FLOAT)
-                for i in range(5):
-                    self._add_unknown(4) # f32 delay
-                    if texts is ():
-                        self.texts = texts = []
-                    texts.append(dbytes.read_str())
-            return False
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        p(f"Version: {self.version}")
-        for i, text in enumerate(self.texts):
-            if text:
-                p(f"Text {i}: {text!r}")
-        if self.per_char_speed is not None:
-            p(f"Per char speed: {self.per_char_speed}")
-        if self.destroy_on_trigger_exit is not None:
-            p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
-        if self.random_char_count is not None:
-            p(f"Random char count: {self.random_char_count}")
+    forward_fragment_attrs = (
+        (BaseInfoDisplayLogicFragment, dict(
+            fadeout_time = None,
+            texts = (),
+            per_char_speed = None,
+            destroy_on_trigger_exit = None,
+            random_char_count = None,
+        )),
+    )
 
 
 @PROBER.for_type('CarScreenTextDecodeTrigger')

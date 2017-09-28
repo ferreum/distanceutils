@@ -524,6 +524,73 @@ class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragment,
             pass
 
 
+class BaseInfoDisplayLogicFragment(object):
+
+    fadeout_time = None
+    texts = ()
+    per_char_speed = None
+    destroy_on_trigger_exit = None
+    random_char_count = None
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        for i, text in enumerate(self.texts):
+            if text:
+                p(f"Text {i}: {text!r}")
+        if self.per_char_speed is not None:
+            p(f"Per char speed: {self.per_char_speed}")
+        if self.destroy_on_trigger_exit is not None:
+            p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
+        if self.random_char_count is not None:
+            p(f"Fade out time: {self.fadeout_time}")
+        if self.random_char_count is not None:
+            p(f"Random char count: {self.random_char_count}")
+
+
+@PROBER.fragment(MAGIC_2, 0x4a, 0)
+class OldInfoDisplayLogicFragment(BaseInfoDisplayLogicFragment, NamedPropertiesFragment):
+
+    @property
+    def texts(self):
+        texts = [None] * 5
+        props = self.props
+        for i in range(5):
+            propname = 'InfoText' + str(i)
+            data = props.get(propname, None)
+            if data and data != SKIP_BYTES:
+                texts[i] = DstBytes.from_data(data).read_str()
+        return texts
+
+    @named_property_getter('FadeOutTime')
+    def fadeout_time(self, db):
+        return db.read_struct(S_FLOAT)[0]
+
+    @named_property_getter('PerCharSpeed')
+    def per_char_speed(self, db):
+        return db.read_struct(S_FLOAT)[0]
+
+    @named_property_getter('RandomCharCount')
+    def clear_on_trigger_exit(self, db):
+        return db.read_int(4)
+
+    @named_property_getter('DestroyOnTriggerExit')
+    def destroy_on_trigger_exit(self, db):
+        return db.read_byte()
+
+
+@PROBER.fragment(MAGIC_2, 0x4a, 2)
+class InfoDisplayLogicFragment(BaseInfoDisplayLogicFragment, Fragment):
+
+    def _read_section_data(self, dbytes, sec):
+        # only verified in v2
+        self.fadeout_time = dbytes.read_struct(S_FLOAT)
+        self.texts = texts = []
+        for i in range(5):
+            self._add_unknown(4) # f32 delay
+            texts.append(dbytes.read_str())
+        return False
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
@@ -538,7 +605,6 @@ PROPERTY_FRAGS = (
     # found on Damnation
     (Section(22222222, 0x59, 0), None),
     (Section(22222222, 0x4b, 0), None),
-    (Section(22222222, 0x4a, 0), None),
     (Section(22222222, 0x4e, 0), None),
     (Section(22222222, 0x3a, 0), None),
     (Section(22222222, 0x58, 0), None),
