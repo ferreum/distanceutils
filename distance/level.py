@@ -27,7 +27,6 @@ def format_layer_flags(gen):
 
 class BaseLevelSettings(object):
 
-    type = None
     version = None
     name = None
     skybox_name = None
@@ -37,9 +36,35 @@ class BaseLevelSettings(object):
     abilities = ()
     difficulty = None
 
+    def _print_data(self, p):
+        if self.name is not None:
+            p(f"Level name: {self.name!r}")
+        if self.skybox_name is not None:
+            p(f"Skybox name: {self.skybox_name!r}")
+        if self.medal_times:
+            medal_str = ', '.join(format_duration(t) for t in self.medal_times)
+            p(f"Medal times: {medal_str}")
+        if self.medal_scores:
+            medal_str = ', '.join(str(s) for s in self.medal_scores)
+            p(f"Medal scores: {medal_str}")
+        if self.modes:
+            modes_str = ', '.join(Mode.to_name(mode)
+                                  for mode, value in sorted(self.modes.items())
+                                  if value)
+            p(f"Level modes: {modes_str or 'None'}")
+        if self.abilities:
+            ab_str = ', '.join(AbilityToggle.to_name_for_value(toggle, value)
+                               for toggle, value in enumerate(self.abilities)
+                               if value != 0)
+            if not ab_str:
+                ab_str = "All"
+            p(f"Abilities: {ab_str}")
+        if self.difficulty is not None:
+            p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
+
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
-class LevelSettings(BaseObject, BaseLevelSettings):
+class LevelSettings(BaseLevelSettings, BaseObject):
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x52):
@@ -81,35 +106,9 @@ class LevelSettings(BaseObject, BaseLevelSettings):
         if self.version is not None:
             p(f"Object version: {self.version}")
 
-    def _print_data(self, p):
-        if self.name is not None:
-            p(f"Level name: {self.name!r}")
-        if self.skybox_name is not None:
-            p(f"Skybox name: {self.skybox_name!r}")
-        if self.medal_times:
-            medal_str = ', '.join(format_duration(t) for t in self.medal_times)
-            p(f"Medal times: {medal_str}")
-        if self.medal_scores:
-            medal_str = ', '.join(str(s) for s in self.medal_scores)
-            p(f"Medal scores: {medal_str}")
-        if self.modes:
-            modes_str = ', '.join(Mode.to_name(mode)
-                                  for mode, value in sorted(self.modes.items())
-                                  if value)
-            p(f"Level modes: {modes_str or 'None'}")
-        if self.abilities:
-            ab_str = ', '.join(AbilityToggle.to_name_for_value(toggle, value)
-                               for toggle, value in enumerate(self.abilities)
-                               if value != 0)
-            if not ab_str:
-                ab_str = "All"
-            p(f"Abilities: {ab_str}")
-        if self.difficulty is not None:
-            p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
-
 
 @LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
-class OldLevelSettings(Fragment, BaseLevelSettings):
+class OldLevelSettings(BaseLevelSettings, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps
