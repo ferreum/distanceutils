@@ -139,6 +139,25 @@ class GoldenSimplesFragment(Fragment):
         p(f"Fragment: GoldenSimples")
 
 
+@PROBER.fragment(MAGIC_2, 0x3e, 1)
+@PROBER.fragment(MAGIC_2, 0x3e, 2)
+@PROBER.fragment(MAGIC_2, 0x3e, 3)
+class TeleporterExitFragment(Fragment):
+
+    value_attrs = ('destination',)
+
+    destination = None
+
+    def _read_section_data(self, dbytes, sec):
+        self.destination = dbytes.read_int(4)
+        return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.destination is not None:
+            p(f"Teleports to: {self.destination}")
+
+
 @PROBER.fragment(MAGIC_2, 0x16, 2)
 class TrackNodeFragment(Fragment):
 
@@ -332,6 +351,11 @@ def add_property_fragments_to_prober(prober):
 
 _create_property_fragment_classes()
 add_property_fragments_to_prober(PROBER)
+
+
+def raise_attribute_error(obj, name):
+    raise AttributeError(
+        f"{type(obj).__name__!r} object has no attribute {name!r}")
 
 
 class ForwardFragmentAttrs(object):
