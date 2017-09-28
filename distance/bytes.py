@@ -299,7 +299,7 @@ class BytesModel(object):
                 with p.tree_children():
                     p.print_data_of(self.start_section)
             if self.sections:
-                p(f"Subections: {len(self.sections)}")
+                p(f"Sections: {len(self.sections)}")
                 with p.tree_children():
                     for sec in self.sections:
                         p.tree_next_child()
