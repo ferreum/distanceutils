@@ -151,11 +151,6 @@ class Group(ForwardFragmentAttrs, LevelObject):
             if counters:
                 counters.print_data(p)
 
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.custom_name is not None:
-            p(f"Custom name: {self.custom_name!r}")
-
     def recenter(self, center):
         pos, rot, scale = self.transform or ((0, 0, 0), (), ())
         self.transform = center, rot, scale

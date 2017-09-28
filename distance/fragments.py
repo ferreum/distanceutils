@@ -65,6 +65,14 @@ class CustomNameFragment(Fragment):
             dbytes.write_str(self.custom_name)
         return True
 
+    def _print_type(self, p):
+        p(f"Fragment: CustomName")
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.custom_name is not None:
+            p(f"Custom name: {self.custom_name!r}")
+
 
 @PROBER.fragment(MAGIC_2, 0x83, 3)
 class GoldenSimplesFragment(Fragment):
