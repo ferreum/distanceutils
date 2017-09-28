@@ -223,5 +223,11 @@ class Fragment(BytesModel):
     def _write_section_data(self, dbytes, sec):
         return False
 
+    def _print_type(self, p):
+        name = type(self).__name__
+        if name.endswith('Fragment'):
+            name = name[:-8]
+            p(f"Fragment: {name}")
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
