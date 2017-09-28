@@ -53,6 +53,9 @@ class UnexpectedEOFError(Exception):
     pass
 
 
+CATCH_EXCEPTIONS = (ValueError, EOFError, UnexpectedEOFError)
+
+
 class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
@@ -79,7 +82,7 @@ class BytesModel(object):
         obj = clazz(plain=True)
         try:
             obj.read(dbytes, **kw)
-        except Exception as e:
+        except CATCH_EXCEPTIONS as e:
             obj.exception = e
         return obj
 
@@ -174,7 +177,7 @@ class BytesModel(object):
             self.__apply_end_pos(dbytes)
             self.end_pos = dbytes.pos
             self.sane_end_pos = True
-        except Exception as e:
+        except CATCH_EXCEPTIONS as e:
             orig_e = e
             exc_pos = dbytes.pos
             if exc_pos != start_pos and isinstance(e, EOFError):
