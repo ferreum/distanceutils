@@ -16,7 +16,7 @@ from .fragments import (
     GoldenSimplesFragment,
     GroupFragment,
     CustomNameFragment,
-    TeleporterExitFragment,
+    TeleporterEntranceFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -169,7 +169,7 @@ class SubTeleporter(ForwardFragmentAttrs, SubObject):
     trigger_checkpoint = None
 
     forward_fragment_attrs = (
-        (TeleporterExitFragment, dict(destination=None)),
+        (TeleporterEntranceFragment, dict(destination=None)),
     )
 
     def _read_section_data(self, dbytes, sec):

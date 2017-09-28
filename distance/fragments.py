@@ -142,9 +142,7 @@ class GoldenSimplesFragment(Fragment):
 @PROBER.fragment(MAGIC_2, 0x3e, 1)
 @PROBER.fragment(MAGIC_2, 0x3e, 2)
 @PROBER.fragment(MAGIC_2, 0x3e, 3)
-class TeleporterExitFragment(Fragment):
-
-    value_attrs = ('destination',)
+class TeleporterEntranceFragment(Fragment):
 
     destination = None
 
