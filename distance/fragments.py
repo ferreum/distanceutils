@@ -226,14 +226,20 @@ class GravityToggleFragment(Fragment):
     drag_scale_angular = 1.0
 
     def _read_section_data(self, dbytes, sec):
-        self.disable_gravity = 1
-        self.drag_scale = 1.0
-        self.drag_scale_angular = 1.0
         with dbytes.limit(sec.data_end, True):
             self.disable_gravity = dbytes.read_byte()
             self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
             self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
         return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.disable_gravity is not None:
+            p(f"Disable gravity: {self.disable_gravity and 'yes' or 'no'}")
+        if self.drag_scale is not None:
+            p(f"Drag scale: {self.drag_scale}")
+        if self.drag_scale_angular is not None:
+            p(f"Angular drag scale: {self.drag_scale_angular}")
 
 
 @PROBER.fragment(MAGIC_2, 0x16, 2)

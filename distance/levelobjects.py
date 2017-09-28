@@ -398,12 +398,6 @@ class GravityTrigger(ForwardFragmentAttrs, LevelObject):
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
-        if self.disable_gravity is not None:
-            p(f"Disable gravity: {self.disable_gravity and 'yes' or 'no'}")
-        if self.drag_scale is not None:
-            p(f"Drag scale: {self.drag_scale}")
-        if self.drag_scale_angular is not None:
-            p(f"Angular drag scale: {self.drag_scale_angular}")
         if self.music_id is not None:
             p(f"Music ID: {self.music_id}")
         if self.one_time_trigger is not None:
