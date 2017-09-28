@@ -8,10 +8,11 @@ from .bytes import (
     S_FLOAT, SKIP_BYTES,
     MAGIC_1, MAGIC_2, MAGIC_3, MAGIC_6
 )
-from .base import BaseObject, ForwardFragmentAttrs
+from .base import BaseObject
 from .fragments import (
     PROBER as FRAG_PROBER,
-    MaterialFragment,
+    ForwardFragmentAttrs,
+    ForwardFragmentColors,
     GoldenSimplesFragment,
     GroupFragment,
 )
@@ -587,7 +588,7 @@ class EnableAbilitiesBox(LevelObject):
 
 
 @PROBER.for_type('WedgeGS')
-class WedgeGS(ForwardFragmentAttrs, LevelObject):
+class WedgeGS(ForwardFragmentAttrs, ForwardFragmentColors, LevelObject):
 
     type = 'WedgeGS'
     has_children = True
@@ -598,7 +599,7 @@ class WedgeGS(ForwardFragmentAttrs, LevelObject):
         Section(MAGIC_2, 0x83, 3),
     )
 
-    _color_attrs = dict(
+    forward_fragment_colors = dict(
         mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
         mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
         mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
@@ -608,43 +609,6 @@ class WedgeGS(ForwardFragmentAttrs, LevelObject):
     forward_fragment_attrs = (
         (GoldenSimplesFragment, GoldenSimplesFragment.value_attrs),
     )
-
-    def _init_defaults(self):
-        BaseObject._init_defaults(self)
-
-        mats = self.material_fragment.materials
-        for matname, colname, value in self._color_attrs.values():
-            mats.get_or_add(matname)[colname] = value
-
-    def __getattr__(self, name):
-        try:
-            matname, colname, default = self._color_attrs[name]
-        except KeyError:
-            pass
-        else:
-            mats = self.material_fragment.materials
-            mat = mats.get(matname, None)
-            if mat is None:
-                return None
-            return mat.get(colname, None)
-
-        return super().__getattr__(name)
-
-    def __setattr__(self, name, value):
-        try:
-            matname, colname, default = self._color_attrs[name]
-        except KeyError:
-            pass
-        else:
-            mats = self.material_fragment.materials
-            mats.get_or_add(matname)[colname] = value
-            return
-
-        super().__setattr__(name, value)
-
-    @property
-    def material_fragment(self):
-        return self.fragment_by_type(MaterialFragment)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

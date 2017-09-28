@@ -303,4 +303,64 @@ _create_property_fragment_classes()
 add_property_fragments_to_prober(PROBER)
 
 
+class ForwardFragmentAttrs(object):
+
+    forward_fragment_attrs = ()
+
+    def __getattr__(self, name):
+        for cls, attrs in self.forward_fragment_attrs:
+            if name in attrs:
+                return getattr(self.fragment_by_type(cls), name)
+        return super().__getattr__(name)
+
+    def __setattr__(self, name, value):
+        for cls, attrs in self.forward_fragment_attrs:
+            if name in attrs:
+                setattr(self.fragment_by_type(cls), name, value)
+                return
+        super().__setattr__(name, value)
+
+
+class ForwardFragmentColors(object):
+
+    forward_fragment_colors = ()
+
+    def _init_defaults(self):
+        super()._init_defaults()
+
+        mats = self.material_fragment.materials
+        for matname, colname, value in self.forward_fragment_colors.values():
+            mats.get_or_add(matname)[colname] = value
+
+    def __getattr__(self, name):
+        try:
+            matname, colname, default = self.forward_fragment_colors[name]
+        except KeyError:
+            pass
+        else:
+            mats = self.material_fragment.materials
+            mat = mats.get(matname, None)
+            if mat is None:
+                return None
+            return mat.get(colname, None)
+
+        return super().__getattr__(name)
+
+    def __setattr__(self, name, value):
+        try:
+            matname, colname, default = self.forward_fragment_colors[name]
+        except KeyError:
+            pass
+        else:
+            mats = self.material_fragment.materials
+            mats.get_or_add(matname)[colname] = value
+            return
+
+        super().__setattr__(name, value)
+
+    @property
+    def material_fragment(self):
+        return self.fragment_by_type(MaterialFragment)
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -182,24 +182,6 @@ class BaseObject(BytesModel):
                     p.print_data_of(obj)
 
 
-class ForwardFragmentAttrs(object):
-
-    forward_fragment_attrs = ()
-
-    def __getattr__(self, name):
-        for cls, attrs in self.forward_fragment_attrs:
-            if name in attrs:
-                return getattr(self.fragment_by_type(cls), name)
-        return super().__getattr__(name)
-
-    def __setattr__(self, name, value):
-        for cls, attrs in self.forward_fragment_attrs:
-            if name in attrs:
-                setattr(self.fragment_by_type(cls), name, value)
-                return
-        super().__setattr__(name, value)
-
-
 @BASE_PROBER.func
 def _probe_fallback(sec):
     if sec.magic == MAGIC_6:
