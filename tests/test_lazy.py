@@ -146,5 +146,23 @@ class LazySequenceTest(unittest.TestCase):
         self.assertEqual([12, 13], self.lazy[-3:-1])
         self.assertEqual(4, len(self.lazy))
 
+    def test_iter(self):
+        it = iter(self.lazy)
+        self.assertEqual(10, next(it))
+        self.assertEqual(11, next(it))
+        self.assertEqual(12, next(it))
+        self.assertEqual(13, next(it))
+        self.assertEqual(14, next(it))
+        self.assertRaises(StopIteration, next, it)
+
+    def test_earlyexit_iter(self):
+        next(self.iter) # steal
+        it = iter(self.lazy)
+        self.assertEqual(11, next(it))
+        self.assertEqual(12, next(it))
+        self.assertEqual(13, next(it))
+        self.assertEqual(14, next(it))
+        self.assertRaises(StopIteration, next, it)
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
