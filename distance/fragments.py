@@ -8,6 +8,7 @@ from .bytes import (
     S_FLOAT, S_FLOAT3,
     MAGIC_1, MAGIC_2, MAGIC_3,
     SKIP_BYTES,
+    DstBytes,
 )
 from .base import Fragment
 from .prober import BytesProber
@@ -351,9 +352,6 @@ class NamedPropertiesFragment(Fragment):
             self.props.write(dbytes)
         return True
 
-    def _print_type(self, p):
-        p(f"Fragment: {self._frag_name}")
-
     def _print_data(self, p):
         Fragment._print_data(self, p)
         if 'allprops' in p.flags and self.props:
@@ -415,6 +413,81 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
             p(f"Bloom out: {self.bloom_out}")
 
 
+class BaseCarScreenTextDecodeTriggerFragment(object):
+
+    per_char_speed = None
+    clear_on_finish = None
+    clear_on_trigger_exit = None
+    destroy_on_trigger_exit = None
+    static_time_text = None
+    delay = None
+    announcer_action = None
+    announcer_phrases = ()
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        if self.text is not None:
+            p(f"Text: {self.text!r}")
+        if self.per_char_speed is not None:
+            p(f"Per char speed: {self.per_char_speed}")
+        if self.clear_on_finish is not None:
+            p(f"Clear on finish: {self.clear_on_finish and 'yes' or 'no'}")
+        if self.clear_on_trigger_exit is not None:
+            p(f"Clear on trigger exit: {self.clear_on_trigger_exit and 'yes' or 'no'}")
+        if self.destroy_on_trigger_exit is not None:
+            p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
+        if self.time_text:
+            p(f"Time text: {self.time_text!r}")
+        if self.static_time_text is not None:
+            p(f"Static time text: {self.static_time_text and 'yes' or 'no'}")
+        if self.delay is not None:
+            p(f"Delay: {self.delay}")
+        if self.announcer_action is not None:
+            p(f"Announcer action: {self.announcer_action}")
+        if self.announcer_phrases:
+            p(f"Announcer phrases: {len(self.announcer_phrases)}")
+            with p.tree_children():
+                for phrase in self.announcer_phrases:
+                    p.tree_next_child()
+                    p(f"Phrase: {phrase!r}")
+
+
+@PROBER.fragment(MAGIC_2, 0x57, 0)
+class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragment, NamedPropertiesFragment):
+
+    @property
+    def text(self):
+        data = self.props.get('Text', SKIP_BYTES)
+        if not data or data == SKIP_BYTES:
+            return None
+        return DstBytes.from_data(data).read_str()
+
+    @property
+    def time_text(self):
+        data = self.props.get('TimeText', SKIP_BYTES)
+        if not data or data == SKIP_BYTES:
+            return None
+        return DstBytes.from_data(data).read_str()
+
+
+@PROBER.fragment(MAGIC_2, 0x57, 1)
+class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragment, Fragment):
+
+    def _read_section_data(self, dbytes, sec):
+        try:
+            self.text = dbytes.read_str()
+            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
+            self.clear_on_finish = dbytes.read_byte()
+            self.clear_on_trigger_exit = dbytes.read_byte()
+            self.destroy_on_trigger_exit = dbytes.read_byte()
+            self.time_text = dbytes.read_str()
+            self.static_time_text = dbytes.read_byte()
+            self.delay = dbytes.read_struct(S_FLOAT)[0]
+            self.announcer_action = dbytes.read_int(4)
+        except EOFError:
+            pass
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
@@ -431,7 +504,6 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x4b, 0), None),
     (Section(22222222, 0x4a, 0), None),
     (Section(22222222, 0x4e, 0), None),
-    (Section(22222222, 0x57, 0), None),
     (Section(22222222, 0x3a, 0), None),
     (Section(22222222, 0x58, 0), None),
     (Section(22222222, 0x2c, 0), None),
@@ -462,8 +534,6 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x53, 0), None),
     # from v8 IntroCutsceneLight
     (Section(22222222, 0x55, 0), None),
-    # from v9 CarScreenTextDecodeTrigger
-    (Section(22222222, 0x57, 1), None),
     # from v9 CutsceneLightning
     (Section(22222222, 0x6f, 0), None),
     # from s8 (map "The Matrix Arena")

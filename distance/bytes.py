@@ -590,6 +590,13 @@ class DstBytes(object):
     def __init__(self, file):
         self.file = file
 
+    @classmethod
+    def from_data(cls, data):
+        """Create a DstBytes reading the given bytes object."""
+        from .bytes import DstBytes
+        from io import BytesIO
+        return DstBytes(BytesIO(data))
+
     @property
     def pos(self):
         return self.file.tell()

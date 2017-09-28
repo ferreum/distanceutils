@@ -24,6 +24,7 @@ from .fragments import (
     SphereColliderFragment,
     GravityToggleFragment,
     MusicTriggerFragment,
+    BaseCarScreenTextDecodeTriggerFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -272,94 +273,14 @@ class InfoDisplayBox(LevelObject):
 
 
 @PROBER.for_type('CarScreenTextDecodeTrigger')
-class CarScreenTextDecodeTrigger(LevelObject):
+class CarScreenTextDecodeTrigger(ForwardFragmentAttrs, LevelObject):
 
-    text = None
-    per_char_speed = None
-    clear_on_finish = None
-    clear_on_trigger_exit = None
-    destroy_on_trigger_exit = None
-    time_text = None
-    static_time_text = None
-    delay = None
-    announcer_action = None
-    announcer_phrases = ()
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x57):
-            if sec.version == 0:
-                for propname, is_skip in iter_named_properties(
-                        dbytes, sec.data_end):
-                    if is_skip:
-                        continue
-                    if propname == 'Text':
-                        self.text = dbytes.read_str()
-                    elif propname == 'PerCharSpeed':
-                        self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                    elif propname == 'ClearOnFinish':
-                        self.clear_on_finish = dbytes.read_byte()
-                    elif propname == 'ClearOnTriggerExit':
-                        self.clear_on_trigger_exit = dbytes.read_byte()
-                    elif propname == 'DestroyOnTriggerExit':
-                        self.destroy_on_trigger_exit = dbytes.read_byte()
-                    elif propname == 'TimeText':
-                        self.time_text = dbytes.read_str()
-                    elif propname == 'StaticTimeText':
-                        self.static_time_text = dbytes.read_byte()
-                    elif propname == 'Delay':
-                        self.delay = dbytes.read_struct(S_FLOAT)[0]
-                    elif propname == 'AnnouncerAction':
-                        self.announcer_action = dbytes.read_int(4)
-                    elif propname == 'AnnouncerPhrases':
-                        self._require_equal(MAGIC_1, 4)
-                        num_phrases = dbytes.read_int(4)
-                        self.announcer_phrases = phrases = []
-                        for _ in range(num_phrases):
-                            phrases.append(dbytes.read_str())
-                    else:
-                        raise ValueError(f"unknown property: {propname!r}")
-            else:
-                try:
-                    self.text = dbytes.read_str()
-                    self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-                    self.clear_on_finish = dbytes.read_byte()
-                    self.clear_on_trigger_exit = dbytes.read_byte()
-                    self.destroy_on_trigger_exit = dbytes.read_byte()
-                    self.time_text = dbytes.read_str()
-                    self.static_time_text = dbytes.read_byte()
-                    self.delay = dbytes.read_struct(S_FLOAT)[0]
-                    self.announcer_action = dbytes.read_int(4)
-                except EOFError:
-                    pass
-            return False
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.text is not None:
-            p(f"Text: {self.text!r}")
-        if self.per_char_speed is not None:
-            p(f"Per char speed: {self.per_char_speed}")
-        if self.clear_on_finish is not None:
-            p(f"Clear on finish: {self.clear_on_finish and 'yes' or 'no'}")
-        if self.clear_on_trigger_exit is not None:
-            p(f"Clear on trigger exit: {self.clear_on_trigger_exit and 'yes' or 'no'}")
-        if self.destroy_on_trigger_exit is not None:
-            p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
-        if self.time_text:
-            p(f"Time text: {self.time_text!r}")
-        if self.static_time_text is not None:
-            p(f"Static time text: {self.static_time_text and 'yes' or 'no'}")
-        if self.delay is not None:
-            p(f"Delay: {self.delay}")
-        if self.announcer_action is not None:
-            p(f"Announcer action: {self.announcer_action}")
-        if self.announcer_phrases:
-            p(f"Announcer phrases: {len(self.announcer_phrases)}")
-            with p.tree_children():
-                for phrase in self.announcer_phrases:
-                    p.tree_next_child()
-                    p(f"Phrase: {phrase!r}")
+    forward_fragment_attrs = (
+        (BaseCarScreenTextDecodeTriggerFragment, dict(
+            text = None,
+            time_text = None,
+        )),
+    )
 
 
 @PROBER.for_type('GravityTrigger')

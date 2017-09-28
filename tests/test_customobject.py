@@ -234,19 +234,17 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
         p = PrintContext.for_test()
         with open(f"tests/in/customobject/decodetrigger.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
             self.assertEqual(obj.text, "Please, help us.")
             self.assertEqual(obj.time_text, "")
-            self.assertAlmostEqual(obj.per_char_speed, 0.0353)
-            p.print_data_of(obj)
 
     def test_ver0(self):
         p = PrintContext.for_test()
         with open(f"tests/in/customobject/decodetrigger v0.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
+            p.print_data_of(obj.fragments[0])
             self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
             self.assertEqual(obj.time_text, "Download")
-            self.assertAlmostEqual(obj.per_char_speed, 0.02)
 
 
 class SplineRoadTest(unittest.TestCase):
