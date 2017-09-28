@@ -264,9 +264,8 @@ class Level(Fragment):
         p(f"Level name: {self.level_name!r}")
         try:
             settings = self.settings
-            p.print_data_of(settings)
-            if not settings.sane_end_pos:
-                return
+            with p.tree_children():
+                p.print_data_of(settings)
             with need_counters(p) as counters:
                 for layer in self.layers:
                     p.print_data_of(layer)
