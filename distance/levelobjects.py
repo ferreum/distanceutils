@@ -20,6 +20,7 @@ from .fragments import (
     TeleporterExitFragment,
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
+    EnableAbilitiesTriggerFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -484,46 +485,11 @@ class ForceZoneBox(LevelObject):
 
 
 @PROBER.for_type('EnableAbilitiesBox')
-class EnableAbilitiesBox(LevelObject):
+class EnableAbilitiesBox(ForwardFragmentAttrs, LevelObject):
 
-    abilities = {}
-    KNOWN_ABILITIES = {'EnableFlying', 'EnableJumping',
-                       'EnableBoosting', 'EnableJetRotating'}
-    bloom_out = 1
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 0x0f):
-            # BoxCollider
-            return False
-        elif sec.match(MAGIC_2, 0x5e):
-            # Abilities
-            if sec.data_size > 16:
-                self.abilities = abilities = {}
-                for propname, is_skip in iter_named_properties(
-                        dbytes, sec.data_end):
-                    if propname in self.KNOWN_ABILITIES:
-                        value = 0
-                        if not is_skip:
-                            value = dbytes.read_int(1)
-                        abilities[propname] = value
-                    elif propname == 'BloomOut':
-                        value = 1
-                        if not is_skip:
-                            value = dbytes.read_int(1)
-                        self.bloom_out = value
-                    else:
-                        raise ValueError(f"unknown property: {propname!r}")
-            return False
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        ab_str = ', '.join(k for k, v in self.abilities.items() if v)
-        if not ab_str:
-            ab_str = "None"
-        p(f"Abilities: {ab_str}")
-        if self.bloom_out is not None:
-            p(f"Bloom out: {self.bloom_out}")
+    forward_fragment_attrs = (
+        (EnableAbilitiesTriggerFragment, {'abilities', 'bloom_out'}),
+    )
 
 
 @PROBER.for_type('WedgeGS')

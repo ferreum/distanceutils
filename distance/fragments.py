@@ -298,6 +298,44 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
             p(f"Delay before broadcast: {delay}")
 
 
+@PROBER.fragment(MAGIC_2, 0x5e, 0)
+class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
+
+    KNOWN_ABILITIES = (
+        'EnableFlying', 'EnableJumping',
+        'EnableBoosting', 'EnableJetRotating',
+    )
+
+    @property
+    def abilities(self):
+        abilities = {}
+        props = self.props
+        for k in self.KNOWN_ABILITIES:
+            data = props.get(k, SKIP_BYTES)
+            if data and data != SKIP_BYTES:
+                value = data[0]
+            else:
+                value = 0
+            abilities[k] = value
+        return abilities
+
+    @property
+    def bloom_out(self):
+        data = self.props.get('BloomOut', SKIP_BYTES)
+        if not data or data == SKIP_BYTES:
+            return 1
+        return data[0]
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        ab_str = ', '.join(k for k, v in self.abilities.items() if v)
+        if not ab_str:
+            ab_str = "None"
+        p(f"Abilities: {ab_str}")
+        if self.bloom_out is not None:
+            p(f"Bloom out: {self.bloom_out}")
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
@@ -306,7 +344,6 @@ PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x27, 0), "PulseMaterial"),
     (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
     (Section(MAGIC_2, 0x43, 0), "InterpolateToPositionOnTrigger"),
-    (Section(MAGIC_2, 0x5e, 0), "EnableAbilitiesTrigger"),
     (Section(MAGIC_2, 0x45, 0), "GravityToggle"),
     (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
     (Section(MAGIC_2, 0x50, 0), "Pulse"),
