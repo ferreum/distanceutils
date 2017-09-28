@@ -1,6 +1,8 @@
 """Fragment implementations."""
 
 
+import math
+
 from .bytes import (
     Section,
     S_FLOAT, S_FLOAT3,
@@ -13,6 +15,16 @@ from .data import NamedPropertyList, MaterialSet
 
 
 PROBER = BytesProber(baseclass=Fragment)
+
+
+def read_n_floats(dbytes, n, default):
+    def read_float():
+        return dbytes.read_struct(S_FLOAT)[0]
+    f = read_float()
+    if math.isnan(f):
+        return default
+    else:
+        return (f, *(read_float() for _ in range(n - 1)))
 
 
 @PROBER.fragment(MAGIC_2, 0x1d, 1)
@@ -189,6 +201,21 @@ class TeleporterExitCheckpointFragment(Fragment):
         Fragment._print_data(self, p)
         if self.trigger_checkpoint is not None:
             p(f"Trigger checkpoint: {self.trigger_checkpoint}")
+
+
+@PROBER.fragment(MAGIC_3, 0x0e, 1)
+class SphereColliderFragment(Fragment):
+
+    trigger_center = None
+    trigger_radius = None
+
+    def _read_section_data(self, dbytes, sec):
+        self.trigger_center = (0.0, 0.0, 0.0)
+        self.trigger_radius = 50.0
+        with dbytes.limit(sec.data_end, True):
+            self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
+            self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
+        return False
 
 
 @PROBER.fragment(MAGIC_2, 0x16, 2)

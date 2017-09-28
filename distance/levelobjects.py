@@ -21,6 +21,7 @@ from .fragments import (
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
     EnableAbilitiesTriggerFragment,
+    SphereColliderFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -360,31 +361,26 @@ class CarScreenTextDecodeTrigger(LevelObject):
 
 
 @PROBER.for_type('GravityTrigger')
-class GravityTrigger(LevelObject):
+class GravityTrigger(ForwardFragmentAttrs, LevelObject):
 
-    trigger_center = (0.0, 0.0, 0.0)
-    trigger_radius = 50.0
+    forward_fragment_attrs = (
+        (SphereColliderFragment, dict(
+            trigger_center=None,
+            trigger_radius=None
+        )),
+    )
+
     disable_gravity = None
     drag_scale = None
     drag_scale_angular = None
-    trigger_center = ()
-    trigger_radius = None
     music_id = None
     one_time_trigger = None
     reset_before_trigger = None
     disable_music_trigger = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 0x0e):
-            # SphereCollider
-            self.trigger_center = (0.0, 0.0, 0.0)
-            self.trigger_radius = 50.0
-            with dbytes.limit(sec.data_end, True):
-                self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
-                self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
-            return False
-        elif sec.match(MAGIC_2, 0x45):
-            # GravityTrigger
+        if sec.match(MAGIC_2, 0x45):
+            # GravityToggle
             self.disable_gravity = 1
             self.drag_scale = 1.0
             self.drag_scale_angular = 1.0
