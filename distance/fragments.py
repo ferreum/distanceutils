@@ -271,6 +271,31 @@ class MusicTriggerFragment(Fragment):
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
+@PROBER.fragment(MAGIC_3, 0x7, 1)
+@PROBER.fragment(MAGIC_3, 0x7, 2)
+class TextMeshFragment(Fragment):
+
+    text = "Hello World"
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size > 12:
+            if sec.data_size >= 16:
+                with dbytes.saved_pos():
+                    # found on v8,v9 endzone
+                    if dbytes.read_bytes(4) == SKIP_BYTES:
+                        self.text = "00"
+                        return
+            self.text = dbytes.read_str()
+        else:
+            self.text = "Hello World"
+        return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.text is not None:
+            p(f"World text: {self.text!r}")
+
+
 @PROBER.fragment(MAGIC_2, 0x16, 2)
 class TrackNodeFragment(Fragment):
 

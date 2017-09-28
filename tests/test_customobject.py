@@ -4,6 +4,7 @@ from distance.levelobjects import PROBER, SubTeleporter, WinLogic
 from distance.bytes import DstBytes
 from distance.printing import PrintContext
 from distance.constants import ForceType
+from .common import check_exceptions
 
 
 class InfoDisplayBoxTest(unittest.TestCase):
@@ -225,6 +226,13 @@ class EmpireEndZoneTest(unittest.TestCase):
             win_logic = next(obj.iter_children(name='WinLogic'))
             self.assertEqual(WinLogic, type(win_logic))
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
+            p.print_data_of(obj)
+
+    def test_weird_textmesh(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/endzone weird textmesh.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
             p.print_data_of(obj)
 
 

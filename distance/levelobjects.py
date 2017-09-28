@@ -20,6 +20,7 @@ from .fragments import (
     TeleporterExitFragment,
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
+    TextMeshFragment,
     EnableAbilitiesTriggerFragment,
     SphereColliderFragment,
     GravityToggleFragment,
@@ -190,27 +191,11 @@ class WinLogic(ForwardFragmentAttrs, SubObject):
 
 
 @PROBER.for_type('WorldText')
-class WorldText(LevelObject):
+class WorldText(ForwardFragmentAttrs, LevelObject):
 
-    text = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 0x07):
-            pos = sec.data_start + 12
-            if pos < sec.data_end:
-                dbytes.pos = pos
-                self.text = dbytes.read_str()
-                for i in range((sec.data_end - dbytes.pos) // 4):
-                    self._add_unknown(value=dbytes.read_struct(S_FLOAT)[0])
-            else:
-                self.text = f"Hello World"
-            return False
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.text is not None:
-            p(f"World text: {self.text!r}")
+    forward_fragment_attrs = (
+        (TextMeshFragment, dict(text=None)),
+    )
 
 
 @PROBER.for_type('InfoDisplayBox')
