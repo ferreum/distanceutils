@@ -292,6 +292,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
         return None
 
     def _print_data(self, p):
+        NamedPropertiesFragment._print_data(self, p)
         delay = self.delay_before_broadcast
         if delay:
             p(f"Delay before broadcast: {delay}")
