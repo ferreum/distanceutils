@@ -15,8 +15,6 @@ class LazySequence(Sequence):
         return self._length
 
     def __getitem__(self, index):
-        l = self._list
-        current = len(l)
         mylen = self._length
         if isinstance(index, slice):
             start, stop, stride = index.indices(mylen)
@@ -37,17 +35,9 @@ class LazySequence(Sequence):
                 raise IndexError(f"{end} >= {mylen}")
             if end < 0:
                 raise IndexError(f"{end} < 0")
-        if end >= current:
-            iterator = self._iterator
-            try:
-                for _ in range(end - current + 1):
-                    l.append(next(iterator))
-            except StopIteration:
-                # This means the iterator ended earlier than the
-                # reported length.
-                self._iterator = None
-                mylen = len(l)
-                self._length = mylen
+        l = self._list
+        if end >= len(l):
+            mylen = self._inflate_index(end)
         if isinstance(index, slice):
             if start < 0:
                 start += mylen
@@ -70,5 +60,28 @@ class LazySequence(Sequence):
         else:
             return f"<lazy {l!r}>"
 
+    def _inflate_index(self, end):
+        """Tries to inflate the given index in the backing list.
+
+        Updates self._length if iterator exits early.
+        Returns the new value of self._length.
+
+        """
+        iterator = self._iterator
+        if iterator is None:
+            return self._length
+        l = self._list
+        current = len(l)
+        try:
+            for _ in range(end - current + 1):
+                l.append(next(iterator))
+            return self._length
+        except StopIteration:
+            # iterator ended earlier than the reported length.
+            # Try to patch our length and hope no one notices.
+            self._iterator = None
+            mylen = len(l)
+            self._length = mylen
+            return mylen
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
