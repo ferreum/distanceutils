@@ -73,6 +73,12 @@ class BaseObject(BytesModel):
         Section(MAGIC_3, 0x01, 0),
     )
 
+    def fragment_by_type(self, typ):
+        for frag in self.fragments:
+            if isinstance(frag, typ):
+                return frag
+        return None
+
     def _read(self, dbytes):
         ts = self._get_start_section()
         self.type = ts.type
@@ -174,6 +180,24 @@ class BaseObject(BytesModel):
                 for obj in self.children:
                     p.tree_next_child()
                     p.print_data_of(obj)
+
+
+class ForwardFragmentAttrs(object):
+
+    forward_fragment_attrs = ()
+
+    def __getattr__(self, name):
+        for cls, attrs in self.forward_fragment_attrs:
+            if name in attrs:
+                return getattr(self.fragment_by_type(cls), name)
+        return super().__getattr__(name)
+
+    def __setattr__(self, name, value):
+        for cls, attrs in self.forward_fragment_attrs:
+            if name in attrs:
+                setattr(self.fragment_by_type(cls), name, value)
+                return
+        super().__setattr__(name, value)
 
 
 @BASE_PROBER.func

@@ -8,7 +8,7 @@ from .bytes import (
     S_FLOAT, S_FLOAT3, S_FLOAT4, SKIP_BYTES,
     MAGIC_1, MAGIC_2, MAGIC_3, MAGIC_6
 )
-from .base import BaseObject, Fragment
+from .base import BaseObject, ForwardFragmentAttrs, Fragment
 from .constants import ForceType
 from .prober import BytesProber
 from .printing import need_counters
@@ -108,8 +108,40 @@ class SubObject(LevelObject):
             p(f"Subobject type: {type_str!r}")
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x1d, 1)
+class GroupFragment(Fragment):
+
+    value_attrs = dict(
+        inspect_children = 0, # None
+    )
+
+    def _init_defaults(self):
+        Fragment._init_defaults(self)
+        for name, value in self.value_attrs.items():
+            setattr(self, name, value)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size < 24:
+            self.inspect_children = 0
+            return True
+        self._require_equal(MAGIC_1, 4)
+        num_values = dbytes.read_int(4)
+        self.inspect_children = dbytes.read_int(4)
+        # do save raw_data if there are unexpected values following
+        return num_values == 0
+
+    def _write_section_data(self, dbytes, sec):
+        if self.raw_data is None:
+            if self.inspect_children != 0:
+                dbytes.write_int(4, MAGIC_1)
+                dbytes.write_int(4, 0) # num values
+                dbytes.write_int(4, self.inspect_children)
+            return True
+        return False
+
+
 @PROBER.for_type('Group')
-class Group(LevelObject):
+class Group(ForwardFragmentAttrs, LevelObject):
 
     child_prober = PROBER
     is_object_group = True
@@ -124,6 +156,10 @@ class Group(LevelObject):
         Section(MAGIC_2, 0x63, version=0)
     )
 
+    forward_fragment_attrs = (
+        (GroupFragment, GroupFragment.value_attrs),
+    )
+
     def _handle_opts(self, opts):
         LevelObject._handle_opts(self, opts)
         try:
@@ -132,9 +168,7 @@ class Group(LevelObject):
             pass
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x1d): # Group / inspect Children
-            return False
-        elif sec.match(MAGIC_2, 0x63): # Group name
+        if sec.match(MAGIC_2, 0x63): # Group name
             if sec.data_size > 12:
                 self.custom_name = dbytes.read_str()
             return True
@@ -144,13 +178,7 @@ class Group(LevelObject):
         LevelObject._write_sections(self, dbytes)
 
     def _write_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x1d, version=1):
-            if sec.raw_data is None:
-                dbytes.write_int(4, MAGIC_1)
-                dbytes.write_int(4, 0) # num values
-                dbytes.write_int(4, 0) # inspect Children: None
-                return True
-        elif sec.match(MAGIC_2, 0x63, version=0):
+        if sec.match(MAGIC_2, 0x63, version=0):
             if self.custom_name is not None:
                 dbytes.write_str(self.custom_name)
             return True
@@ -587,152 +615,6 @@ class EnableAbilitiesBox(LevelObject):
             p(f"Bloom out: {self.bloom_out}")
 
 
-@PROBER.for_type('WedgeGS')
-class WedgeGS(LevelObject):
-
-    type = 'WedgeGS'
-    has_children = True
-
-    default_sections = (
-        *LevelObject.default_sections,
-        Section(MAGIC_3, 3, 2),
-        Section(MAGIC_2, 0x83, 3),
-    )
-
-    _color_attrs = dict(
-        mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
-        mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
-        mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
-        mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
-    )
-
-    _mat_fragment = None
-    _gs_fragment = None
-
-    def _init_defaults(self):
-        BaseObject._init_defaults(self)
-
-        mats = self.material_fragment.materials
-        for matname, colname, value in self._color_attrs.values():
-            mats.get_or_add(matname)[colname] = value
-
-    def __getattr__(self, name):
-        try:
-            matname, colname, default = self._color_attrs[name]
-        except KeyError:
-            pass
-        else:
-            mats = self.material_fragment.materials
-            mat = mats.get(matname, None)
-            if mat is None:
-                return None
-            return mat.get(colname, None)
-
-        if name in GoldenSimplesFragment.value_attrs:
-            return getattr(self.gs_fragment, name)
-
-        try:
-            return self.__dict__[name]
-        except KeyError:
-            raise AttributeError
-
-    def __setattr__(self, name, value):
-        try:
-            matname, colname, default = self._color_attrs[name]
-        except KeyError:
-            pass
-        else:
-            mats = self.material_fragment.materials
-            mats.get_or_add(matname)[colname] = value
-            return
-
-        if name in GoldenSimplesFragment.value_attrs:
-            setattr(self.gs_fragment, name, value)
-
-        self.__dict__[name] = value
-
-    @property
-    def material_fragment(self):
-        frag = self._mat_fragment
-        if frag is None:
-            for frag in self.fragments:
-                if isinstance(frag, MaterialFragment):
-                    self._mat_fragment = frag
-                    break
-        return frag
-
-    @property
-    def gs_fragment(self):
-        frag = self._gs_fragment
-        if frag is None:
-            for frag in self.fragments:
-                if isinstance(frag, GoldenSimplesFragment):
-                    self._gs_fragment = frag
-                    break
-        return frag
-
-
-@FRAG_PROBER.fragment(MAGIC_2, 0x16, 2)
-class TrackNodeFragment(Fragment):
-
-    default_section = Section(MAGIC_2, 0x16, 2)
-
-    parent_id = 0
-    snap_id = 0
-    conn_id = 0
-    primary = 0
-
-    def _read_section_data(self, dbytes, sec):
-        self.parent_id = dbytes.read_int(4)
-        self.snap_id = dbytes.read_int(4)
-        self.conn_id = dbytes.read_int(4)
-        self.primary = dbytes.read_byte()
-        return True
-
-    def _write_section_data(self, dbytes, sec):
-        dbytes.write_int(4, self.parent_id)
-        dbytes.write_int(4, self.snap_id)
-        dbytes.write_int(4, self.conn_id)
-        dbytes.write_int(1, self.primary)
-        return True
-
-    def _print_type(self, p):
-        p(f"Fragment: TrackNode")
-
-    def _print_data(self, p):
-        if 'sections' in p.flags or 'track' in p.flags:
-            p(f"Parent ID: {self.parent_id}")
-            p(f"Snapped to: {self.snap_id}")
-            p(f"Connection ID: {self.conn_id}")
-            p(f"Primary: {self.primary and 'yes' or 'no'}")
-
-
-@FRAG_PROBER.fragment(MAGIC_3, 0x3, 1)
-@FRAG_PROBER.fragment(MAGIC_3, 0x3, 2)
-class MaterialFragment(Fragment):
-
-    def __init__(self, *args, **kw):
-        self.materials = MaterialSet()
-        Fragment.__init__(self, *args, **kw)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
-            self.materials.read(dbytes)
-        return True
-
-    def _write_section_data(self, dbytes, sec):
-        if self.materials:
-            self.materials.write(dbytes)
-        return True
-
-    def _print_type(self, p):
-        p(f"Fragment: Material")
-
-    def _print_data(self, p):
-        if 'allprops' in p.flags and self.materials:
-            self.materials.print_data(p)
-
-
 @FRAG_PROBER.fragment(MAGIC_2, 0x83, 3)
 class GoldenSimplesFragment(Fragment):
 
@@ -796,6 +678,128 @@ class GoldenSimplesFragment(Fragment):
 
     def _print_type(self, p):
         p(f"Fragment: GoldenSimples")
+
+
+@PROBER.for_type('WedgeGS')
+class WedgeGS(ForwardFragmentAttrs, LevelObject):
+
+    type = 'WedgeGS'
+    has_children = True
+
+    default_sections = (
+        *LevelObject.default_sections,
+        Section(MAGIC_3, 3, 2),
+        Section(MAGIC_2, 0x83, 3),
+    )
+
+    _color_attrs = dict(
+        mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
+        mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
+        mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
+        mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
+    )
+
+    forward_fragment_attrs = (
+        (GoldenSimplesFragment, GoldenSimplesFragment.value_attrs),
+    )
+
+    def _init_defaults(self):
+        BaseObject._init_defaults(self)
+
+        mats = self.material_fragment.materials
+        for matname, colname, value in self._color_attrs.values():
+            mats.get_or_add(matname)[colname] = value
+
+    def __getattr__(self, name):
+        try:
+            matname, colname, default = self._color_attrs[name]
+        except KeyError:
+            pass
+        else:
+            mats = self.material_fragment.materials
+            mat = mats.get(matname, None)
+            if mat is None:
+                return None
+            return mat.get(colname, None)
+
+        return super().__getattr__(name)
+
+    def __setattr__(self, name, value):
+        try:
+            matname, colname, default = self._color_attrs[name]
+        except KeyError:
+            pass
+        else:
+            mats = self.material_fragment.materials
+            mats.get_or_add(matname)[colname] = value
+            return
+
+        super().__setattr__(name, value)
+
+    @property
+    def material_fragment(self):
+        return self.fragment_by_type(MaterialFragment)
+
+
+@FRAG_PROBER.fragment(MAGIC_2, 0x16, 2)
+class TrackNodeFragment(Fragment):
+
+    default_section = Section(MAGIC_2, 0x16, 2)
+
+    parent_id = 0
+    snap_id = 0
+    conn_id = 0
+    primary = 0
+
+    def _read_section_data(self, dbytes, sec):
+        self.parent_id = dbytes.read_int(4)
+        self.snap_id = dbytes.read_int(4)
+        self.conn_id = dbytes.read_int(4)
+        self.primary = dbytes.read_byte()
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        dbytes.write_int(4, self.parent_id)
+        dbytes.write_int(4, self.snap_id)
+        dbytes.write_int(4, self.conn_id)
+        dbytes.write_int(1, self.primary)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: TrackNode")
+
+    def _print_data(self, p):
+        if 'sections' in p.flags or 'track' in p.flags:
+            p(f"Parent ID: {self.parent_id}")
+            p(f"Snapped to: {self.snap_id}")
+            p(f"Connection ID: {self.conn_id}")
+            p(f"Primary: {self.primary and 'yes' or 'no'}")
+
+
+@FRAG_PROBER.fragment(MAGIC_3, 0x3, 1)
+@FRAG_PROBER.fragment(MAGIC_3, 0x3, 2)
+class MaterialFragment(Fragment):
+
+    def __init__(self, *args, **kw):
+        self.materials = MaterialSet()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size >= 16:
+            self.materials.read(dbytes)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        if self.materials:
+            self.materials.write(dbytes)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: Material")
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags and self.materials:
+            self.materials.print_data(p)
 
 
 class NamedPropertiesFragment(Fragment):
