@@ -159,6 +159,7 @@ class TrackNodeFragment(Fragment):
         p(f"Fragment: TrackNode")
 
     def _print_data(self, p):
+        Fragment._print_data(self, p)
         if 'sections' in p.flags or 'track' in p.flags:
             p(f"Parent ID: {self.parent_id}")
             p(f"Snapped to: {self.snap_id}")
@@ -188,6 +189,7 @@ class MaterialFragment(Fragment):
         p(f"Fragment: Material")
 
     def _print_data(self, p):
+        Fragment._print_data(self, p)
         if 'allprops' in p.flags and self.materials:
             self.materials.print_data(p)
 
@@ -214,6 +216,7 @@ class NamedPropertiesFragment(Fragment):
         p(f"Fragment: {self._frag_name}")
 
     def _print_data(self, p):
+        Fragment._print_data(self, p)
         if 'allprops' in p.flags and self.props:
             self.props.print_data(p)
 
