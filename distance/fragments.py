@@ -497,12 +497,13 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragme
     def announcer_action(self, db):
         return db.read_int(4)
 
-    @named_property_getter('AnnouncerPhrases')
+    @named_property_getter('AnnouncerPhrases', default=())
     def announcer_phrases(self, db):
         self._require_equal(MAGIC_1, 4)
-        num_phrases = dbytes.read_int(4)
+        num_phrases = db.read_int(4)
+        phrases = []
         for _ in range(num_phrases):
-            phrases.append(dbytes.read_str())
+            phrases.append(db.read_str())
         return phrases
 
 

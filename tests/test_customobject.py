@@ -237,6 +237,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
             p.print_data_of(obj)
             self.assertEqual(obj.text, "Please, help us.")
             self.assertEqual(obj.time_text, "")
+            self.assertEqual(0, len(obj.announcer_phrases))
 
     def test_ver0(self):
         p = PrintContext.for_test()
@@ -248,6 +249,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
             self.assertEqual(obj.clear_on_finish, True)
             self.assertEqual(obj.destroy_on_trigger_exit, False)
             self.assertEqual(obj.time_text, "Download")
+            self.assertEqual(0, len(obj.announcer_phrases))
 
 
 class SplineRoadTest(unittest.TestCase):
