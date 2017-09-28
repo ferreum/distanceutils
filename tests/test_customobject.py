@@ -244,6 +244,9 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
             obj = PROBER.read(DstBytes(f))
             p.print_data_of(obj.fragments[0])
             self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
+            self.assertAlmostEqual(obj.per_char_speed, 0.02)
+            self.assertEqual(obj.clear_on_finish, True)
+            self.assertEqual(obj.clear_on_trigger_exit, False)
             self.assertEqual(obj.time_text, "Download")
 
 

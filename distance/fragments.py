@@ -469,9 +469,41 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTriggerFragme
     def text(self, db):
         return db.read_str()
 
+    @named_property_getter('PerCharSpeed')
+    def per_char_speed(self, db):
+        return db.read_struct(S_FLOAT)[0]
+
+    @named_property_getter('ClearOnFinish')
+    def clear_on_finish(self, db):
+        return db.read_byte()
+
+    @named_property_getter('ClearOnTriggerExit')
+    def clear_on_trigger_exit(self, db):
+        return db.read_byte()
+
+    @named_property_getter('DestroyOnTriggerExit')
+    def clear_on_trigger_exit(self, db):
+        return db.read_byte()
+
     @named_property_getter('TimeText')
     def time_text(self, db):
         return db.read_str()
+
+    @named_property_getter('StaticTimeText')
+    def static_time_text(self, db):
+        return db.read_byte()
+
+    @named_property_getter('AnnouncerAction')
+    def static_time_text(self, db):
+        return db.read_int(4)
+
+    @named_property_getter('AnnouncerPhrases')
+    def static_time_text(self, db):
+        self._require_equal(MAGIC_1, 4)
+        num_phrases = dbytes.read_int(4)
+        for _ in range(num_phrases):
+            phrases.append(dbytes.read_str())
+        return phrases
 
 
 @PROBER.fragment(MAGIC_2, 0x57, 1)

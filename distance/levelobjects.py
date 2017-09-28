@@ -278,7 +278,15 @@ class CarScreenTextDecodeTrigger(ForwardFragmentAttrs, LevelObject):
     forward_fragment_attrs = (
         (BaseCarScreenTextDecodeTriggerFragment, dict(
             text = None,
+            per_char_speed = None,
+            clear_on_finish = None,
+            clear_on_trigger_exit = None,
+            destroy_on_trigger_exit = None,
+            static_time_text = None,
             time_text = None,
+            delay = None,
+            announcer_action = None,
+            announcer_phrases = (),
         )),
     )
 
