@@ -19,6 +19,7 @@ from .fragments import (
     TeleporterEntranceFragment,
     TeleporterExitFragment,
     TeleporterExitCheckpointFragment,
+    RaceEndLogicFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -175,28 +176,11 @@ class SubTeleporter(ForwardFragmentAttrs, SubObject):
 
 
 @SUBOBJ_PROBER.for_type('WinLogic')
-class WinLogic(SubObject):
+class WinLogic(ForwardFragmentAttrs, SubObject):
 
-    delay_before_broadcast = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x5d):
-            if sec.data_size >= 16:
-                for propname, is_skip in iter_named_properties(
-                        dbytes, sec.data_end):
-                    if propname == "DelayBeforeBroadcast":
-                        value = 0.0
-                        if not is_skip:
-                            value = dbytes.read_struct(S_FLOAT)[0]
-                        self.delay_before_broadcast = value
-                    else:
-                        raise ValueError(f"unknown property: {propname!r}")
-            return False
-        return SubObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        if self.delay_before_broadcast is not None:
-            p(f"Delay before broadcast: {self.delay_before_broadcast}")
+    forward_fragment_attrs = (
+        (RaceEndLogicFragment, dict(delay_before_broadcast=None)),
+    )
 
 
 @PROBER.for_type('WorldText')

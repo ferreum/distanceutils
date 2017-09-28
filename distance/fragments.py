@@ -4,7 +4,8 @@
 from .bytes import (
     Section,
     S_FLOAT, S_FLOAT3,
-    MAGIC_1, MAGIC_2, MAGIC_3
+    MAGIC_1, MAGIC_2, MAGIC_3,
+    SKIP_BYTES,
 )
 from .base import Fragment
 from .prober import BytesProber
@@ -278,6 +279,22 @@ class NamedPropertiesFragment(Fragment):
         Fragment._print_data(self, p)
         if 'allprops' in p.flags and self.props:
             self.props.print_data(p)
+
+
+@PROBER.fragment(MAGIC_2, 0x5d, 0)
+class RaceEndLogicFragment(NamedPropertiesFragment):
+
+    @property
+    def delay_before_broadcast(self):
+        data = self.props.get('DelayBeforeBroadcast', SKIP_BYTES)
+        if data != SKIP_BYTES:
+            return S_FLOAT.unpack(data)[0]
+        return None
+
+    def _print_data(self, p):
+        delay = self.delay_before_broadcast
+        if delay:
+            p(f"Delay before broadcast: {delay}")
 
 
 PROPERTY_FRAGS = (
