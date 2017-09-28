@@ -73,6 +73,14 @@ class ColorSet(OrderedDict):
 
 class MaterialSet(OrderedDict):
 
+    def get_or_add(self, matname):
+        try:
+            return self[matname]
+        except KeyError:
+            colors = ColorSet()
+            self[matname] = colors
+            return colors
+
     def read(self, dbytes):
         if dbytes.read_int(4) != MAGIC_1:
             raise ValueError(f"expected {MAGIC_1}")

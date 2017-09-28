@@ -587,10 +587,10 @@ class EnableAbilitiesBox(LevelObject):
             p(f"Bloom out: {self.bloom_out}")
 
 
-@PROBER.for_type("WedgeGS")
+@PROBER.for_type('WedgeGS')
 class WedgeGS(LevelObject):
 
-    type = "WedgeGS"
+    type = 'WedgeGS'
     has_children = True
 
     default_sections = (
@@ -599,106 +599,77 @@ class WedgeGS(LevelObject):
         Section(MAGIC_2, 0x83, 3),
     )
 
-    mat_color = (.3, .3, .3, 1)
-    mat_emit = (.8, .8, .8, .5)
-    mat_reflect = (.3, .3, .3, .9)
-    mat_spec = (1, 1, 1, 1)
+    _color_attrs = dict(
+        mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
+        mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
+        mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
+        mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
+    )
 
-    tex_scale = (1, 1, 1)
-    tex_offset = (0, 0, 0)
-    image_index = 17
-    emit_index = 17
-    flip_tex_uv = 0
-    world_mapped = 0
-    disable_diffuse = 0
-    disable_bump = 0
-    bump_strength = 0
-    disable_reflect = 0
-    disable_collision = 0
-    additive_transp = 0
-    multip_transp = 0
-    invert_emit = 0
+    _mat_fragment = None
+    _gs_fragment = None
 
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 3): # Material
-            self._require_equal(MAGIC_1, 4)
-            num_entries = dbytes.read_int(4)
-            for _ in range(num_entries):
-                entry_name = dbytes.read_str()
-                if entry_name == 'SimplesMaterial':
-                    self._require_equal(MAGIC_1, 4)
-                    num_values = dbytes.read_int(4)
-                    for _ in range(num_values):
-                        name = dbytes.read_str()
-                        value = dbytes.read_struct(S_FLOAT4)
-                        if name == '_Color':
-                            self.mat_color = value
-                        elif name == '_EmitColor':
-                            self.mat_emit = value
-                        elif name == '_ReflectColor':
-                            self.mat_reflect = value
-                        elif name == '_SpecColor':
-                            self.mat_spec = value
-                        else:
-                            return False # unknown name
-                else:
-                    return False # unknown entry
-            return True
-        elif sec.match(MAGIC_2, 0x83): # GoldenSimples
-            self.image_index = dbytes.read_int(4)
-            self.emit_index = dbytes.read_int(4)
-            dbytes.read_int(4) # preset
-            self.tex_scale = dbytes.read_struct(S_FLOAT3)
-            self.tex_offset = dbytes.read_struct(S_FLOAT3)
-            self.flip_tex_uv = dbytes.read_int(1)
-            self.world_mapped = dbytes.read_int(1)
-            self.disable_diffuse = dbytes.read_int(1)
-            self.disable_bump = dbytes.read_int(1)
-            self.bump_strength = dbytes.read_struct(S_FLOAT)[0]
-            self.disable_reflect = dbytes.read_int(1)
-            self.disable_collision = dbytes.read_int(1)
-            self.additive_transp = dbytes.read_int(1)
-            self.multip_transp = dbytes.read_int(1)
-            self.invert_emit = dbytes.read_int(1)
-            return True
-        return LevelObject._read_section_data(self, dbytes, sec)
+    def _init_defaults(self):
+        BaseObject._init_defaults(self)
 
-    def _write_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, ident=3, version=2):
-            dbytes.write_int(4, MAGIC_1)
-            dbytes.write_int(4, 1) # num values?
-            dbytes.write_str('SimplesMaterial')
-            dbytes.write_int(4, MAGIC_1)
-            dbytes.write_int(4, 4) # num values?
-            dbytes.write_str('_Color')
-            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_color))
-            dbytes.write_str('_EmitColor')
-            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_emit))
-            dbytes.write_str('_ReflectColor')
-            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_reflect))
-            dbytes.write_str('_SpecColor')
-            dbytes.write_bytes(S_FLOAT4.pack(*self.mat_spec))
-            return True
+        mats = self.material_fragment.materials
+        for matname, colname, value in self._color_attrs.values():
+            mats.get_or_add(matname)[colname] = value
 
-        elif sec.match(MAGIC_2, ident=0x83, version=3):
-            dbytes.write_int(4, self.image_index)
-            dbytes.write_int(4, self.emit_index)
-            dbytes.write_int(4, 0) # preset
-            dbytes.write_bytes(S_FLOAT3.pack(*self.tex_scale))
-            dbytes.write_bytes(S_FLOAT3.pack(*self.tex_offset))
-            dbytes.write_int(1, self.flip_tex_uv and 1 or 0)
-            dbytes.write_int(1, self.world_mapped and 1 or 0)
-            dbytes.write_int(1, self.disable_diffuse and 1 or 0)
-            dbytes.write_int(1, self.disable_bump and 1 or 0)
-            dbytes.write_bytes(S_FLOAT.pack(self.bump_strength))
-            dbytes.write_int(1, self.disable_reflect)
-            dbytes.write_int(1, self.disable_collision)
-            dbytes.write_int(1, self.additive_transp)
-            dbytes.write_int(1, self.multip_transp)
-            dbytes.write_int(1, self.invert_emit)
-            return True
+    def __getattr__(self, name):
+        try:
+            matname, colname, default = self._color_attrs[name]
+        except KeyError:
+            pass
+        else:
+            mats = self.material_fragment.materials
+            mat = mats.get(matname, None)
+            if mat is None:
+                return None
+            return mat.get(colname, None)
 
-        return LevelObject._write_section_data(self, dbytes, sec)
+        if name in GoldenSimplesFragment.value_attrs:
+            return getattr(self.gs_fragment, name)
+
+        try:
+            return self.__dict__[name]
+        except KeyError:
+            raise AttributeError
+
+    def __setattr__(self, name, value):
+        try:
+            matname, colname, default = self._color_attrs[name]
+        except KeyError:
+            pass
+        else:
+            mats = self.material_fragment.materials
+            mats.get_or_add(matname)[colname] = value
+            return
+
+        if name in GoldenSimplesFragment.value_attrs:
+            setattr(self.gs_fragment, name, value)
+
+        self.__dict__[name] = value
+
+    @property
+    def material_fragment(self):
+        frag = self._mat_fragment
+        if frag is None:
+            for frag in self.fragments:
+                if isinstance(frag, MaterialFragment):
+                    self._mat_fragment = frag
+                    break
+        return frag
+
+    @property
+    def gs_fragment(self):
+        frag = self._gs_fragment
+        if frag is None:
+            for frag in self.fragments:
+                if isinstance(frag, GoldenSimplesFragment):
+                    self._gs_fragment = frag
+                    break
+        return frag
 
 
 @FRAG_PROBER.fragment(MAGIC_2, 0x16, 2)
@@ -760,6 +731,71 @@ class MaterialFragment(Fragment):
     def _print_data(self, p):
         if 'allprops' in p.flags and self.materials:
             self.materials.print_data(p)
+
+
+@FRAG_PROBER.fragment(MAGIC_2, 0x83, 3)
+class GoldenSimplesFragment(Fragment):
+
+    value_attrs = dict(
+        tex_scale = (1, 1, 1),
+        tex_offset = (0, 0, 0),
+        image_index = 17,
+        emit_index = 17,
+        flip_tex_uv = 0,
+        world_mapped = 0,
+        disable_diffuse = 0,
+        disable_bump = 0,
+        bump_strength = 0,
+        disable_reflect = 0,
+        disable_collision = 0,
+        additive_transp = 0,
+        multip_transp = 0,
+        invert_emit = 0,
+    )
+
+    def _init_defaults(self):
+        Fragment._init_defaults(self)
+        for name, value in self.value_attrs.items():
+            setattr(self, name, value)
+
+    def _read_section_data(self, dbytes, sec):
+        self.image_index = dbytes.read_int(4)
+        self.emit_index = dbytes.read_int(4)
+        dbytes.read_int(4) # preset
+        self.tex_scale = dbytes.read_struct(S_FLOAT3)
+        self.tex_offset = dbytes.read_struct(S_FLOAT3)
+        self.flip_tex_uv = dbytes.read_int(1)
+        self.world_mapped = dbytes.read_int(1)
+        self.disable_diffuse = dbytes.read_int(1)
+        self.disable_bump = dbytes.read_int(1)
+        self.bump_strength = dbytes.read_struct(S_FLOAT)[0]
+        self.disable_reflect = dbytes.read_int(1)
+        self.disable_collision = dbytes.read_int(1)
+        self.additive_transp = dbytes.read_int(1)
+        self.multip_transp = dbytes.read_int(1)
+        self.invert_emit = dbytes.read_int(1)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        dbytes.write_int(4, self.image_index)
+        dbytes.write_int(4, self.emit_index)
+        dbytes.write_int(4, 0) # preset
+        dbytes.write_bytes(S_FLOAT3.pack(*self.tex_scale))
+        dbytes.write_bytes(S_FLOAT3.pack(*self.tex_offset))
+        dbytes.write_int(1, self.flip_tex_uv and 1 or 0)
+        dbytes.write_int(1, self.world_mapped and 1 or 0)
+        dbytes.write_int(1, self.disable_diffuse and 1 or 0)
+        dbytes.write_int(1, self.disable_bump and 1 or 0)
+        dbytes.write_bytes(S_FLOAT.pack(self.bump_strength))
+        dbytes.write_int(1, self.disable_reflect)
+        dbytes.write_int(1, self.disable_collision)
+        dbytes.write_int(1, self.additive_transp)
+        dbytes.write_int(1, self.multip_transp)
+        dbytes.write_int(1, self.invert_emit)
+        return True
+
+    def _print_type(self, p):
+        p(f"Fragment: GoldenSimples")
 
 
 class NamedPropertiesFragment(Fragment):
