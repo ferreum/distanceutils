@@ -156,6 +156,21 @@ class TeleporterEntranceFragment(Fragment):
             p(f"Teleports to: {self.destination}")
 
 
+@PROBER.fragment(MAGIC_2, 0x3f, 1)
+class TeleporterExitFragment(Fragment):
+
+    link_id = None
+
+    def _read_section_data(self, dbytes, sec):
+        self.link_id = dbytes.read_int(4)
+        return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.link_id is not None:
+            p(f"Link ID: {self.link_id}")
+
+
 @PROBER.fragment(MAGIC_2, 0x16, 2)
 class TrackNodeFragment(Fragment):
 

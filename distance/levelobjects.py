@@ -17,6 +17,7 @@ from .fragments import (
     GroupFragment,
     CustomNameFragment,
     TeleporterEntranceFragment,
+    TeleporterExitFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -165,19 +166,15 @@ class Group(ForwardFragmentAttrs, LevelObject):
 @SUBOBJ_PROBER.for_type('Teleporter')
 class SubTeleporter(ForwardFragmentAttrs, SubObject):
 
-    link_id = None
     trigger_checkpoint = None
 
     forward_fragment_attrs = (
         (TeleporterEntranceFragment, dict(destination=None)),
+        (TeleporterExitFragment, dict(link_id=None)),
     )
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x3f):
-            value = dbytes.read_int(4)
-            self.link_id = value
-            return False
-        elif sec.match(MAGIC_2, 0x51):
+        if sec.match(MAGIC_2, 0x51):
             if sec.data_size > 12:
                 check = dbytes.read_byte()
             else:
@@ -189,8 +186,6 @@ class SubTeleporter(ForwardFragmentAttrs, SubObject):
 
     def _print_data(self, p):
         LevelObject._print_data(self, p)
-        if self.link_id is not None:
-            p(f"Link ID: {self.link_id}")
         if self.trigger_checkpoint is not None:
             p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
 

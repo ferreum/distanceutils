@@ -64,6 +64,13 @@ class WorldTextTest(unittest.TestCase):
 
 class TeleExitTest(unittest.TestCase):
 
+    def test_link_id(self):
+        with open("tests/in/customobject/tele exit checkpoint.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            tele = next(obj.iter_children(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(tele.link_id, 334)
+
     def test_with_checkpoint(self):
         with open("tests/in/customobject/tele exit checkpoint.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
