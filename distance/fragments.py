@@ -242,6 +242,34 @@ class GravityToggleFragment(Fragment):
             p(f"Angular drag scale: {self.drag_scale_angular}")
 
 
+@PROBER.fragment(MAGIC_2, 0x4b, 1)
+class MusicTriggerFragment(Fragment):
+
+    music_id = 19
+    one_time_trigger = 1
+    reset_before_trigger = 0
+    disable_music_trigger = 0
+
+    def _read_section_data(self, dbytes, sec):
+        with dbytes.limit(sec.data_end, True):
+            self.music_id = dbytes.read_int(4)
+            self.one_time_trigger = dbytes.read_byte()
+            self.reset_before_trigger = dbytes.read_byte()
+            self.disable_music_trigger = dbytes.read_byte()
+        return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.music_id is not None:
+            p(f"Music ID: {self.music_id}")
+        if self.one_time_trigger is not None:
+            p(f"One time trigger: {self.one_time_trigger and 'yes' or 'no'}")
+        if self.reset_before_trigger is not None:
+            p(f"Reset before trigger: {self.reset_before_trigger and 'yes' or 'no'}")
+        if self.disable_music_trigger is not None:
+            p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
+
+
 @PROBER.fragment(MAGIC_2, 0x16, 2)
 class TrackNodeFragment(Fragment):
 

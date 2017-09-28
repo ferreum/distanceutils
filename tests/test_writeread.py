@@ -164,7 +164,7 @@ class UnknownTest(unittest.TestCase):
 
             res = write_read(obj, read_func=LEVEL_PROBER.read)
 
-            self.assertAlmostEqual(3, res.music_id)
+            self.assertAlmostEqual(50, res.trigger_radius)
 
 
 class FragmentTest(unittest.TestCase):

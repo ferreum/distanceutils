@@ -23,6 +23,7 @@ from .fragments import (
     EnableAbilitiesTriggerFragment,
     SphereColliderFragment,
     GravityToggleFragment,
+    MusicTriggerFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -374,38 +375,13 @@ class GravityTrigger(ForwardFragmentAttrs, LevelObject):
             drag_scale = None,
             drag_scale_angular = None,
         )),
+        (MusicTriggerFragment, dict(
+            music_id = None,
+            one_time_trigger = None,
+            reset_before_trigger = None,
+            disable_music_trigger = None,
+        )),
     )
-
-    music_id = None
-    one_time_trigger = None
-    reset_before_trigger = None
-    disable_music_trigger = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x4b):
-            # MusicTrigger
-            self.music_id = 19
-            self.one_time_trigger = 1
-            self.reset_before_trigger = 0
-            self.disable_music_trigger = 0
-            with dbytes.limit(sec.data_end, True):
-                self.music_id = dbytes.read_int(4)
-                self.one_time_trigger = dbytes.read_byte()
-                self.reset_before_trigger = dbytes.read_byte()
-                self.disable_music_trigger = dbytes.read_byte()
-            return False
-        return LevelObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.music_id is not None:
-            p(f"Music ID: {self.music_id}")
-        if self.one_time_trigger is not None:
-            p(f"One time trigger: {self.one_time_trigger and 'yes' or 'no'}")
-        if self.reset_before_trigger is not None:
-            p(f"Reset before trigger: {self.reset_before_trigger and 'yes' or 'no'}")
-        if self.disable_music_trigger is not None:
-            p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
 @PROBER.for_type('ForceZoneBox')
