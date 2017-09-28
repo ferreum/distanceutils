@@ -438,6 +438,7 @@ def _create_property_fragment_classes():
     globs = globals()
     created = set()
     sections = set()
+    fragments_created = globs.get('_property_fragments_created', False)
     for sec, name in PROPERTY_FRAGS:
         key = sec.to_key()
         if key in sections:
@@ -445,11 +446,15 @@ def _create_property_fragment_classes():
         sections.add(key)
         if name and name not in created:
             typename = name + "Fragment"
+            if not fragments_created:
+                if typename in globs:
+                    raise ValueError(f"Fragment is already defined: {typename}")
             cls = type(typename, (NamedPropertiesFragment,), {
                 '_frag_name': name,
             })
             created.add(name)
             globs[typename] = cls
+    globs['_property_fragments_created'] = True
 
 
 def add_property_fragments_to_prober(prober):
