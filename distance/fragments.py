@@ -171,6 +171,25 @@ class TeleporterExitFragment(Fragment):
             p(f"Link ID: {self.link_id}")
 
 
+@PROBER.fragment(MAGIC_2, 0x51, 0)
+class TeleporterExitCheckpointFragment(Fragment):
+
+    trigger_checkpoint = 1
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size > 12:
+            self.trigger_checkpoint = dbytes.read_byte()
+        else:
+            # if section is too short, the checkpoint is enabled
+            self.trigger_checkpoint = 1
+        return False
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if self.trigger_checkpoint is not None:
+            p(f"Trigger checkpoint: {self.trigger_checkpoint}")
+
+
 @PROBER.fragment(MAGIC_2, 0x16, 2)
 class TrackNodeFragment(Fragment):
 

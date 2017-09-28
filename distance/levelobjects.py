@@ -18,6 +18,7 @@ from .fragments import (
     CustomNameFragment,
     TeleporterEntranceFragment,
     TeleporterExitFragment,
+    TeleporterExitCheckpointFragment,
 )
 from .constants import ForceType
 from .prober import BytesProber
@@ -166,28 +167,11 @@ class Group(ForwardFragmentAttrs, LevelObject):
 @SUBOBJ_PROBER.for_type('Teleporter')
 class SubTeleporter(ForwardFragmentAttrs, SubObject):
 
-    trigger_checkpoint = None
-
     forward_fragment_attrs = (
         (TeleporterEntranceFragment, dict(destination=None)),
         (TeleporterExitFragment, dict(link_id=None)),
+        (TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None)),
     )
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x51):
-            if sec.data_size > 12:
-                check = dbytes.read_byte()
-            else:
-                # if section is too short, the checkpoint is enabled
-                check = 1
-            self.trigger_checkpoint = check
-            return False
-        return SubObject._read_section_data(self, dbytes, sec)
-
-    def _print_data(self, p):
-        LevelObject._print_data(self, p)
-        if self.trigger_checkpoint is not None:
-            p(f"Trigger checkpoint: {self.trigger_checkpoint and 'yes' or 'no'}")
 
 
 @SUBOBJ_PROBER.for_type('WinLogic')
