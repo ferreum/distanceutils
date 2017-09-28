@@ -10,25 +10,12 @@ from distance.levelobjects import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
 from tests import common
+from tests.common import check_exceptions
 
 
 def inflate(obj):
     for child in obj.children:
         inflate(child)
-
-
-def check_exceptions(obj):
-    if obj.exception:
-        raise obj.exception
-    if isinstance(obj, Level):
-        for layer in obj.layers:
-            check_exceptions(layer)
-    elif isinstance(obj, Layer):
-        for obj in obj.objects:
-            check_exceptions(obj)
-    else:
-        for child in obj.children:
-            check_exceptions(child)
 
 
 def disable_writes(dbytes):
@@ -147,6 +134,7 @@ class GroupWriteReadTest(common.WriteReadTest):
     filename = "tests/in/customobject/2cubes.bytes"
 
     def verify_obj(self, obj):
+        check_exceptions(obj)
         self.assertEqual(3, len(obj.sections))
         self.assertEqual("2cubes", obj.custom_name)
 
