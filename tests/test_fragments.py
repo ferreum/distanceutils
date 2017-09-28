@@ -1,13 +1,13 @@
 import unittest
 from io import BytesIO
 
-from distance.levelobjects import (
+from distance.fragments import (
+    PROBER,
     MaterialFragment,
     TrackNodeFragment,
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
 )
-from distance.levelobjects import FRAG_PROBER
 from distance.bytes import DstBytes, SKIP_BYTES
 
 
@@ -43,7 +43,7 @@ class Base(object):
 
         def test_probe(self):
             with open(self.filename, 'rb') as f:
-                res = FRAG_PROBER.read(DstBytes(f))
+                res = PROBER.read(DstBytes(f))
 
                 self.assertEqual(self.frag_class, type(res))
                 self.verify_fragment(res)
