@@ -162,6 +162,7 @@ class BytesModel(object):
 
         """
 
+        dbytes = DstBytes.from_arg(dbytes)
         if start_section:
             self.start_section = start_section
             start_pos = start_section.start_pos
@@ -606,6 +607,30 @@ class DstBytes(object):
         """Create a DstBytes reading the given bytes object."""
         from io import BytesIO
         return DstBytes(BytesIO(data))
+
+    @classmethod
+    def from_arg(cls, arg):
+        if isinstance(arg, cls):
+            return arg
+        if isinstance(arg, (str, bytes)):
+            # We open the file and read it completely into memory.
+            # This actually speeds up I/O because we perform many small
+            # operations which are faster on BytesIO.
+            from io import BytesIO
+            with open(arg, 'rb') as f:
+                data = f.read()
+            return DstBytes(BytesIO(data))
+        arg.read # raises if arg has no read method
+        try:
+            file_mode = arg.mode
+        except AttributeError:
+            # If we can't find the mode, assume we're fine.
+            # If not, error will occur on first read.
+            pass
+        else:
+            if not 'b' in file_mode:
+                raise IOError(f"File needs be opened with 'b' mode.")
+        return DstBytes(arg)
 
     @property
     def pos(self):

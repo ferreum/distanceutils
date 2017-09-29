@@ -1,7 +1,7 @@
 """Probe DstBytes for objects based on .bytes sections."""
 
 
-from .bytes import BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
+from .bytes import DstBytes, BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
 from .lazy import LazySequence
 
 
@@ -112,6 +112,7 @@ class BytesProber(object):
         return cls, {'start_section': section}
 
     def read(self, dbytes, probe_section=None, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         cls, add_kw = self.probe(dbytes, probe_section=probe_section)
         kw.update(add_kw)
         obj = cls(plain=True)
@@ -119,6 +120,7 @@ class BytesProber(object):
         return obj
 
     def maybe(self, dbytes, probe_section=None, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         try:
             cls, add_kw = self.probe(dbytes, probe_section=probe_section)
         except ProbeError:
@@ -131,6 +133,7 @@ class BytesProber(object):
         return cls.maybe(dbytes, **kw)
 
     def iter_n_maybe(self, dbytes, n, *args, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         if 'probe_section' in kw:
             raise TypeError("probe_section not supported")
         for _ in range(n):
@@ -140,6 +143,7 @@ class BytesProber(object):
                 break
 
     def iter_maybe(self, dbytes, *args, max_pos=None, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         if 'probe_section' in kw:
             raise TypeError("probe_section not supported")
         while max_pos is None or dbytes.pos < max_pos:
@@ -155,6 +159,7 @@ class BytesProber(object):
         return objs
 
     def lazy_n_maybe(self, dbytes, n, *args, start_pos=None, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
