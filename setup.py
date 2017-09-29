@@ -31,6 +31,7 @@ setup(
             'dst-mklevelinfos = distance_scripts.mklevelinfos:main',
             'dst-teletodot = distance_scripts.teletodot:main',
             'dst-mkcustomobject = distance_scripts.mkcustomobject:main',
+            'dst-filterlevel = distance_scripts.filterlevel:main',
         ]
     },
 )
