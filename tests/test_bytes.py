@@ -27,7 +27,10 @@ class DstBytesTest(unittest.TestCase):
 
     def test_from_arg_checks_file_mode(self):
         with open("tests/in/customobject/2cubes.bytes") as f:
-            self.assertRaises(IOError, DstBytes.from_arg, f)
+            with self.assertRaises(IOError) as cm:
+                DstBytes.from_arg(f)
+            msg = str(cm.exception)
+            self.assertTrue("'b' mode" in msg, msg=f"actual message: {msg!r}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
