@@ -604,7 +604,7 @@ class Section(BytesModel):
         if magic in (MAGIC_2, MAGIC_3):
             if self.type is not None:
                 type_str += f" type 0x{self.type:02x}"
-        if magic == MAGIC_6:
+        elif magic == MAGIC_6:
             if self.type is not None:
                 type_str += f" type {self.type!r}"
         if self.version is not None:
