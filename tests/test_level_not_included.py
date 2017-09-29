@@ -49,11 +49,8 @@ class BaseTest(unittest.TestCase):
                     yield obj
                 if not getattr(obj, 'is_object_group', True):
                     yield from get_subobjects(obj.children, True)
-        for obj in objects:
-            if obj.exception:
-                raise obj.exception
-        self.subobjects = list(get_subobjects(objects, False))
         check_exceptions(level)
+        self.subobjects = list(get_subobjects(objects, False))
         return level, objects
 
     def assertTimes(self, *times):

@@ -18,10 +18,10 @@ def check_exceptions(obj):
     if isinstance(obj, Level):
         for layer in obj.layers:
             check_exceptions(layer)
-    elif isinstance(obj, Layer):
+    if isinstance(obj, Layer):
         for obj in obj.objects:
             check_exceptions(obj)
-    elif isinstance(obj, BaseObject):
+    if isinstance(obj, BaseObject):
         for frag in obj.fragments:
             check_exceptions(frag)
         for child in obj.children:
