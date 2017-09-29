@@ -299,7 +299,7 @@ class BytesModel(object):
                 raise TypeError("p must be the single argument")
 
         self._print_type(p)
-        if 'offset' in p.flags:
+        if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
         if 'sections' in p.flags:
             if self.start_section is not None:
@@ -329,7 +329,10 @@ class BytesModel(object):
     def _print_offset(self, p):
         start = self.start_pos
         end = self.end_pos
-        p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+        if 'offset' in p.flags:
+            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+        else:
+            p(f"Data size: 0x{end - start:x} bytes")
 
     def _print_data(self, p):
         pass
@@ -572,7 +575,10 @@ class Section(BytesModel):
         start = self.data_start
         end = self.data_end
         if start is not None and end is not None:
-            p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+            if 'offset' in p.flags:
+                p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+            else:
+                p(f"Data size: 0x{end - start:x} bytes")
 
 
 class DstBytes(object):
