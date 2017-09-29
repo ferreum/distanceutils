@@ -35,7 +35,6 @@ class Level(BytesModel):
 
     def _read(self, dbytes):
         self.id = dbytes.read_int(8)
-        self.recoverable = True
         self.title = dbytes.read_str()
         self.description = dbytes.read_str()
         self.updated_date = dbytes.read_int(4)

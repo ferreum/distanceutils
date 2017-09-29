@@ -21,7 +21,6 @@ class Entry(BytesModel):
 
     def _read(self, dbytes, version=None):
         self.playername = dbytes.read_str()
-        self.recoverable = True
         self.time = dbytes.read_int(4)
         if version == 0:
             self._add_unknown(4)

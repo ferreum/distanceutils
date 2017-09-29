@@ -21,7 +21,6 @@ class Entry(BytesModel):
 
     def _read(self, dbytes):
         self.level_name = dbytes.read_str()
-        self.recoverable = True
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
         self._add_unknown(16)

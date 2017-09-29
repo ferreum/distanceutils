@@ -39,7 +39,6 @@ class LevelProgress(BaseObject):
 
     def _read(self, dbytes, version=None):
         self.level_path = dbytes.read_str()
-        self.recoverable = True
         self._add_unknown(value=dbytes.read_str())
         self._add_unknown(1)
 
@@ -160,7 +159,6 @@ class PlayerStats(BytesModel):
         def read_double():
             return dbytes.read_struct(S_DOUBLE)[0]
         self.version = version
-        self.recoverable = True
 
         self.stats = stats = {}
         for k, stat in STATS.items():

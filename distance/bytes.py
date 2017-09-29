@@ -64,7 +64,6 @@ class BytesModel(object):
     sections = ()
     exception = None
     reported_end_pos = None
-    recoverable = False
     container = None
     sane_end_pos = False
     opts = None
@@ -183,9 +182,6 @@ class BytesModel(object):
         `start_pos`      - `start_pos` of `container`, if set. Otherwise,
                            `dbytes.pos` when entering this method.
         `exc_pos`        - `dbytes.pos` where the exception occurred.
-        `sane_end_pos`   - Whether `dbytes.pos` is considered sane (see below).
-        `partial_object` - Set to self only if `self.recoverable` is set
-                           to true.
 
         `EOFError` occuring in `_read()` are converted to
         `UnexpectedEOFError` if any data has been read from `dbytes`.
@@ -193,7 +189,7 @@ class BytesModel(object):
         After `_read()`, regardless of whether an exception was raised,
         it is attempted to set `dbytes.pos` to the position reported
         (if it was) with `_report_end_pos()`. If this is successful,
-        the `dbytes.pos` is considered sane.
+        `dbytes.pos` is considered sane.
 
         """
 
@@ -221,15 +217,6 @@ class BytesModel(object):
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
-            if self.recoverable:
-                e.partial_object = self
-                self.exception = e
-            else:
-                try:
-                    # delete attr set for inner recoverable object
-                    del e.partial_object
-                except AttributeError:
-                    pass
             self.sane_end_pos = self.__apply_end_pos(dbytes, or_to_eof=True)
             self.end_pos = dbytes.pos
             raise e from orig_e
@@ -299,7 +286,6 @@ class BytesModel(object):
         pass
 
     def _report_end_pos(self, pos):
-        self.recoverable = True
         self.reported_end_pos = pos
 
     def __apply_end_pos(self, dbytes, or_to_eof=False):
@@ -490,7 +476,6 @@ class Section(BytesModel):
 
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
-        self.recoverable = True
         if magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
