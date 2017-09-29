@@ -1,4 +1,4 @@
-"""Filter objects from a level."""
+"""Filter objects from a level or CustomObject."""
 
 
 import os
@@ -153,7 +153,12 @@ def main():
         if isinstance(content, Level):
             result = matcher.filter_level(content)
         else:
-            result.children = matcher.filter_objects(result.children)
+            if not content.is_object_group:
+                print(f"CustomObject is a {content.type!r}, but"
+                      f" CustomObject filtering is only supported for"
+                      f" object Groups.", file=sys.stderr)
+                return 1
+            content.children = matcher.filter_objects(content.children)
 
         if not do_write:
             from .mkcustomobject import print_candidates
