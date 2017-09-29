@@ -1,12 +1,9 @@
 """Level objects."""
 
 
-import math
-
 from .bytes import (
     Section,
-    S_FLOAT, SKIP_BYTES,
-    MAGIC_1, MAGIC_2, MAGIC_3, MAGIC_6
+    MAGIC_2, MAGIC_3, MAGIC_6
 )
 from .base import BaseObject
 from .fragments import (
@@ -29,37 +26,8 @@ from .fragments import (
     BaseCarScreenTextDecodeTriggerFragment,
     BaseInfoDisplayLogicFragment,
 )
-from .constants import ForceType
 from .prober import BytesProber
 from .printing import need_counters
-
-
-def read_n_floats(dbytes, n, default):
-    def read_float():
-        return dbytes.read_struct(S_FLOAT)[0]
-    f = read_float()
-    if math.isnan(f):
-        return default
-    else:
-        return (f, *(read_float() for _ in range(n - 1)))
-
-
-def iter_named_properties(dbytes, end):
-    num_props = dbytes.read_int(4)
-    for i in range(num_props):
-        propname = dbytes.read_str()
-        dbytes.read_bytes(8) # unknown
-        spos = dbytes.pos
-        if spos + 4 <= end:
-            peek = dbytes.read_bytes(4)
-            # this is weird
-            if peek == SKIP_BYTES:
-                yield propname, True
-            else:
-                dbytes.pos = spos
-                yield propname, False
-        else:
-            yield propname, False
 
 
 def print_objects(p, gen):
