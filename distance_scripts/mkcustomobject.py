@@ -7,7 +7,7 @@ import argparse
 import re
 
 from distance.level import Level
-from distance.levelobjects import PROBER as LEVEL_PROBER
+from distance.levelobjects import PROBER as LEVELOBJ_PROBER
 from distance.bytes import DstBytes, MAGIC_9
 from distance.printing import PrintContext
 from distance.prober import BytesProber
@@ -23,7 +23,7 @@ def _detect_other(section):
     return None
 
 
-PROBER.extend(LEVEL_PROBER)
+PROBER.extend(LEVELOBJ_PROBER)
 
 
 def iter_objects(source, recurse=-1):

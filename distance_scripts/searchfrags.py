@@ -76,7 +76,7 @@ class DetectFragment(Fragment):
 
 def setup_probers(args):
     prober = BytesProber()
-    p_level = BytesProber(baseclass=LevelObject)
+    p_levelobj = BytesProber(baseclass=LevelObject)
     p_frag = BytesProber(baseclass=Fragment)
 
     @prober.func
@@ -85,7 +85,7 @@ def setup_probers(args):
             return Level
         return None
 
-    @p_level.func
+    @p_levelobj.func
     def _fallback_levelobject(section):
         return LevelObject
 
@@ -95,9 +95,9 @@ def setup_probers(args):
 
     if not args.all:
         p_frag.extend(LEVEL_FRAG_PROBER)
-    prober.extend(p_level)
+    prober.extend(p_levelobj)
 
-    return prober, p_level, p_frag
+    return prober, p_levelobj, p_frag
 
 
 def iter_objects(source, recurse=-1):
@@ -207,12 +207,12 @@ def main():
                         help="Level .bytes filename.")
     args = parser.parse_args()
 
-    prober, p_level, p_frag = setup_probers(args)
+    prober, p_levelobj, p_frag = setup_probers(args)
 
     opts = dict(
         level_frag_prober=p_frag,
-        level_subobj_prober=p_level,
-        level_obj_prober=p_level,
+        level_subobj_prober=p_levelobj,
+        level_obj_prober=p_levelobj,
     )
 
     matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args)

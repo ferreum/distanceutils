@@ -9,7 +9,7 @@ from .workshoplevelinfos import WorkshopLevelInfos, FTYPE_WSLEVELINFOS
 from .levelinfos import LevelInfos, FTYPE_LEVELINFOS
 from .profileprogress import ProfileProgress, FTYPE_PROFILEPROGRESS
 from .level import Level
-from .levelobjects import PROBER as LEVEL_PROBER
+from .levelobjects import PROBER as LEVELOBJ_PROBER
 
 
 PROBER = BytesProber({
@@ -30,7 +30,7 @@ def _detect_other(section):
     return None
 
 
-PROBER.extend(LEVEL_PROBER)
+PROBER.extend(LEVELOBJ_PROBER)
 
 
 probe = PROBER.probe
