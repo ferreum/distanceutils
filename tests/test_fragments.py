@@ -6,7 +6,7 @@ from distance.fragments import (
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
 )
-from distance.bytes import DstBytes, SKIP_BYTES
+from distance.bytes import SKIP_BYTES
 from tests import common
 
 
@@ -17,11 +17,10 @@ class Base(object):
         exact = True
 
         def test_probe(self):
-            with open(self.filename, 'rb') as f:
-                res = PROBER.read(DstBytes(f))
+            res = PROBER.read(self.filename)
 
-                self.assertEqual(self.read_obj, type(res))
-                self.verify_obj(res)
+            self.assertEqual(self.read_obj, type(res))
+            self.verify_obj(res)
 
 
 class UnknownTest(Base.WriteReadTest):
