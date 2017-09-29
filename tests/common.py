@@ -93,4 +93,12 @@ class WriteReadTest(unittest.TestCase):
             self.assertEqual(orig_bytes, buf.getvalue())
 
 
+class ExtraAssertMixin(object):
+
+    def assertSeqAlmostEqual(self, a, b):
+        self.assertEqual(len(a), len(b), msg=f"\na={a}\nb={b}")
+        for i, (va, vb) in enumerate(zip(a, b)):
+            self.assertAlmostEqual(va, vb, msg=f"\ni={i}\na={a}\nb={b}")
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
