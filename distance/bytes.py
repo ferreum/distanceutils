@@ -53,6 +53,9 @@ class UnexpectedEOFError(Exception):
     pass
 
 
+CATCH_EXCEPTIONS = (ValueError, EOFError, UnexpectedEOFError)
+
+
 class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
@@ -76,10 +79,10 @@ class BytesModel(object):
         If an error occurs, return the partially read object.
         The exception is stored in the object's `exception` attribute."""
 
-        obj = clazz()
+        obj = clazz(plain=True)
         try:
             obj.read(dbytes, **kw)
-        except Exception as e:
+        except CATCH_EXCEPTIONS as e:
             obj.exception = e
         return obj
 
@@ -125,7 +128,9 @@ class BytesModel(object):
 
         if dbytes is not None:
             self.read(dbytes, **kw)
-        elif kw:
+        else:
+            if not kw.pop('plain', False):
+                self._init_defaults()
             for k, v in kw.items():
                 setattr(self, k, v)
 
@@ -172,7 +177,7 @@ class BytesModel(object):
             self.__apply_end_pos(dbytes)
             self.end_pos = dbytes.pos
             self.sane_end_pos = True
-        except Exception as e:
+        except CATCH_EXCEPTIONS as e:
             orig_e = e
             exc_pos = dbytes.pos
             if exc_pos != start_pos and isinstance(e, EOFError):
@@ -253,6 +258,9 @@ class BytesModel(object):
         """
 
         return False
+
+    def _init_defaults(self):
+        pass
 
     def _report_end_pos(self, pos):
         self.recoverable = True
@@ -383,13 +391,21 @@ class Section(BytesModel):
     def __init__(self, *args, **kw):
         if args:
             first = args[0]
-            if not isinstance(first, int):
+            if not isinstance(first, (int, Section)):
                 self.read(*args, **kw)
                 return
         if args or kw:
             self._init_from_args(*args, **kw)
 
     def _init_from_args(self, *args, **kw):
+        if not kw and len(args) == 1 and isinstance(args[0], Section):
+            other = args[0]
+            if other.magic not in (MAGIC_2, MAGIC_3, MAGIC_32):
+                raise TypeError(f"Cannot copy {other}")
+            self.magic = other.magic
+            self.ident = other.ident
+            self.version = other.version
+            return
         arg = ArgTaker(*args, **kw)
 
         self.magic = magic = arg(0, 'magic')
@@ -573,6 +589,13 @@ class DstBytes(object):
 
     def __init__(self, file):
         self.file = file
+
+    @classmethod
+    def from_data(cls, data):
+        """Create a DstBytes reading the given bytes object."""
+        from .bytes import DstBytes
+        from io import BytesIO
+        return DstBytes(BytesIO(data))
 
     @property
     def pos(self):

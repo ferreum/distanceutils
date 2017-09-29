@@ -2,12 +2,30 @@ import unittest
 from io import BytesIO
 
 from distance.bytes import DstBytes
+from distance.level import Level, Layer
+from distance.base import BaseObject, Fragment
 
 
 def disable_writes(dbytes):
     def do_raise(*args, **kwargs):
         raise AssertionError("attempted to write")
     dbytes.write_bytes = do_raise
+
+
+def check_exceptions(obj):
+    if obj.exception:
+        raise obj.exception
+    if isinstance(obj, Level):
+        for layer in obj.layers:
+            check_exceptions(layer)
+    elif isinstance(obj, Layer):
+        for obj in obj.objects:
+            check_exceptions(obj)
+    elif isinstance(obj, BaseObject):
+        for frag in obj.fragments:
+            check_exceptions(frag)
+        for child in obj.children:
+            check_exceptions(child)
 
 
 def write_read(obj, read_func=None):
@@ -22,8 +40,7 @@ def write_read(obj, read_func=None):
     disable_writes(dbytes)
     result = read_func(dbytes)
 
-    if result.exception:
-        raise result.exception
+    check_exceptions(result)
 
     return result, buf
 
@@ -67,7 +84,7 @@ class WriteReadTest(unittest.TestCase):
         orig = self.read_obj_pre(dbr)
         orig_len = len(orig_bytes)
 
-        res, buf = write_read(orig)
+        res, buf = write_read(orig, read_func=self.read_obj)
 
         self.verify_obj(res)
         self.assertEqual(orig_len, len(buf.getbuffer()))

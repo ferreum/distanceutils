@@ -3,6 +3,7 @@ import unittest
 from distance.level import Level
 from distance.bytes import DstBytes, UnexpectedEOFError
 from distance.printing import PrintContext
+from .common import check_exceptions
 
 
 class LevelTest(unittest.TestCase):
@@ -45,9 +46,9 @@ class LevelTest(unittest.TestCase):
                 self.assertIsNotNone(obj, f"i == {i}")
                 self.assertTrue(obj.sane_end_pos, f"i == {i}")
                 if i == 2:
-                    self.assertIsInstance(obj.exception, UnicodeError)
+                    self.assertRaises(UnicodeError, check_exceptions, obj)
                 else:
-                    self.assertIsNone(obj.exception, f"i == {i}")
+                    check_exceptions(obj)
 
 
 if __name__ == '__main__':

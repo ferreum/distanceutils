@@ -4,6 +4,7 @@ from distance.levelobjects import PROBER, SubTeleporter, WinLogic
 from distance.bytes import DstBytes
 from distance.printing import PrintContext
 from distance.constants import ForceType
+from .common import check_exceptions
 
 
 class InfoDisplayBoxTest(unittest.TestCase):
@@ -38,6 +39,11 @@ class InfoDisplayBoxTest(unittest.TestCase):
         with open("tests/in/customobject/infodisplaybox 1.bytes", 'rb') as f:
             p.print_data_of(PROBER.read(DstBytes(f)))
 
+    def test_quarantinetrigger(self):
+        with open("tests/in/customobject/quarantinetrigger empty infodisplaylogic.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+
 
 class WorldTextTest(unittest.TestCase):
 
@@ -63,6 +69,13 @@ class WorldTextTest(unittest.TestCase):
 
 
 class TeleExitTest(unittest.TestCase):
+
+    def test_link_id(self):
+        with open("tests/in/customobject/tele exit checkpoint.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            tele = next(obj.iter_children(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(tele.link_id, 334)
 
     def test_with_checkpoint(self):
         with open("tests/in/customobject/tele exit checkpoint.bytes", 'rb') as f:
@@ -90,6 +103,51 @@ class TeleExitTest(unittest.TestCase):
             tele = next(obj.iter_children(name='Teleporter'))
             self.assertIsInstance(tele, SubTeleporter)
             self.assertEqual(tele.destination, 6666)
+            p.print_data_of(obj)
+
+
+class OldTeleporterTest(unittest.TestCase):
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/tele v0.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
+            tele = next(obj.iter_children(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(0, tele.link_id)
+            self.assertEqual(0, tele.destination)
+
+
+class SoccerGoalTest(unittest.TestCase):
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/soccergoal.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+            p.print_data_of(obj)
+
+
+class BatteryBuildingTest(unittest.TestCase):
+
+    # has PulseMaterial, which does NOT contain named properties
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/batterybuilding.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+            p.print_data_of(obj)
+
+
+class RotatingSpotLightTest(unittest.TestCase):
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/rotatingspotlight.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
             p.print_data_of(obj)
 
 
@@ -143,6 +201,7 @@ class ForceZoneBoxTest(unittest.TestCase):
             obj = PROBER.read(DstBytes(f))
             self.assertEqual(obj.force_type, ForceType.GRAVITY)
             self.assertEqual(obj.disable_global_gravity, 1)
+            self.assertEqual("Custom Zone", obj.custom_name)
 
     def test_print(self):
         for fname in self.files:
@@ -220,6 +279,13 @@ class EmpireEndZoneTest(unittest.TestCase):
             self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
             p.print_data_of(obj)
 
+    def test_weird_textmesh(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/endzone weird textmesh.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+            p.print_data_of(obj)
+
 
 class CarScreenTextDecodeTriggerTest(unittest.TestCase):
 
@@ -227,57 +293,22 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
         p = PrintContext.for_test()
         with open(f"tests/in/customobject/decodetrigger.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
             self.assertEqual(obj.text, "Please, help us.")
             self.assertEqual(obj.time_text, "")
-            self.assertAlmostEqual(obj.per_char_speed, 0.0353)
-            p.print_data_of(obj)
+            self.assertEqual(0, len(obj.announcer_phrases))
 
     def test_ver0(self):
         p = PrintContext.for_test()
         with open(f"tests/in/customobject/decodetrigger v0.bytes", 'rb') as f:
             obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
+            p.print_data_of(obj.fragments[0])
             self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
-            self.assertEqual(obj.time_text, "Download")
             self.assertAlmostEqual(obj.per_char_speed, 0.02)
-
-    def test_ver0_2(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 2.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertEqual(obj.text, "INPUT(no_gravity);")
+            self.assertEqual(obj.clear_on_finish, True)
+            self.assertEqual(obj.destroy_on_trigger_exit, False)
             self.assertEqual(obj.time_text, "Download")
-            self.assertAlmostEqual(obj.per_char_speed, 0.02)
-
-    def test_ver0_3(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 3.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertIsNone(obj.text)
-            self.assertEqual(obj.time_text, "")
-            self.assertAlmostEqual(obj.per_char_speed, 0.03)
-            self.assertEqual(len(obj.announcer_phrases), 7)
-            self.assertEqual(obj.announcer_phrases[0], 'Analyzing')
-            self.assertEqual(obj.announcer_phrases[6], 'RotationalJetsRestored')
-
-    def test_ver0_4(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 4.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertEqual(len(obj.text), 245)
-            self.assertAlmostEqual(obj.per_char_speed, 0.01)
-
-    def test_ver0_5(self):
-        p = PrintContext.for_test()
-        with open(f"tests/in/customobject/decodetrigger v0 5.bytes", 'rb') as f:
-            obj = PROBER.read(DstBytes(f))
-            p.print_data_of(obj)
-            self.assertEqual(obj.text, "Anomaly Detected")
-            self.assertAlmostEqual(obj.per_char_speed, 0.1)
-            self.assertAlmostEqual(obj.delay, 1.0)
+            self.assertEqual(0, len(obj.announcer_phrases))
 
 
 class SplineRoadTest(unittest.TestCase):

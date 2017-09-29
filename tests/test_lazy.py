@@ -5,6 +5,15 @@ from distance.lazy import LazySequence
 
 class LazySequenceTest(unittest.TestCase):
 
+    def test_empty(self):
+        self.assertRaises(IndexError, LazySequence([], 0).__getitem__, 0)
+
+    def test_empty_butreallynot(self):
+        self.assertRaises(IndexError, LazySequence([1, 2], 0).__getitem__, 0)
+
+
+class LazySequenceIndexTest(unittest.TestCase):
+
     def setUp(self):
         self.orig = [10, 11, 12, 13, 14]
         self.iter = iter(self.orig)

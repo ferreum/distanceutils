@@ -363,11 +363,8 @@ There are some problems with this: .bytes files contain a lot of IDs that need
 to be consistent within a file. If an ID occurs multiple times in a single
 file, it cannot be loaded (with varying effects). This means that extracting
 objects from one file works fine, but duplicating objects or merging objects
-from different files into a new file is not as easy.
+from different files leads to errors when loading the level.
 
-To address this, most IDs are re-assigned when objects are written. But some
-object-specific IDs are not implemented yet, so objects containing such IDs
-cannot be written reliably.
 
 These objects can be generated:
 

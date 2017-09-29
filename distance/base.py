@@ -9,6 +9,8 @@ from .prober import BytesProber, ProbeError
 
 BASE_PROBER = BytesProber()
 
+EMPTY_PROBER = BytesProber()
+
 TRANSFORM_MIN_SIZE = 12
 
 
@@ -58,7 +60,7 @@ class BaseObject(BytesModel):
     """Base class of objects represented by a MAGIC_6 section."""
 
     child_prober = BASE_PROBER
-    fragment_prober = None
+    fragment_prober = EMPTY_PROBER
     is_object_group = False
 
     transform = None
@@ -70,6 +72,12 @@ class BaseObject(BytesModel):
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
     )
+
+    def fragment_by_type(self, typ):
+        for frag in self.fragments:
+            if isinstance(frag, typ):
+                return frag
+        return None
 
     def _read(self, dbytes):
         ts = self._get_start_section()
@@ -89,30 +97,41 @@ class BaseObject(BytesModel):
                     dbytes, s5.num_objects, start_pos=s5.children_start,
                     opts=self.opts)
             return True
-        if self.fragment_prober:
-            try:
-                fragment = self.fragment_prober.maybe(dbytes, probe_section=sec)
-            except ProbeError:
-                pass
-            else:
-                sec.__fragment = fragment
-                fragments = self.fragments
-                if fragments is ():
-                    self.fragments = fragments = []
-                fragments.append(fragment)
-                return True
+        try:
+            fragment = self.fragment_prober.maybe(dbytes, probe_section=sec)
+        except ProbeError:
+            pass
+        else:
+            sec.__fragment = fragment
+            fragments = self.fragments
+            if fragments is ():
+                self.fragments = fragments = []
+            fragments.append(fragment)
+            return True
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
         if self.start_section is None:
             self.start_section = Section(MAGIC_6, self.type)
         if self.sections is ():
-            self.sections = self._init_sections()
+            self._init_defaults()
         with dbytes.write_section(self.start_section):
             self._write_sections(dbytes)
 
-    def _init_sections(self):
-        return self.default_sections
+    def _init_defaults(self):
+        sections = list(Section(s) for s in self.default_sections)
+        fragments = []
+        self.sections = sections
+        self.fragments = fragments
+        for sec in sections:
+            try:
+                cls = self.fragment_prober.probe_section(sec)
+            except ProbeError:
+                pass # subclass has to write this section
+            else:
+                frag = cls()
+                sec.__fragment = frag
+                fragments.append(frag)
 
     def _write_section(self, dbytes, sec):
         try:
@@ -179,10 +198,11 @@ class Fragment(BytesModel):
     def _read(self, dbytes):
         sec = self._get_start_section()
         self._report_end_pos(sec.data_end)
+        pos = dbytes.pos
         if not self._read_section_data(dbytes, sec):
-            with dbytes.saved_pos(sec.data_start):
+            with dbytes.saved_pos(pos):
                 self.raw_data = dbytes.read_bytes(
-                    sec.data_size, or_to_eof=True)
+                    sec.data_end - pos, or_to_eof=True)
 
     def write(self, dbytes, section=None):
         sec = self.start_section if section is None else section
@@ -203,6 +223,12 @@ class Fragment(BytesModel):
 
     def _write_section_data(self, dbytes, sec):
         return False
+
+    def _print_type(self, p):
+        name = type(self).__name__
+        if name.endswith('Fragment'):
+            name = name[:-8]
+            p(f"Fragment: {name}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

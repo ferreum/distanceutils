@@ -40,7 +40,7 @@ def main():
         image_index=14,
         emit_index=14,
         tex_scale=(10, 10, 10),
-        reflect_color=(.2, .2, .2, .2),
+        mat_reflect=(.2, .2, .2, .2),
         world_mapped=True,
     )
 
