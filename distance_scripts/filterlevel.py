@@ -173,14 +173,14 @@ def main():
             p(f"Removed objects: {num_objs}")
             p(f"Removed groups: {num_groups}")
 
-        buf = BytesIO()
-        dbytes = DstBytes(buf)
+        print("writing...")
+        dbytes = DstBytes.in_memory()
         content.write(dbytes)
 
     with open(args.OUT, write_mode) as out_f:
-        out_f.write(buf.getbuffer())
+        out_f.write(dbytes.file.getbuffer())
 
-    print(f"{len(buf.getbuffer())} bytes written")
+    print(f"{len(dbytes.file.getbuffer())} bytes written")
     return 0
 
 
