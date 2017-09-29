@@ -8,7 +8,8 @@ import re
 from io import BytesIO
 
 from distance.level import Level
-from distance.levelobjects import PROBER as LEVEL_PROBER
+from distance.levelobjects import Group
+from distance.base import BaseObject
 from distance.bytes import (
     DstBytes,
     MAGIC_2, MAGIC_3, MAGIC_32, MAGIC_9,
@@ -21,14 +22,13 @@ from distance.prober import BytesProber
 PROBER = BytesProber()
 
 
+PROBER.add_type('Group', Group)
+
 @PROBER.func
 def _detect_other(section):
     if section.magic == MAGIC_9:
         return Level
-    return None
-
-
-PROBER.extend(LEVEL_PROBER)
+    return BaseObject
 
 
 MAGICMAP = {2: MAGIC_2, 3: MAGIC_3, 32: MAGIC_32}
@@ -151,7 +151,7 @@ def main():
         content = PROBER.read(DstBytes(in_f))
         matcher = ObjectMatcher(args)
         if isinstance(content, Level):
-            result = matcher.filter_level(content)
+            content = matcher.filter_level(content)
         else:
             if not content.is_object_group:
                 print(f"CustomObject is a {content.type!r}, but"
@@ -166,7 +166,7 @@ def main():
             return 1
 
         p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
-        p.print_data_of(result)
+        p.print_data_of(content)
         num_objs, num_groups = count_objects(matcher.matches)
         p(f"Removed matches: {len(matcher.matches)}")
         if num_objs != len(matcher.matches):
@@ -175,7 +175,7 @@ def main():
 
         buf = BytesIO()
         dbytes = DstBytes(buf)
-        result.write(dbytes)
+        content.write(dbytes)
 
     with open(args.OUT, write_mode) as out_f:
         out_f.write(buf.getbuffer())
