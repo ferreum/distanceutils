@@ -8,7 +8,11 @@ import re
 
 from distance.level import Level
 from distance.levelobjects import PROBER as LEVEL_PROBER
-from distance.bytes import DstBytes, MAGIC_9
+from distance.bytes import (
+    DstBytes,
+    MAGIC_2, MAGIC_3, MAGIC_32, MAGIC_9,
+    Section,
+)
 from distance.printing import PrintContext
 from distance.prober import BytesProber
 
@@ -26,6 +30,15 @@ def _detect_other(section):
 PROBER.extend(LEVEL_PROBER)
 
 
+MAGICMAP = {2: MAGIC_2, 3: MAGIC_3, 32: MAGIC_32}
+
+
+def parse_section(arg):
+    parts = arg.split(",")
+    magic = MAGICMAP[int(parts[0])]
+    return Section(magic, *(int(p, base=0) for p in parts[1:]))
+
+
 class ObjectMatcher(object):
 
     def __init__(self, args):
@@ -35,13 +48,28 @@ class ObjectMatcher(object):
         self.maxrecurse = args.maxrecurse
         self.num_matches = 0
         self.matches = []
+        self.sections = {parse_section(arg).to_key() for arg in args.section}
+
+    def _match_sections(self, obj):
+        for sec in obj.sections:
+            if sec.to_key() in self.sections:
+                return True
+        for child in obj.children:
+            if self._match_sections(child):
+                return True
+        return False
 
     def match_props(self, obj):
+        if not self.type_patterns and not self.sections:
+            return True
         if self.type_patterns:
             typename = obj.type
-            if not any(r.search(typename) for r in self.type_patterns):
-                return False
-        return True
+            if any(r.search(typename) for r in self.type_patterns):
+                return True
+        if self.sections:
+            if not obj.is_object_group and self._match_sections(obj):
+                return True
+        return False
 
     def match(self, obj):
         if self.match_props(obj):
@@ -87,6 +115,8 @@ def main():
                         help="Maximum of recursions. 0 only lists layer objects.")
     parser.add_argument("-t", "--type", action='append', default=[],
                         help="Match object type (regex).")
+    parser.add_argument("-s", "--section", action='append', default=[],
+                        help="Match sections.")
     parser.add_argument("IN",
                         help="Level .bytes filename.")
     parser.add_argument("OUT",
