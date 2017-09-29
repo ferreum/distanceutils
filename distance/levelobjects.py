@@ -87,9 +87,9 @@ class LevelObject(BaseObject):
 class SubObject(LevelObject):
 
     def _print_type(self, p):
-        start_sec = self.start_section
-        if start_sec and start_sec.magic == MAGIC_6:
-            type_str = start_sec.type
+        container = self.container
+        if container and container.magic == MAGIC_6:
+            type_str = container.type
             p(f"Subobject type: {type_str!r}")
 
 

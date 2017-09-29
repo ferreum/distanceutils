@@ -142,7 +142,7 @@ class Layer(Fragment):
             pass
 
     def _read_section_data(self, dbytes, sec):
-        s7 = self._get_start_section()
+        s7 = self._get_container()
         if s7.magic != MAGIC_7:
             raise ValueError(f"Invalid layer section: {s7.magic}")
         self._report_end_pos(s7.data_end)

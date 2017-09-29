@@ -65,7 +65,7 @@ class BytesModel(object):
     exception = None
     reported_end_pos = None
     recoverable = False
-    start_section = None
+    container = None
     sane_end_pos = False
     opts = None
 
@@ -171,7 +171,7 @@ class BytesModel(object):
     def _handle_opts(self, opts):
         pass
 
-    def read(self, dbytes, start_section=None, opts=None, **kw):
+    def read(self, dbytes, container=None, opts=None, **kw):
 
         """Read data of this object from `dbytes`.
 
@@ -180,7 +180,7 @@ class BytesModel(object):
 
         Exceptions raised in `_read()` gain the following attributes:
 
-        `start_pos`      - `start_pos` of `start_section`, if set. Otherwise,
+        `start_pos`      - `start_pos` of `container`, if set. Otherwise,
                            `dbytes.pos` when entering this method.
         `exc_pos`        - `dbytes.pos` where the exception occurred.
         `sane_end_pos`   - Whether `dbytes.pos` is considered sane (see below).
@@ -198,9 +198,9 @@ class BytesModel(object):
         """
 
         dbytes = DstBytes.from_arg(dbytes)
-        if start_section:
-            self.start_section = start_section
-            start_pos = start_section.start_pos
+        if container:
+            self.container = container
+            start_pos = container.start_pos
         else:
             start_pos = dbytes.pos
         self.start_pos = start_pos
@@ -338,10 +338,10 @@ class BytesModel(object):
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
         if 'sections' in p.flags:
-            if self.start_section is not None:
+            if self.container is not None:
                 p(f"Container:")
                 with p.tree_children():
-                    p.print_data_of(self.start_section)
+                    p.print_data_of(self.container)
             if self.sections:
                 p(f"Sections: {len(self.sections)}")
                 with p.tree_children():
@@ -357,9 +357,9 @@ class BytesModel(object):
             p.print_exception(self.exception)
 
     def _print_type(self, p):
-        start_sec = self.start_section
-        if start_sec and start_sec.magic == MAGIC_6:
-            type_str = start_sec.type
+        container = self.container
+        if container and container.magic == MAGIC_6:
+            type_str = container.type
             p(f"Object type: {type_str!r}")
 
     def _print_offset(self, p):
@@ -376,14 +376,14 @@ class BytesModel(object):
     def _print_children(self, p):
         pass
 
-    def _get_start_section(self):
-        sec = self.start_section
+    def _get_container(self):
+        sec = self.container
         if not sec:
-            self.start_section = sec = Section(self.dbytes)
+            self.container = sec = Section(self.dbytes)
         return sec
 
     def _require_type(self, expect):
-        ts = self._get_start_section()
+        ts = self._get_container()
         if not ts:
             raise ValueError("Missing type information")
         if isinstance(expect, str):

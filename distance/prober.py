@@ -78,38 +78,38 @@ class BytesProber(object):
                                 if k not in self._fragments))
         self._funcs.extend(other._funcs)
 
-    def _probe_fragment(self, section):
-        return self._fragments.get(section.to_key(), None)
+    def _probe_fragment(self, sec):
+        return self._fragments.get(sec.to_key(), None)
 
-    def _get_from_funcs(self, section):
+    def _get_from_funcs(self, sec):
         for func in self._funcs:
-            cls = func(section)
+            cls = func(sec)
             if cls is not None:
                 return cls
         return None
 
-    def probe_section(self, section):
-        if section.magic == MAGIC_6:
-            cls = self._types.get(section.type, None)
+    def probe_section(self, sec):
+        if sec.magic == MAGIC_6:
+            cls = self._types.get(sec.type, None)
             if cls is not None:
                 return cls
-        cls = self._probe_fragment(section)
+        cls = self._probe_fragment(sec)
         if cls is not None:
             return cls
-        cls = self._get_from_funcs(section)
+        cls = self._get_from_funcs(sec)
         if cls is not None:
             return cls
-        if section.magic == MAGIC_6:
-            raise ProbeError(f"Unknown object type: {section.type!r}")
-        raise ProbeError(f"Unknown object section: {section}")
+        if sec.magic == MAGIC_6:
+            raise ProbeError(f"Unknown object type: {sec.type!r}")
+        raise ProbeError(f"Unknown object section: {sec}")
 
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:
-            section = Section(dbytes)
+            sec = Section(dbytes)
         else:
-            section = probe_section
-        cls = self.probe_section(section)
-        return cls, {'start_section': section}
+            sec = probe_section
+        cls = self.probe_section(sec)
+        return cls, {'container': sec}
 
     def read(self, dbytes, probe_section=None, **kw):
         dbytes = DstBytes.from_arg(dbytes)

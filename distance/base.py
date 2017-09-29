@@ -80,7 +80,7 @@ class BaseObject(BytesModel):
         return None
 
     def _read(self, dbytes):
-        ts = self._get_start_section()
+        ts = self._get_container()
         self.type = ts.type
         self._report_end_pos(ts.data_end)
         self._read_sections(ts.data_end)
@@ -111,11 +111,11 @@ class BaseObject(BytesModel):
         return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
-        if self.start_section is None:
-            self.start_section = Section(MAGIC_6, self.type)
+        if self.container is None:
+            self.container = Section(MAGIC_6, self.type)
         if self.sections is ():
             self._init_defaults()
-        with dbytes.write_section(self.start_section):
+        with dbytes.write_section(self.container):
             self._write_sections(dbytes)
 
     def _init_defaults(self):
@@ -196,7 +196,7 @@ class Fragment(BytesModel):
     raw_data = None
 
     def _read(self, dbytes):
-        sec = self._get_start_section()
+        sec = self._get_container()
         self._report_end_pos(sec.data_end)
         pos = dbytes.pos
         if not self._read_section_data(dbytes, sec):
@@ -205,9 +205,9 @@ class Fragment(BytesModel):
                     sec.data_end - pos, or_to_eof=True)
 
     def write(self, dbytes, section=None):
-        sec = self.start_section if section is None else section
+        sec = self.container if section is None else section
         if sec is None:
-            self.start_section = sec = self._init_section()
+            self.container = sec = self._init_section()
         with dbytes.write_section(sec):
             if not self._write_section_data(dbytes, sec):
                 data = self.raw_data

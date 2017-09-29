@@ -116,7 +116,7 @@ class FragmentMatcher(object):
         self.sections = {}
 
     def find_matches(self, frag):
-        sec = frag.start_section
+        sec = frag.container
         offset = sec.data_start
         data = frag.raw_data
         matches = []
@@ -171,7 +171,7 @@ class FragmentMatcher(object):
                 matches = self.find_matches(frag)
                 if matches:
                     frags.append((frag, matches))
-                    self.sections[frag.start_section.to_key()] = frag.start_section
+                    self.sections[frag.container.to_key()] = frag.container
 
         if frags:
             p(f"Object: {obj.type!r}")
@@ -180,10 +180,10 @@ class FragmentMatcher(object):
             with p.tree_children():
                 for frag, matches in frags:
                     p.tree_next_child()
-                    p(f"Section: {frag.start_section}")
+                    p(f"Section: {frag.container}")
                     start = frag.start_pos
                     end = frag.end_pos
-                    sec = frag.start_section
+                    sec = frag.container
                     p(f"Offset: 0x{start:08x} to 0x{end:08x}"
                       f" (0x{end - start:x} bytes, data 0x{sec.data_size:x} bytes)")
                     p(f"Matches: {len(matches)}")
