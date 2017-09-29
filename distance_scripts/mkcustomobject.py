@@ -91,35 +91,34 @@ def main():
         print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
         return 1
 
-    with open(args.IN, 'rb') as in_f:
-        content = PROBER.read(DstBytes(in_f))
-        if isinstance(content, Level):
-            object_source = content.iter_objects()
-        else:
-            # CustomObject
-            object_source = [content]
-        candidates = select_candidates(object_source, args)
+    content = PROBER.read(args.IN)
+    if isinstance(content, Level):
+        object_source = content.iter_objects()
+    else:
+        # CustomObject
+        object_source = [content]
+    candidates = select_candidates(object_source, args)
 
-        tosave = None
-        if len(candidates) == 1:
-            tosave = candidates[0]
-        elif len(candidates) > 1:
-            print_candidates(candidates)
-        else:
-            print("no matching object found", file=sys.stderr)
+    tosave = None
+    if len(candidates) == 1:
+        tosave = candidates[0]
+    elif len(candidates) > 1:
+        print_candidates(candidates)
+    else:
+        print("no matching object found", file=sys.stderr)
 
-        if tosave is None:
-            return 1
+    if tosave is None:
+        return 1
 
-        tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+    tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
 
-        print("writing...")
-        dbytes = DstBytes.in_memory()
-        tosave.write(dbytes)
+    print("writing...")
+    dbytes = DstBytes.in_memory()
+    tosave.write(dbytes)
 
     with open(args.OUT, write_mode) as out_f:
-        out_f.write(dbytes.file.getbuffer())
-    print(f"{len(dbytes.file.getbuffer())} bytes written")
+        n = out_f.write(dbytes.file.getbuffer())
+    print(f"{n} bytes written")
     return 0
 
 

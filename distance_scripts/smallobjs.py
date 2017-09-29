@@ -10,11 +10,10 @@ from distance.levelobjects import PROBER
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
-    parser.add_argument("FILE", nargs=1, help=".bytes CustomObject filename")
+    parser.add_argument("FILE", help=".bytes CustomObject filename")
     args = parser.parse_args()
 
-    with open(args.FILE[0], 'rb') as f:
-        obj = PROBER.read(DstBytes(f))
+    obj = PROBER.read(args.FILE)
 
     def get_objs(o):
         yield o
@@ -23,7 +22,7 @@ def main():
                 yield from get_objs(sub)
 
     def is_small(o):
-        _, sy, sz = o.transform[2]
+        _, sy, sz = o.transform[2] or (1, 1, 1)
         return sy < 1e-4 or sz < 1e-4
 
     objs = [o for o in get_objs(obj) if is_small(o)]

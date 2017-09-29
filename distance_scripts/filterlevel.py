@@ -147,40 +147,39 @@ def main():
             print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
             return 1
 
-    with open(args.IN, 'rb') as in_f:
-        content = PROBER.read(DstBytes(in_f))
-        matcher = ObjectMatcher(args)
-        if isinstance(content, Level):
-            content = matcher.filter_level(content)
-        else:
-            if not content.is_object_group:
-                print(f"CustomObject is a {content.type!r}, but"
-                      f" CustomObject filtering is only supported for"
-                      f" object Groups.", file=sys.stderr)
-                return 1
-            content.children = matcher.filter_objects(content.children)
-
-        if not do_write:
-            from .mkcustomobject import print_candidates
-            print_candidates(matcher.matches)
+    content = PROBER.read(args.IN)
+    matcher = ObjectMatcher(args)
+    if isinstance(content, Level):
+        content = matcher.filter_level(content)
+    else:
+        if not content.is_object_group:
+            print(f"CustomObject is a {content.type!r}, but"
+                    f" CustomObject filtering is only supported for"
+                    f" object Groups.", file=sys.stderr)
             return 1
+        content.children = matcher.filter_objects(content.children)
 
-        p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
-        p.print_data_of(content)
-        num_objs, num_groups = count_objects(matcher.matches)
-        p(f"Removed matches: {len(matcher.matches)}")
-        if num_objs != len(matcher.matches):
-            p(f"Removed objects: {num_objs}")
-            p(f"Removed groups: {num_groups}")
+    if not do_write:
+        from .mkcustomobject import print_candidates
+        print_candidates(matcher.matches)
+        return 1
 
-        print("writing...")
-        dbytes = DstBytes.in_memory()
-        content.write(dbytes)
+    p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+    p.print_data_of(content)
+    num_objs, num_groups = count_objects(matcher.matches)
+    p(f"Removed matches: {len(matcher.matches)}")
+    if num_objs != len(matcher.matches):
+        p(f"Removed objects: {num_objs}")
+        p(f"Removed groups: {num_groups}")
+
+    print("writing...")
+    dbytes = DstBytes.in_memory()
+    content.write(dbytes)
 
     with open(args.OUT, write_mode) as out_f:
-        out_f.write(dbytes.file.getbuffer())
+        n = out_f.write(dbytes.file.getbuffer())
 
-    print(f"{len(dbytes.file.getbuffer())} bytes written")
+    print(f"{n} bytes written")
     return 0
 
 

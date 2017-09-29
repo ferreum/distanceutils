@@ -217,22 +217,21 @@ def main():
 
     matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args)
 
-    with open(args.IN, 'rb') as in_f:
-        content = prober.read(DstBytes(in_f), opts=opts)
-        if isinstance(content, Level):
-            object_source = iter_objects(content.iter_objects())
-        else:
-            # CustomObject
-            object_source = iter_objects([content])
-        p = PrintContext(file=sys.stdout, flags=())
-        for obj in object_source:
-            matcher.visit_object(obj, p)
-        if matcher.sections:
-            p(f"Unique sections: {len(matcher.sections)}")
-            with p.tree_children():
-                for sec in matcher.sections.values():
-                    p.tree_next_child()
-                    p(f"Section: {sec}")
+    content = prober.read(args.IN, opts=opts)
+    if isinstance(content, Level):
+        object_source = iter_objects(content.iter_objects())
+    else:
+        # CustomObject
+        object_source = iter_objects([content])
+    p = PrintContext(file=sys.stdout, flags=())
+    for obj in object_source:
+        matcher.visit_object(obj, p)
+    if matcher.sections:
+        p(f"Unique sections: {len(matcher.sections)}")
+        with p.tree_children():
+            for sec in matcher.sections.values():
+                p.tree_next_child()
+                p(f"Section: {sec}")
 
     return 0
 

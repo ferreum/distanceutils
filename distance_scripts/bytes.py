@@ -37,20 +37,19 @@ def main():
 
     have_error = False
     for fname in args.FILE:
-        with open(fname, 'rb') as f:
-            try:
-                if print_filename:
-                    p("")
-                    p(f"File: {f.name!r}")
-                obj = types.maybe(DstBytes(f))
-                p.print_data_of(obj)
-            except BrokenPipeError:
-                # suppress warning message when stdout gets closed
-                sys.stderr.close()
-                break
-            except Exception as e:
-                p.print_exception(e)
-                have_error = True
+        try:
+            if print_filename:
+                p("")
+                p(f"File: {fname!r}")
+            obj = types.maybe(fname)
+            p.print_data_of(obj)
+        except BrokenPipeError:
+            # suppress warning message when stdout gets closed
+            sys.stderr.close()
+            break
+        except Exception as e:
+            p.print_exception(e)
+            have_error = True
     return 1 if have_error else 0
 
 

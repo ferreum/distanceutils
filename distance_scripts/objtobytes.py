@@ -213,8 +213,8 @@ def main():
         description=__doc__)
     parser.add_argument("--name", help="Custom object name")
     parser.add_argument("--scale", type=int, help="Set object scale")
-    parser.add_argument("OBJIN", nargs=1, help=".obj filename to read")
-    parser.add_argument("BYTESOUT", nargs=1, help=".bytes filename to write")
+    parser.add_argument("OBJIN", help=".obj filename to read")
+    parser.add_argument("BYTESOUT", help=".bytes filename to write")
     parser.set_defaults(scale=16)
     args = parser.parse_args()
 
@@ -232,7 +232,7 @@ def main():
         disable_bump=True
     )
 
-    with open(args.OBJIN[0]) as f:
+    with open(args.OBJIN) as f:
         obj = ObjReader(f, options=options, default_material=def_mat)
 
         objs = obj_to_simples(obj, scale=args.scale)
@@ -241,11 +241,15 @@ def main():
               f"{obj.num_faces} faces")
 
     group = Group(children=objs, custom_name=args.name)
-    with open(args.BYTESOUT[0], 'wb') as f:
-        print(f"Writing {args.BYTESOUT[0]}...")
-        dbytes = DstBytes(f)
-        group.write(dbytes)
-        print(f"{dbytes.pos} bytes written")
+
+    print(f"writing...")
+    dbytes = DstBytes.in_memory()
+    group.write(dbytes)
+
+    with open(args.BYTESOUT, 'wb') as f:
+        n = f.write(dbytes.file.getbuffer())
+
+    print(f"{n} bytes written")
 
     return 0
 

@@ -36,25 +36,23 @@ def main():
         c.execute("CREATE INDEX lvl_path ON level(path)")
         c.execute("CREATE INDEX lvl_author ON level(author)")
 
-        with open(args.FILE, 'rb') as infos_file:
-            dbytes = DstBytes(infos_file)
-            infos = WorkshopLevelInfos(dbytes)
-            count = 0
-            for level in infos.iter_levels():
-                values = [level.id, level.title, level.description, level.updated_date,
-                          level.published_date, level.tags, level.author, level.authorid,
-                          level.path, level.published_by_user, level.upvotes,
-                          level.downvotes, level.rating]
-                values.append(b''.join(level.unknown))
-                c.execute("""INSERT INTO level
-                          (id, title, description, updated_date, published_date,
-                          tags, author, authorid, path, published_by_user, upvotes, downvotes,
-                          rating, unknown)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
-                count += 1
+        infos = WorkshopLevelInfos(args.FILE)
+        count = 0
+        for level in infos.iter_levels():
+            values = [level.id, level.title, level.description, level.updated_date,
+                        level.published_date, level.tags, level.author, level.authorid,
+                        level.path, level.published_by_user, level.upvotes,
+                        level.downvotes, level.rating]
+            values.append(b''.join(level.unknown))
+            c.execute("""INSERT INTO level
+                        (id, title, description, updated_date, published_date,
+                        tags, author, authorid, path, published_by_user, upvotes, downvotes,
+                        rating, unknown)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+            count += 1
 
-            conn.commit()
-            print(f"found {count} levels")
+        conn.commit()
+        print(f"found {count} levels")
     finally:
         c.close()
     return 0
