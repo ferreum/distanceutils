@@ -551,7 +551,7 @@ class Section(BytesModel):
         return True
 
     @contextmanager
-    def write_header(self, dbytes):
+    def _write_header(self, dbytes):
         magic = self.magic
         dbytes.write_int(4, magic)
         if magic in (MAGIC_2, MAGIC_3):
@@ -879,7 +879,7 @@ class DstBytes(object):
                 sec = args[0]
             else:
                 sec = Section(*args, **kw)
-            with sec.write_header(self):
+            with sec._write_header(self):
                 yield
         finally:
             self.num_subsections = old_count
