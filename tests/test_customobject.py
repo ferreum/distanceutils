@@ -141,6 +141,16 @@ class BatteryBuildingTest(unittest.TestCase):
             p.print_data_of(obj)
 
 
+class RotatingSpotLightTest(unittest.TestCase):
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/rotatingspotlight.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+            p.print_data_of(obj)
+
+
 class GravityTriggerTest(unittest.TestCase):
 
     def test_default(self):
