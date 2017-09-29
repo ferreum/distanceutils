@@ -421,7 +421,6 @@ class Section(BytesModel):
     data_start = None
     data_size = None
     type = None
-    ident = None
     version = None
     num_sections = None
     raw_data = None
@@ -441,14 +440,14 @@ class Section(BytesModel):
             if other.magic not in (MAGIC_2, MAGIC_3, MAGIC_32):
                 raise TypeError(f"Cannot copy {other}")
             self.magic = other.magic
-            self.ident = other.ident
+            self.type = other.type
             self.version = other.version
             return
         arg = ArgTaker(*args, **kw)
 
         self.magic = magic = arg(0, 'magic')
         if magic in (MAGIC_2, MAGIC_3):
-            self.ident = arg(1, 'ident')
+            self.type = arg(1, 'type')
             self.version = arg(2, 'version')
             self.id = arg(3, 'id', default=None)
         elif magic == MAGIC_5:
@@ -474,7 +473,7 @@ class Section(BytesModel):
         magic = self.magic
         argstr = str(magic)
         if magic in (MAGIC_2, MAGIC_3):
-            argstr += f", ident=0x{self.ident:x}, version={self.version}"
+            argstr += f", type=0x{self.type:x}, version={self.version}"
         elif magic == MAGIC_6:
             argstr += f", {self.type!r}"
         return f"Section({argstr})"
@@ -483,7 +482,7 @@ class Section(BytesModel):
         """Create a key of this section's type identity."""
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
-            return (magic, self.ident, self.version)
+            return (magic, self.type, self.version)
         elif magic == MAGIC_6:
             return (magic, self.type)
         else:
@@ -495,13 +494,13 @@ class Section(BytesModel):
         if magic == MAGIC_2:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.ident = dbytes.read_int(4)
+            self.type = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             self.id = dbytes.read_id()
         elif magic == MAGIC_3:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
-            self.ident = dbytes.read_int(4)
+            self.type = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
             self.id = dbytes.read_id()
         elif magic == MAGIC_5:
@@ -540,11 +539,11 @@ class Section(BytesModel):
         self.raw_data = dbytes.read_bytes(self.data_end - dbytes.pos,
                                           or_to_eof=True)
 
-    def match(self, magic, ident=None, version=None):
+    def match(self, magic, type=None, version=None):
         """Match the section's type information."""
         if magic != self.magic:
             return False
-        if ident is not None and ident != self.ident:
+        if type is not None and type != self.type:
             return False
         if version is not None and version != self.version:
             return False
@@ -556,7 +555,7 @@ class Section(BytesModel):
         dbytes.write_int(4, magic)
         if magic in (MAGIC_2, MAGIC_3):
             with dbytes.write_size():
-                dbytes.write_int(4, self.ident)
+                dbytes.write_int(4, self.type)
                 dbytes.write_int(4, self.version)
                 dbytes.write_id(self.id)
                 yield
@@ -601,8 +600,8 @@ class Section(BytesModel):
 
     def _print_type(self, p):
         type_str = ""
-        if self.ident is not None:
-            type_str += f" type 0x{self.ident:02x}"
+        if self.type is not None:
+            type_str += f" type 0x{self.type:02x}"
         if self.version is not None:
             type_str += f" ver {self.version}"
         if self.id is not None:
