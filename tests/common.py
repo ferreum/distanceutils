@@ -3,7 +3,7 @@ from io import BytesIO
 
 from distance.bytes import DstBytes
 from distance.level import Level, Layer
-from distance.base import BaseObject, Fragment
+from distance.base import BaseObject
 
 
 def disable_writes(dbytes):
