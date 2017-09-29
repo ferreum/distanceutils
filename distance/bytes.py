@@ -76,8 +76,10 @@ class BytesModel(object):
 
         """Read an object as far as possible.
 
-        If an error occurs, return the partially read object.
-        The exception is stored in the object's `exception` attribute."""
+        If an error occurs, return the partially read object. The exception is
+        stored in the object's `exception` attribute.
+
+        """
 
         dbytes = DstBytes.from_arg(dbytes)
         obj = clazz(plain=True)
@@ -89,6 +91,15 @@ class BytesModel(object):
 
     @classmethod
     def iter_n_maybe(clazz, dbytes, n, **kw):
+
+        """Create an iterator for reading the given number of objects.
+
+        If an error occurs, yield the partially read object. The exception is
+        stored in the object's `exception` attribute. The iterator exits
+        after reading `n` objects or if a read object has non-sane end-pos.
+
+        """
+
         dbytes = DstBytes.from_arg(dbytes)
         for _ in range(n):
             obj = clazz.maybe(dbytes, **kw)
@@ -98,6 +109,7 @@ class BytesModel(object):
 
     @classmethod
     def iter_maybe(clazz, dbytes, max_pos=None, **kw):
+        """Like `iter_n_maybe()`, but do not limit the number of objects."""
         dbytes = DstBytes.from_arg(dbytes)
         while max_pos is None or dbytes.pos < max_pos:
             obj = clazz.maybe(dbytes, **kw)
@@ -107,6 +119,14 @@ class BytesModel(object):
 
     @classmethod
     def read_n_maybe(clazz, dbytes, *args, **kw):
+
+        """Read a list of objects from `dbytes` as far as possible.
+
+        If an error occurs, return the partially read list. The exception is
+        stored in the last object's `exception` attribute.
+
+        """
+
         dbytes = DstBytes.from_arg(dbytes)
         objs = []
         for obj in clazz.iter_n_maybe(dbytes, *args, **kw):
@@ -115,6 +135,15 @@ class BytesModel(object):
 
     @classmethod
     def lazy_n_maybe(clazz, dbytes, n, *args, start_pos=None, **kw):
+
+        """Like `read_n_maybe()`, but create a `LazySequence`.
+
+        The returned sequence reads objects only on first access. This means
+        errors may occur when accessing an element. See
+        `distance.lazy.LazySequence`.
+
+        """
+
         dbytes = DstBytes.from_arg(dbytes)
         gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
@@ -123,10 +152,10 @@ class BytesModel(object):
 
         """Constructor.
 
-        If dbytes is set, also call self.read() with the given dbytes and all
-        optional **kw parameters.
+        If `dbytes` is set, also call `self.read()` with the given `dbytes` and
+        all optional `**kw` parameters.
 
-        If dbytes is unset or None, set the given **kw parameters as
+        If `dbytes` is unset or `None`, set the given `**kw` parameters as
         attributes on the new object.
 
         """
@@ -144,26 +173,27 @@ class BytesModel(object):
 
     def read(self, dbytes, start_section=None, opts=None, **kw):
 
-        """Read data of this object from the given dbytes.
+        """Read data of this object from `dbytes`.
 
-        Subclasses need to implement self._read() for this to work.
-        Subclasses should never override self.read().
+        Subclasses need to implement `_read()` for this to work. Subclasses
+        should never override `read()`.
 
-        Exceptions raised in self._read() gain the following attributes:
+        Exceptions raised in `_read()` gain the following attributes:
 
-        start_pos - dbytes.pos when entering this method, or start_pos of
-                    parameter start_section, if set.
-        exc_pos   - dbytes.pos where the exception occurred.
-        sane_end_pos - Whether dbytes.pos is considered sane (see below).
-        partial_object - Set to self only if self.recoverable is set to true.
+        `start_pos`      - `start_pos` of `start_section`, if set. Otherwise,
+                           `dbytes.pos` when entering this method.
+        `exc_pos`        - `dbytes.pos` where the exception occurred.
+        `sane_end_pos`   - Whether `dbytes.pos` is considered sane (see below).
+        `partial_object` - Set to self only if `self.recoverable` is set
+                           to true.
 
-        EOFError occuring in self._read() are converted to
-        UnexpectedEOFError if any data has been read from dbytes.
+        `EOFError` occuring in `_read()` are converted to
+        `UnexpectedEOFError` if any data has been read from `dbytes`.
 
-        After _read(), regardless of whether an exception was raised,
-        it is attempted to set dbytes.pos to the position reported
-        (if it was) with _report_end_pos(). If this is successful,
-        the dbytes.pos is considered sane.
+        After `_read()`, regardless of whether an exception was raised,
+        it is attempted to set `dbytes.pos` to the position reported
+        (if it was) with `_report_end_pos()`. If this is successful,
+        the `dbytes.pos` is considered sane.
 
         """
 
@@ -226,12 +256,12 @@ class BytesModel(object):
 
     def _read_section_data(self, dbytes, sec):
 
-        """Reads the data of the given section.
+        """Read data of the given section.
 
         Returns `True` if the raw section data is not needed.
 
         Returns `False` to indicate that raw data of the section
-        shall be saved (e.g. for _write_section_data).
+        shall be saved (e.g. for `_write_section_data()`).
 
         """
 
@@ -252,14 +282,14 @@ class BytesModel(object):
 
     def _write_section_data(self, dbytes, sec):
 
-        """Write the data of the given section.
+        """Write data of the given section.
 
         Returns `True` if the section has been written.
 
         Returns `False` if the raw section data shall be copied
         from the source that this object has been read from. This
         is an error if raw data has not been saved for the section
-        (e.g. by returning False from _read_section_data).
+        (e.g. by returning `False` from `_read_section_data`).
 
         """
 
@@ -288,7 +318,7 @@ class BytesModel(object):
 
     def write(self, dbytes):
 
-        """Writes this object to the given dbytes.
+        """Write this object to `dbytes`.
 
         Subclasses need to implement this method.
 
@@ -399,8 +429,7 @@ class Section(BytesModel):
 
     def __init__(self, *args, **kw):
         if args:
-            first = args[0]
-            if not isinstance(first, (int, Section)):
+            if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
                 return
         if args or kw:
@@ -451,6 +480,7 @@ class Section(BytesModel):
         return f"Section({argstr})"
 
     def to_key(self):
+        """Create a key of this section's type identity."""
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
             return (magic, self.ident, self.version)
@@ -506,10 +536,12 @@ class Section(BytesModel):
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
 
     def read_raw_data(self, dbytes):
+        """Save this section's raw data in its `raw_data` attribute."""
         self.raw_data = dbytes.read_bytes(self.data_end - dbytes.pos,
                                           or_to_eof=True)
 
     def match(self, magic, ident=None, version=None):
+        """Match the section's type information."""
         if magic != self.magic:
             return False
         if ident is not None and ident != self.ident:
@@ -589,10 +621,7 @@ class Section(BytesModel):
 
 class DstBytes(object):
 
-    """File wrapper providing methods for reading and writing common data
-    types used in .bytes files.
-
-    """
+    """File wrapper for reading and writing data of .bytes files."""
 
     _max_pos = None
     _expect_overread = False
@@ -604,17 +633,33 @@ class DstBytes(object):
 
     @classmethod
     def in_memory(cls):
+        """Create an empty in-memory instance."""
         from io import BytesIO
         return DstBytes(BytesIO())
 
     @classmethod
     def from_data(cls, data):
-        """Create a DstBytes reading the given bytes object."""
+        """Create a new instance for reading the given bytes object."""
         from io import BytesIO
         return DstBytes(BytesIO(data))
 
     @classmethod
     def from_arg(cls, arg):
+
+        """Get a readable instance according to the given argument.
+
+        If `arg` is an instance of this class, it is returned as-is.
+
+        If `arg` is a `str` or `bytes`, it is used as a file name. The file at
+        this path is then read completely into a `io.BytesIO`, which is then
+        wrapped with a new instance.
+
+        Otherwise, `arg` is assumed to be a binary file, and is wrapped with a
+        new instance.
+
+        """
+
+
         if isinstance(arg, cls):
             return arg
         if isinstance(arg, (str, bytes)):
@@ -624,7 +669,7 @@ class DstBytes(object):
             from io import BytesIO
             with open(arg, 'rb') as f:
                 data = f.read()
-            return DstBytes(BytesIO(data))
+            return cls(BytesIO(data))
         arg.read # raises if arg has no read method
         try:
             file_mode = arg.mode
@@ -635,10 +680,18 @@ class DstBytes(object):
         else:
             if not 'b' in file_mode:
                 raise IOError(f"File needs be opened with 'b' mode.")
-        return DstBytes(arg)
+        return cls(arg)
 
     @property
     def pos(self):
+
+        """Get or set the current position.
+
+        This is the same as calling the wrapped file's `tell()` or `seek()`
+        methods.
+
+        """
+
         return self.file.tell()
 
     @pos.setter
@@ -647,6 +700,7 @@ class DstBytes(object):
 
     @contextmanager
     def limit(self, max_pos, expect_overread=False):
+        """Limit the read position to the given maximum."""
         old_max = self._max_pos
         if old_max is not None and max_pos > old_max:
             raise ValueError("cannot extend max_pos")
@@ -661,6 +715,14 @@ class DstBytes(object):
             self._max_pos = old_max
 
     def read_bytes(self, n, or_to_eof=False):
+
+        """Read the given number of bytes.
+
+        This is the single method for reading data of the wrapped file. All
+        `read_` methods use this method to access data.
+
+        """
+
         if n == 0:
             return b''
         if n < 0:
@@ -706,6 +768,14 @@ class DstBytes(object):
         return self.read_int(4)
 
     def write_bytes(self, data):
+
+        """Writes the given bytes.
+
+        This is the single method for writing data to the wrapped file. All
+        `write_` methods use this method to write data.
+
+        """
+
         self.file.write(data)
 
     def write_int(self, length, value, signed=False):
@@ -731,6 +801,18 @@ class DstBytes(object):
         self.write_int(4, id_)
 
     def stable_iter(self, source, start_pos=None):
+
+        """Wrap the `source` for safe iteration using this instance.
+
+        The returned iterator restores the saved position before every call to
+        `__next__` and saves it afterwards.
+
+        `start_pos` specifies the position before the first iteration. If
+        `start_pos` is unset or `None`, the current position at the time of
+        this call is used.
+
+        """
+
         if start_pos is None:
             start_pos = self.pos
         def gen():
@@ -751,6 +833,7 @@ class DstBytes(object):
 
     @contextmanager
     def write_size(self):
+        """Write the size of the data written inside this context."""
         start = self.pos
         self.write_bytes(b'\x00' * 8)
         try:
@@ -762,6 +845,13 @@ class DstBytes(object):
 
     @contextmanager
     def write_num_subsections(self):
+
+        """Write the number of sections written inside this context.
+
+        Only sections written with `write_section()` are counted.
+
+        """
+
         start = self.pos
         self.write_bytes(b'\x00' * 4)
         try:
@@ -772,6 +862,15 @@ class DstBytes(object):
 
     @contextmanager
     def write_section(self, *args, **kw):
+
+        """Write the given section.
+
+        Section data is written inside this context. Arguments are either a
+        single parameter containing a `Section` to be written or arguments to
+        be passed to `Section()`.
+
+        """
+
         # add this section and save the counter
         old_count = self.num_subsections + 1
         self.num_subsections = 0
@@ -787,6 +886,13 @@ class DstBytes(object):
 
     @contextmanager
     def saved_pos(self, set_to=None):
+
+        """Save the position on enter and restore it on exit.
+
+        If set and not `None`, set the position to `set_to` on enter.
+
+        """
+
         old_pos = self.pos
         if set_to is not None:
             self.pos = set_to
