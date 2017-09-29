@@ -56,7 +56,7 @@ def select_candidates(source, args):
 
 
 def print_candidates(candidates):
-    p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+    p = PrintContext(flags=('groups', 'subobjects'))
     p(f"Candidates: {len(candidates)}")
     with p.tree_children():
         for i, obj in enumerate(candidates):

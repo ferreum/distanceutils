@@ -33,7 +33,7 @@ def main():
 
     print_filename = 'filename' in flags or len(args.FILE) > 1
 
-    p = PrintContext(file=sys.stdout, flags=flags)
+    p = PrintContext(flags=flags)
 
     have_error = False
     for fname in args.FILE:

@@ -164,7 +164,7 @@ def main():
         print_candidates(matcher.matches)
         return 1
 
-    p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+    p = PrintContext(flags=('groups', 'subobjects'))
     p.print_data_of(content)
     num_objs, num_groups = count_objects(matcher.matches)
     p(f"Removed matches: {len(matcher.matches)}")

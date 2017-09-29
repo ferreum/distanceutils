@@ -223,7 +223,7 @@ def main():
     else:
         # CustomObject
         object_source = iter_objects([content])
-    p = PrintContext(file=sys.stdout, flags=())
+    p = PrintContext()
     for obj in object_source:
         matcher.visit_object(obj, p)
     if matcher.sections:
