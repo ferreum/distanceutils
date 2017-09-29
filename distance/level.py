@@ -217,7 +217,7 @@ class Level(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
-            raise IOError(f"Unexpected section: {sec.magic}")
+            raise ValueError(f"Unexpected section: {sec.magic}")
         self._report_end_pos(sec.data_end)
         self.level_name = sec.level_name
         self.num_layers = sec.num_layers
@@ -231,7 +231,7 @@ class Level(Fragment):
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
-            raise IOError(f"Unexpected section: {sec.magic}")
+            raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
             obj.write(dbytes)
         return True

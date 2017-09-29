@@ -349,13 +349,13 @@ class BytesModel(object):
     def _require_type(self, expect):
         ts = self._get_start_section()
         if not ts:
-            raise IOError("Missing type information")
+            raise ValueError("Missing type information")
         if isinstance(expect, str):
             if ts.type != expect:
-                raise IOError(f"Invalid object type: {ts.type}")
+                raise ValueError(f"Invalid object type: {ts.type}")
         else:
             if not expect(ts.type):
-                raise IOError(f"Invalid object type: {ts.type}")
+                raise ValueError(f"Invalid object type: {ts.type}")
         return ts
 
     def _add_unknown(self, nbytes=None, value=None, or_to_eof=False):
@@ -371,7 +371,7 @@ class BytesModel(object):
         if nbytes is not None:
             value = self.dbytes.read_int(nbytes)
         if value != expect:
-            raise IOError(f"Unexpected data: {value!r}")
+            raise ValueError(f"Unexpected data: {value!r}")
 
 
 class Section(BytesModel):
@@ -497,7 +497,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.pos
         else:
-            raise IOError(f"unknown section: {magic} (0x{magic:08x})")
+            raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
 
     def read_raw_data(self, dbytes):
         self.raw_data = dbytes.read_bytes(self.data_end - dbytes.pos,
@@ -620,7 +620,7 @@ class DstBytes(object):
     def limit(self, max_pos, expect_overread=False):
         old_max = self._max_pos
         if old_max is not None and max_pos > old_max:
-            raise IOError("cannot extend max_pos")
+            raise ValueError("cannot extend max_pos")
         self._expect_overread = expect_overread
         self._max_pos = max_pos
         try:

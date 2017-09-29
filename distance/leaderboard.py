@@ -29,7 +29,7 @@ class Entry(BytesModel):
             self.replay = dbytes.read_int(8)
             self._add_unknown(12)
         else:
-            raise IOError(f"unknown version: {version}")
+            raise ValueError(f"unknown version: {version}")
 
 
 class Leaderboard(BaseObject):
