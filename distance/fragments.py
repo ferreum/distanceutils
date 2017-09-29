@@ -29,6 +29,46 @@ def read_n_floats(dbytes, n, default):
         return (f, *(read_float() for _ in range(n - 1)))
 
 
+class NamedPropertiesFragment(Fragment):
+
+    _frag_name = "NamedProperties"
+
+    def __init__(self, *args, **kw):
+        self.props = NamedPropertyList()
+        Fragment.__init__(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.data_size >= 16:
+            self.props.read(dbytes)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        if self.props:
+            self.props.write(dbytes)
+        return True
+
+    def _print_data(self, p):
+        Fragment._print_data(self, p)
+        if 'allprops' in p.flags and self.props:
+            self.props.print_data(p)
+
+
+def named_property_getter(propname, default=None):
+    """Decorate properties to create a getter for a named property."""
+
+    def decorate(func):
+
+        def fget(self):
+            data = self.props.get(propname, None)
+            if not data or data == SKIP_BYTES:
+                return default
+            db = DstBytes.from_data(data)
+            return func(self, db)
+        return property(fget, None, None, doc=func.__doc__)
+
+    return decorate
+
+
 @PROBER.fragment(MAGIC_2, 0x1d, 1)
 class GroupFragment(Fragment):
 
@@ -403,46 +443,6 @@ class MaterialFragment(Fragment):
         Fragment._print_data(self, p)
         if 'allprops' in p.flags and self.materials:
             self.materials.print_data(p)
-
-
-class NamedPropertiesFragment(Fragment):
-
-    _frag_name = "NamedProperties"
-
-    def __init__(self, *args, **kw):
-        self.props = NamedPropertyList()
-        Fragment.__init__(self, *args, **kw)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
-            self.props.read(dbytes)
-        return True
-
-    def _write_section_data(self, dbytes, sec):
-        if self.props:
-            self.props.write(dbytes)
-        return True
-
-    def _print_data(self, p):
-        Fragment._print_data(self, p)
-        if 'allprops' in p.flags and self.props:
-            self.props.print_data(p)
-
-
-def named_property_getter(propname, default=None):
-    """Decorate properties to create a getter for a named property."""
-
-    def decorate(func):
-
-        def fget(self):
-            data = self.props.get(propname, None)
-            if not data or data == SKIP_BYTES:
-                return default
-            db = DstBytes.from_data(data)
-            return func(self, db)
-        return property(fget, None, None, doc=func.__doc__)
-
-    return decorate
 
 
 @PROBER.fragment(MAGIC_2, 0x5d, 0)
