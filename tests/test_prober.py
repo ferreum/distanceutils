@@ -37,6 +37,17 @@ class ProberTest(unittest.TestCase):
         obj = prober.maybe(dbytes)
         self.assertEqual(UnexpectedEOFError, type(obj.exception))
 
+    def test_maybe_propagates_io_exception(self):
+        prober = BytesProber()
+        prober.add_func(lambda *_: TestObject)
+        dbytes = DstBytes.in_memory()
+        dbytes.write_int(4, MAGIC_6)
+        dbytes.pos = 0
+        def raise_error(*_):
+            raise IOError
+        dbytes.read_int = raise_error
+        self.assertRaises(IOError, prober.maybe, dbytes)
+
 
 class RegisteredTest(unittest.TestCase):
 

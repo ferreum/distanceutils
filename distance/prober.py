@@ -1,7 +1,7 @@
 """Probe DstBytes for objects based on .bytes sections."""
 
 
-from .bytes import BytesModel, Section, MAGIC_6
+from .bytes import BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
 from .lazy import LazySequence
 
 
@@ -123,7 +123,7 @@ class BytesProber(object):
             cls, add_kw = self.probe(dbytes, probe_section=probe_section)
         except ProbeError:
             raise
-        except Exception as e:
+        except CATCH_EXCEPTIONS as e:
             ins = self.baseclass()
             ins.exception = e
             return ins
