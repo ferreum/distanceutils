@@ -698,7 +698,6 @@ PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
     (Section(MAGIC_2, 0x39, 0), "ParticleEmitLogic"),
     (Section(MAGIC_2, 0x26, 0), "Light"),
-    (Section(MAGIC_2, 0x27, 0), "PulseMaterial"),
     (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
     (Section(MAGIC_2, 0x43, 0), "InterpolateToPositionOnTrigger"),
     (Section(MAGIC_2, 0x45, 0), None),
