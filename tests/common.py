@@ -16,6 +16,7 @@ def check_exceptions(obj):
     if obj.exception:
         raise obj.exception
     if isinstance(obj, Level):
+        check_exceptions(obj.settings)
         for layer in obj.layers:
             check_exceptions(layer)
     if isinstance(obj, Layer):
