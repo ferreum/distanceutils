@@ -101,6 +101,19 @@ class ObjectMatcher(object):
         return level
 
 
+def count_objects(objs):
+    n_obj = 0
+    n_grp = 0
+    for obj in objs:
+        n_obj += 1
+        if obj.is_object_group:
+            n_grp += 1
+            res = count_objects(obj.children)
+            n_obj += res[0]
+            n_grp += res[1]
+    return n_obj, n_grp
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
@@ -147,7 +160,13 @@ def main():
             return 1
         else:
             with open(args.OUT, write_mode) as out_f:
-                result.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+                p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+                p.print_data_of(result)
+                num_objs, num_groups = count_objects(matcher.matches)
+                p(f"Removed matches: {len(matcher.matches)}")
+                if num_objs != len(matcher.matches):
+                    p(f"Removed objects: {num_objs}")
+                    p(f"Removed groups: {num_groups}")
                 dbytes = DstBytes(out_f)
                 result.write(dbytes)
                 print(f"{dbytes.pos} bytes written")
