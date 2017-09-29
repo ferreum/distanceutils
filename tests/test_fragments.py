@@ -1,6 +1,3 @@
-import unittest
-from io import BytesIO
-
 from distance.base import Fragment
 from distance.fragments import (
     PROBER,
@@ -11,30 +8,6 @@ from distance.fragments import (
 )
 from distance.bytes import DstBytes, SKIP_BYTES
 from tests import common
-
-
-def disable_writes(dbytes):
-    def do_raise(*args, **kwargs):
-        raise AssertionError("attempted to write")
-    dbytes.write_bytes = do_raise
-
-
-def write_read(obj, read_func=None):
-    if read_func is None:
-        read_func = type(obj)
-
-    buf = BytesIO()
-    dbytes = DstBytes(buf)
-
-    obj.write(dbytes)
-    dbytes.pos = 0
-    disable_writes(dbytes)
-    result = read_func(dbytes)
-
-    if result.exception:
-        raise result.exception
-
-    return result, buf
 
 
 class Base(object):

@@ -1,8 +1,4 @@
-import unittest
-from io import BytesIO
-
 from distance.level import Level
-from distance.bytes import DstBytes
 
 
 class Base(object):

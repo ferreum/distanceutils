@@ -3,9 +3,8 @@ from io import BytesIO
 
 from distance.levelobjects import (
     LevelObject, WedgeGS, Group, InfoDisplayBox, WinLogic,
-    SubTeleporter
 )
-from distance.level import Level, Layer
+from distance.level import Level
 from distance.levelobjects import PROBER as LEVEL_PROBER
 from distance.bytes import DstBytes
 from distance.base import BaseObject
