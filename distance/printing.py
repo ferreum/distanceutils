@@ -1,16 +1,17 @@
 """Utilities for printing object data."""
 
 
-from contextlib import contextmanager
+import sys
 import traceback
 import math
+from contextlib import contextmanager
 
 
 class PrintContext(object):
 
     """Context class for printing objects."""
 
-    def __init__(self, file, flags):
+    def __init__(self, file=sys.stdout, flags=()):
         self.file = file
         self.flags = flags
         # buffered lines, object finished
