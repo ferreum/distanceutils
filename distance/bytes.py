@@ -600,8 +600,13 @@ class Section(BytesModel):
 
     def _print_type(self, p):
         type_str = ""
-        if self.type is not None:
-            type_str += f" type 0x{self.type:02x}"
+        magic = self.magic
+        if magic in (MAGIC_2, MAGIC_3):
+            if self.type is not None:
+                type_str += f" type 0x{self.type:02x}"
+        if magic == MAGIC_6:
+            if self.type is not None:
+                type_str += f" type {self.type!r}"
         if self.version is not None:
             type_str += f" ver {self.version}"
         if self.id is not None:
