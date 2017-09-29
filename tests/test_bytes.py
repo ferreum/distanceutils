@@ -1,5 +1,4 @@
 import unittest
-from contextlib import contextmanager
 
 from distance.bytes import DstBytes, MAGIC_6
 
