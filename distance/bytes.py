@@ -604,7 +604,6 @@ class DstBytes(object):
     @classmethod
     def from_data(cls, data):
         """Create a DstBytes reading the given bytes object."""
-        from .bytes import DstBytes
         from io import BytesIO
         return DstBytes(BytesIO(data))
 
