@@ -108,15 +108,19 @@ def main():
         else:
             print("no matching object found", file=sys.stderr)
 
-        if tosave is not None:
-            with open(args.OUT, write_mode) as out_f:
-                tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
-                dbytes = DstBytes(out_f)
-                tosave.write(dbytes)
-                print(f"{dbytes.pos} bytes written")
-                return 0
+        if tosave is None:
+            return 1
 
-    return 1
+        tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+
+        print("writing...")
+        dbytes = DstBytes.in_memory()
+        tosave.write(dbytes)
+
+    with open(args.OUT, write_mode) as out_f:
+        out_f.write(dbytes.file.getbuffer())
+    print(f"{len(dbytes.file.getbuffer())} bytes written")
+    return 0
 
 
 if __name__ == '__main__':
