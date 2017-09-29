@@ -137,7 +137,7 @@ def main():
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    do_write = args.all or bool(args.objnum)
+    do_write = args.force or args.all or bool(args.objnum)
     if do_write:
         write_mode = 'xb'
         if args.force:
