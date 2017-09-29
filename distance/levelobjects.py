@@ -13,8 +13,8 @@ from .fragments import (
     GoldenSimplesFragment,
     GroupFragment,
     CustomNameFragment,
-    BaseTeleporterEntranceFragment,
-    BaseTeleporterExitFragment,
+    TeleporterEntranceMixin,
+    TeleporterExitMixin,
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
     ForceZoneFragment,
@@ -23,8 +23,8 @@ from .fragments import (
     SphereColliderFragment,
     GravityToggleFragment,
     MusicTriggerFragment,
-    BaseCarScreenTextDecodeTriggerFragment,
-    BaseInfoDisplayLogicFragment,
+    CarScreenTextDecodeTriggerMixin,
+    InfoDisplayLogicMixin,
 )
 from .prober import BytesProber
 from .printing import need_counters
@@ -145,8 +145,8 @@ class Group(ForwardFragmentAttrs, LevelObject):
 class SubTeleporter(ForwardFragmentAttrs, SubObject):
 
     forward_fragment_attrs = (
-        (BaseTeleporterEntranceFragment, dict(destination=None)),
-        (BaseTeleporterExitFragment, dict(link_id=None)),
+        (TeleporterEntranceMixin, dict(destination=None)),
+        (TeleporterExitMixin, dict(link_id=None)),
         (TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None)),
     )
 
@@ -171,7 +171,7 @@ class WorldText(ForwardFragmentAttrs, LevelObject):
 class InfoDisplayBox(ForwardFragmentAttrs, LevelObject):
 
     forward_fragment_attrs = (
-        (BaseInfoDisplayLogicFragment, dict(
+        (InfoDisplayLogicMixin, dict(
             fadeout_time = None,
             texts = (),
             per_char_speed = None,
@@ -185,7 +185,7 @@ class InfoDisplayBox(ForwardFragmentAttrs, LevelObject):
 class CarScreenTextDecodeTrigger(ForwardFragmentAttrs, LevelObject):
 
     forward_fragment_attrs = (
-        (BaseCarScreenTextDecodeTriggerFragment, dict(
+        (CarScreenTextDecodeTriggerMixin, dict(
             text = None,
             per_char_speed = None,
             clear_on_finish = None,
