@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 import re
+from io import BytesIO
 
 from distance.level import Level
 from distance.levelobjects import PROBER as LEVEL_PROBER
@@ -121,7 +122,7 @@ def main():
                         help="Allow overwriting OUT file.")
     parser.add_argument("-n", "--objnum", action='append',
                         type=int, default=[],
-                        help="Object number to extract.")
+                        help="Select by candidate number.")
     parser.add_argument("-a", "--all", action='store_true',
                         help="Filter out all matching objects.")
     parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
@@ -158,19 +159,24 @@ def main():
             from .mkcustomobject import print_candidates
             print_candidates(matcher.matches)
             return 1
-        else:
-            with open(args.OUT, write_mode) as out_f:
-                p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
-                p.print_data_of(result)
-                num_objs, num_groups = count_objects(matcher.matches)
-                p(f"Removed matches: {len(matcher.matches)}")
-                if num_objs != len(matcher.matches):
-                    p(f"Removed objects: {num_objs}")
-                    p(f"Removed groups: {num_groups}")
-                dbytes = DstBytes(out_f)
-                result.write(dbytes)
-                print(f"{dbytes.pos} bytes written")
-                return 0
+
+        p = PrintContext(file=sys.stdout, flags=('groups', 'subobjects'))
+        p.print_data_of(result)
+        num_objs, num_groups = count_objects(matcher.matches)
+        p(f"Removed matches: {len(matcher.matches)}")
+        if num_objs != len(matcher.matches):
+            p(f"Removed objects: {num_objs}")
+            p(f"Removed groups: {num_groups}")
+
+        buf = BytesIO()
+        dbytes = DstBytes(buf)
+        result.write(dbytes)
+
+    with open(args.OUT, write_mode) as out_f:
+        out_f.write(buf.getbuffer())
+
+    print(f"{len(buf.getbuffer())} bytes written")
+    return 0
 
 
 if __name__ == '__main__':
