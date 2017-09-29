@@ -730,7 +730,6 @@ PROPERTY_FRAGS = (
     # from v7 PlanetWithSphericalGravity
     (Section(22222222, 0x5f, 0), None),
     # from s8 (map "Pumpkin Patch")
-    (Section(22222222, 0x29, 0), None), # from SoccerGoalLogic
     (Section(22222222, 0x38, 0), None), # from HalloweenSpotlight1, RotatingSpotLight
     # from v5 VirusSpiritShard
     (Section(22222222, 0x67, 0), None),

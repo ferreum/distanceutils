@@ -119,6 +119,16 @@ class OldTeleporterTest(unittest.TestCase):
             self.assertEqual(0, tele.destination)
 
 
+class SoccerGoalTest(unittest.TestCase):
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/soccergoal.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            check_exceptions(obj)
+            p.print_data_of(obj)
+
+
 class GravityTriggerTest(unittest.TestCase):
 
     def test_default(self):
