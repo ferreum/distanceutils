@@ -194,10 +194,27 @@ class GoldenSimplesFragment(Fragment):
         p(f"Fragment: GoldenSimples")
 
 
+class BaseTeleporterEntranceFragment(object):
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        if self.destination is not None:
+            p(f"Teleports to: {self.destination}")
+
+
+@PROBER.fragment(MAGIC_2, 0x3e, 0)
+class OldTeleporterEntranceFragment(BaseTeleporterEntranceFragment, NamedPropertiesFragment):
+
+    @named_property_getter('LinkID', default=0)
+    def destination(self, db):
+        # type guessed - no example available
+        return db.read_int(4)
+
+
 @PROBER.fragment(MAGIC_2, 0x3e, 1)
 @PROBER.fragment(MAGIC_2, 0x3e, 2)
 @PROBER.fragment(MAGIC_2, 0x3e, 3)
-class TeleporterEntranceFragment(Fragment):
+class TeleporterEntranceFragment(BaseTeleporterEntranceFragment, Fragment):
 
     destination = None
 
@@ -211,8 +228,16 @@ class TeleporterEntranceFragment(Fragment):
             p(f"Teleports to: {self.destination}")
 
 
+class BaseTeleporterExitFragment(object):
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        if self.link_id is not None:
+            p(f"Link ID: {self.link_id}")
+
+
 @PROBER.fragment(MAGIC_2, 0x3f, 1)
-class TeleporterExitFragment(Fragment):
+class TeleporterExitFragment(BaseTeleporterExitFragment, Fragment):
 
     link_id = None
 
@@ -220,10 +245,14 @@ class TeleporterExitFragment(Fragment):
         self.link_id = dbytes.read_int(4)
         return False
 
-    def _print_data(self, p):
-        Fragment._print_data(self, p)
-        if self.link_id is not None:
-            p(f"Link ID: {self.link_id}")
+
+@PROBER.fragment(MAGIC_2, 0x3f, 0)
+class OldTeleporterExitFragment(BaseTeleporterExitFragment, NamedPropertiesFragment):
+
+    @named_property_getter('LinkID', default=0)
+    def link_id(self, db):
+        # type guessed - no example available
+        return db.read_int(4)
 
 
 @PROBER.fragment(MAGIC_2, 0x51, 0)

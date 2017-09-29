@@ -16,8 +16,8 @@ from .fragments import (
     GoldenSimplesFragment,
     GroupFragment,
     CustomNameFragment,
-    TeleporterEntranceFragment,
-    TeleporterExitFragment,
+    BaseTeleporterEntranceFragment,
+    BaseTeleporterExitFragment,
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
     ForceZoneFragment,
@@ -177,8 +177,8 @@ class Group(ForwardFragmentAttrs, LevelObject):
 class SubTeleporter(ForwardFragmentAttrs, SubObject):
 
     forward_fragment_attrs = (
-        (TeleporterEntranceFragment, dict(destination=None)),
-        (TeleporterExitFragment, dict(link_id=None)),
+        (BaseTeleporterEntranceFragment, dict(destination=None)),
+        (BaseTeleporterExitFragment, dict(link_id=None)),
         (TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None)),
     )
 

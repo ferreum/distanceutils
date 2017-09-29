@@ -106,6 +106,19 @@ class TeleExitTest(unittest.TestCase):
             p.print_data_of(obj)
 
 
+class OldTeleporterTest(unittest.TestCase):
+
+    def test_read(self):
+        p = PrintContext.for_test()
+        with open("tests/in/customobject/tele v0.bytes", 'rb') as f:
+            obj = PROBER.read(DstBytes(f))
+            p.print_data_of(obj)
+            tele = next(obj.iter_children(name='Teleporter'))
+            self.assertIsInstance(tele, SubTeleporter)
+            self.assertEqual(0, tele.link_id)
+            self.assertEqual(0, tele.destination)
+
+
 class GravityTriggerTest(unittest.TestCase):
 
     def test_default(self):
