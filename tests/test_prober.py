@@ -1,7 +1,7 @@
 import unittest
 from contextlib import contextmanager
 
-from distance.bytes import DstBytes
+from distance.bytes import DstBytes, MAGIC_6, UnexpectedEOFError
 from distance.prober import BytesProber
 from distance.base import BaseObject
 from distance.knowntypes import read
@@ -27,6 +27,15 @@ class ProberTest(unittest.TestCase):
         with bytes_from("tests/in/customobject/2cubes.bytes") as dbytes:
             obj = prober.read(dbytes)
             self.assertEqual(True, obj.init_args['plain'])
+
+    def test_maybe_catches_exception(self):
+        prober = BytesProber()
+        prober.add_func(lambda *_: TestObject)
+        dbytes = DstBytes.in_memory()
+        dbytes.write_int(4, MAGIC_6)
+        dbytes.pos = 0
+        obj = prober.maybe(dbytes)
+        self.assertEqual(UnexpectedEOFError, type(obj.exception))
 
 
 class RegisteredTest(unittest.TestCase):
