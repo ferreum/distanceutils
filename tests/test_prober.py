@@ -2,6 +2,8 @@ import unittest
 from contextlib import contextmanager
 
 from distance.bytes import DstBytes
+from distance.prober import BytesProber
+from distance.base import BaseObject
 from distance.knowntypes import read
 
 
@@ -11,7 +13,23 @@ def bytes_from(name):
         yield DstBytes(f)
 
 
+class TestObject(BaseObject):
+
+    def __init__(self, **kw):
+        self.init_args = kw
+
+
 class ProberTest(unittest.TestCase):
+
+    def test_read_creates_plain_object(self):
+        prober = BytesProber()
+        prober.add_func(lambda *_: TestObject)
+        with bytes_from("tests/in/customobject/2cubes.bytes") as dbytes:
+            obj = prober.read(dbytes)
+            self.assertEqual(True, obj.init_args['plain'])
+
+
+class RegisteredTest(unittest.TestCase):
 
     def test_levelinfos(self):
         for ver in range(0, 1):

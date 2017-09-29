@@ -114,7 +114,7 @@ class BytesProber(object):
     def read(self, dbytes, probe_section=None, **kw):
         cls, add_kw = self.probe(dbytes, probe_section=probe_section)
         kw.update(add_kw)
-        obj = cls()
+        obj = cls(plain=True)
         obj.read(dbytes, **kw)
         return obj
 
