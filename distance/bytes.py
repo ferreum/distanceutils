@@ -79,6 +79,7 @@ class BytesModel(object):
         If an error occurs, return the partially read object.
         The exception is stored in the object's `exception` attribute."""
 
+        dbytes = DstBytes.from_arg(dbytes)
         obj = clazz(plain=True)
         try:
             obj.read(dbytes, **kw)
@@ -88,6 +89,7 @@ class BytesModel(object):
 
     @classmethod
     def iter_n_maybe(clazz, dbytes, n, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         for _ in range(n):
             obj = clazz.maybe(dbytes, **kw)
             yield obj
@@ -96,6 +98,7 @@ class BytesModel(object):
 
     @classmethod
     def iter_maybe(clazz, dbytes, max_pos=None, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         while max_pos is None or dbytes.pos < max_pos:
             obj = clazz.maybe(dbytes, **kw)
             yield obj
@@ -103,14 +106,16 @@ class BytesModel(object):
                 break
 
     @classmethod
-    def read_n_maybe(clazz, *args, **kw):
+    def read_n_maybe(clazz, dbytes, *args, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         objs = []
-        for obj in clazz.iter_n_maybe(*args, **kw):
+        for obj in clazz.iter_n_maybe(dbytes, *args, **kw):
             objs.append(obj)
         return objs
 
     @classmethod
     def lazy_n_maybe(clazz, dbytes, n, *args, start_pos=None, **kw):
+        dbytes = DstBytes.from_arg(dbytes)
         gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
