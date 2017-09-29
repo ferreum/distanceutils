@@ -2,8 +2,8 @@ import unittest
 import math
 
 from distance.level import Level, need_counters
-from distance.bytes import DstBytes
 from distance.printing import PrintContext
+from tests.common import check_exceptions
 
 
 def objects_with_groups(gen):
@@ -38,7 +38,7 @@ class BaseTest(unittest.TestCase):
     def getLevel(self, filename, with_layers=False, with_groups=False,
                  with_subobjects=False):
         f = self.open(filename)
-        self.level = level = Level(DstBytes(f))
+        self.level = level = Level(f)
         gen = level.iter_objects(with_layers=with_layers)
         if with_groups:
             gen = objects_with_groups(gen)
@@ -53,12 +53,7 @@ class BaseTest(unittest.TestCase):
             if obj.exception:
                 raise obj.exception
         self.subobjects = list(get_subobjects(objects, False))
-        for obj in self.subobjects:
-            if obj.exception:
-                raise obj.exception
-            for frag in obj.fragments:
-                if frag.exception:
-                    raise frag.exception
+        check_exceptions(level)
         return level, objects
 
     def assertTimes(self, *times):
@@ -80,8 +75,7 @@ class Base(object):
             for file in self.files:
                 with self.subTest(file=file):
                     p = PrintContext.for_test()
-                    f = self.open(f"tests/in/level-not-included/{file}.bytes")
-                    p.print_data_of(Level(DstBytes(f)))
+                    p.print_data_of(Level(f"tests/in/level-not-included/{file}.bytes"))
 
 
 class Version0Test(BaseTest):
@@ -103,18 +97,9 @@ class Version0Test(BaseTest):
 
 class Version1Test(BaseTest):
 
-    MANY_LEVELS = ("attempt", "car crusher", "city", "construction zone", "contraband delivery", "entanglement",
-                   "escape the core", "flashback", "giant butts", "hardcore black", "hexopolis", "hextreme",
-                   "optimal routing", "qwe", "racingcars", "returnofandy", "saw ride", "scratchdisk", "solid",
-                   "spectagular", "storm belt", "the virus begins", "traps", "upandup", "vertical king",
-                   "damnation")
-
-    def test_magi(self):
-        level, objects = self.getLevel("tests/in/level-not-included/v1/magi.bytes")
-        self.assertEqual(level.level_name, "Magi")
-        self.assertTimes(195000, 200000, 260000, 320000)
-        self.assertEqual(len(objects), 882)
-        self.assertEqual(len(self.subobjects), 1133)
+    MANY_LEVELS = ("car crusher", "city", "contraband delivery",
+                   "entanglement", "qwe", "returnofandy",
+                   "the virus begins", "damnation")
 
     def test_building_hop(self):
         level, objects = self.getLevel("tests/in/level-not-included/v1/building hop.bytes")
@@ -145,16 +130,10 @@ class Version1Test(BaseTest):
         self.assertEqual(len(objects), 608)
         self.assertEqual(len(self.subobjects), 1145)
 
-    def test_many_success(self):
-        for name in self.MANY_LEVELS:
-            with self.subTest(name=name):
-                self.getLevel(f"tests/in/level-not-included/v1/{name}.bytes")
-            self.close_files()
-
 
 class Version1PrintTest(Base.PrintTest):
 
-    files = ["v1/" + n for n in Version1Test.MANY_LEVELS]
+    files = ["v1/" + n for n in Version1Test.MANY_LEVELS[:3]]
 
 
 class Version3Test(BaseTest):
@@ -166,20 +145,6 @@ class Version3Test(BaseTest):
         self.assertEqual(len(objects), 326)
         self.assertEqual(len(self.subobjects), 516)
 
-    def test_greenhouse(self):
-        level, objects = self.getLevel("tests/in/level-not-included/v3/tree.bytes")
-        self.assertEqual(level.level_name, "[STE] Greenhouse")
-        self.assertTimes(0, 0, 0, 0)
-        self.assertEqual(len(objects), 359)
-        self.assertEqual(len(self.subobjects), 302)
-
-    def test_fullpipe_with_groups(self):
-        level, objects = self.getLevel("tests/in/level-not-included/v3/fullpipe.bytes", with_groups=True)
-        self.assertEqual(level.level_name, "FullPipeTag")
-        self.assertTimes(0, 0, 0, 0)
-        self.assertEqual(len(objects), 5874)
-        self.assertEqual(len(self.subobjects), 170)
-
     def test_hexagon_18(self):
         level, objects = self.getLevel("tests/in/level-not-included/v3/hexagon 18.bytes", with_groups=True)
         self.assertEqual(level.level_name, "Hexagon 18")
@@ -189,11 +154,11 @@ class Version3Test(BaseTest):
 
     def test_print_groups(self):
         p = PrintContext.for_test(flags=('groups',))
-        f = self.open("tests/in/level-not-included/v3/fullpipe.bytes")
+        f = self.open("tests/in/level-not-included/v3/hexagon 18.bytes")
         with need_counters(p) as counters:
-            level = Level(DstBytes(f))
+            level = Level(f)
             p.print_data_of(level)
-            self.assertEqual(counters.num_objects, 5873)
+            self.assertEqual(counters.num_objects, 644)
 
 
 class Version4Test(BaseTest):
@@ -215,19 +180,19 @@ class Version4Test(BaseTest):
 
 class Version5Test(BaseTest):
 
-    def test_brutal_minimalism(self):
+    def test_cursed_mountain(self):
         level, objects = self.getLevel("tests/in/level-not-included/v5/cursed_mountain.bytes")
         self.assertEqual(level.level_name, "Cursed Mountain")
         self.assertTimes(100000, 120000, 150000, 210000)
         self.assertEqual(len(objects), 488)
         self.assertEqual(len(self.subobjects), 269)
 
-    def test_le_teleputo(self):
-        level, objects = self.getLevel("tests/in/level-not-included/v5/le teleputo.bytes")
-        self.assertEqual(level.level_name, "Le Teleputo")
-        self.assertTimes(140000, 210000, 280000, 340000)
-        self.assertEqual(len(objects), 1486)
-        self.assertEqual(len(self.subobjects), 1186)
+    def test_darkness(self):
+        level, objects = self.getLevel("tests/in/level-not-included/v5/darkness.bytes", with_groups=True)
+        self.assertEqual(level.level_name, "Darkness")
+        self.assertTimes(60000, 100000, 130000, 160000)
+        self.assertEqual(len(objects), 124)
+        self.assertEqual(len(self.subobjects), 190)
 
 
 class Version7Test(BaseTest):
