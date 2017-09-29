@@ -25,7 +25,7 @@ class BaseTest(unittest.TestCase):
         try:
             f = open(filename, 'rb')
         except FileNotFoundError:
-            raise unittest.SkipTest(f"Test file {filename} does not exist")
+            self.skipTest(f"Test file {filename} does not exist")
         else:
             self.opened_files.append(f)
             return f
