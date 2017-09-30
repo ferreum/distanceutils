@@ -1,19 +1,14 @@
 import unittest
 
 from distance.levelinfos import LevelInfos
-from distance.bytes import DstBytes, PrintContext
+from distance.printing import PrintContext
 
 
 class Version0LevelsTest(unittest.TestCase):
 
     def setUp(self):
-        self.file = open("tests/in/levelinfos/LevelInfos.bytes", 'rb')
-        self.dbytes = DstBytes(self.file)
-        self.infos = LevelInfos(self.dbytes)
+        self.infos = LevelInfos("tests/in/levelinfos/LevelInfos.bytes")
         self.levels = self.infos.levels
-
-    def tearDown(self):
-        self.file.close()
 
     def test_length(self):
         self.assertEqual(len(self.levels), 2)
