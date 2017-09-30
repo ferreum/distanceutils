@@ -146,7 +146,7 @@ class BytesProber(object):
         dbytes = DstBytes.from_arg(dbytes)
         if 'probe_section' in kw:
             raise TypeError("probe_section not supported")
-        while max_pos is None or dbytes.pos < max_pos:
+        while max_pos is None or dbytes.tell() < max_pos:
             obj = self.maybe(dbytes, *args, **kw)
             yield obj
             if not obj.sane_end_pos:

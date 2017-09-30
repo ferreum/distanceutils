@@ -37,7 +37,7 @@ def write_read(obj, read_func=None):
     dbytes = DstBytes(buf)
 
     obj.write(dbytes)
-    dbytes.pos = 0
+    dbytes.seek(0)
     disable_writes(dbytes)
     result = read_func(dbytes)
 

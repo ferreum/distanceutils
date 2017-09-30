@@ -70,7 +70,7 @@ class WorkshopLevelInfos(BaseObject):
     def iter_levels(self):
         dbytes = self.dbytes
         if self.levels_s2:
-            dbytes.pos = self.levels_s2.data_start + 20
+            dbytes.seek(self.levels_s2.data_start + 20)
             return Level.iter_n_maybe(dbytes, self.num_levels)
         else:
             return ()

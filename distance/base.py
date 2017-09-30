@@ -88,9 +88,9 @@ class BaseObject(BytesModel):
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_3, 0x01):
             end = sec.data_end
-            if dbytes.pos + TRANSFORM_MIN_SIZE < end:
+            if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
                 self.transform = read_transform(dbytes)
-            if dbytes.pos + Section.MIN_SIZE < end:
+            if dbytes.tell() + Section.MIN_SIZE < end:
                 s5 = Section(dbytes)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
@@ -198,7 +198,7 @@ class Fragment(BytesModel):
     def _read(self, dbytes):
         sec = self._get_container()
         self._report_end_pos(sec.data_end)
-        pos = dbytes.pos
+        pos = dbytes.tell()
         if not self._read_section_data(dbytes, sec):
             with dbytes.saved_pos(pos):
                 self.raw_data = dbytes.read_bytes(

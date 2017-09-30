@@ -149,7 +149,7 @@ class Layer(Fragment):
 
         self.layer_name = s7.layer_name
 
-        pos = dbytes.pos
+        pos = dbytes.tell()
         if pos + 4 >= s7.data_end:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
@@ -168,7 +168,7 @@ class Layer(Fragment):
         else:
             self.has_layer_flags = False
             # We read start of first object - need to rewind.
-            dbytes.pos = pos
+            dbytes.seek(pos)
 
         self.objects = self.obj_prober.lazy_n_maybe(dbytes, s7.num_objects, opts=self.opts)
 

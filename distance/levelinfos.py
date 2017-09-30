@@ -73,7 +73,7 @@ class LevelInfos(BaseObject):
         if not s2:
             return (), 0
         dbytes = self.dbytes
-        dbytes.pos = s2.data_start + 12
+        dbytes.seek(s2.data_start + 12)
         length = dbytes.read_int(8)
         def gen():
             with dbytes.limit(s2.data_end):

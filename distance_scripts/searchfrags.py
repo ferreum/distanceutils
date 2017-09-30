@@ -143,7 +143,7 @@ class FragmentMatcher(object):
         buf = BytesIO(data)
         db = DstBytes(buf)
         while pos < len(data):
-            db.pos = pos
+            db.seek(pos)
             try:
                 s = db.read_str()
             except Exception:
@@ -151,7 +151,7 @@ class FragmentMatcher(object):
             else:
                 if s and len(list(STR_EXCLUDE_PATTERN.findall(s))) < len(s) // 3:
                     matches.append(("String", pos, repr(s)))
-            db.pos = pos
+            db.seek(pos)
             try:
                 i = db.read_int(8)
             except Exception:

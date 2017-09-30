@@ -56,7 +56,7 @@ class Leaderboard(BaseObject):
             pos = s2.data_start + 20
             if s2.version >= 1:
                 pos += 4
-            self.dbytes.pos = pos
+            self.dbytes.seek(pos)
             return True
         return False
 

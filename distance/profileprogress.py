@@ -301,57 +301,57 @@ class ProfileProgress(BaseObject):
             return
         data_end = s2.data_end
         dbytes = self.dbytes
-        dbytes.pos = s2.data_start + 20
+        dbytes.seek(s2.data_start + 20)
         with dbytes.limit(data_end):
             num = self.num_levels
             if num:
                 for obj in LevelProgress.iter_n_maybe(
                         dbytes, num, version=s2.version):
                     yield obj
-        self.off_mapname_start = dbytes.pos
+        self.off_mapname_start = dbytes.tell()
 
     def iter_official_levels(self):
         dbytes = self.dbytes
-        dbytes.pos = self.off_mapname_start
+        dbytes.seek(self.off_mapname_start)
         self._require_equal(MAGIC_1, 4)
         num_maps = dbytes.read_int(4)
         def gen():
             for i in range(num_maps):
                 yield dbytes.read_str()
-            self.found_tricks_start = dbytes.pos + 36
+            self.found_tricks_start = dbytes.tell() + 36
         return gen(), num_maps
 
     def iter_tricks(self):
         dbytes = self.dbytes
         if self.level_s2.version < 6:
             return (), 0
-        dbytes.pos = self.found_tricks_start
+        dbytes.seek(self.found_tricks_start)
         self._require_equal(MAGIC_1, 4)
         num_tricks = dbytes.read_int(4)
         def gen():
             for i in range(num_tricks):
                 yield dbytes.read_str()
-            self.adventure_levels_start = dbytes.pos
+            self.adventure_levels_start = dbytes.tell()
         return gen(), num_tricks
 
     def iter_unlocked_adventure(self):
         if self.level_s2.version < 6:
             return (), 0
         dbytes = self.dbytes
-        dbytes.pos = self.adventure_levels_start
+        dbytes.seek(self.adventure_levels_start)
         self._require_equal(MAGIC_1, 4)
         num_advlevels = dbytes.read_int(4)
         def gen():
             for i in range(num_advlevels):
                 yield dbytes.read_str()
-            self.somelevel_list_start = dbytes.pos + 10
+            self.somelevel_list_start = dbytes.tell() + 10
         return gen(), num_advlevels
 
     def iter_somelevels(self):
         if self.level_s2.version < 6:
             return (), 0
         dbytes = self.dbytes
-        dbytes.pos = self.somelevel_list_start
+        dbytes.seek(self.somelevel_list_start)
         self._require_equal(MAGIC_1, 4)
         num_somelevels = dbytes.read_int(4)
         def gen():
@@ -364,7 +364,7 @@ class ProfileProgress(BaseObject):
         if s2 is None:
             return None
         dbytes = self.dbytes
-        dbytes.pos = s2.data_start + 16
+        dbytes.seek(s2.data_start + 16)
         with dbytes.limit(s2.data_end):
             return PlayerStats.maybe(dbytes, version=s2.version)
 

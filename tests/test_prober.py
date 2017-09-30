@@ -25,7 +25,7 @@ class ProberTest(unittest.TestCase):
         prober.add_func(lambda *_: TestObject)
         dbytes = DstBytes.in_memory()
         dbytes.write_int(4, MAGIC_6)
-        dbytes.pos = 0
+        dbytes.seek(0)
         obj = prober.maybe(dbytes)
         self.assertEqual(UnexpectedEOFError, type(obj.exception))
 
@@ -34,7 +34,7 @@ class ProberTest(unittest.TestCase):
         prober.add_func(lambda *_: TestObject)
         dbytes = DstBytes.in_memory()
         dbytes.write_int(4, MAGIC_6)
-        dbytes.pos = 0
+        dbytes.seek(0)
         def raise_error(*_):
             raise IOError
         dbytes.read_int = raise_error
