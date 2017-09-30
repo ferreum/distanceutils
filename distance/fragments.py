@@ -10,13 +10,15 @@ from .bytes import (
     SKIP_BYTES,
     DstBytes,
 )
-from .base import Fragment
+from .base import Fragment, ObjectFragment
 from .prober import BytesProber
 from .data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 
 
 PROBER = BytesProber(baseclass=Fragment)
+
+PROBER.add_fragment(ObjectFragment, MAGIC_3, type=1, version=0)
 
 
 def read_n_floats(dbytes, n, default):

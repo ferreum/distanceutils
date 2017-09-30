@@ -1,6 +1,12 @@
 import unittest
 
 from distance.levelobjects import PROBER, SubTeleporter, WinLogic
+from distance.fragments import (
+    TrackNodeFragment,
+    CarScreenTextDecodeTriggerMixin,
+    CarScreenTextDecodeTriggerFragment,
+    OldCarScreenTextDecodeTriggerFragment,
+)
 from distance.printing import PrintContext
 from distance.constants import ForceType
 from .common import check_exceptions
@@ -257,6 +263,8 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
     def test_trigger(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/decodetrigger.bytes")
+        frag = obj.fragment_by_type(CarScreenTextDecodeTriggerMixin)
+        self.assertEqual(CarScreenTextDecodeTriggerFragment, type(frag))
         p.print_data_of(obj)
         self.assertEqual(obj.text, "Please, help us.")
         self.assertEqual(obj.time_text, "")
@@ -265,7 +273,9 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
     def test_ver0(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/decodetrigger v0.bytes")
-        p.print_data_of(obj.fragments[0])
+        frag = obj.fragment_by_type(CarScreenTextDecodeTriggerMixin)
+        self.assertEqual(OldCarScreenTextDecodeTriggerFragment, type(frag))
+        p.print_data_of(frag)
         self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
         self.assertAlmostEqual(obj.per_char_speed, 0.02)
         self.assertEqual(obj.clear_on_finish, True)
@@ -279,8 +289,8 @@ class SplineRoadTest(unittest.TestCase):
     def test_tracknodes(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/splineroad.bytes")
-        node0 = obj.children[0].fragments[0]
-        node1 = obj.children[1].fragments[0]
+        node0 = obj.children[0].fragment_by_type(TrackNodeFragment)
+        node1 = obj.children[1].fragment_by_type(TrackNodeFragment)
         self.assertEqual(79, node0.parent_id)
         self.assertEqual(59, node0.snap_id)
         self.assertEqual(79, node1.parent_id)

@@ -63,11 +63,7 @@ class BaseObject(BytesModel):
     fragment_prober = EMPTY_PROBER
     is_object_group = False
 
-    transform = None
-    children = ()
     fragments = ()
-    has_children = False
-    children_section = None
 
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
@@ -86,19 +82,10 @@ class BaseObject(BytesModel):
         self._read_sections(ts.data_end)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 0x01):
-            end = sec.data_end
-            if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
-                self.transform = read_transform(dbytes)
-            if dbytes.tell() + Section.MIN_SIZE < end:
-                s5 = Section(dbytes)
-                self.has_children = True
-                self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.num_objects, start_pos=s5.children_start,
-                    opts=self.opts)
-            return True
         try:
-            fragment = self.fragment_prober.maybe(dbytes, probe_section=sec)
+            fragment = self.fragment_prober.maybe(
+                dbytes, probe_section=sec,
+                child_prober=self.child_prober)
         except ProbeError:
             pass
         else:
@@ -143,24 +130,33 @@ class BaseObject(BytesModel):
             return True
         return BytesModel._write_section(self, dbytes, sec)
 
-    def _write_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_3, 0x01):
-            children = self.children
-            has_children = self.has_children or children
-            if self.transform or has_children:
-                write_transform(dbytes, self.transform)
-            if self.has_children or self.children:
-                with dbytes.write_section(MAGIC_5):
-                    for obj in self.children:
-                        obj.write(dbytes)
-            return True
-        return BytesModel._write_section_data(self, dbytes, sec)
-
     def iter_children(self, ty=None, name=None):
         for obj in self.children:
             if ty is None or isinstance(obj, ty):
                 if name is None or obj.type == name:
                     yield obj
+
+    @property
+    def children(self):
+        frag = self.fragment_by_type(ObjectFragment)
+        if frag is None:
+            return ()
+        return frag.children
+
+    @children.setter
+    def children(self, value):
+        self.fragment_by_type(ObjectFragment).children = value
+
+    @property
+    def transform(self):
+        frag = self.fragment_by_type(ObjectFragment)
+        if frag is None:
+            return None
+        return frag.transform
+
+    @transform.setter
+    def transform(self, value):
+        self.fragment_by_type(ObjectFragment).transform = value
 
     def _print_data(self, p):
         if 'transform' in p.flags:
@@ -195,7 +191,7 @@ class Fragment(BytesModel):
 
     raw_data = None
 
-    def _read(self, dbytes):
+    def _read(self, dbytes, **kw):
         sec = self._get_container()
         self._report_end_pos(sec.data_end)
         pos = dbytes.tell()
@@ -229,6 +225,40 @@ class Fragment(BytesModel):
         if name.endswith('Fragment'):
             name = name[:-8]
             p(f"Fragment: {name}")
+
+
+class ObjectFragment(Fragment):
+
+    transform = None
+    has_children = False
+    children = ()
+
+    def _read(self, *args, **kw):
+        self.child_prober = kw.get('child_prober', EMPTY_PROBER)
+        Fragment._read(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+        end = sec.data_end
+        if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
+            self.transform = read_transform(dbytes)
+            if dbytes.tell() + Section.MIN_SIZE < end:
+                s5 = Section(dbytes)
+                self.has_children = True
+                self.children = self.child_prober.lazy_n_maybe(
+                    dbytes, s5.num_objects, start_pos=s5.children_start,
+                    opts=self.opts)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+        children = self.children
+        has_children = self.has_children or children
+        if self.transform or has_children:
+            write_transform(dbytes, self.transform)
+        if self.has_children or self.children:
+            with dbytes.write_section(MAGIC_5):
+                for obj in self.children:
+                    obj.write(dbytes)
+        return True
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
