@@ -4,6 +4,7 @@ from distance.profileprogress import ProfileProgress
 from distance.bytes import DstBytes
 from distance.printing import PrintContext
 from distance.constants import Completion, Mode
+from .common import check_exceptions
 
 
 class ProfileProgressTest(unittest.TestCase):
@@ -11,24 +12,25 @@ class ProfileProgressTest(unittest.TestCase):
     def test_read_new(self):
         with open("tests/in/profileprogress/new profile.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
-            list(obj.iter_levels())
+            self.assertEqual([], obj.levels[:])
 
     def test_read_single_map_started(self):
         with open("tests/in/profileprogress/started acclivity.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
-            levels = list(obj.iter_levels())
+            levels = obj.levels
             self.assertEqual(len(levels), 1)
+            check_exceptions(levels[0])
             self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.STARTED)
 
     def test_read_single_map_diamond(self):
         with open("tests/in/profileprogress/diamond acclivity.bytes", 'rb') as f:
             obj = ProfileProgress(DstBytes(f))
-            levels = list(obj.iter_levels())
+            levels = obj.levels
             self.assertEqual(len(levels), 1)
+            check_exceptions(levels[0])
             self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.DIAMOND)
-            stats = obj.read_stats()
-            if stats.exception:
-                raise stats.exception
+            stats = obj.stats
+            check_exceptions(stats)
             self.assertEqual(13, stats.stats['impacts'])
 
     def test_print_data(self):
@@ -39,6 +41,11 @@ class ProfileProgressTest(unittest.TestCase):
     def test_levels_version2(self):
         p = PrintContext.for_test()
         with open("tests/in/profileprogress/levels_version_2.bytes", 'rb') as f:
+            p.print_data_of(ProfileProgress(DstBytes(f)))
+
+    def test_print_new(self):
+        p = PrintContext.for_test()
+        with open("tests/in/profileprogress/new profile.bytes", 'rb') as f:
             p.print_data_of(ProfileProgress(DstBytes(f)))
 
     def test_unlocked_adventure(self):

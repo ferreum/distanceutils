@@ -63,6 +63,17 @@ class LevelProgress(BaseObject):
                 p(format_score(mode, score, comp))
 
 
+class StringEntry(BytesModel):
+
+    value = None
+
+    def _read(self, dbytes):
+        self.value = dbytes.read_str()
+
+    def _write(self, dbytes):
+        dbytes.write_str(self.value)
+
+
 class Stat(object):
 
     def __init__(self, type, ident, unit='num', nbytes=None):
@@ -278,8 +289,14 @@ class PlayerStats(BytesModel):
 class ProfileProgress(BaseObject):
 
     level_s2 = None
-    num_levels = None
     stats_s2 = None
+    levels = None
+    _officials = None
+    _official_levels = None
+    _tricks = None
+    _unlocked_adventures = None
+    _somelevels = None
+    _stats = None
 
     def _read(self, dbytes):
         self._require_type(FTYPE_PROFILEPROGRESS)
@@ -288,131 +305,176 @@ class ProfileProgress(BaseObject):
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x6a):
             self.level_s2 = sec
-            self.num_levels = dbytes.read_int(4)
+            num_levels = dbytes.read_int(4)
+            self._data_start = start = dbytes.tell() + 4
+            self.levels = LevelProgress.lazy_n_maybe(
+                dbytes, num_levels, start_pos=start,
+                version=sec.version)
             return False
         elif sec.match(MAGIC_2, 0x8e):
             self.stats_s2 = sec
             return False
         return BaseObject._read_section_data(self, dbytes, sec)
 
-    def iter_levels(self):
-        s2 = self.level_s2
-        if s2 is None:
-            return
-        data_end = s2.data_end
-        dbytes = self.dbytes
-        dbytes.seek(s2.data_start + 20)
-        with dbytes.limit(data_end):
-            num = self.num_levels
-            if num:
-                for obj in LevelProgress.iter_n_maybe(
-                        dbytes, num, version=s2.version):
-                    yield obj
-        self.off_mapname_start = dbytes.tell()
+    def _officials_start_pos(self):
+        levels = self.levels
+        if levels:
+            last = levels[-1]
+            if not last.sane_end_pos:
+                return None
+            return last.end_pos
+        else:
+            return self._data_start
 
-    def iter_official_levels(self):
-        dbytes = self.dbytes
-        dbytes.seek(self.off_mapname_start)
-        self._require_equal(MAGIC_1, 4)
-        num_maps = dbytes.read_int(4)
-        def gen():
-            for i in range(num_maps):
-                yield dbytes.read_str()
-            self.found_tricks_start = dbytes.tell() + 36
-        return gen(), num_maps
+    @property
+    def officials(self):
+        lazy = self._official_levels
+        if lazy is None:
+            dbytes = self.dbytes
+            with dbytes.saved_pos(self._officials_start_pos()):
+                self._require_equal(MAGIC_1, 4)
+                num = dbytes.read_int(4)
+                lazy = StringEntry.lazy_n_maybe(dbytes, num)
+            self.lazy = lazy
+        return lazy
 
-    def iter_tricks(self):
-        dbytes = self.dbytes
-        if self.level_s2.version < 6:
-            return (), 0
-        dbytes.seek(self.found_tricks_start)
-        self._require_equal(MAGIC_1, 4)
-        num_tricks = dbytes.read_int(4)
-        def gen():
-            for i in range(num_tricks):
-                yield dbytes.read_str()
-            self.adventure_levels_start = dbytes.tell()
-        return gen(), num_tricks
+    def _tricks_start_pos(self):
+        officials = self.officials
+        if officials:
+            last = officials[-1]
+            if not last.sane_end_pos:
+                return None
+            # officials_end + 36b (unknown)
+            return last.end_pos + 36
+        else:
+            # officials_start + 4b (s1) + 4b (num_officials) + 36b (unknown)
+            return self._officials_start_pos() + 8 + 36
 
-    def iter_unlocked_adventure(self):
-        if self.level_s2.version < 6:
-            return (), 0
-        dbytes = self.dbytes
-        dbytes.seek(self.adventure_levels_start)
-        self._require_equal(MAGIC_1, 4)
-        num_advlevels = dbytes.read_int(4)
-        def gen():
-            for i in range(num_advlevels):
-                yield dbytes.read_str()
-            self.somelevel_list_start = dbytes.tell() + 10
-        return gen(), num_advlevels
+    @property
+    def tricks(self):
+        tricks = self._tricks
+        if tricks is None:
+            if self.level_s2.version < 6:
+                tricks = ()
+            else:
+                dbytes = self.dbytes
+                with dbytes.saved_pos(self._tricks_start_pos()):
+                    self._require_equal(MAGIC_1, 4)
+                    num = dbytes.read_int(4)
+                    tricks = StringEntry.lazy_n_maybe(dbytes, num)
+            self._tricks = tricks
+        return tricks
 
-    def iter_somelevels(self):
-        if self.level_s2.version < 6:
-            return (), 0
-        dbytes = self.dbytes
-        dbytes.seek(self.somelevel_list_start)
-        self._require_equal(MAGIC_1, 4)
-        num_somelevels = dbytes.read_int(4)
-        def gen():
-            for i in range(num_somelevels):
-                yield dbytes.read_str()
-        return gen(), num_somelevels
+    def _adventures_start_pos(self):
+        tricks = self.tricks
+        if tricks:
+            last = tricks[-1]
+            if not last.sane_end_pos:
+                return None
+            return last.end_pos
+        else:
+            # officials_start + 4b (s1) + 4b (num_tricks)
+            return self._tricks_start_pos() + 8
 
-    def read_stats(self):
-        s2 = self.stats_s2
-        if s2 is None:
-            return None
-        dbytes = self.dbytes
-        dbytes.seek(s2.data_start + 16)
-        with dbytes.limit(s2.data_end):
-            return PlayerStats.maybe(dbytes, version=s2.version)
+    @property
+    def unlocked_adventures(self):
+        adventures = self._unlocked_adventures
+        if adventures is None:
+            if self.level_s2.version < 6:
+                adventures = ()
+            else:
+                dbytes = self.dbytes
+                with dbytes.saved_pos(self._adventures_start_pos()):
+                    self._require_equal(MAGIC_1, 4)
+                    num = dbytes.read_int(4)
+                    adventures = StringEntry.lazy_n_maybe(dbytes, num)
+            self._unlocked_adventures = adventures
+        return adventures
+
+    def _somelevels_start_pos(self):
+        adventures = self.unlocked_adventures
+        if adventures:
+            last = adventures[-1]
+            if not last.sane_end_pos:
+                return None
+            # last pos + 10b (unknown)
+            return last.end_pos + 10
+        else:
+            # unlocks_start + 4b (s1) + 4b (num_unlocks) + 10 (unknown)
+            return self._adventures_start_pos() + 18
+
+    @property
+    def somelevels(self):
+        levels = self._somelevels
+        if levels is None:
+            if self.level_s2.version < 6:
+                levels = ()
+            else:
+                dbytes = self.dbytes
+                with dbytes.saved_pos(self._somelevels_start_pos()):
+                    self._require_equal(MAGIC_1, 4)
+                    num = dbytes.read_int(4)
+                    levels = StringEntry.lazy_n_maybe(dbytes, num)
+            self._somelevels = levels
+        return levels
+
+    @property
+    def stats(self):
+        stats = self._stats
+        if stats is None:
+            s2 = self.stats_s2
+            if s2 is None:
+                return None
+            dbytes = self.dbytes
+            with dbytes.saved_pos(s2.data_start + 16):
+                with dbytes.limit(s2.data_end):
+                    stats = PlayerStats.maybe(dbytes, version=s2.version)
+            self._stats = stats
+        return stats
 
     def _print_data(self, p):
         if self.level_s2:
             p(f"Level progress version: {self.level_s2.version}")
-            p(f"Level count: {self.num_levels}")
+            levels = self.levels
+            p(f"Level count: {len(levels)}")
             with p.tree_children():
-                for level in self.iter_levels():
+                for level in levels:
                     p.tree_next_child()
                     p.print_data_of(level)
-            gen, length = self.iter_official_levels()
-            if length:
-                p(f"Unlocked levels: {length}")
-            with p.tree_children():
-                # need to ensure that gen is exhausted
-                gen = iter(list(gen))
-                for _ in range(0, length, 5):
-                    p.tree_next_child()
-                    l_str = ', '.join(repr(n) for n in islice(gen, 5))
-                    p(f"Levels: {l_str}")
-            gen, length = self.iter_tricks()
-            if length:
-                p(f"Found tricks: {length}")
-            with p.tree_children():
-                # need to ensure that gen is exhausted
-                gen = iter(list(gen))
-                for _ in range(0, length, 5):
-                    p.tree_next_child()
-                    t_str = ', '.join(repr(t) for t in islice(gen, 5))
-                    p(f"Tricks: {t_str}")
-            gen, length = self.iter_unlocked_adventure()
-            if length:
-                p(f"Unlocked adventure stages: {length}")
-            with p.tree_children():
-                for advlevel in gen:
-                    p.tree_next_child()
-                    p(f"Level: {advlevel!r}")
-            gen, length = self.iter_somelevels()
-            if length:
-                p(f"Some levels: {length}")
-            with p.tree_children():
-                for somelevel in gen:
-                    p.tree_next_child()
-                    p(f"Level: {somelevel!r}")
-            stats = self.read_stats()
-            if stats:
-                p.print_data_of(stats)
+            officials = self.officials
+            if officials:
+                p(f"Unlocked levels: {len(officials)}")
+                with p.tree_children():
+                    it = iter(officials)
+                    for _ in range(0, len(officials), 5):
+                        p.tree_next_child()
+                        l_str = ', '.join(repr(n.value) for n in islice(it, 5))
+                        p(f"Levels: {l_str}")
+            tricks = self.tricks
+            if tricks:
+                p(f"Found tricks: {len(tricks)}")
+                with p.tree_children():
+                    it = iter(tricks)
+                    for _ in range(0, len(tricks), 5):
+                        p.tree_next_child()
+                        t_str = ', '.join(repr(t.value) for t in islice(it, 5))
+                        p(f"Tricks: {t_str}")
+            adventures = self.unlocked_adventures
+            if adventures:
+                p(f"Unlocked adventure stages: {len(adventures)}")
+                with p.tree_children():
+                    for advlevel in adventures:
+                        p.tree_next_child()
+                        p(f"Level: {advlevel.value!r}")
+            somelevels = self.somelevels
+            if somelevels:
+                p(f"Some levels: {len(somelevels)}")
+                with p.tree_children():
+                    for somelevel in somelevels:
+                        p.tree_next_child()
+                        p(f"Level: {somelevel.value!r}")
+            if self.stats:
+                p.print_data_of(self.stats)
         else:
             p("No level progress")
 
