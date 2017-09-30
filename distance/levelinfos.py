@@ -55,7 +55,6 @@ class Entry(BytesModel):
 class LevelInfos(BaseObject):
 
     version = None
-    entries_s2 = None
 
     def _read(self, dbytes):
         self._require_type(FTYPE_LEVELINFOS)
@@ -64,33 +63,16 @@ class LevelInfos(BaseObject):
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x97):
             self.version = sec.version
-            self.entries_s2 = sec
+            num_entries = dbytes.read_int(8)
+            self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
             return False
         return BaseObject._read_section_data(self, dbytes, sec)
 
-    def iter_levels(self):
-        s2 = self.entries_s2
-        if not s2:
-            return (), 0
-        dbytes = self.dbytes
-        dbytes.seek(s2.data_start + 12)
-        length = dbytes.read_int(8)
-        def gen():
-            with dbytes.limit(s2.data_end):
-                for _ in range(length):
-                    entry = Entry.maybe(dbytes)
-                    yield entry
-                    if not entry.sane_end_pos:
-                        break
-        return gen(), length
-
     def _print_data(self, p):
         p(f"Version: {self.version}")
-        gen, length = self.iter_levels()
-        if length:
-            p(f"Level entries: {length}")
+        p(f"Level entries: {len(self.levels)}")
         with p.tree_children():
-            for entry in gen:
+            for entry in self.levels:
                 p.tree_next_child()
                 p.print_data_of(entry)
 

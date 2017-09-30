@@ -10,14 +10,12 @@ class Version0LevelsTest(unittest.TestCase):
         self.file = open("tests/in/levelinfos/LevelInfos.bytes", 'rb')
         self.dbytes = DstBytes(self.file)
         self.infos = LevelInfos(self.dbytes)
-        levels, self.length = list(self.infos.iter_levels())
-        self.levels = list(levels)
+        self.levels = self.infos.levels
 
     def tearDown(self):
         self.file.close()
 
     def test_length(self):
-        self.assertEqual(self.length, 2)
         self.assertEqual(len(self.levels), 2)
 
     def test_names(self):
