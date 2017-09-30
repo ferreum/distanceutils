@@ -33,8 +33,7 @@ def write_read(obj, read_func=None):
     if read_func is None:
         read_func = type(obj)
 
-    buf = BytesIO()
-    dbytes = DstBytes(buf)
+    dbytes = DstBytes.in_memory()
 
     obj.write(dbytes)
     dbytes.seek(0)
@@ -43,7 +42,7 @@ def write_read(obj, read_func=None):
 
     check_exceptions(result)
 
-    return result, buf
+    return result, dbytes.file
 
 
 class WriteReadTest(unittest.TestCase):
