@@ -22,13 +22,20 @@ class LevelTest(unittest.TestCase):
         results = [level.settings] + list(level.iter_objects())
         self.assertEqual(len(results), 3)
 
-    def test_truncated2(self):
+    def test_truncated_iter(self):
         level = Level("tests/in/level/test-straightroad_truncated_2.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
         gen = level.iter_objects()
         next(gen)
         obj = next(gen)
         self.assertEqual(UnexpectedEOFError, type(obj.exception))
+
+    def test_truncated_seq(self):
+        level = Level("tests/in/level/test-straightroad_truncated_2.bytes")
+        self.assertEqual(level.level_name, "Test-straightroad")
+        objs = level.layers[0].objects[:]
+        self.assertEqual(2, len(objs))
+        self.assertEqual(UnexpectedEOFError, type(objs[-1].exception))
 
     def test_invalid_str(self):
         level = Level("tests/in/level/invalid-groupname.bytes")
