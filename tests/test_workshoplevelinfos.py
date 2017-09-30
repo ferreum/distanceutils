@@ -14,7 +14,7 @@ class Version0Test(unittest.TestCase):
         with open("tests/in/workshoplevelinfos/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
-            levels = list(infos.iter_levels())
+            levels = infos.levels
             self.assertEqual([l.id for l in levels],
                              Version0Test.LEVEL_IDS)
             self.assertEqual([l.title for l in levels],
@@ -51,7 +51,7 @@ class Version0Test(unittest.TestCase):
         with open("tests/in/workshoplevelinfos/version_0_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
-            gen = infos.iter_levels()
+            gen = iter(infos.levels)
             level = next(gen)
             self.assertEqual(level.id, 469806096)
             self.assertIsNone(level.exception)
@@ -67,7 +67,7 @@ class Version0Test(unittest.TestCase):
         with open("tests/in/workshoplevelinfos/version_0_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             infos = WorkshopLevelInfos(dbytes)
-            gen = infos.iter_levels()
+            gen = iter(infos.levels)
             level = next(gen)
             self.assertIsNone(level.exception)
             level = next(gen)

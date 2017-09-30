@@ -38,7 +38,7 @@ def main():
 
         infos = WorkshopLevelInfos(args.FILE)
         count = 0
-        for level in infos.iter_levels():
+        for level in infos.levels:
             values = [level.id, level.title, level.description, level.updated_date,
                         level.published_date, level.tags, level.author, level.authorid,
                         level.path, level.published_by_user, level.upvotes,

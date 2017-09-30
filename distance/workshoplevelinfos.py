@@ -54,31 +54,22 @@ class Level(BytesModel):
 
 class WorkshopLevelInfos(BaseObject):
 
-    num_levels = 0
-
     def _read(self, dbytes):
         self._require_type(FTYPE_WSLEVELINFOS)
         BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x6d):
-            self.levels_s2 = sec
-            self.num_levels = dbytes.read_int(4)
+            num_levels = dbytes.read_int(4)
+            self.levels = Level.lazy_n_maybe(dbytes, num_levels,
+                                             start_pos=sec.data_start + 20)
             return False
         return BaseObject._read_section_data(self, dbytes, sec)
 
-    def iter_levels(self):
-        dbytes = self.dbytes
-        if self.levels_s2:
-            dbytes.seek(self.levels_s2.data_start + 20)
-            return Level.iter_n_maybe(dbytes, self.num_levels)
-        else:
-            return ()
-
     def _print_data(self, p):
-        p(f"Levelinfos: {self.num_levels}")
+        p(f"Levelinfos: {len(self.levels)}")
         with p.tree_children():
-            for level in self.iter_levels():
+            for level in self.levels:
                 p.tree_next_child()
                 p(f"Title: {level.title!r} ({level.id})")
                 p(f"Author: {level.author!r} ({level.authorid})")
