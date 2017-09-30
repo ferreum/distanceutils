@@ -33,9 +33,7 @@ class Entry(BytesModel):
 
 class Leaderboard(BaseObject):
 
-    entries_s2 = None
     version = None
-    num_entries = 0
 
     def _read(self, dbytes):
         ts = self._require_type(FTYPE_LEADERBOARD)
@@ -44,32 +42,21 @@ class Leaderboard(BaseObject):
 
     def _read_section_data(self, dbytes, sec):
         if sec.match(MAGIC_2, 0x37):
-            self.entries_s2 = sec
-            self.version = sec.version
-            self.num_entries = dbytes.read_int(4)
+            self.version = version = sec.version
+            num_entries = dbytes.read_int(4)
+            start = sec.data_start + 20
+            if version >= 1:
+                start += 4
+            self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
+                                              start_pos=start,
+                                              version=version)
             return False
         return BaseObject._read_section_data(self, dbytes, sec)
 
-    def move_to_first_entry(self):
-        s2 = self.entries_s2
-        if s2:
-            pos = s2.data_start + 20
-            if s2.version >= 1:
-                pos += 4
-            self.dbytes.seek(pos)
-            return True
-        return False
-
-    def read_entries(self):
-        if self.move_to_first_entry():
-            return Entry.read_n_maybe(self.dbytes, self.num_entries,
-                                      version=self.version)
-        else:
-            return ()
-
     def _print_data(self, p):
         p(f"Version: {self.version}")
-        entries = self.read_entries()
+        entries = self.entries
+        p(f"Entries: {len(entries)}")
         if 'nosort' not in p.flags:
             nones = [e for e in entries if e.time is None]
             entries = [e for e in entries if e.time is not None]

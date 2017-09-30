@@ -10,7 +10,7 @@ class Version0Test(unittest.TestCase):
         with open("tests/in/leaderboard/version_0.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries = lb.read_entries()
+            entries = lb.entries
             self.assertEqual([e.time for e in entries],
                              [162468, 152668, 135258, 581374, 127799, 182704, 517334])
             self.assertEqual([e.playername for e in entries],
@@ -33,7 +33,7 @@ class Version1Test(unittest.TestCase):
         with open("tests/in/leaderboard/version_1.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries = lb.read_entries()
+            entries = lb.entries
             self.assertEqual([e.time for e in entries],
                              [57400, 57570, 58110, 58470, 58820, 58840, 59180,
                               59720, 62060, 73060, 86260, 2017828, 213099,
@@ -48,7 +48,7 @@ class Version1Test(unittest.TestCase):
         with open("tests/in/leaderboard/version_1_truncated.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries = lb.read_entries()
+            entries = lb.entries
             self.assertEqual([e.time for e in entries],
                              [57400, 57570, 58110, 58470, 58820, None])
             self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5 + [None])
@@ -60,7 +60,7 @@ class Version1Test(unittest.TestCase):
         with open("tests/in/leaderboard/version_1_truncated_2.bytes", 'rb') as f:
             dbytes = DstBytes(f)
             lb = Leaderboard(dbytes)
-            entries = lb.read_entries()
+            entries = lb.entries
             self.assertEqual([e.time for e in entries],
                              [57400, 57570, 58110, 58470, None])
             self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5)
