@@ -150,8 +150,8 @@ class LazySequenceIndexTest(unittest.TestCase):
         # same as above
         self.assertEqual([12, 13], self.lazy[-4:-2])
         self.assertEqual([14], self.lazy[-2:-1])
-        # we get a shorter slice on early exit
-        self.assertEqual([14], self.lazy[-2:])
+        # items now moved because of negative indexing
+        self.assertEqual([13, 14], self.lazy[-2:])
         self.assertEqual([12, 13], self.lazy[-3:-1])
         self.assertEqual(4, len(self.lazy))
 
