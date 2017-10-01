@@ -27,10 +27,8 @@ class LazySequenceIndexTest(unittest.TestCase):
 
     def assertIndex(self, expect, index):
         """Compare with expect and with result of native list."""
-        self.assertEqual(self.orig.__getitem__(index),
-                         self.lazy.__getitem__(index))
-        self.assertEqual(expect,
-                         self.lazy.__getitem__(index))
+        self.assertEqual(expect, self.orig[index])
+        self.assertEqual(expect, self.lazy[index])
 
     def test_inst(self):
         self.assertIndex(10, 0)
