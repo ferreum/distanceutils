@@ -23,15 +23,15 @@ class ArgTaker(object):
                 return self.kwargs.pop(kwname)
             except KeyError:
                 if default == DO_THROW:
-                    raise ValueError(f"missing argument: {kwname!r}")
+                    raise TypeError(f"missing argument: {kwname!r}")
                 else:
                     return default
 
     def verify(self):
         if len(self.args) > self.maxarg + 1:
-            raise ValueError(f"too many arguments (expected {self.maxarg})")
+            raise TypeError(f"too many arguments (expected {self.maxarg})")
         if self.kwargs:
-            raise ValueError(f"invalid kwargs: {self.kwargs}")
+            raise TypeError(f"invalid kwargs: {self.kwargs}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
