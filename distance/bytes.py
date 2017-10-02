@@ -353,7 +353,6 @@ class Section(BytesModel):
     type = None
     version = None
     num_sections = None
-    raw_data = None
     id = None
 
     @classmethod
@@ -470,11 +469,6 @@ class Section(BytesModel):
             self.data_start = dbytes.tell()
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
-
-    def read_raw_data(self, dbytes):
-        """Save this section's raw data in its `raw_data` attribute."""
-        self.raw_data = dbytes.read_bytes(self.data_end - dbytes.tell(),
-                                          or_to_eof=True)
 
     def match(self, magic, type=None, version=None):
         """Match the section's type information."""
