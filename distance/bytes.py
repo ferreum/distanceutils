@@ -415,12 +415,21 @@ class Section(BytesModel):
     raw_data = None
     id = None
 
+    @classmethod
+    def iter_n_maybe(clazz, dbytes, *args, **kw):
+        """Wraps `BytesModel.iter_n_maybe` to enable section iteration."""
+        # TODO refactor Section for clean iter
+        gen = super().iter_n_maybe(dbytes, *args, **kw)
+        for sec in gen:
+            yield sec
+            dbytes.seek(sec.data_end)
+
     def __init__(self, *args, **kw):
         if args:
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
                 return
-        if args or kw:
+        if not kw.get('plain', False):
             self._init_from_args(*args, **kw)
 
     def _init_from_args(self, *args, **kw):

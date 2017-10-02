@@ -9,9 +9,36 @@ from distance.fragments import (
 )
 from distance.level import Level
 from distance.levelobjects import PROBER as LEVEL_PROBER
-from distance.base import BaseObject
+from distance.base import BaseObject, Fragment, BASE_FRAG_PROBER
+from distance.prober import BytesProber
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
+
+
+UNK_FRAG_PROBER = BytesProber()
+UNK_FRAG_PROBER.extend(BASE_FRAG_PROBER)
+
+UNK_PROBER = BytesProber()
+
+
+class UnknownFragment(Fragment):
+    pass
+
+
+@UNK_FRAG_PROBER.func
+def _fallback_unknown_frag(sec):
+    return UnknownFragment
+
+
+class UnknownObject(BaseObject):
+
+    child_prober = UNK_PROBER
+    fragment_prober = UNK_FRAG_PROBER
+
+
+@UNK_PROBER.func
+def _fallback_unknown(sec):
+    return UnknownObject
 
 
 class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
@@ -110,7 +137,7 @@ class GroupWriteReadTest(common.WriteReadTest):
 class UnknownTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/infodisplaybox 1.bytes"
-    read_obj_pre = BaseObject
+    read_obj_pre = UnknownObject
     read_obj = InfoDisplayBox
 
     def verify_obj(self, obj):
@@ -120,7 +147,7 @@ class UnknownTest(common.WriteReadTest):
 class UnknownSubobjectsTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/endzone delay.bytes"
-    read_obj_pre = BaseObject
+    read_obj_pre = UnknownObject
     read_obj = LEVEL_PROBER.read
 
     def verify_obj(self, obj):
@@ -131,10 +158,11 @@ class UnknownSubobjectsTest(common.WriteReadTest):
 class UnknownSection32Test(common.WriteReadTest):
 
     filename = "tests/in/customobject/gravtrigger old.bytes"
-    read_obj_pre = BaseObject
+    read_obj_pre = UnknownObject
     read_obj = LEVEL_PROBER.read
 
     def verify_obj(self, obj):
+        check_exceptions(obj)
         self.assertAlmostEqual(50, obj.trigger_radius)
 
 

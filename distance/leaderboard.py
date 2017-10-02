@@ -4,13 +4,19 @@
 from operator import attrgetter
 
 from .bytes import BytesModel, MAGIC_2
-from .base import BaseObject
+from .base import BaseObject, Fragment
+from .fragments import ForwardFragmentAttrs
+from .prober import BytesProber
 from .printing import format_bytes, format_duration
 
 
 NO_REPLAY = 0xffffffffffffffff
 
 FTYPE_LEADERBOARD = "LocalLeaderboard"
+
+
+FRAG_PROBER = BytesProber()
+FRAG_PROBER.extend(BaseObject.fragment_prober)
 
 
 class Entry(BytesModel):
@@ -31,27 +37,32 @@ class Entry(BytesModel):
             raise ValueError(f"unknown version: {version}")
 
 
-class Leaderboard(BaseObject):
+@FRAG_PROBER.fragment(MAGIC_2, 0x37, 0)
+@FRAG_PROBER.fragment(MAGIC_2, 0x37, 1)
+class LeaderboardFragment(Fragment):
 
     version = None
-
-    def _read(self, dbytes):
-        ts = self._require_type(FTYPE_LEADERBOARD)
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+    entries = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x37):
-            self.version = version = sec.version
-            num_entries = dbytes.read_int(4)
-            start = sec.data_start + 20
-            if version >= 1:
-                start += 4
-            self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
-                                              start_pos=start,
-                                              version=version)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
+        self.version = version = sec.version
+        num_entries = dbytes.read_int(4)
+        start = sec.data_start + 20
+        if version >= 1:
+            start += 4
+        self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
+                                          start_pos=start,
+                                          version=version)
+        return False
+
+
+class Leaderboard(ForwardFragmentAttrs, BaseObject):
+
+    fragment_prober = FRAG_PROBER
+
+    forward_fragment_attrs = (
+        (LeaderboardFragment, dict(version=None, entries=())),
+    )
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

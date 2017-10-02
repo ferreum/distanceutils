@@ -5,12 +5,18 @@ from collections import OrderedDict
 from itertools import islice
 
 from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
-from .base import BaseObject
+from .base import BaseObject, Fragment, BASE_FRAG_PROBER
+from .fragments import ForwardFragmentAttrs
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
+from .prober import BytesProber
 
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
+
+FRAG_PROBER = BytesProber()
+
+FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
 def format_score(mode, score, comp):
@@ -158,7 +164,10 @@ STATS = AttrOrderedDict((s.ident, s) for s in (
 ))
 
 
-class PlayerStats(BytesModel):
+@FRAG_PROBER.fragment(MAGIC_2, 0x8e, 0)
+@FRAG_PROBER.fragment(MAGIC_2, 0x8e, 1)
+@FRAG_PROBER.fragment(MAGIC_2, 0x8e, 2)
+class ProfileStatsFragment(Fragment):
 
     version = None
     stats = {}
@@ -166,10 +175,12 @@ class PlayerStats(BytesModel):
     modes_online = ()
     trackmogrify_mods = ()
 
-    def _read(self, dbytes, version=None):
+    def _read_section_data(self, dbytes, sec):
         def read_double():
             return dbytes.read_struct(S_DOUBLE)[0]
-        self.version = version
+        self.version = version = sec.version
+
+        dbytes.read_bytes(4) # unknown
 
         self.stats = stats = {}
         for k, stat in STATS.items():
@@ -286,35 +297,40 @@ class PlayerStats(BytesModel):
                     p(f"Found: {mods_str}")
 
 
-class ProfileProgress(BaseObject):
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 0)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 1)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 2)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 3)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 4)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 5)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 6)
+class ProfileProgressFragment(Fragment):
 
-    level_s2 = None
-    stats_s2 = None
-    levels = None
+    value_attrs = dict(
+        levels = (),
+        officials = (),
+        official_levels = (),
+        tricks = (),
+        unlocked_adventures = (),
+        somelevels = (),
+    )
+
+    version = None
+    levels = ()
     _officials = None
     _official_levels = None
     _tricks = None
     _unlocked_adventures = None
     _somelevels = None
-    _stats = None
-
-    def _read(self, dbytes):
-        self._require_type(FTYPE_PROFILEPROGRESS)
-        BaseObject._read(self, dbytes)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x6a):
-            self.level_s2 = sec
-            num_levels = dbytes.read_int(4)
-            self._data_start = start = dbytes.tell() + 4
-            self.levels = LevelProgress.lazy_n_maybe(
-                dbytes, num_levels, start_pos=start,
-                version=sec.version)
-            return False
-        elif sec.match(MAGIC_2, 0x8e):
-            self.stats_s2 = sec
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
+        self.version = sec.version
+        num_levels = dbytes.read_int(4)
+        self._data_start = start = dbytes.tell() + 4
+        self.levels = LevelProgress.lazy_n_maybe(
+            dbytes, num_levels, start_pos=start,
+            version=sec.version)
+        return False
 
     def _officials_start_pos(self):
         levels = self.levels
@@ -354,7 +370,7 @@ class ProfileProgress(BaseObject):
     def tricks(self):
         tricks = self._tricks
         if tricks is None:
-            if self.level_s2.version < 6:
+            if self.version < 6:
                 tricks = ()
             else:
                 dbytes = self.dbytes
@@ -380,7 +396,7 @@ class ProfileProgress(BaseObject):
     def unlocked_adventures(self):
         adventures = self._unlocked_adventures
         if adventures is None:
-            if self.level_s2.version < 6:
+            if self.version < 6:
                 adventures = ()
             else:
                 dbytes = self.dbytes
@@ -407,7 +423,7 @@ class ProfileProgress(BaseObject):
     def somelevels(self):
         levels = self._somelevels
         if levels is None:
-            if self.level_s2.version < 6:
+            if self.version < 6:
                 levels = ()
             else:
                 dbytes = self.dbytes
@@ -418,23 +434,30 @@ class ProfileProgress(BaseObject):
             self._somelevels = levels
         return levels
 
+
+class ProfileProgress(ForwardFragmentAttrs, BaseObject):
+
+    fragment_prober = FRAG_PROBER
+
+    forward_fragment_attrs = (
+        (ProfileProgressFragment, ProfileProgressFragment.value_attrs),
+    )
+
+    def _read(self, dbytes):
+        self._require_type(FTYPE_PROFILEPROGRESS)
+        BaseObject._read(self, dbytes)
+
+    def _read_section_data(self, dbytes, sec):
+        return BaseObject._read_section_data(self, dbytes, sec)
+
     @property
     def stats(self):
-        stats = self._stats
-        if stats is None:
-            s2 = self.stats_s2
-            if s2 is None:
-                return None
-            dbytes = self.dbytes
-            with dbytes.saved_pos(s2.data_start + 16):
-                with dbytes.limit(s2.data_end):
-                    stats = PlayerStats.maybe(dbytes, version=s2.version)
-            self._stats = stats
-        return stats
+        return self.fragment_by_type(ProfileStatsFragment)
 
     def _print_data(self, p):
-        if self.level_s2:
-            p(f"Level progress version: {self.level_s2.version}")
+        progress = self.fragment_by_type(ProfileProgressFragment)
+        if progress:
+            p(f"Level progress version: {progress.version}")
             levels = self.levels
             p(f"Level count: {len(levels)}")
             with p.tree_children():
@@ -473,10 +496,10 @@ class ProfileProgress(BaseObject):
                     for somelevel in somelevels:
                         p.tree_next_child()
                         p(f"Level: {somelevel.value!r}")
-            if self.stats:
-                p.print_data_of(self.stats)
         else:
             p("No level progress")
+        if self.stats:
+            p.print_data_of(self.stats)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

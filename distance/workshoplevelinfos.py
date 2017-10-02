@@ -2,12 +2,18 @@
 
 
 from .bytes import BytesModel, MAGIC_2
-from .base import BaseObject
+from .base import BaseObject, Fragment, BASE_FRAG_PROBER
+from .prober import BytesProber
 from .printing import format_bytes
 from .constants import Rating
+from .fragments import ForwardFragmentAttrs
 
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
+
+FRAG_PROBER = BytesProber()
+
+FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
 def format_date(date):
@@ -52,19 +58,29 @@ class Level(BytesModel):
         self._add_unknown(3)
 
 
-class WorkshopLevelInfos(BaseObject):
+@FRAG_PROBER.fragment(MAGIC_2, 0x6d, 0)
+class WorkshopLevelInfosFragment(Fragment):
+
+    levels = ()
+
+    def _read_section_data(self, dbytes, sec):
+        num_levels = dbytes.read_int(4)
+        self.levels = Level.lazy_n_maybe(dbytes, num_levels,
+                                         start_pos=sec.data_start + 20)
+        return False
+
+
+class WorkshopLevelInfos(ForwardFragmentAttrs, BaseObject):
+
+    fragment_prober = FRAG_PROBER
+
+    forward_fragment_attrs = (
+        (WorkshopLevelInfosFragment, dict(levels=())),
+    )
 
     def _read(self, dbytes):
         self._require_type(FTYPE_WSLEVELINFOS)
         BaseObject._read(self, dbytes)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x6d):
-            num_levels = dbytes.read_int(4)
-            self.levels = Level.lazy_n_maybe(dbytes, num_levels,
-                                             start_pos=sec.data_start + 20)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Levelinfos: {len(self.levels)}")

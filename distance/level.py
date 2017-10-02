@@ -4,15 +4,21 @@
 from struct import Struct
 
 from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
-from .base import BaseObject, Fragment
+from .base import BaseObject, Fragment, BASE_FRAG_PROBER
 from .lazy import LazySequence
 from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
+from .fragments import ForwardFragmentAttrs, PROBER as FRAG_PROBER
 
 
 LEVEL_CONTENT_PROBER = BytesProber()
+
+SETTINGS_FRAG_PROBER = BytesProber()
+
+
+SETTINGS_FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
 S_ABILITIES = Struct("5b")
@@ -25,16 +31,18 @@ def format_layer_flags(gen):
             yield name
 
 
-class BaseLevelSettings(object):
+class LevelSettingsMixin(object):
 
-    version = None
-    name = None
-    skybox_name = None
-    modes = ()
-    medal_times = ()
-    medal_scores = ()
-    abilities = ()
-    difficulty = None
+    value_attrs = dict(
+        version = None,
+        name = None,
+        skybox_name = None,
+        modes = (),
+        medal_times = (),
+        medal_scores = (),
+        abilities = (),
+        difficulty = None,
+    )
 
     def _print_data(self, p):
         if self.name is not None:
@@ -63,43 +71,62 @@ class BaseLevelSettings(object):
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
 
 
-@LEVEL_CONTENT_PROBER.for_type('LevelSettings')
-class LevelSettings(BaseLevelSettings, BaseObject):
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 0)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 1)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 2)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 3)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 4)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 5)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 6)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 7)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 8)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 9)
+class LevelSettingsFragment(Fragment):
+
+    locals().update(LevelSettingsMixin.value_attrs)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x52):
-            self.version = version = sec.version
+        self.version = version = sec.version
 
-            self._add_unknown(8)
-            self.name = dbytes.read_str()
-            self._add_unknown(4)
-            self.modes = modes = {}
-            num_modes = dbytes.read_int(4)
-            for i in range(num_modes):
-                mode = dbytes.read_int(4)
-                modes[mode] = dbytes.read_byte()
-            self.music_id = dbytes.read_int(4)
-            if version <= 3:
-                self.skybox_name = dbytes.read_str()
-                self._add_unknown(57)
-            elif version == 4:
-                self._add_unknown(141)
-            elif version == 5:
-                self._add_unknown(172)
-            elif 6 <= version:
-                # confirmed only for v6..v9
-                self._add_unknown(176)
-            self.medal_times = times = []
-            self.medal_scores = scores = []
-            for i in range(4):
-                times.append(dbytes.read_struct(S_FLOAT)[0])
-                scores.append(dbytes.read_int(4, signed=True))
-            if version >= 1:
-                self.abilities = dbytes.read_struct(S_ABILITIES)
-            if version >= 2:
-                self.difficulty = dbytes.read_int(4)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
+        self._add_unknown(8)
+        self.name = dbytes.read_str()
+        self._add_unknown(4)
+        self.modes = modes = {}
+        num_modes = dbytes.read_int(4)
+        for i in range(num_modes):
+            mode = dbytes.read_int(4)
+            modes[mode] = dbytes.read_byte()
+        self.music_id = dbytes.read_int(4)
+        if version <= 3:
+            self.skybox_name = dbytes.read_str()
+            self._add_unknown(57)
+        elif version == 4:
+            self._add_unknown(141)
+        elif version == 5:
+            self._add_unknown(172)
+        elif 6 <= version:
+            # confirmed only for v6..v9
+            self._add_unknown(176)
+        self.medal_times = times = []
+        self.medal_scores = scores = []
+        for i in range(4):
+            times.append(dbytes.read_struct(S_FLOAT)[0])
+            scores.append(dbytes.read_int(4, signed=True))
+        if version >= 1:
+            self.abilities = dbytes.read_struct(S_ABILITIES)
+        if version >= 2:
+            self.difficulty = dbytes.read_int(4)
+        return False
+
+
+@LEVEL_CONTENT_PROBER.for_type('LevelSettings')
+class LevelSettings(ForwardFragmentAttrs, LevelSettingsMixin, BaseObject):
+
+    forward_fragment_attrs = (
+        (LevelSettingsFragment, LevelSettingsMixin.value_attrs),
+    )
+
+    fragment_prober = SETTINGS_FRAG_PROBER
 
     def _print_type(self, p):
         BaseObject._print_type(self, p)
@@ -108,7 +135,9 @@ class LevelSettings(BaseLevelSettings, BaseObject):
 
 
 @LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
-class OldLevelSettings(BaseLevelSettings, Fragment):
+class OldLevelSettings(LevelSettingsMixin, Fragment):
+
+    locals().update(LevelSettingsMixin.value_attrs)
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps

@@ -41,7 +41,7 @@ class Version1Test(unittest.TestCase):
         self.assertTrue(entries[-1].sane_end_pos)
 
     def test_truncated(self):
-        lb = Leaderboard("tests/in/leaderboard/version_1_truncated.bytes")
+        lb = Leaderboard.maybe("tests/in/leaderboard/version_1_truncated.bytes")
         entries = lb.entries
         self.assertEqual([e.time for e in entries],
                             [57400, 57570, 58110, 58470, 58820, None])
@@ -51,7 +51,7 @@ class Version1Test(unittest.TestCase):
         self.assertFalse(entries[-1].sane_end_pos)
 
     def test_truncated2(self):
-        lb = Leaderboard("tests/in/leaderboard/version_1_truncated_2.bytes")
+        lb = Leaderboard.maybe("tests/in/leaderboard/version_1_truncated_2.bytes")
         entries = lb.entries
         self.assertEqual([e.time for e in entries],
                             [57400, 57570, 58110, 58470, None])

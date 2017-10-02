@@ -21,6 +21,11 @@ PROBER = BytesProber(baseclass=Fragment)
 PROBER.add_fragment(ObjectFragment, MAGIC_3, type=1, version=0)
 
 
+@PROBER.func
+def _fallback_fragment(sec):
+    return Fragment
+
+
 def read_n_floats(dbytes, n, default):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]

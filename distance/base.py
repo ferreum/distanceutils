@@ -5,9 +5,12 @@ from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
+from .lazy import LazySequenceMapping
 
 
 BASE_PROBER = BytesProber()
+
+BASE_FRAG_PROBER = BytesProber()
 
 EMPTY_PROBER = BytesProber()
 
@@ -60,7 +63,7 @@ class BaseObject(BytesModel):
     """Base class of objects represented by a MAGIC_6 section."""
 
     child_prober = BASE_PROBER
-    fragment_prober = EMPTY_PROBER
+    fragment_prober = BASE_FRAG_PROBER
     is_object_group = False
 
     fragments = ()
@@ -79,23 +82,18 @@ class BaseObject(BytesModel):
         ts = self._get_container()
         self.type = ts.type
         self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+        self.sections = Section.lazy_n_maybe(dbytes, ts.num_sections)
+        self.fragments = LazySequenceMapping(
+            self.sections, self._read_fragment)
 
-    def _read_section_data(self, dbytes, sec):
-        try:
-            fragment = self.fragment_prober.maybe(
+    def _read_fragment(self, sec):
+        if sec.exception:
+            raise sec.exception
+        dbytes = self.dbytes
+        with dbytes.saved_pos(sec.end_pos):
+            return self.fragment_prober.maybe(
                 dbytes, probe_section=sec,
                 child_prober=self.child_prober)
-        except ProbeError:
-            pass
-        else:
-            sec.__fragment = fragment
-            fragments = self.fragments
-            if fragments is ():
-                self.fragments = fragments = []
-            fragments.append(fragment)
-            return True
-        return BytesModel._read_section_data(self, dbytes, sec)
 
     def write(self, dbytes):
         if self.container is None:
@@ -103,7 +101,8 @@ class BaseObject(BytesModel):
         if self.sections is ():
             self._init_defaults()
         with dbytes.write_section(self.container):
-            self._write_sections(dbytes)
+            for frag in self.fragments:
+                frag.write(dbytes)
 
     def _init_defaults(self):
         sections = list(Section(s) for s in self.default_sections)
@@ -116,7 +115,7 @@ class BaseObject(BytesModel):
             except ProbeError:
                 pass # subclass has to write this section
             else:
-                frag = cls()
+                frag = cls(container=sec)
                 sec.__fragment = frag
                 fragments.append(frag)
 
@@ -126,7 +125,7 @@ class BaseObject(BytesModel):
         except AttributeError:
             pass
         else:
-            fragment.write(dbytes, section=sec)
+            fragment.write(dbytes, section=sec) # TODO remove section param
             return True
         return BytesModel._write_section(self, dbytes, sec)
 
@@ -224,9 +223,13 @@ class Fragment(BytesModel):
         name = type(self).__name__
         if name.endswith('Fragment'):
             name = name[:-8]
-            p(f"Fragment: {name}")
+            if not name and type(self) == Fragment:
+                p(f"Fragment: Unknown")
+            else:
+                p(f"Fragment: {name}")
 
 
+@BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
     transform = None
