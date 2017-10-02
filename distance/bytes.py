@@ -209,7 +209,8 @@ class BytesModel(object):
             self.__apply_end_pos(dbytes)
             self.end_pos = dbytes.tell()
             self.sane_end_pos = True
-        except CATCH_EXCEPTIONS as e:
+            # Catching BaseEsception, because we re-raise everything.
+        except BaseException as e:
             orig_e = e
             exc_pos = dbytes.tell()
             if exc_pos != start_pos and isinstance(e, EOFError):
@@ -217,7 +218,9 @@ class BytesModel(object):
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
-            self.sane_end_pos = self.__apply_end_pos(dbytes, or_to_eof=True)
+            # prevent I/O for non-whitelisted exceptions
+            if isinstance(e, CATCH_EXCEPTIONS):
+                self.sane_end_pos = self.__apply_end_pos(dbytes, or_to_eof=True)
             self.end_pos = exc_pos
             raise e from orig_e
 
