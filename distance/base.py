@@ -119,16 +119,6 @@ class BaseObject(BytesModel):
                 sec.__fragment = frag
                 fragments.append(frag)
 
-    def _write_section(self, dbytes, sec):
-        try:
-            fragment = sec.__fragment
-        except AttributeError:
-            pass
-        else:
-            fragment.write(dbytes, section=sec) # TODO remove section param
-            return True
-        return BytesModel._write_section(self, dbytes, sec)
-
     def iter_children(self, ty=None, name=None):
         for obj in self.children:
             if ty is None or isinstance(obj, ty):
@@ -241,6 +231,16 @@ class ObjectFragment(Fragment):
         Fragment._read(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
+
+        """Read data of the given section.
+
+        Returns `True` if the raw section data is not needed.
+
+        Returns `False` to indicate that raw data of the section
+        shall be saved (e.g. for `_write_section_data()`).
+
+        """
+
         end = sec.data_end
         if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
             self.transform = read_transform(dbytes)
@@ -253,6 +253,18 @@ class ObjectFragment(Fragment):
         return True
 
     def _write_section_data(self, dbytes, sec):
+
+        """Write data of the given section.
+
+        Returns `True` if the section has been written.
+
+        Returns `False` if the raw section data shall be copied
+        from the source that this object has been read from. This
+        is an error if raw data has not been saved for the section
+        (e.g. by returning `False` from `_read_section_data`).
+
+        """
+
         children = self.children
         has_children = self.has_children or children
         if self.transform or has_children:

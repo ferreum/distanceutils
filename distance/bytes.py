@@ -63,12 +63,10 @@ class BytesModel(object):
     unknown = ()
     sections = ()
     exception = None
-    reported_end_pos = None
+    _reported_end_pos = None
     container = None
     sane_end_pos = False
     opts = None
-
-    default_sections = ()
 
     @classmethod
     def maybe(clazz, dbytes, **kw):
@@ -228,71 +226,14 @@ class BytesModel(object):
         raise NotImplementedError(
             "Subclass needs to override _read(self, dbytes)")
 
-    def _read_sections(self, end):
-        dbytes = self.dbytes
-        sections = self.sections
-        if sections is ():
-            self.sections = sections = []
-        with dbytes.limit(end):
-            while dbytes.tell() < end:
-                sec = Section(dbytes)
-                sections.append(sec)
-                with dbytes.limit(sec.data_end):
-                    prevpos = dbytes.tell()
-                    if not self._read_section_data(dbytes, sec):
-                        dbytes.seek(prevpos)
-                        sec.read_raw_data(dbytes)
-                dbytes.seek(sec.data_end)
-
-    def _read_section_data(self, dbytes, sec):
-
-        """Read data of the given section.
-
-        Returns `True` if the raw section data is not needed.
-
-        Returns `False` to indicate that raw data of the section
-        shall be saved (e.g. for `_write_section_data()`).
-
-        """
-
-        return False
-
-    def _write_sections(self, dbytes):
-        for sec in self.sections:
-            self._write_section(dbytes, sec)
-
-    def _write_section(self, dbytes, sec):
-        with dbytes.write_section(sec):
-            if not self._write_section_data(dbytes, sec):
-                data = sec.raw_data
-                if data is None:
-                    raise ValueError(
-                        f"Raw data not available for {sec}")
-                dbytes.write_bytes(data)
-
-    def _write_section_data(self, dbytes, sec):
-
-        """Write data of the given section.
-
-        Returns `True` if the section has been written.
-
-        Returns `False` if the raw section data shall be copied
-        from the source that this object has been read from. This
-        is an error if raw data has not been saved for the section
-        (e.g. by returning `False` from `_read_section_data`).
-
-        """
-
-        return False
-
     def _init_defaults(self):
         pass
 
     def _report_end_pos(self, pos):
-        self.reported_end_pos = pos
+        self._reported_end_pos = pos
 
     def __apply_end_pos(self, dbytes, or_to_eof=False):
-        end_pos = self.reported_end_pos
+        end_pos = self._reported_end_pos
         if end_pos is not None:
             current_pos = dbytes.tell()
             if current_pos == end_pos:
