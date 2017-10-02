@@ -30,7 +30,7 @@ class BaseLazySequence(Sequence):
                 wantmax = stop
                 if stride > 1:
                     wantmax -= (wantmax - 1 - wantmin) % stride
-            mylen = self._inflate_slice(wantmin, wantmax, stride)
+            mylen = self._inflate_slice(wantmin, wantmax, abs(stride))
             index = slice(*index.indices(mylen))
         else:
             want = index
@@ -101,6 +101,42 @@ class LazySequence(BaseLazySequence):
         self._iterator = None
         self._len = current
         return current
+
+
+UNSET = object()
+
+
+class LazySequenceMapping(BaseLazySequence):
+
+    """Lazy sequence yielding content of a sequence mapped by a function.
+
+    The function is only called the first time an element is accessed.
+
+    """
+
+    def __init__(self, source, func):
+        self._source = source
+        self._func = func
+        self._list = [UNSET] * len(source)
+
+    def __len__(self):
+        return len(self._source)
+
+    def __repr__(self):
+        s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
+        return f"<lazy map [{s}]>"
+
+    def _inflate_slice(self, start, stop, stride):
+        l = self._list
+        try:
+            for i in range(start, stop, stride):
+                elem = l[i]
+                if elem is UNSET:
+                    l[i] = self._func(self._source[i])
+        except IndexError:
+            # source decided it's actually shorter.
+            pass
+        return len(self._source)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
