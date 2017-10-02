@@ -171,15 +171,12 @@ class Layer(Fragment):
             pass
 
     def _read_section_data(self, dbytes, sec):
-        s7 = self._get_container()
-        if s7.magic != MAGIC_7:
-            raise ValueError(f"Invalid layer section: {s7.magic}")
-        self._report_end_pos(s7.data_end)
-
-        self.layer_name = s7.layer_name
+        if sec.magic != MAGIC_7:
+            raise ValueError(f"Invalid layer section: {sec.magic}")
+        self.layer_name = sec.layer_name
 
         pos = dbytes.tell()
-        if pos + 4 >= s7.data_end:
+        if pos + 4 >= sec.data_end:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
             self.has_layer_flags = False
@@ -199,24 +196,27 @@ class Layer(Fragment):
             # We read start of first object - need to rewind.
             dbytes.seek(pos)
 
-        self.objects = self.obj_prober.lazy_n_maybe(dbytes, s7.num_objects, opts=self.opts)
+        self.objects = self.obj_prober.lazy_n_maybe(dbytes, sec.num_objects, opts=self.opts)
+        return True
 
-    def write(self, dbytes):
-        with dbytes.write_section(MAGIC_7, self.layer_name, len(self.objects)):
-            if self.has_layer_flags:
-                flags = self.layer_flags
-                dbytes.write_int(4, self.flags_version)
-                if self.flags_version == 0:
-                    dbytes.write_int(1, 0 if flags[1] else 1)
-                    dbytes.write_int(1, flags[0])
-                    dbytes.write_int(1, flags[2])
-                else:
-                    dbytes.write_int(1, flags[0])
-                    dbytes.write_int(1, flags[1])
-                    dbytes.write_int(1, flags[2])
-                    dbytes.write_int(1, self.unknown_flag)
-            for obj in self.objects:
-                obj.write(dbytes)
+    def _write_section_data(self, dbytes, sec):
+        if sec.magic != MAGIC_7:
+            raise ValueError(f"Invalid layer section: {sec.magic}")
+        if self.has_layer_flags:
+            flags = self.layer_flags
+            dbytes.write_int(4, self.flags_version)
+            if self.flags_version == 0:
+                dbytes.write_int(1, 0 if flags[1] else 1)
+                dbytes.write_int(1, flags[0])
+                dbytes.write_int(1, flags[2])
+            else:
+                dbytes.write_int(1, flags[0])
+                dbytes.write_int(1, flags[1])
+                dbytes.write_int(1, flags[2])
+                dbytes.write_int(1, self.unknown_flag)
+        for obj in self.objects:
+            obj.write(dbytes)
+        return True
 
     def _print_type(self, p):
         p(f"Layer: {self.layer_name!r}")

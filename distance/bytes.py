@@ -396,7 +396,6 @@ class Section(BytesModel):
             self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
             self.layer_name = arg(1, 'layer_name', default=None)
-            self.num_objects = arg(2, 'num_objects', default=None)
         elif magic == MAGIC_8:
             pass # no data
         elif magic == MAGIC_9:
@@ -511,8 +510,8 @@ class Section(BytesModel):
         elif magic == MAGIC_7:
             with dbytes.write_size():
                 dbytes.write_str(self.layer_name)
-                dbytes.write_int(4, self.num_objects)
-                yield
+                with dbytes.write_num_subsections():
+                    yield
         elif magic == MAGIC_8:
             with dbytes.write_size():
                 yield
