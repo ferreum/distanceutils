@@ -45,17 +45,6 @@ class BaseLazySequence(Sequence):
                 index += mylen
         return self._list[index]
 
-    def __repr__(self):
-        l = self._list
-        mylen = self._len
-        curlen = len(l)
-        if curlen != mylen:
-            l = self._list
-            remaining = mylen - curlen
-            return f"<lazy {l!r}{remaining:+}>"
-        else:
-            return f"<lazy {l!r}>"
-
     def _inflate_slice(self, start, stop, stride):
 
         """Try to inflate the given slice in `self._list`.
@@ -83,6 +72,17 @@ class LazySequence(BaseLazySequence):
 
     def __len__(self):
         return self._len
+
+    def __repr__(self):
+        l = self._list
+        mylen = self._len
+        curlen = len(l)
+        if curlen != mylen:
+            l = self._list
+            remaining = mylen - curlen
+            return f"<lazy seq {l!r}{remaining:+}>"
+        else:
+            return f"<lazy seq {l!r}>"
 
     def _inflate_slice(self, start, stop, stride):
         iterator = self._iterator
