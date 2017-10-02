@@ -818,8 +818,7 @@ class ForwardFragmentAttrs(object):
         try:
             return super().__getattr__(name)
         except AttributeError:
-            pass
-        raise_attribute_error(self, name)
+            return super().__getattribute__(name)
 
     def __setattr__(self, name, value):
         for cls, attrs in self.forward_fragment_attrs:
@@ -855,8 +854,7 @@ class ForwardFragmentColors(object):
         try:
             return super().__getattr__(name)
         except AttributeError:
-            pass
-        raise_attribute_error(self, name)
+            return super().__getattribute__(name)
 
     def __setattr__(self, name, value):
         try:
