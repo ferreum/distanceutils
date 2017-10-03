@@ -40,7 +40,7 @@ def format_score(mode, score, comp):
     return f"{mode_str} {type_str}: {score_str} ({comp_str})"
 
 
-class LevelProgress(BaseObject):
+class LevelProgress(BytesModel):
 
     level_path = None
     completion = ()
