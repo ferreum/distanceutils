@@ -162,6 +162,8 @@ class BytesProber(object):
         return objs
 
     def lazy_n_maybe(self, dbytes, n, *args, start_pos=None, **kw):
+        if n <= 0:
+            return ()
         dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)

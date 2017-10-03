@@ -237,13 +237,15 @@ class Level(Fragment):
             raise ValueError(f"Unexpected section: {sec.magic}")
         self._report_end_pos(sec.data_end)
         self.level_name = sec.level_name
-        self.num_layers = sec.num_layers
+
+        num_layers = sec.num_layers
 
         self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
-            dbytes, sec.num_layers + 1, opts=self.opts)
-        self.layers = LazySequence(
-            (obj for obj in self.content if isinstance(obj, Layer)),
-            sec.num_layers)
+            dbytes, num_layers + 1, opts=self.opts)
+        if num_layers:
+            self.layers = LazySequence(
+                (obj for obj in self.content if isinstance(obj, Layer)),
+                num_layers)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:

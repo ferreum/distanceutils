@@ -141,6 +141,8 @@ class BytesModel(object):
 
         """
 
+        if n <= 0:
+            return ()
         dbytes = DstBytes.from_arg(dbytes)
         gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
