@@ -104,7 +104,7 @@ class LazySequence(BaseLazySequence):
 UNSET = object()
 
 
-class LazySequenceMapping(BaseLazySequence):
+class LazyMappedSequence(BaseLazySequence):
 
     """Lazy sequence yielding content of a sequence mapped by a function.
 

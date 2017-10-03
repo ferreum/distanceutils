@@ -1,6 +1,6 @@
 import unittest
 
-from distance.lazy import LazySequence, LazySequenceMapping
+from distance.lazy import LazySequence, LazyMappedSequence
 
 
 class LazySequenceTest(unittest.TestCase):
@@ -174,14 +174,13 @@ class LazySequenceIndexTest(unittest.TestCase):
         self.assertRaises(StopIteration, next, it)
 
 
-
-class LazySequenceMappingTest(unittest.TestCase):
+class LazyMappedSequenceTest(unittest.TestCase):
 
     def setUp(self):
         self.inflated = set()
         self.list = [10, 11, 12, 13, 14]
         self.expect = [20, 21, 22, 23, 24]
-        self.lazy = LazySequenceMapping(self.list, self.func)
+        self.lazy = LazyMappedSequence(self.list, self.func)
 
     def func(self, number):
         if number in self.inflated:

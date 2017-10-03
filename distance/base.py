@@ -5,7 +5,7 @@ from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
-from .lazy import LazySequenceMapping
+from .lazy import LazyMappedSequence
 
 
 BASE_PROBER = BytesProber()
@@ -234,7 +234,7 @@ class BaseObject(BytesModel):
         self.type = ts.type
         self._report_end_pos(ts.data_end)
         self.sections = Section.lazy_n_maybe(dbytes, ts.num_sections)
-        self.fragments = LazySequenceMapping(
+        self.fragments = LazyMappedSequence(
             self.sections, self._read_fragment)
 
     def _read_fragment(self, sec):
