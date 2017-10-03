@@ -474,16 +474,6 @@ class Section(BytesModel):
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
 
-    def match(self, magic, type=None, version=None):
-        """Match the section's type information."""
-        if magic != self.magic:
-            return False
-        if type is not None and type != self.type:
-            return False
-        if version is not None and version != self.version:
-            return False
-        return True
-
     @contextmanager
     def _write_header(self, dbytes):
         magic = self.magic
