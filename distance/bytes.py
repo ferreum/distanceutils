@@ -372,7 +372,7 @@ class Section(BytesModel):
         if not kw.get('plain', False):
             self._init_from_args(*args, **kw)
 
-    def _init_from_args(self, *args, **kw):
+    def _init_from_args(self, *args, any_version=False, **kw):
         if not kw and len(args) == 1 and isinstance(args[0], Section):
             other = args[0]
             if other.magic not in (MAGIC_2, MAGIC_3, MAGIC_32):
@@ -386,7 +386,8 @@ class Section(BytesModel):
         self.magic = magic = arg(0, 'magic')
         if magic in (MAGIC_2, MAGIC_3):
             self.type = arg(1, 'type')
-            self.version = arg(2, 'version')
+            if not any_version:
+                self.version = arg(2, 'version')
             self.id = arg(3, 'id', default=None)
         elif magic == MAGIC_5:
             pass # no data
@@ -415,11 +416,14 @@ class Section(BytesModel):
             argstr += f", {self.type!r}"
         return f"Section({argstr})"
 
-    def to_key(self):
+    def to_key(self, any_version=False):
         """Create a key of this section's type identity."""
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
-            return (magic, self.type, self.version)
+            if any_version:
+                return (magic, self.type)
+            else:
+                return (magic, self.type, self.version)
         elif magic == MAGIC_6:
             return (magic, self.type)
         else:

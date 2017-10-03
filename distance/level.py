@@ -71,16 +71,7 @@ class LevelSettingsMixin(object):
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
 
 
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 0)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 1)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 2)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 3)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 4)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 5)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 6)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 7)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 8)
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, 9)
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
 class LevelSettingsFragment(Fragment):
 
     locals().update(LevelSettingsMixin.value_attrs)

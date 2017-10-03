@@ -13,10 +13,10 @@ class ArgTaker(object):
 
     def __call__(self, index, kwname, default=DO_THROW):
         maxarg = self.maxarg
-        if index > maxarg:
+        if index is not None and index > maxarg:
             self.maxarg = index
         args = self.args
-        if index < len(args):
+        if index is not None and index < len(args):
             return args[index]
         else:
             try:

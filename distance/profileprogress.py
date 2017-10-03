@@ -164,9 +164,7 @@ STATS = AttrOrderedDict((s.ident, s) for s in (
 ))
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x8e, 0)
-@FRAG_PROBER.fragment(MAGIC_2, 0x8e, 1)
-@FRAG_PROBER.fragment(MAGIC_2, 0x8e, 2)
+@FRAG_PROBER.fragment(MAGIC_2, 0x8e, any_version=True)
 class ProfileStatsFragment(Fragment):
 
     version = None
@@ -297,13 +295,7 @@ class ProfileStatsFragment(Fragment):
                     p(f"Found: {mods_str}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 0)
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 1)
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 2)
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 3)
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 4)
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 5)
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, 6)
+@FRAG_PROBER.fragment(MAGIC_2, 0x6a, any_version=True)
 class ProfileProgressFragment(Fragment):
 
     value_attrs = dict(

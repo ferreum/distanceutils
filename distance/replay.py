@@ -17,11 +17,7 @@ FRAG_PROBER = BytesProber()
 FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x7f, 0)
-@FRAG_PROBER.fragment(MAGIC_2, 0x7f, 1)
-@FRAG_PROBER.fragment(MAGIC_2, 0x7f, 2)
-@FRAG_PROBER.fragment(MAGIC_2, 0x7f, 3)
-@FRAG_PROBER.fragment(MAGIC_2, 0x7f, 4)
+@FRAG_PROBER.fragment(MAGIC_2, 0x7f, any_version=True)
 class ReplayFragment(Fragment):
 
     value_attrs = dict(

@@ -27,12 +27,12 @@ class BytesProber(object):
         else:
             self._funcs.append(func)
 
-    def add_fragment(self, cls, *args, **kw):
+    def add_fragment(self, cls, *args, any_version=False, **kw):
         if not kw and len(args) == 1 and isinstance(args[0], Section):
             sec = args[0]
         else:
-            sec = Section(*args, **kw)
-        key = sec.to_key()
+            sec = Section(*args, any_version=any_version, **kw)
+        key = sec.to_key(any_version=any_version)
         if key in self._fragments:
             raise ValueError(f"{sec} is already registered")
         self._fragments[key] = cls
@@ -79,7 +79,10 @@ class BytesProber(object):
         self._funcs.extend(other._funcs)
 
     def _probe_fragment(self, sec):
-        return self._fragments.get(sec.to_key(), None)
+        cls = self._fragments.get(sec.to_key(), None)
+        if cls is not None:
+            return cls
+        return self._fragments.get(sec.to_key(any_version=True), None)
 
     def _get_from_funcs(self, sec):
         for func in self._funcs:

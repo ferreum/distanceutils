@@ -37,8 +37,7 @@ class Entry(BytesModel):
             raise ValueError(f"unknown version: {version}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x37, 0)
-@FRAG_PROBER.fragment(MAGIC_2, 0x37, 1)
+@FRAG_PROBER.fragment(MAGIC_2, 0x37, any_version=True)
 class LeaderboardFragment(Fragment):
 
     version = None
