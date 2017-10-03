@@ -15,9 +15,9 @@ class BaseLazySequence(Sequence):
     """
 
     def __getitem__(self, index):
-        mylen = len(self)
+        len_ = len(self)
         if isinstance(index, slice):
-            start, stop, stride = index.indices(mylen)
+            start, stop, stride = index.indices(len_)
             if stride < 0:
                 if start <= stop:
                     return []
@@ -30,19 +30,15 @@ class BaseLazySequence(Sequence):
                 wantmax = stop
                 if stride > 1:
                     wantmax -= (wantmax - 1 - wantmin) % stride
-            mylen = self._inflate_slice(wantmin, wantmax, abs(stride))
-            index = slice(*index.indices(mylen))
+            len_ = self._inflate_slice(len_, wantmin, wantmax, abs(stride))
+            index = slice(*index.indices(len_))
         else:
             want = index
             if want < 0:
-                want += mylen
-            if want >= mylen:
-                raise IndexError(f"{want} >= {mylen}")
-            if want < 0:
-                raise IndexError(f"{want} < 0")
-            mylen = self._inflate_slice(want, want + 1, 1)
+                want += len_
+            len_ = self._inflate_slice(len_, want, want + 1, 1)
             if index < 0:
-                index += mylen
+                index += len_
         return self._list[index]
 
     def _inflate_slice(self, start, stop, stride):
@@ -58,6 +54,10 @@ class BaseLazySequence(Sequence):
         raise NotImplementedError
 
 
+def noop_inflate_slice(len_, start, stop, stride):
+    return len_
+
+
 class LazySequence(BaseLazySequence):
 
     """Lazy sequence using an iterator as source."""
@@ -67,6 +67,8 @@ class LazySequence(BaseLazySequence):
     def __init__(self, source, length):
         if length <= 0:
             self._len = 0
+            self._list = ()
+            self._inflate_slice = noop_inflate_slice
             return
         self._iterator = iter(source)
         self._len = length
@@ -86,29 +88,27 @@ class LazySequence(BaseLazySequence):
         else:
             return f"<lazy seq {l!r}>"
 
-    def _inflate_slice(self, start, stop, stride):
-        iterator = self._iterator
-        if iterator is None:
-            return self._len
+    def _inflate_slice(self, len_, start, stop, stride):
         l = self._list
         current = len(l)
         needed = stop - current
         if needed <= 0:
-            return self._len
+            return len_
         if needed == 1:
             # optimize single element inflation
             try:
-                l.append(next(iterator))
+                l.append(next(self._iterator))
                 return self._len
             except StopIteration:
                 pass # iterator ended early; fall through
         else:
-            l.extend(islice(iterator, needed))
+            l.extend(islice(self._iterator, needed))
             current = len(l)
             if stop - 1 < current:
-                return self._len
+                return len_
         # iterator ended earlier than the reported length.
         # Try to patch our length and hope no one notices.
+        self._inflate_slice = noop_inflate_slice
         self._iterator = None
         self._len = current
         return current
@@ -139,7 +139,7 @@ class LazySequenceMapping(BaseLazySequence):
         s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
         return f"<lazy map [{s}]>"
 
-    def _inflate_slice(self, start, stop, stride):
+    def _inflate_slice(self, len_, start, stop, stride):
         try:
             l = self._list
             if start == stop - 1:
@@ -154,12 +154,12 @@ class LazySequenceMapping(BaseLazySequence):
                     elem = l[i]
                     if elem is UNSET:
                         l[i] = func(source[i])
+            return len_
         except IndexError:
             # source decided it's actually shorter.
             newlen = len(self._source)
             del l[newlen:]
             return newlen
-        return len(l)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
