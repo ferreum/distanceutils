@@ -1,7 +1,6 @@
 import unittest
 
 from distance.leaderboard import Leaderboard
-from distance.bytes import UnexpectedEOFError
 from distance.printing import PrintContext
 
 
@@ -47,7 +46,7 @@ class Version1Test(unittest.TestCase):
                             [57400, 57570, 58110, 58470, 58820, None])
         self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5 + [None])
         self.assertEqual(lb.version, 1)
-        self.assertEqual(UnexpectedEOFError, type(entries[-1].exception))
+        self.assertEqual(EOFError, type(entries[-1].exception))
         self.assertFalse(entries[-1].sane_end_pos)
 
     def test_truncated2(self):

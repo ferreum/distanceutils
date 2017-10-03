@@ -1,7 +1,6 @@
 import unittest
 
 from distance.level import Level
-from distance.bytes import UnexpectedEOFError
 from distance.printing import PrintContext
 from .common import check_exceptions
 
@@ -21,7 +20,7 @@ class LevelTest(unittest.TestCase):
         self.assertEqual(level.level_name, "Test-straightroad")
         results = [level.settings] + list(level.iter_objects())
         self.assertEqual(len(results), 3)
-        self.assertRaises(UnexpectedEOFError, check_exceptions, results[2])
+        self.assertRaises(EOFError, check_exceptions, results[2])
 
     def test_truncated_iter(self):
         level = Level("tests/in/level/test-straightroad_truncated_2.bytes")
@@ -29,14 +28,14 @@ class LevelTest(unittest.TestCase):
         gen = level.iter_objects()
         next(gen)
         obj = next(gen)
-        self.assertEqual(UnexpectedEOFError, type(obj.exception))
+        self.assertEqual(EOFError, type(obj.exception))
 
     def test_truncated_seq(self):
         level = Level("tests/in/level/test-straightroad_truncated_2.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
         objs = level.layers[0].objects[:]
         self.assertEqual(2, len(objs))
-        self.assertEqual(UnexpectedEOFError, type(objs[-1].exception))
+        self.assertEqual(EOFError, type(objs[-1].exception))
 
     def test_invalid_str(self):
         level = Level("tests/in/level/invalid-groupname.bytes")

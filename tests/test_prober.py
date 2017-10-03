@@ -1,6 +1,6 @@
 import unittest
 
-from distance.bytes import DstBytes, MAGIC_6, UnexpectedEOFError
+from distance.bytes import DstBytes, MAGIC_6
 from distance.prober import BytesProber
 from distance.base import BaseObject
 from distance.knowntypes import read
@@ -27,7 +27,7 @@ class ProberTest(unittest.TestCase):
         dbytes.write_int(4, MAGIC_6)
         dbytes.seek(0)
         obj = prober.maybe(dbytes)
-        self.assertEqual(UnexpectedEOFError, type(obj.exception))
+        self.assertEqual(EOFError, type(obj.exception))
 
     def test_maybe_propagates_io_exception(self):
         prober = BytesProber()

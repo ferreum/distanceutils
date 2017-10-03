@@ -53,11 +53,7 @@ MAGIC_12 = 12121212
 MAGIC_32 = 32323232
 
 
-class UnexpectedEOFError(Exception):
-    pass
-
-
-CATCH_EXCEPTIONS = (ValueError, EOFError, UnexpectedEOFError)
+CATCH_EXCEPTIONS = (ValueError, EOFError)
 
 
 class BytesModel(object):
@@ -185,9 +181,6 @@ class BytesModel(object):
                            `dbytes` position when entering this method.
         `exc_pos`        - `dbytes` position where the exception occurred.
 
-        `EOFError` occuring in `_read()` are converted to
-        `UnexpectedEOFError` if any data has been read from `dbytes`.
-
         After `_read()`, regardless of whether an exception was raised,
         it is attempted to `dbytes.seek()` to the position reported
         (if it was) with `_report_end_pos()`. If this is successful,
@@ -219,8 +212,6 @@ class BytesModel(object):
         except BaseException as e:
             orig_e = e
             exc_pos = dbytes.tell()
-            if exc_pos != start_pos and isinstance(e, EOFError):
-                e = UnexpectedEOFError()
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
@@ -229,9 +220,12 @@ class BytesModel(object):
                 self.end_pos = exc_pos
             else:
                 if isinstance(e, CATCH_EXCEPTIONS):
-                    dbytes.seek(end - 1)
-                    if dbytes.read_bytes(1, or_to_eof=True):
+                    try:
+                        dbytes.seek(end - 1)
+                        dbytes.read_bytes(1)
                         self.sane_end_pos = True
+                    except EOFError:
+                        pass
             raise e from orig_e
 
     def _read(self, dbytes):
