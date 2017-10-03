@@ -160,6 +160,33 @@ class ObjectFragment(Fragment):
         return True
 
 
+class ForwardFragmentAttrs(object):
+
+    """Decorator to forward attributes of a objects to their fragments."""
+
+    def __init__(self, cls, attrs):
+        self.cls = cls
+        self.attrs = attrs
+
+    def __call__(self, target):
+        cls = self.cls
+        doc = f"property forwarded to {cls.__name__!r}"
+        for name, default in self.attrs.items():
+            def fget(self):
+                frag = self.fragment_by_type(cls)
+                if frag is None:
+                    return default
+                return getattr(frag, name)
+            def fset(self, value):
+                frag = self.fragment_by_type(cls)
+                if frag is None:
+                    return default
+                setattr(frag, name, value)
+            setattr(target, name, property(fget, fset, None, doc=doc))
+        return target
+
+
+@ForwardFragmentAttrs(ObjectFragment, dict(transform=None, children=()))
 class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""
@@ -225,28 +252,6 @@ class BaseObject(BytesModel):
             if ty is None or isinstance(obj, ty):
                 if name is None or obj.type == name:
                     yield obj
-
-    @property
-    def children(self):
-        frag = self.fragment_by_type(ObjectFragment)
-        if frag is None:
-            return ()
-        return frag.children
-
-    @children.setter
-    def children(self, value):
-        self.fragment_by_type(ObjectFragment).children = value
-
-    @property
-    def transform(self):
-        frag = self.fragment_by_type(ObjectFragment)
-        if frag is None:
-            return None
-        return frag.transform
-
-    @transform.setter
-    def transform(self, value):
-        self.fragment_by_type(ObjectFragment).transform = value
 
     def _print_data(self, p):
         if 'transform' in p.flags:
