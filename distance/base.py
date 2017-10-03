@@ -172,12 +172,12 @@ class ForwardFragmentAttrs(object):
         cls = self.cls
         doc = f"property forwarded to {cls.__name__!r}"
         for name, default in self.attrs.items():
-            def fget(self):
+            def fget(self, name=name, default=default):
                 frag = self.fragment_by_type(cls)
                 if frag is None:
                     return default
                 return getattr(frag, name)
-            def fset(self, value):
+            def fset(self, value, name=name):
                 frag = self.fragment_by_type(cls)
                 if frag is None:
                     return default
