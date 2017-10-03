@@ -12,6 +12,10 @@ class BaseLazySequence(Sequence):
     Subclasses need to implement `_inflate_slice(start, stop, stride)` and
     `__len__`. Additionally, the backing list needs to be stored in `_list`.
 
+    Subclasses need to implement `_inflate_slice(len_, start, stop, stride)`
+    which inflates the given slice in `self._list`. The result is the length
+    of the sequence after inflation (like __len__).
+
     """
 
     def __getitem__(self, index):
@@ -40,18 +44,6 @@ class BaseLazySequence(Sequence):
             if index < 0:
                 index += len_
         return self._list[index]
-
-    def _inflate_slice(self, start, stop, stride):
-
-        """Try to inflate the given slice in `self._list`.
-
-        Returns the length of this sequence after inflation (like __len__).
-
-        The default implementation raises `NotImplementedError`.
-
-        """
-
-        raise NotImplementedError
 
 
 def noop_inflate_slice(len_, start, stop, stride):
