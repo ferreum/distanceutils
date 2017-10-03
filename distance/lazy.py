@@ -57,11 +57,6 @@ class LazySequence(BaseLazySequence):
     __slots__ = ['_iterator', '_len', '_list']
 
     def __init__(self, source, length):
-        if length <= 0:
-            self._len = 0
-            self._list = ()
-            self._inflate_slice = noop_inflate_slice
-            return
         self._iterator = iter(source)
         self._len = length
         self._list = []
