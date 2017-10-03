@@ -806,33 +806,6 @@ def raise_attribute_error(obj, name):
         f"{type(obj).__name__!r} object has no attribute {name!r}")
 
 
-class ForwardFragmentAttrs(object):
-
-    forward_fragment_attrs = ()
-
-    def __getattr__(self, name):
-        for cls, attrs in self.forward_fragment_attrs:
-            if name in attrs:
-                try:
-                    return getattr(self.fragment_by_type(cls), name)
-                except AttributeError:
-                    try:
-                        return attrs[name]
-                    except TypeError:
-                        raise_attribute_error(self, name)
-        try:
-            return super().__getattr__(name)
-        except AttributeError:
-            return super().__getattribute__(name)
-
-    def __setattr__(self, name, value):
-        for cls, attrs in self.forward_fragment_attrs:
-            if name in attrs:
-                setattr(self.fragment_by_type(cls), name, value)
-                return
-        super().__setattr__(name, value)
-
-
 class ForwardFragmentColors(object):
 
     forward_fragment_colors = ()

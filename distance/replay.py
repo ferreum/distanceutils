@@ -2,8 +2,11 @@
 
 
 from .bytes import S_COLOR_RGBA, MAGIC_1, MAGIC_2
-from .base import BaseObject, Fragment, BASE_FRAG_PROBER
-from .fragments import ForwardFragmentAttrs
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs,
+)
 from .prober import BytesProber
 from .printing import format_duration, format_color
 
@@ -64,13 +67,10 @@ class ReplayFragment(Fragment):
         return False
 
 
-class Replay(ForwardFragmentAttrs, BaseObject):
+@ForwardFragmentAttrs(ReplayFragment, ReplayFragment.value_attrs)
+class Replay(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    forward_fragment_attrs = (
-        (ReplayFragment, ReplayFragment.value_attrs),
-    )
 
     def _read(self, dbytes):
         self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))

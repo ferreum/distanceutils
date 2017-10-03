@@ -5,8 +5,11 @@ from collections import OrderedDict
 from itertools import islice
 
 from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
-from .base import BaseObject, Fragment, BASE_FRAG_PROBER
-from .fragments import ForwardFragmentAttrs
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs,
+)
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
 from .prober import BytesProber
@@ -427,13 +430,10 @@ class ProfileProgressFragment(Fragment):
         return levels
 
 
-class ProfileProgress(ForwardFragmentAttrs, BaseObject):
+@ForwardFragmentAttrs(ProfileProgressFragment, ProfileProgressFragment.value_attrs)
+class ProfileProgress(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    forward_fragment_attrs = (
-        (ProfileProgressFragment, ProfileProgressFragment.value_attrs),
-    )
 
     def _read(self, dbytes):
         self._require_type(FTYPE_PROFILEPROGRESS)

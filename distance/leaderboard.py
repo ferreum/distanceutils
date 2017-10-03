@@ -4,8 +4,7 @@
 from operator import attrgetter
 
 from .bytes import BytesModel, MAGIC_2
-from .base import BaseObject, Fragment
-from .fragments import ForwardFragmentAttrs
+from .base import BaseObject, Fragment, ForwardFragmentAttrs
 from .prober import BytesProber
 from .printing import format_bytes, format_duration
 
@@ -55,13 +54,10 @@ class LeaderboardFragment(Fragment):
         return False
 
 
-class Leaderboard(ForwardFragmentAttrs, BaseObject):
+@ForwardFragmentAttrs(LeaderboardFragment, dict(version=None, entries=()))
+class Leaderboard(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    forward_fragment_attrs = (
-        (LeaderboardFragment, dict(version=None, entries=())),
-    )
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

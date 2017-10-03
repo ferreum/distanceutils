@@ -4,13 +4,17 @@
 from struct import Struct
 
 from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
-from .base import BaseObject, Fragment, BASE_FRAG_PROBER
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs
+)
 from .lazy import LazySequence
 from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
-from .fragments import ForwardFragmentAttrs, PROBER as FRAG_PROBER
+from .fragments import PROBER as FRAG_PROBER
 
 
 LEVEL_CONTENT_PROBER = BytesProber()
@@ -111,11 +115,8 @@ class LevelSettingsFragment(Fragment):
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
-class LevelSettings(ForwardFragmentAttrs, LevelSettingsMixin, BaseObject):
-
-    forward_fragment_attrs = (
-        (LevelSettingsFragment, LevelSettingsMixin.value_attrs),
-    )
+@ForwardFragmentAttrs(LevelSettingsFragment, LevelSettingsMixin.value_attrs)
+class LevelSettings(LevelSettingsMixin, BaseObject):
 
     fragment_prober = SETTINGS_FRAG_PROBER
 

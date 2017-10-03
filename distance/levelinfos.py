@@ -2,8 +2,11 @@
 
 
 from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
-from .base import BaseObject, Fragment, BASE_FRAG_PROBER
-from .fragments import ForwardFragmentAttrs
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs,
+)
 from .printing import format_duration
 from .constants import Mode
 from .prober import BytesProber
@@ -72,13 +75,10 @@ class LevelInfosFragment(Fragment):
         return False
 
 
-class LevelInfos(ForwardFragmentAttrs, BaseObject):
+@ForwardFragmentAttrs(LevelInfosFragment, dict(levels=(), version=None))
+class LevelInfos(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    forward_fragment_attrs = (
-        (LevelInfosFragment, dict(levels=(), version=None)),
-    )
 
     def _read(self, dbytes):
         self._require_type(FTYPE_LEVELINFOS)
