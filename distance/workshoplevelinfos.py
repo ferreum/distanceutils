@@ -53,12 +53,11 @@ class Level(BytesModel):
         self.author = dbytes.read_str()
         self.path = dbytes.read_str()
         self.published_by_user = dbytes.read_byte()
-        self._add_unknown(7)
+        dbytes.read_bytes(7)
         self.upvotes = dbytes.read_int(4)
         self.downvotes = dbytes.read_int(4)
-        self._add_unknown(4)
-        self.rating = dbytes.read_byte()
-        self._add_unknown(3)
+        dbytes.read_bytes(4)
+        self.rating = dbytes.read_int(4)
 
 
 @FRAG_PROBER.fragment(MAGIC_2, 0x6d, 0)
@@ -102,8 +101,6 @@ class WorkshopLevelInfos(BaseObject):
                     p(f"Description: {level.description}")
                 if level.rating is not None and level.rating != Rating.NONE:
                     p(f"Rating: {Rating.to_name(level.rating)}")
-                if 'unknown' in p.flags:
-                    p(f"Unknown: {format_bytes(level.unknown)}")
                 if level.exception:
                     p.print_exception(level.exception)
 

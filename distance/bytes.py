@@ -5,7 +5,7 @@ import struct
 from struct import Struct
 from contextlib import contextmanager
 
-from .printing import PrintContext, format_unknown
+from .printing import PrintContext
 from .argtaker import ArgTaker
 from .lazy import LazySequence
 
@@ -64,12 +64,12 @@ class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
 
-    unknown = ()
     sections = ()
     exception = None
-    _reported_end_pos = None
     container = None
     sane_end_pos = False
+    start_pos = None
+    end_pos = None
     opts = None
 
     @classmethod
@@ -208,8 +208,12 @@ class BytesModel(object):
             self._handle_opts(opts)
         try:
             self._read(dbytes, **kw)
-            self.__apply_end_pos(dbytes)
-            self.end_pos = dbytes.tell()
+            end = self.end_pos
+            if end is None:
+                self.end_pos = dbytes.tell()
+            else:
+                dbytes.seek(end - 1)
+                dbytes.read_bytes(1)
             self.sane_end_pos = True
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
@@ -220,10 +224,14 @@ class BytesModel(object):
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
-            # prevent I/O for non-whitelisted exceptions
-            if isinstance(e, CATCH_EXCEPTIONS):
-                self.sane_end_pos = self.__apply_end_pos(dbytes, or_to_eof=True)
-            self.end_pos = exc_pos
+            end = self.end_pos
+            if end is None:
+                self.end_pos = exc_pos
+            else:
+                if isinstance(e, CATCH_EXCEPTIONS):
+                    dbytes.seek(end - 1)
+                    if dbytes.read_bytes(1, or_to_eof=True):
+                        self.sane_end_pos = True
             raise e from orig_e
 
     def _read(self, dbytes):
@@ -234,21 +242,7 @@ class BytesModel(object):
         pass
 
     def _report_end_pos(self, pos):
-        self._reported_end_pos = pos
-
-    def __apply_end_pos(self, dbytes, or_to_eof=False):
-        end_pos = self._reported_end_pos
-        if end_pos is not None:
-            current_pos = dbytes.tell()
-            if current_pos == end_pos:
-                return True
-            if current_pos > end_pos:
-                dbytes.seek(end_pos)
-                return True
-            wanted = end_pos - current_pos
-            remain = self._add_unknown(wanted, or_to_eof=or_to_eof)
-            return len(remain) == wanted
-        return False
+        self.end_pos = pos
 
     def write(self, dbytes):
 
@@ -282,8 +276,6 @@ class BytesModel(object):
                     for sec in self.sections:
                         p.tree_next_child()
                         p.print_data_of(sec)
-        if 'unknown' in p.flags and self.unknown:
-            p(f"Unknown: {format_unknown(self.unknown)}")
         self._print_data(p)
         self._print_children(p)
         if self.exception:
@@ -327,15 +319,6 @@ class BytesModel(object):
             if not expect(ts.type):
                 raise ValueError(f"Invalid object type: {ts.type}")
         return ts
-
-    def _add_unknown(self, nbytes=None, value=None, or_to_eof=False):
-        unknown = self.unknown
-        if unknown is ():
-            self.unknown = unknown = []
-        if value is None:
-            value = self.dbytes.read_bytes(nbytes, or_to_eof=or_to_eof)
-        unknown.append(value)
-        return value
 
     def _require_equal(self, expect, nbytes=None, value=None):
         if nbytes is not None:
@@ -456,7 +439,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
             self.type = dbytes.read_str()
-            self._add_unknown(1) # unknown, always 0
+            dbytes.read_bytes(1) # unknown, always 0
             self.id = dbytes.read_id()
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_7:

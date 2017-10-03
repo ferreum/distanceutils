@@ -295,7 +295,7 @@ class GravityToggleFragment(Fragment):
     drag_scale_angular = 1.0
 
     def _read_section_data(self, dbytes, sec):
-        with dbytes.limit(sec.data_end, True):
+        if sec.data_size > 12:
             self.disable_gravity = dbytes.read_byte()
             self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
             self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
@@ -319,7 +319,7 @@ class MusicTriggerFragment(Fragment):
     disable_music_trigger = 0
 
     def _read_section_data(self, dbytes, sec):
-        with dbytes.limit(sec.data_end, True):
+        if sec.data_size > 12:
             self.music_id = dbytes.read_int(4)
             self.one_time_trigger = dbytes.read_byte()
             self.reset_before_trigger = dbytes.read_byte()
@@ -676,7 +676,7 @@ class InfoDisplayLogicFragment(InfoDisplayLogicMixin, Fragment):
             self.fadeout_time = dbytes.read_struct(S_FLOAT)
             self.texts = texts = []
             for i in range(5):
-                self._add_unknown(4) # f32 delay
+                dbytes.read_bytes(4) # f32 delay
                 texts.append(dbytes.read_str())
 
 

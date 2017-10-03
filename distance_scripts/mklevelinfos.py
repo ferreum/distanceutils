@@ -43,12 +43,11 @@ def main():
                         level.published_date, level.tags, level.author, level.authorid,
                         level.path, level.published_by_user, level.upvotes,
                         level.downvotes, level.rating]
-            values.append(b''.join(level.unknown))
             c.execute("""INSERT INTO level
                         (id, title, description, updated_date, published_date,
                         tags, author, authorid, path, published_by_user, upvotes, downvotes,
-                        rating, unknown)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
+                        rating)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", values)
             count += 1
 
         conn.commit()

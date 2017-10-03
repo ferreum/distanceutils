@@ -83,9 +83,9 @@ class LevelSettingsFragment(Fragment):
     def _read_section_data(self, dbytes, sec):
         self.version = version = sec.version
 
-        self._add_unknown(8)
+        dbytes.read_bytes(8)
         self.name = dbytes.read_str()
-        self._add_unknown(4)
+        dbytes.read_bytes(4)
         self.modes = modes = {}
         num_modes = dbytes.read_int(4)
         for i in range(num_modes):
@@ -94,14 +94,14 @@ class LevelSettingsFragment(Fragment):
         self.music_id = dbytes.read_int(4)
         if version <= 3:
             self.skybox_name = dbytes.read_str()
-            self._add_unknown(57)
+            dbytes.read_bytes(57)
         elif version == 4:
-            self._add_unknown(141)
+            dbytes.read_bytes(141)
         elif version == 5:
-            self._add_unknown(172)
+            dbytes.read_bytes(172)
         elif 6 <= version:
             # confirmed only for v6..v9
-            self._add_unknown(176)
+            dbytes.read_bytes(176)
         self.medal_times = times = []
         self.medal_scores = scores = []
         for i in range(4):
@@ -133,9 +133,9 @@ class OldLevelSettings(LevelSettingsMixin, Fragment):
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps
         self._report_end_pos(sec.data_start + sec.data_size)
-        self._add_unknown(4)
+        dbytes.read_bytes(4)
         self.skybox_name = dbytes.read_str()
-        self._add_unknown(143)
+        dbytes.read_bytes(143)
         self.name = dbytes.read_str()
 
     def _print_type(self, p):

@@ -48,8 +48,8 @@ class LevelProgress(BaseObject):
 
     def _read(self, dbytes, version=None):
         self.level_path = dbytes.read_str()
-        self._add_unknown(value=dbytes.read_str())
-        self._add_unknown(1)
+        dbytes.read_str() # unknown
+        dbytes.read_bytes(1) # unknown
 
         self._require_equal(MAGIC_1, 4)
         num_levels = dbytes.read_int(4)
@@ -63,7 +63,7 @@ class LevelProgress(BaseObject):
         for i in range(num_levels):
             scores.append(dbytes.read_int(4, signed=True))
         if version > 2:
-            self._add_unknown(8)
+            dbytes.read_bytes(8)
 
     def _print_data(self, p):
         p(f"Level path: {self.level_path!r}")
@@ -195,7 +195,7 @@ class ProfileStatsFragment(Fragment):
 
         self._require_equal(MAGIC_1, 4)
         num = dbytes.read_int(4)
-        modes_unknown = self._add_unknown(value=[])
+        self.modes_unknown = modes_unknown = []
         for i in range(num):
             modes_unknown.append(dbytes.read_int(8))
 
@@ -206,7 +206,7 @@ class ProfileStatsFragment(Fragment):
             online_times.append(read_double())
 
         if version >= 6:
-            self._add_unknown(8)
+            dbytes.add_read_bytes(8)
             self._require_equal(MAGIC_1, 4)
             num = dbytes.read_int(4)
             self.trackmogrify_mods = mods = []

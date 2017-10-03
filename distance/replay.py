@@ -49,7 +49,7 @@ class ReplayFragment(Fragment):
             if version >= 3:
                 self.finish_time = dbytes.read_int(4)
                 self.replay_duration = dbytes.read_int(4)
-        self._add_unknown(4)
+        dbytes.read_bytes(4)
         self.car_name = dbytes.read_str()
         self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
         self.car_color_secondary = dbytes.read_struct(S_COLOR_RGBA)
@@ -65,16 +65,6 @@ class ReplayFragment(Fragment):
             dbytes.read_bytes(section_size - 8)
             self.finish_time = dbytes.read_int(4)
 
-
-@ForwardFragmentAttrs(ReplayFragment, ReplayFragment.value_attrs)
-class Replay(BaseObject):
-
-    fragment_prober = FRAG_PROBER
-
-    def _read(self, dbytes):
-        self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
-        BaseObject._read(self, dbytes)
-
     def _print_data(self, p):
         p(f"Version: {self.version}")
         p(f"Player name: {self.player_name!r}")
@@ -87,6 +77,16 @@ class Replay(BaseObject):
         p(f"Car color secondary: {format_color(self.car_color_secondary)}")
         p(f"Car color glow: {format_color(self.car_color_glow)}")
         p(f"Car color sparkle: {format_color(self.car_color_sparkle)}")
+
+
+@ForwardFragmentAttrs(ReplayFragment, ReplayFragment.value_attrs)
+class Replay(BaseObject):
+
+    fragment_prober = FRAG_PROBER
+
+    def _read(self, dbytes):
+        self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+        BaseObject._read(self, dbytes)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -21,6 +21,7 @@ class LevelTest(unittest.TestCase):
         self.assertEqual(level.level_name, "Test-straightroad")
         results = [level.settings] + list(level.iter_objects())
         self.assertEqual(len(results), 3)
+        self.assertRaises(UnexpectedEOFError, check_exceptions, results[2])
 
     def test_truncated_iter(self):
         level = Level("tests/in/level/test-straightroad_truncated_2.bytes")

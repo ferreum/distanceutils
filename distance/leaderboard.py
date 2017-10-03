@@ -28,10 +28,10 @@ class Entry(BytesModel):
         self.playername = dbytes.read_str()
         self.time = dbytes.read_int(4)
         if version == 0:
-            self._add_unknown(4)
+            dbytes.read_bytes(4)
         elif version == 1:
             self.replay = dbytes.read_int(8)
-            self._add_unknown(12)
+            dbytes.read_bytes(12)
         else:
             raise ValueError(f"unknown version: {version}")
 
@@ -72,8 +72,6 @@ class Leaderboard(BaseObject):
             rep_str = ""
             if entry.replay is not None and entry.replay != NO_REPLAY:
                 rep_str = f" Replay: {entry.replay:X}"
-            if 'unknown' in p.flags:
-                unk_str = f"Unknown: {format_bytes(entry.unknown)} "
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:
                 p.print_exception(entry.exception)

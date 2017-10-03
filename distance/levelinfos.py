@@ -33,7 +33,7 @@ class Entry(BytesModel):
         self.level_name = dbytes.read_str()
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
-        self._add_unknown(16)
+        dbytes.read_bytes(16)
         self._require_equal(MAGIC_12, 4)
         num_modes = dbytes.read_int(4)
         self.modes = modes = {}
@@ -45,7 +45,7 @@ class Entry(BytesModel):
         for _ in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
             scores.append(dbytes.read_int(4, signed=True))
-        self._add_unknown(25)
+        dbytes.read_bytes(25)
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
