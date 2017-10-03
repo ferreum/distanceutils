@@ -114,6 +114,8 @@ class CustomNameFragment(Fragment):
 
     value_attrs = dict(custom_name=None)
 
+    is_interesting = True
+
     custom_name = None
 
     def _read_section_data(self, dbytes, sec):
@@ -198,6 +200,8 @@ class GoldenSimplesFragment(Fragment):
 
 class TeleporterEntranceMixin(object):
 
+    is_interesting = True
+
     def _print_data(self, p):
         super()._print_data(p)
         if self.destination is not None:
@@ -230,6 +234,8 @@ class TeleporterEntranceFragment(TeleporterEntranceMixin, Fragment):
 
 
 class TeleporterExitMixin(object):
+
+    is_interesting = True
 
     def _print_data(self, p):
         super()._print_data(p)
@@ -290,6 +296,8 @@ class SphereColliderFragment(Fragment):
 @PROBER.fragment(MAGIC_2, 0x45, 1)
 class GravityToggleFragment(Fragment):
 
+    is_interesting = True
+
     disable_gravity = 1
     drag_scale = 1.0
     drag_scale_angular = 1.0
@@ -312,6 +320,8 @@ class GravityToggleFragment(Fragment):
 
 @PROBER.fragment(MAGIC_2, 0x4b, 1)
 class MusicTriggerFragment(Fragment):
+
+    is_interesting = True
 
     music_id = 19
     one_time_trigger = 1
@@ -339,6 +349,8 @@ class MusicTriggerFragment(Fragment):
 
 @PROBER.fragment(MAGIC_2, 0xa0, 0)
 class ForceZoneFragment(Fragment):
+
+    is_interesting = True
 
     value_attrs = dict(
         force_direction = (0.0, 0.0, 1.0),
@@ -384,6 +396,8 @@ class ForceZoneFragment(Fragment):
 @PROBER.fragment(MAGIC_3, 0x7, 1)
 @PROBER.fragment(MAGIC_3, 0x7, 2)
 class TextMeshFragment(Fragment):
+
+    is_interesting = True
 
     text = "Hello World"
 
@@ -467,6 +481,8 @@ class MaterialFragment(Fragment):
 @PROBER.fragment(MAGIC_2, 0x5d, 0)
 class RaceEndLogicFragment(NamedPropertiesFragment):
 
+    is_interesting = True
+
     @named_property_getter('DelayBeforeBroadcast')
     def delay_before_broadcast(self, db):
         return db.read_struct(S_FLOAT)[0]
@@ -480,6 +496,8 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
 
 @PROBER.fragment(MAGIC_2, 0x5e, 0)
 class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
+
+    is_interesting = True
 
     KNOWN_ABILITIES = (
         'EnableFlying', 'EnableJumping',
@@ -514,6 +532,8 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
 
 
 class CarScreenTextDecodeTriggerMixin(object):
+
+    is_interesting = True
 
     per_char_speed = None
     clear_on_finish = None
@@ -614,6 +634,8 @@ class CarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Fragme
 
 
 class InfoDisplayLogicMixin(object):
+
+    is_interesting = True
 
     fadeout_time = None
     texts = ()

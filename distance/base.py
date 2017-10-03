@@ -58,9 +58,16 @@ def write_transform(dbytes, trans):
         dbytes.write_bytes(SKIP_BYTES)
 
 
+def filter_interesting(sec, prober):
+    return (sec.data_size > 12
+            and prober.probe_section(sec).is_interesting)
+
+
 class Fragment(BytesModel):
 
     default_section = None
+
+    is_interesting = False
 
     _raw_data = None
 
@@ -215,6 +222,13 @@ class BaseObject(BytesModel):
                 return frag
         return None
 
+    def filtered_fragments(self, type_filter):
+        fragments = self.fragments
+        prober = self.fragment_prober
+        for i, sec in enumerate(self.sections):
+            if type_filter(sec, prober):
+                yield fragments[i]
+
     def _read(self, dbytes):
         ts = self._get_container()
         self.type = ts.type
@@ -265,11 +279,25 @@ class BaseObject(BytesModel):
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.transform)}")
         if 'fragments' in p.flags and self.fragments:
-            p(f"Fragments: {len(self.fragments)}")
-            with p.tree_children():
-                for fragment in self.fragments:
-                    p.tree_next_child()
-                    p.print_data_of(fragment)
+            if 'allprops' in p.flags:
+                p(f"Fragments: {len(self.fragments)}")
+                with p.tree_children():
+                    for frag in self.fragments:
+                        p.tree_next_child()
+                        p.print_data_of(frag)
+            else:
+                frags = self.filtered_fragments(filter_interesting)
+                try:
+                    frag = next(frags)
+                    p(f"Fragments: {len(self.fragments)} <filtered>")
+                    with p.tree_children():
+                        p.tree_next_child()
+                        p.print_data_of(frag)
+                        for frag in frags:
+                            p.tree_next_child()
+                            p.print_data_of(frag)
+                except StopIteration:
+                    pass
 
     def _print_children(self, p):
         if self.children:
