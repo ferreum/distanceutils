@@ -70,7 +70,6 @@ class WorkshopLevelInfosFragment(Fragment):
         num_levels = dbytes.read_int(4)
         self.levels = Level.lazy_n_maybe(dbytes, num_levels,
                                          start_pos=sec.data_start + 20)
-        return False
 
 
 @ForwardFragmentAttrs(WorkshopLevelInfosFragment, dict(levels=()))

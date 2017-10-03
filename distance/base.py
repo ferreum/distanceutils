@@ -62,36 +62,44 @@ class Fragment(BytesModel):
 
     default_section = None
 
-    raw_data = None
+    _raw_data = None
 
     def _read(self, dbytes, **kw):
         sec = self._get_container()
         self._report_end_pos(sec.data_end)
-        pos = dbytes.tell()
-        if not self._read_section_data(dbytes, sec):
-            with dbytes.saved_pos(pos):
-                self.raw_data = dbytes.read_bytes(
-                    sec.data_end - pos, or_to_eof=True)
+        self.data_start = dbytes.tell()
+        self._read_section_data(dbytes, sec)
 
     def write(self, dbytes, section=None):
         sec = self.container if section is None else section
         if sec is None:
             self.container = sec = self._init_section()
         with dbytes.write_section(sec):
-            if not self._write_section_data(dbytes, sec):
-                data = self.raw_data
-                if data is None:
-                    raise ValueError("Raw data not available")
-                dbytes.write_bytes(data)
+            self._write_section_data(dbytes, sec)
+
+    @property
+    def raw_data(self):
+        data = self._raw_data
+        if data is None:
+            start = self.data_start
+            dbytes = self.dbytes
+            with dbytes.saved_pos(start):
+                data = dbytes.read_bytes(self.container.data_end - start)
+                self._raw_data = data
+        return data
+
+    @raw_data.setter
+    def raw_data(self, value):
+        self._raw_data = value
 
     def _init_section(self):
         return self.default_section
 
     def _read_section_data(self, dbytes, sec):
-        return False
+        pass
 
     def _write_section_data(self, dbytes, sec):
-        return False
+        dbytes.write_bytes(self.raw_data)
 
     def _print_type(self, p):
         name = type(self).__name__

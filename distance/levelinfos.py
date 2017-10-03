@@ -72,7 +72,6 @@ class LevelInfosFragment(Fragment):
         self.version = sec.version
         num_entries = dbytes.read_int(8)
         self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
-        return False
 
 
 @ForwardFragmentAttrs(LevelInfosFragment, dict(levels=(), version=None))

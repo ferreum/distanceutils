@@ -111,7 +111,6 @@ class LevelSettingsFragment(Fragment):
             self.abilities = dbytes.read_struct(S_ABILITIES)
         if version >= 2:
             self.difficulty = dbytes.read_int(4)
-        return False
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
@@ -138,7 +137,6 @@ class OldLevelSettings(LevelSettingsMixin, Fragment):
         self.skybox_name = dbytes.read_str()
         self._add_unknown(143)
         self.name = dbytes.read_str()
-        return False
 
     def _print_type(self, p):
         p(f"Type: LevelSettings (old)")
@@ -187,9 +185,8 @@ class Layer(Fragment):
             self.has_layer_flags = False
             # We read start of first object - need to rewind.
             dbytes.seek(pos)
-
-        self.objects = self.obj_prober.lazy_n_maybe(dbytes, sec.num_objects, opts=self.opts)
-        return True
+        self.objects = self.obj_prober.lazy_n_maybe(
+            dbytes, sec.num_objects, opts=self.opts)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
@@ -208,7 +205,6 @@ class Layer(Fragment):
                 dbytes.write_int(1, self.unknown_flag)
         for obj in self.objects:
             obj.write(dbytes)
-        return True
 
     def _print_type(self, p):
         p(f"Layer: {self.layer_name!r}")
@@ -248,14 +244,12 @@ class Level(Fragment):
         self.layers = LazySequence(
             (obj for obj in self.content if isinstance(obj, Layer)),
             sec.num_layers)
-        return True
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
             obj.write(dbytes)
-        return True
 
     @property
     def settings(self):

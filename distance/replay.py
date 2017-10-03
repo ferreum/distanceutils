@@ -64,7 +64,6 @@ class ReplayFragment(Fragment):
             section_size = dbytes.read_int(4)
             dbytes.read_bytes(section_size - 8)
             self.finish_time = dbytes.read_int(4)
-        return False
 
 
 @ForwardFragmentAttrs(ReplayFragment, ReplayFragment.value_attrs)

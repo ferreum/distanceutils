@@ -51,7 +51,6 @@ class LeaderboardFragment(Fragment):
         self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
                                           start_pos=start,
                                           version=version)
-        return False
 
 
 @ForwardFragmentAttrs(LeaderboardFragment, dict(version=None, entries=()))

@@ -325,7 +325,6 @@ class ProfileProgressFragment(Fragment):
         self.levels = LevelProgress.lazy_n_maybe(
             dbytes, num_levels, start_pos=start,
             version=sec.version)
-        return False
 
     def _officials_start_pos(self):
         levels = self.levels
@@ -438,9 +437,6 @@ class ProfileProgress(BaseObject):
     def _read(self, dbytes):
         self._require_type(FTYPE_PROFILEPROGRESS)
         BaseObject._read(self, dbytes)
-
-    def _read_section_data(self, dbytes, sec):
-        return BaseObject._read_section_data(self, dbytes, sec)
 
     @property
     def stats(self):
