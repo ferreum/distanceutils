@@ -62,6 +62,8 @@ class LazySequence(BaseLazySequence):
 
     """Lazy sequence using an iterator as source."""
 
+    __slots__ = ['_iterator', '_len', '_list']
+
     def __init__(self, source, length):
         if length <= 0:
             self._len = 0
@@ -122,6 +124,8 @@ class LazySequenceMapping(BaseLazySequence):
     The function is only called the first time an element is accessed.
 
     """
+
+    __slots__ = ['_source', '_func', '_list']
 
     def __init__(self, source, func):
         self._source = source
