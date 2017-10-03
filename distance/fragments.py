@@ -111,7 +111,7 @@ class GroupFragment(Fragment):
 @PROBER.fragment(MAGIC_2, 0x63, 0)
 class CustomNameFragment(Fragment):
 
-    value_attrs = ('custom_name',)
+    value_attrs = dict(custom_name=None)
 
     custom_name = None
 

@@ -5,10 +5,9 @@ from .bytes import (
     Section,
     MAGIC_2, MAGIC_3, MAGIC_6
 )
-from .base import BaseObject
+from .base import BaseObject, ForwardFragmentAttrs
 from .fragments import (
     PROBER as FRAG_PROBER,
-    ForwardFragmentAttrs,
     ForwardFragmentColors,
     GoldenSimplesFragment,
     GroupFragment,
@@ -94,7 +93,9 @@ class SubObject(LevelObject):
 
 
 @PROBER.for_type('Group')
-class Group(ForwardFragmentAttrs, LevelObject):
+@ForwardFragmentAttrs(GroupFragment, GroupFragment.value_attrs)
+@ForwardFragmentAttrs(CustomNameFragment, CustomNameFragment.value_attrs)
+class Group(LevelObject):
 
     child_prober = PROBER
     is_object_group = True
@@ -105,11 +106,6 @@ class Group(ForwardFragmentAttrs, LevelObject):
         *LevelObject.default_sections,
         Section(MAGIC_2, 0x1d, version=1),
         Section(MAGIC_2, 0x63, version=0),
-    )
-
-    forward_fragment_attrs = (
-        (GroupFragment, GroupFragment.value_attrs),
-        (CustomNameFragment, CustomNameFragment.value_attrs),
     )
 
     def _handle_opts(self, opts):
@@ -142,105 +138,90 @@ class Group(ForwardFragmentAttrs, LevelObject):
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
-class SubTeleporter(ForwardFragmentAttrs, SubObject):
-
-    forward_fragment_attrs = (
-        (TeleporterEntranceMixin, dict(destination=None)),
-        (TeleporterExitMixin, dict(link_id=None)),
-        (TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None)),
-    )
+@ForwardFragmentAttrs(TeleporterEntranceMixin, dict(destination=None))
+@ForwardFragmentAttrs(TeleporterExitMixin, dict(link_id=None))
+@ForwardFragmentAttrs(TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None))
+class SubTeleporter(SubObject):
+    pass
 
 
 @SUBOBJ_PROBER.for_type('WinLogic')
-class WinLogic(ForwardFragmentAttrs, SubObject):
-
-    forward_fragment_attrs = (
-        (RaceEndLogicFragment, dict(delay_before_broadcast=None)),
-    )
+@ForwardFragmentAttrs(RaceEndLogicFragment, dict(delay_before_broadcast=None))
+class WinLogic(SubObject):
+    pass
 
 
 @PROBER.for_type('WorldText')
-class WorldText(ForwardFragmentAttrs, LevelObject):
-
-    forward_fragment_attrs = (
-        (TextMeshFragment, dict(text=None)),
-    )
+@ForwardFragmentAttrs(TextMeshFragment, dict(text=None))
+class WorldText(LevelObject):
+    pass
 
 
 @PROBER.for_type('InfoDisplayBox')
-class InfoDisplayBox(ForwardFragmentAttrs, LevelObject):
-
-    forward_fragment_attrs = (
-        (InfoDisplayLogicMixin, dict(
-            fadeout_time = None,
-            texts = (),
-            per_char_speed = None,
-            destroy_on_trigger_exit = None,
-            random_char_count = None,
-        )),
-    )
+@ForwardFragmentAttrs(InfoDisplayLogicMixin, dict(
+    fadeout_time = None,
+    texts = (),
+    per_char_speed = None,
+    destroy_on_trigger_exit = None,
+    random_char_count = None,
+))
+class InfoDisplayBox(LevelObject):
+    pass
 
 
 @PROBER.for_type('CarScreenTextDecodeTrigger')
-class CarScreenTextDecodeTrigger(ForwardFragmentAttrs, LevelObject):
-
-    forward_fragment_attrs = (
-        (CarScreenTextDecodeTriggerMixin, dict(
-            text = None,
-            per_char_speed = None,
-            clear_on_finish = None,
-            clear_on_trigger_exit = None,
-            destroy_on_trigger_exit = None,
-            static_time_text = None,
-            time_text = None,
-            delay = None,
-            announcer_action = None,
-            announcer_phrases = (),
-        )),
-    )
+@ForwardFragmentAttrs(CarScreenTextDecodeTriggerMixin, dict(
+    text = None,
+    per_char_speed = None,
+    clear_on_finish = None,
+    clear_on_trigger_exit = None,
+    destroy_on_trigger_exit = None,
+    static_time_text = None,
+    time_text = None,
+    delay = None,
+    announcer_action = None,
+    announcer_phrases = (),
+))
+class CarScreenTextDecodeTrigger(LevelObject):
+    pass
 
 
 @PROBER.for_type('GravityTrigger')
-class GravityTrigger(ForwardFragmentAttrs, LevelObject):
-
-    forward_fragment_attrs = (
-        (SphereColliderFragment, dict(
-            trigger_center = None,
-            trigger_radius = None,
-        )),
-        (GravityToggleFragment, dict(
-            disable_gravity = None,
-            drag_scale = None,
-            drag_scale_angular = None,
-        )),
-        (MusicTriggerFragment, dict(
-            music_id = None,
-            one_time_trigger = None,
-            reset_before_trigger = None,
-            disable_music_trigger = None,
-        )),
-    )
+@ForwardFragmentAttrs(SphereColliderFragment, dict(
+    trigger_center = None,
+    trigger_radius = None,
+))
+@ForwardFragmentAttrs(GravityToggleFragment, dict(
+    disable_gravity = None,
+    drag_scale = None,
+    drag_scale_angular = None,
+))
+@ForwardFragmentAttrs(MusicTriggerFragment, dict(
+    music_id = None,
+    one_time_trigger = None,
+    reset_before_trigger = None,
+    disable_music_trigger = None,
+))
+class GravityTrigger(LevelObject):
+    pass
 
 
 @PROBER.for_type('ForceZoneBox')
-class ForceZoneBox(ForwardFragmentAttrs, LevelObject):
-
-    forward_fragment_attrs = (
-        (CustomNameFragment, CustomNameFragment.value_attrs),
-        (ForceZoneFragment, ForceZoneFragment.value_attrs),
-    )
+@ForwardFragmentAttrs(CustomNameFragment, CustomNameFragment.value_attrs)
+@ForwardFragmentAttrs(ForceZoneFragment, ForceZoneFragment.value_attrs)
+class ForceZoneBox(LevelObject):
+    pass
 
 
 @PROBER.for_type('EnableAbilitiesBox')
-class EnableAbilitiesBox(ForwardFragmentAttrs, LevelObject):
-
-    forward_fragment_attrs = (
-        (EnableAbilitiesTriggerFragment, {'abilities', 'bloom_out'}),
-    )
+@ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, dict(abilities=None, bloom_out=None))
+class EnableAbilitiesBox(LevelObject):
+    pass
 
 
 @PROBER.for_type('WedgeGS')
-class WedgeGS(ForwardFragmentAttrs, ForwardFragmentColors, LevelObject):
+@ForwardFragmentAttrs(GoldenSimplesFragment, GoldenSimplesFragment.value_attrs)
+class WedgeGS(ForwardFragmentColors, LevelObject):
 
     type = 'WedgeGS'
     has_children = True
@@ -256,10 +237,6 @@ class WedgeGS(ForwardFragmentAttrs, ForwardFragmentColors, LevelObject):
         mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
         mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
         mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
-    )
-
-    forward_fragment_attrs = (
-        (GoldenSimplesFragment, GoldenSimplesFragment.value_attrs),
     )
 
 
