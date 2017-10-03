@@ -90,12 +90,21 @@ class LazySequence(BaseLazySequence):
             return self._len
         l = self._list
         current = len(l)
-        if stop - 1 < current:
+        needed = stop - current
+        if needed <= 0:
             return self._len
-        l.extend(islice(iterator, stop - current))
-        current = len(l)
-        if stop - 1 < current:
-            return self._len
+        if needed == 1:
+            # optimize single element inflation
+            try:
+                l.append(next(iterator))
+                return self._len
+            except StopIteration:
+                pass # iterator ended early; fall through
+        else:
+            l.extend(islice(iterator, needed))
+            current = len(l)
+            if stop - 1 < current:
+                return self._len
         # iterator ended earlier than the reported length.
         # Try to patch our length and hope no one notices.
         self._iterator = None
@@ -126,13 +135,15 @@ class LazySequenceMapping(BaseLazySequence):
         s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
         return f"<lazy map [{s}]>"
 
-    def _inflate_slice(self, start, stop, stride):
+    def _inflate_slice(self, start, stop, stride, unset=UNSET):
         l = self._list
+        source = self._source
+        func = self._func
         try:
             for i in range(start, stop, stride):
                 elem = l[i]
-                if elem is UNSET:
-                    l[i] = self._func(self._source[i])
+                if elem is unset:
+                    l[i] = func(source[i])
         except IndexError:
             # source decided it's actually shorter.
             pass
