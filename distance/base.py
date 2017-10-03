@@ -116,7 +116,6 @@ class BaseObject(BytesModel):
                 pass # subclass has to write this section
             else:
                 frag = cls(container=sec)
-                sec.__fragment = frag
                 fragments.append(frag)
 
     def iter_children(self, ty=None, name=None):
