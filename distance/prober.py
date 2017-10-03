@@ -11,15 +11,17 @@ class ProbeError(Exception):
 
 class BytesProber(object):
 
-    def __init__(self, types=None, fragments=None, funcs=None,
+    def __init__(self, types=None, sections=None, funcs=None,
                  baseclass=BytesModel):
         self.baseclass = baseclass
-        self._types = types or {}
-        self._fragments = fragments or {}
+        self._sections = sections or {}
         self._funcs = funcs or []
+        if types:
+            for ty, cls in types.items():
+                self._sections[Section(MAGIC_6, ty).to_key()] = cls
 
     def add_type(self, type, cls):
-        self._types[type] = cls
+        self._sections[Section(MAGIC_6, type).to_key()] = cls
 
     def add_func(self, func, high_prio=False):
         if high_prio:
@@ -33,9 +35,9 @@ class BytesProber(object):
         else:
             sec = Section(*args, any_version=any_version, **kw)
         key = sec.to_key(any_version=any_version)
-        if key in self._fragments:
+        if key in self._sections:
             raise ValueError(f"{sec} is already registered")
-        self._fragments[key] = cls
+        self._sections[key] = cls
 
     def func(self, *args, high_prio=False):
 
@@ -72,17 +74,15 @@ class BytesProber(object):
         return decorate
 
     def extend(self, other):
-        self._types.update(((k, v) for k, v in other._types.items()
-                            if k not in self._types))
-        self._fragments.update(((k, v) for k, v in other._fragments.items()
-                                if k not in self._fragments))
+        self._sections.update(((k, v) for k, v in other._sections.items()
+                                if k not in self._sections))
         self._funcs.extend(other._funcs)
 
-    def _probe_fragment(self, sec):
-        cls = self._fragments.get(sec.to_key(), None)
+    def _probe_sections(self, sec):
+        cls = self._sections.get(sec.to_key(), None)
         if cls is not None:
             return cls
-        return self._fragments.get(sec.to_key(any_version=True), None)
+        return self._sections.get(sec.to_key(any_version=True), None)
 
     def _get_from_funcs(self, sec):
         for func in self._funcs:
@@ -92,11 +92,7 @@ class BytesProber(object):
         return None
 
     def probe_section(self, sec):
-        if sec.magic == MAGIC_6:
-            cls = self._types.get(sec.type, None)
-            if cls is not None:
-                return cls
-        cls = self._probe_fragment(sec)
+        cls = self._probe_sections(sec)
         if cls is not None:
             return cls
         cls = self._get_from_funcs(sec)
