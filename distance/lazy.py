@@ -135,19 +135,27 @@ class LazySequenceMapping(BaseLazySequence):
         s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
         return f"<lazy map [{s}]>"
 
-    def _inflate_slice(self, start, stop, stride, unset=UNSET):
-        l = self._list
-        source = self._source
-        func = self._func
+    def _inflate_slice(self, start, stop, stride):
         try:
-            for i in range(start, stop, stride):
-                elem = l[i]
-                if elem is unset:
-                    l[i] = func(source[i])
+            l = self._list
+            if start == stop - 1:
+                # optimize single element access
+                elem = l[start]
+                if elem is UNSET:
+                    l[start] = self._func(self._source[start])
+            else:
+                source = self._source
+                func = self._func
+                for i in range(start, stop, stride):
+                    elem = l[i]
+                    if elem is UNSET:
+                        l[i] = func(source[i])
         except IndexError:
             # source decided it's actually shorter.
-            pass
-        return len(self._source)
+            newlen = len(self._source)
+            del l[newlen:]
+            return newlen
+        return len(l)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
