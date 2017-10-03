@@ -9,6 +9,10 @@ from .printing import PrintContext, format_unknown
 from .argtaker import ArgTaker
 from .lazy import LazySequence
 
+import codecs
+
+UTF_16_DECODE = codecs.getdecoder('utf-16-le')
+UTF_16_ENCODE = codecs.getencoder('utf-16-le')
 
 S_COLOR_RGBA = Struct("4f")
 
@@ -677,7 +681,7 @@ class DstBytes(object):
     def read_str(self):
         length = self.read_var_int()
         data = self.read_bytes(length)
-        return data.decode('utf-16', 'surrogateescape')
+        return UTF_16_DECODE(data, 'surrogateescape')[0]
 
     def read_id(self):
         return self.read_int(4)
@@ -705,7 +709,7 @@ class DstBytes(object):
         self.write_bytes(bytes(l))
 
     def write_str(self, s):
-        data = s.encode('utf-16-le')
+        data = UTF_16_ENCODE(s, 'surrogateescape')[0]
         self.write_var_int(len(data))
         self.write_bytes(data)
 
