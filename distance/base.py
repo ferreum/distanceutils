@@ -58,6 +58,108 @@ def write_transform(dbytes, trans):
         dbytes.write_bytes(SKIP_BYTES)
 
 
+class Fragment(BytesModel):
+
+    default_section = None
+
+    raw_data = None
+
+    def _read(self, dbytes, **kw):
+        sec = self._get_container()
+        self._report_end_pos(sec.data_end)
+        pos = dbytes.tell()
+        if not self._read_section_data(dbytes, sec):
+            with dbytes.saved_pos(pos):
+                self.raw_data = dbytes.read_bytes(
+                    sec.data_end - pos, or_to_eof=True)
+
+    def write(self, dbytes, section=None):
+        sec = self.container if section is None else section
+        if sec is None:
+            self.container = sec = self._init_section()
+        with dbytes.write_section(sec):
+            if not self._write_section_data(dbytes, sec):
+                data = self.raw_data
+                if data is None:
+                    raise ValueError("Raw data not available")
+                dbytes.write_bytes(data)
+
+    def _init_section(self):
+        return self.default_section
+
+    def _read_section_data(self, dbytes, sec):
+        return False
+
+    def _write_section_data(self, dbytes, sec):
+        return False
+
+    def _print_type(self, p):
+        name = type(self).__name__
+        if name.endswith('Fragment'):
+            name = name[:-8]
+            if not name and type(self) == Fragment:
+                p(f"Fragment: Unknown")
+            else:
+                p(f"Fragment: {name}")
+
+
+@BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
+class ObjectFragment(Fragment):
+
+    transform = None
+    has_children = False
+    children = ()
+
+    def _read(self, *args, **kw):
+        self.child_prober = kw.get('child_prober', EMPTY_PROBER)
+        Fragment._read(self, *args, **kw)
+
+    def _read_section_data(self, dbytes, sec):
+
+        """Read data of the given section.
+
+        Returns `True` if the raw section data is not needed.
+
+        Returns `False` to indicate that raw data of the section
+        shall be saved (e.g. for `_write_section_data()`).
+
+        """
+
+        end = sec.data_end
+        if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
+            self.transform = read_transform(dbytes)
+            if dbytes.tell() + Section.MIN_SIZE < end:
+                s5 = Section(dbytes)
+                self.has_children = True
+                self.children = self.child_prober.lazy_n_maybe(
+                    dbytes, s5.num_objects, start_pos=s5.children_start,
+                    opts=self.opts)
+        return True
+
+    def _write_section_data(self, dbytes, sec):
+
+        """Write data of the given section.
+
+        Returns `True` if the section has been written.
+
+        Returns `False` if the raw section data shall be copied
+        from the source that this object has been read from. This
+        is an error if raw data has not been saved for the section
+        (e.g. by returning `False` from `_read_section_data`).
+
+        """
+
+        children = self.children
+        has_children = self.has_children or children
+        if self.transform or has_children:
+            write_transform(dbytes, self.transform)
+        if self.has_children or self.children:
+            with dbytes.write_section(MAGIC_5):
+                for obj in self.children:
+                    obj.write(dbytes)
+        return True
+
+
 class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""
@@ -171,108 +273,6 @@ def _probe_fallback(sec):
     if sec.magic == MAGIC_6:
         return BaseObject
     return None
-
-
-class Fragment(BytesModel):
-
-    default_section = None
-
-    raw_data = None
-
-    def _read(self, dbytes, **kw):
-        sec = self._get_container()
-        self._report_end_pos(sec.data_end)
-        pos = dbytes.tell()
-        if not self._read_section_data(dbytes, sec):
-            with dbytes.saved_pos(pos):
-                self.raw_data = dbytes.read_bytes(
-                    sec.data_end - pos, or_to_eof=True)
-
-    def write(self, dbytes, section=None):
-        sec = self.container if section is None else section
-        if sec is None:
-            self.container = sec = self._init_section()
-        with dbytes.write_section(sec):
-            if not self._write_section_data(dbytes, sec):
-                data = self.raw_data
-                if data is None:
-                    raise ValueError("Raw data not available")
-                dbytes.write_bytes(data)
-
-    def _init_section(self):
-        return self.default_section
-
-    def _read_section_data(self, dbytes, sec):
-        return False
-
-    def _write_section_data(self, dbytes, sec):
-        return False
-
-    def _print_type(self, p):
-        name = type(self).__name__
-        if name.endswith('Fragment'):
-            name = name[:-8]
-            if not name and type(self) == Fragment:
-                p(f"Fragment: Unknown")
-            else:
-                p(f"Fragment: {name}")
-
-
-@BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
-class ObjectFragment(Fragment):
-
-    transform = None
-    has_children = False
-    children = ()
-
-    def _read(self, *args, **kw):
-        self.child_prober = kw.get('child_prober', EMPTY_PROBER)
-        Fragment._read(self, *args, **kw)
-
-    def _read_section_data(self, dbytes, sec):
-
-        """Read data of the given section.
-
-        Returns `True` if the raw section data is not needed.
-
-        Returns `False` to indicate that raw data of the section
-        shall be saved (e.g. for `_write_section_data()`).
-
-        """
-
-        end = sec.data_end
-        if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
-            self.transform = read_transform(dbytes)
-            if dbytes.tell() + Section.MIN_SIZE < end:
-                s5 = Section(dbytes)
-                self.has_children = True
-                self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.num_objects, start_pos=s5.children_start,
-                    opts=self.opts)
-        return True
-
-    def _write_section_data(self, dbytes, sec):
-
-        """Write data of the given section.
-
-        Returns `True` if the section has been written.
-
-        Returns `False` if the raw section data shall be copied
-        from the source that this object has been read from. This
-        is an error if raw data has not been saved for the section
-        (e.g. by returning `False` from `_read_section_data`).
-
-        """
-
-        children = self.children
-        has_children = self.has_children or children
-        if self.transform or has_children:
-            write_transform(dbytes, self.transform)
-        if self.has_children or self.children:
-            with dbytes.write_section(MAGIC_5):
-                for obj in self.children:
-                    obj.write(dbytes)
-        return True
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
