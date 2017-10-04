@@ -82,6 +82,7 @@ class BytesModel(object):
         obj = clazz(plain=True)
         try:
             obj.read(dbytes, **kw)
+            obj.exception = None
         except CATCH_EXCEPTIONS as e:
             obj.exception = e
         return obj
@@ -202,6 +203,7 @@ class BytesModel(object):
             self.opts = opts
             self._handle_opts(opts)
         try:
+            self.end_pos = None
             self._read(dbytes, **kw)
             end = self.end_pos
             if end is None:
@@ -325,18 +327,11 @@ class BytesModel(object):
 
 class Section(BytesModel):
 
-    MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
+    __slots__ = ('magic', 'type', 'version', 'id', 'data_start', 'data_size',
+                 'count', 'name',
+                 'start_pos', 'end_pos', 'dbytes', 'exception', 'sane_end_pos')
 
-    layer_name = None
-    level_name = None
-    num_objects = None
-    layer_flags = ()
-    data_start = None
-    data_size = None
-    type = None
-    version = None
-    num_sections = None
-    id = None
+    MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
     @classmethod
     def iter_n_maybe(clazz, dbytes, *args, **kw):
@@ -378,12 +373,12 @@ class Section(BytesModel):
             self.type = arg(1, 'type')
             self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
-            self.layer_name = arg(1, 'layer_name', default=None)
+            self.name = arg(1, 'name', default=None)
         elif magic == MAGIC_8:
             pass # no data
         elif magic == MAGIC_9:
-            self.level_name = arg(1, 'level_name', default=None)
-            self.num_layers = arg(2, 'num_layers', default=None)
+            self.name = arg(1, 'name', default=None)
+            self.count = arg(2, 'count', default=None)
             self.version = arg(3, 'version', default=3)
         else:
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
@@ -414,13 +409,7 @@ class Section(BytesModel):
 
     def _read(self, dbytes):
         self.magic = magic = dbytes.read_int(4)
-        if magic == MAGIC_2:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
-            self.type = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
-            self.id = dbytes.read_id()
-        elif magic == MAGIC_3:
+        if magic in (MAGIC_2, MAGIC_3):
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
             self.type = dbytes.read_int(4)
@@ -429,25 +418,24 @@ class Section(BytesModel):
         elif magic == MAGIC_5:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
-            self.num_objects = dbytes.read_int(4)
-            self.children_start = dbytes.tell()
+            self.count = dbytes.read_int(4)
         elif magic == MAGIC_6:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
             self.type = dbytes.read_str()
             dbytes.read_bytes(1) # unknown, always 0
             self.id = dbytes.read_id()
-            self.num_sections = dbytes.read_int(4)
+            self.count = dbytes.read_int(4)
         elif magic == MAGIC_7:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
-            self.layer_name = dbytes.read_str()
-            self.num_objects = dbytes.read_int(4)
+            self.name = dbytes.read_str()
+            self.count = dbytes.read_int(4)
         elif magic == MAGIC_9:
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
-            self.level_name = dbytes.read_str()
-            self.num_layers = dbytes.read_int(4)
+            self.name = dbytes.read_str()
+            self.count = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
         elif magic == MAGIC_8:
             self.data_size = dbytes.read_int(8)
@@ -466,7 +454,7 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_int(4, self.type)
                 dbytes.write_int(4, self.version)
-                dbytes.write_id(self.id)
+                dbytes.write_id(getattr(self, 'id', None))
                 yield
         elif magic == MAGIC_5:
             with dbytes.write_size():
@@ -476,12 +464,12 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_str(self.type)
                 dbytes.write_bytes(b'\x00') # unknown, always 0
-                dbytes.write_id(self.id)
+                dbytes.write_id(getattr(self, 'id', None))
                 with dbytes.write_num_subsections():
                     yield
         elif magic == MAGIC_7:
             with dbytes.write_size():
-                dbytes.write_str(self.layer_name)
+                dbytes.write_str(self.name)
                 with dbytes.write_num_subsections():
                     yield
         elif magic == MAGIC_8:
@@ -489,8 +477,8 @@ class Section(BytesModel):
                 yield
         elif magic == MAGIC_9:
             with dbytes.write_size():
-                dbytes.write_str(self.level_name)
-                dbytes.write_int(4, self.num_layers)
+                dbytes.write_str(self.name)
+                dbytes.write_int(4, self.count)
                 dbytes.write_int(4, self.version)
                 yield
         elif magic == MAGIC_32:

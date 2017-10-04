@@ -163,7 +163,7 @@ class Layer(Fragment):
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
             raise ValueError(f"Invalid layer section: {sec.magic}")
-        self.layer_name = sec.layer_name
+        self.layer_name = sec.name
 
         pos = dbytes.tell()
         if pos + 4 >= sec.data_end:
@@ -186,7 +186,7 @@ class Layer(Fragment):
             # We read start of first object - need to rewind.
             dbytes.seek(pos)
         self.objects = self.obj_prober.lazy_n_maybe(
-            dbytes, sec.num_objects, opts=self.opts)
+            dbytes, sec.count, opts=self.opts)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
@@ -236,9 +236,9 @@ class Level(Fragment):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
         self._report_end_pos(sec.data_end)
-        self.level_name = sec.level_name
+        self.level_name = sec.name
 
-        num_layers = sec.num_layers
+        num_layers = sec.count
 
         self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
             dbytes, num_layers + 1, opts=self.opts)

@@ -148,8 +148,7 @@ class ObjectFragment(Fragment):
                 s5 = Section(dbytes)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.num_objects, start_pos=s5.children_start,
-                    opts=self.opts)
+                    dbytes, s5.count, opts=self.opts)
         return True
 
     def _write_section_data(self, dbytes, sec):
@@ -233,7 +232,7 @@ class BaseObject(BytesModel):
         ts = self._get_container()
         self.type = ts.type
         self._report_end_pos(ts.data_end)
-        self.sections = Section.lazy_n_maybe(dbytes, ts.num_sections)
+        self.sections = Section.lazy_n_maybe(dbytes, ts.count)
         self.fragments = LazyMappedSequence(
             self.sections, self._read_fragment)
 
