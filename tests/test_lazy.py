@@ -164,6 +164,15 @@ class LazySequenceIndexTest(unittest.TestCase):
         self.assertEqual(14, next(it))
         self.assertRaises(StopIteration, next, it)
 
+    def test_iter_twice(self):
+        list(iter(self.lazy)) # exhaust
+        res1 = list(iter(self.lazy))
+        self.assertEqual([10, 11, 12, 13, 14], res1)
+
+    def test_iter_parallel(self):
+        res = list(zip(iter(self.lazy), iter(self.lazy)))
+        self.assertEqual([(10, 10), (11, 11), (12, 12), (13, 13), (14, 14)], res)
+
     def test_earlyexit_iter(self):
         next(self.iter) # steal
         it = iter(self.lazy)

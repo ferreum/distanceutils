@@ -75,6 +75,26 @@ class LazySequence(BaseLazySequence):
         else:
             return f"<lazy seq {l!r}>"
 
+    def __iter__(self):
+        iterator = self._iterator
+        i = 0
+        l = self._list
+        try:
+            while True:
+                try:
+                    yield l[i]
+                except IndexError:
+                    if iterator is None:
+                        return
+                    v = next(iterator)
+                    l.append(v)
+                    yield v
+                i += 1
+        except StopIteration:
+            self._inflate_slice = noop_inflate_slice
+            self._iterator = None
+            self._len = len(self._list)
+
     def _inflate_slice(self, len_, start, stop, stride):
         l = self._list
         current = len(l)
