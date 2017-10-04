@@ -445,6 +445,7 @@ class Section(BytesModel):
             self.num_objects = dbytes.read_int(4)
         elif magic == MAGIC_9:
             self.data_size = dbytes.read_int(8)
+            self.data_start = dbytes.tell()
             self.level_name = dbytes.read_str()
             self.num_layers = dbytes.read_int(4)
             self.version = dbytes.read_int(4)
