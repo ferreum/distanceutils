@@ -52,7 +52,19 @@ def noop_inflate_slice(len_, start, stop, stride):
 
 class LazySequence(BaseLazySequence):
 
-    """Lazy sequence using an iterator as source."""
+    """Lazy sequence using an iterator as source.
+
+    If the iterator stops, the reported length of this sequence is adjusted
+    to the number of values yielded up to that point.
+
+    This affects indexing operations, and can result in IndexErrors for ranges
+    that are within the length reported before the iterator stopped.
+
+    Conversely, if the iterator yields more values, these values may be
+    accessed by iterating this sequence or by indexing beyond the reported
+    length.
+
+    """
 
     __slots__ = ['_iterator', '_len', '_list']
 
@@ -76,6 +88,14 @@ class LazySequence(BaseLazySequence):
             return f"<lazy seq {l!r}>"
 
     def __iter__(self):
+
+        """Iterate this sequence.
+
+        May yield more or less values than the reported length of this
+        sequence. Iteration is only stopped when the wrapped iterator exits.
+
+        """
+
         iterator = self._iterator
         i = 0
         l = self._list
