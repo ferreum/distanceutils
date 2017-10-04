@@ -176,11 +176,8 @@ class LazySequenceIndexTest(unittest.TestCase):
     def test_earlyexit_iter(self):
         next(self.iter) # steal
         it = iter(self.lazy)
-        self.assertEqual(11, next(it))
-        self.assertEqual(12, next(it))
-        self.assertEqual(13, next(it))
-        self.assertEqual(14, next(it))
-        self.assertRaises(StopIteration, next, it)
+        self.assertEqual([11, 12, 13, 14], list(it))
+        self.assertEqual(4, len(self.lazy))
 
 
 class LazyMappedSequenceTest(unittest.TestCase):

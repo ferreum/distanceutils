@@ -46,10 +46,6 @@ class BaseLazySequence(Sequence):
         return self._list[index]
 
 
-def noop_inflate_slice(len_, start, stop, stride):
-    return len_
-
-
 class LazySequence(BaseLazySequence):
 
     """Lazy sequence using an iterator as source.
@@ -97,8 +93,8 @@ class LazySequence(BaseLazySequence):
         """
 
         iterator = self._iterator
-        i = 0
         l = self._list
+        i = 0
         try:
             while True:
                 try:
@@ -111,9 +107,9 @@ class LazySequence(BaseLazySequence):
                     yield v
                 i += 1
         except StopIteration:
-            self._inflate_slice = noop_inflate_slice
+            # reached the real end of the iterator
             self._iterator = None
-            self._len = len(self._list)
+            self._len = i
 
     def _inflate_slice(self, len_, start, stop, stride):
         l = self._list
@@ -121,21 +117,23 @@ class LazySequence(BaseLazySequence):
         needed = stop - current
         if needed <= 0:
             return len_
+        iterator = self._iterator
+        if iterator is None:
+            return len_
         if needed == 1:
             # optimize single element inflation
             try:
-                l.append(next(self._iterator))
-                return self._len
+                l.append(next(iterator))
+                return len_
             except StopIteration:
                 pass # iterator ended early; fall through
         else:
-            l.extend(islice(self._iterator, needed))
+            l.extend(islice(iterator, needed))
             current = len(l)
             if stop - 1 < current:
                 return len_
         # iterator ended earlier than the reported length.
         # Try to patch our length and hope no one notices.
-        self._inflate_slice = noop_inflate_slice
         self._iterator = None
         self._len = current
         return current
