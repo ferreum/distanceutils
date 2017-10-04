@@ -187,6 +187,9 @@ class ForwardFragmentAttrs(object):
         cls = self.cls
         doc = f"property forwarded to {cls.__name__!r}"
         for name, default in self.attrs.items():
+            # These keyword args are here to capture the values of every
+            # iteration. Otherwise they would all refer to the same variable
+            # which is set to the value of the last iteration.
             def fget(self, name=name, default=default):
                 frag = self.fragment_by_type(cls)
                 if frag is None:
