@@ -2,12 +2,22 @@
 
 
 from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
-from .base import BaseObject
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs,
+)
 from .printing import format_duration
 from .constants import Mode
+from .prober import BytesProber
 
 
 FTYPE_LEVELINFOS = 'LevelInfos'
+
+
+FRAG_PROBER = BytesProber()
+
+FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
 class Entry(BytesModel):
@@ -23,7 +33,7 @@ class Entry(BytesModel):
         self.level_name = dbytes.read_str()
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
-        self._add_unknown(16)
+        dbytes.read_bytes(16)
         self._require_equal(MAGIC_12, 4)
         num_modes = dbytes.read_int(4)
         self.modes = modes = {}
@@ -35,7 +45,7 @@ class Entry(BytesModel):
         for _ in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
             scores.append(dbytes.read_int(4, signed=True))
-        self._add_unknown(25)
+        dbytes.read_bytes(25)
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
@@ -52,21 +62,26 @@ class Entry(BytesModel):
             p(f"Medal scores: {scores_str}")
 
 
-class LevelInfos(BaseObject):
+@FRAG_PROBER.fragment(MAGIC_2, 0x97, 0)
+class LevelInfosFragment(Fragment):
 
     version = None
+    levels = ()
+
+    def _read_section_data(self, dbytes, sec):
+        self.version = sec.version
+        num_entries = dbytes.read_int(8)
+        self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
+
+
+@ForwardFragmentAttrs(LevelInfosFragment, dict(levels=(), version=None))
+class LevelInfos(BaseObject):
+
+    fragment_prober = FRAG_PROBER
 
     def _read(self, dbytes):
         self._require_type(FTYPE_LEVELINFOS)
         BaseObject._read(self, dbytes)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x97):
-            self.version = sec.version
-            num_entries = dbytes.read_int(8)
-            self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

@@ -4,13 +4,18 @@
 from operator import attrgetter
 
 from .bytes import BytesModel, MAGIC_2
-from .base import BaseObject
+from .base import BaseObject, Fragment, ForwardFragmentAttrs
+from .prober import BytesProber
 from .printing import format_bytes, format_duration
 
 
 NO_REPLAY = 0xffffffffffffffff
 
 FTYPE_LEADERBOARD = "LocalLeaderboard"
+
+
+FRAG_PROBER = BytesProber()
+FRAG_PROBER.extend(BaseObject.fragment_prober)
 
 
 class Entry(BytesModel):
@@ -23,35 +28,35 @@ class Entry(BytesModel):
         self.playername = dbytes.read_str()
         self.time = dbytes.read_int(4)
         if version == 0:
-            self._add_unknown(4)
+            dbytes.read_bytes(4)
         elif version == 1:
             self.replay = dbytes.read_int(8)
-            self._add_unknown(12)
+            dbytes.read_bytes(12)
         else:
             raise ValueError(f"unknown version: {version}")
 
 
-class Leaderboard(BaseObject):
+@FRAG_PROBER.fragment(MAGIC_2, 0x37, any_version=True)
+class LeaderboardFragment(Fragment):
 
     version = None
-
-    def _read(self, dbytes):
-        ts = self._require_type(FTYPE_LEADERBOARD)
-        self._report_end_pos(ts.data_end)
-        self._read_sections(ts.data_end)
+    entries = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x37):
-            self.version = version = sec.version
-            num_entries = dbytes.read_int(4)
-            start = sec.data_start + 20
-            if version >= 1:
-                start += 4
-            self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
-                                              start_pos=start,
-                                              version=version)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
+        self.version = version = sec.version
+        num_entries = dbytes.read_int(4)
+        start = sec.data_start + 20
+        if version >= 1:
+            start += 4
+        self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
+                                          start_pos=start,
+                                          version=version)
+
+
+@ForwardFragmentAttrs(LeaderboardFragment, dict(version=None, entries=()))
+class Leaderboard(BaseObject):
+
+    fragment_prober = FRAG_PROBER
 
     def _print_data(self, p):
         p(f"Version: {self.version}")
@@ -67,8 +72,6 @@ class Leaderboard(BaseObject):
             rep_str = ""
             if entry.replay is not None and entry.replay != NO_REPLAY:
                 rep_str = f" Replay: {entry.replay:X}"
-            if 'unknown' in p.flags:
-                unk_str = f"Unknown: {format_bytes(entry.unknown)} "
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:
                 p.print_exception(entry.exception)

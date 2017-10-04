@@ -1,7 +1,6 @@
 """Try to find properties of fragments."""
 
 
-import sys
 import argparse
 import re
 from io import BytesIO
@@ -79,7 +78,7 @@ def setup_probers(args):
     p_levelobj = BytesProber(baseclass=LevelObject)
     p_frag = BytesProber(baseclass=Fragment)
 
-    @prober.func
+    @prober.func(high_prio=True)
     def _detect_other(section):
         if section.magic == MAGIC_9:
             return Level

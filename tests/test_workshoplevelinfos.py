@@ -1,7 +1,7 @@
 import unittest
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
-from distance.bytes import DstBytes, UnexpectedEOFError
+from distance.bytes import DstBytes
 from distance.printing import PrintContext
 
 
@@ -46,7 +46,7 @@ class Version0Test(unittest.TestCase):
         self.assertEqual([(o.sane_end_pos, o.exception) for o in levels], [(True, None)] * 39)
 
     def test_truncated(self):
-        infos = WorkshopLevelInfos("tests/in/workshoplevelinfos/version_0_truncated.bytes")
+        infos = WorkshopLevelInfos.maybe("tests/in/workshoplevelinfos/version_0_truncated.bytes")
         gen = iter(infos.levels)
         level = next(gen)
         self.assertEqual(level.id, 469806096)
@@ -56,16 +56,16 @@ class Version0Test(unittest.TestCase):
         self.assertEqual(level.id, 822049253)
         self.assertIsNone(level.author)
         self.assertIsNone(level.authorid)
-        self.assertIsInstance(level.exception, UnexpectedEOFError)
+        self.assertIsInstance(level.exception, EOFError)
         self.assertFalse(level.sane_end_pos)
 
     def test_truncated_2(self):
-        infos = WorkshopLevelInfos("tests/in/workshoplevelinfos/version_0_truncated_2.bytes")
+        infos = WorkshopLevelInfos.maybe("tests/in/workshoplevelinfos/version_0_truncated_2.bytes")
         gen = iter(infos.levels)
         level = next(gen)
         self.assertIsNone(level.exception)
         level = next(gen)
-        self.assertIsInstance(level.exception, UnexpectedEOFError)
+        self.assertIsInstance(level.exception, EOFError)
         self.assertFalse(level.sane_end_pos)
 
     def test_print(self):

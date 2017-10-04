@@ -2,12 +2,21 @@
 
 
 from .bytes import BytesModel, MAGIC_2
-from .base import BaseObject
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs,
+)
+from .prober import BytesProber
 from .printing import format_bytes
 from .constants import Rating
 
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
+
+FRAG_PROBER = BytesProber()
+
+FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
 def format_date(date):
@@ -44,27 +53,32 @@ class Level(BytesModel):
         self.author = dbytes.read_str()
         self.path = dbytes.read_str()
         self.published_by_user = dbytes.read_byte()
-        self._add_unknown(7)
+        dbytes.read_bytes(7)
         self.upvotes = dbytes.read_int(4)
         self.downvotes = dbytes.read_int(4)
-        self._add_unknown(4)
-        self.rating = dbytes.read_byte()
-        self._add_unknown(3)
+        dbytes.read_bytes(4)
+        self.rating = dbytes.read_int(4)
 
 
+@FRAG_PROBER.fragment(MAGIC_2, 0x6d, 0)
+class WorkshopLevelInfosFragment(Fragment):
+
+    levels = ()
+
+    def _read_section_data(self, dbytes, sec):
+        num_levels = dbytes.read_int(4)
+        self.levels = Level.lazy_n_maybe(dbytes, num_levels,
+                                         start_pos=sec.data_start + 20)
+
+
+@ForwardFragmentAttrs(WorkshopLevelInfosFragment, dict(levels=()))
 class WorkshopLevelInfos(BaseObject):
+
+    fragment_prober = FRAG_PROBER
 
     def _read(self, dbytes):
         self._require_type(FTYPE_WSLEVELINFOS)
         BaseObject._read(self, dbytes)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x6d):
-            num_levels = dbytes.read_int(4)
-            self.levels = Level.lazy_n_maybe(dbytes, num_levels,
-                                             start_pos=sec.data_start + 20)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
 
     def _print_data(self, p):
         p(f"Levelinfos: {len(self.levels)}")
@@ -87,8 +101,6 @@ class WorkshopLevelInfos(BaseObject):
                     p(f"Description: {level.description}")
                 if level.rating is not None and level.rating != Rating.NONE:
                     p(f"Rating: {Rating.to_name(level.rating)}")
-                if 'unknown' in p.flags:
-                    p(f"Unknown: {format_bytes(level.unknown)}")
                 if level.exception:
                     p.print_exception(level.exception)
 

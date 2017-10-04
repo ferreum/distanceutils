@@ -12,12 +12,16 @@ class BaseLazySequence(Sequence):
     Subclasses need to implement `_inflate_slice(start, stop, stride)` and
     `__len__`. Additionally, the backing list needs to be stored in `_list`.
 
+    Subclasses need to implement `_inflate_slice(len_, start, stop, stride)`
+    which inflates the given slice in `self._list`. The result is the length
+    of the sequence after inflation (like __len__).
+
     """
 
     def __getitem__(self, index):
-        mylen = len(self)
+        len_ = len(self)
         if isinstance(index, slice):
-            start, stop, stride = index.indices(mylen)
+            start, stop, stride = index.indices(len_)
             if stride < 0:
                 if start <= stop:
                     return []
@@ -30,42 +34,29 @@ class BaseLazySequence(Sequence):
                 wantmax = stop
                 if stride > 1:
                     wantmax -= (wantmax - 1 - wantmin) % stride
-            mylen = self._inflate_slice(wantmin, wantmax, stride)
-            index = slice(*index.indices(mylen))
+            len_ = self._inflate_slice(len_, wantmin, wantmax, abs(stride))
+            index = slice(*index.indices(len_))
         else:
             want = index
             if want < 0:
-                want += mylen
-            if want >= mylen:
-                raise IndexError(f"{want} >= {mylen}")
-            if want < 0:
-                raise IndexError(f"{want} < 0")
-            mylen = self._inflate_slice(want, want + 1, 1)
+                want += len_
+            len_ = self._inflate_slice(len_, want, want + 1, 1)
             if index < 0:
-                index += mylen
+                index += len_
         return self._list[index]
 
-    def _inflate_slice(self, start, stop, stride):
 
-        """Try to inflate the given slice in `self._list`.
-
-        Returns the length of this sequence after inflation (like __len__).
-
-        The default implementation raises `NotImplementedError`.
-
-        """
-
-        raise NotImplementedError
+def noop_inflate_slice(len_, start, stop, stride):
+    return len_
 
 
 class LazySequence(BaseLazySequence):
 
     """Lazy sequence using an iterator as source."""
 
+    __slots__ = ['_iterator', '_len', '_list']
+
     def __init__(self, source, length):
-        if length <= 0:
-            self._len = 0
-            return
         self._iterator = iter(source)
         self._len = length
         self._list = []
@@ -84,23 +75,78 @@ class LazySequence(BaseLazySequence):
         else:
             return f"<lazy seq {l!r}>"
 
-    def _inflate_slice(self, start, stop, stride):
-        iterator = self._iterator
-        if iterator is None:
-            return self._len
+    def _inflate_slice(self, len_, start, stop, stride):
         l = self._list
         current = len(l)
-        if stop - 1 < current:
-            return self._len
-        l.extend(islice(iterator, stop - current))
-        current = len(l)
-        if stop - 1 < current:
-            return self._len
+        needed = stop - current
+        if needed <= 0:
+            return len_
+        if needed == 1:
+            # optimize single element inflation
+            try:
+                l.append(next(self._iterator))
+                return self._len
+            except StopIteration:
+                pass # iterator ended early; fall through
+        else:
+            l.extend(islice(self._iterator, needed))
+            current = len(l)
+            if stop - 1 < current:
+                return len_
         # iterator ended earlier than the reported length.
         # Try to patch our length and hope no one notices.
+        self._inflate_slice = noop_inflate_slice
         self._iterator = None
         self._len = current
         return current
+
+
+UNSET = object()
+
+
+class LazyMappedSequence(BaseLazySequence):
+
+    """Lazy sequence yielding content of a sequence mapped by a function.
+
+    The function is only called the first time an element is accessed.
+
+    """
+
+    __slots__ = ['_source', '_func', '_list']
+
+    def __init__(self, source, func):
+        self._source = source
+        self._func = func
+        self._list = [UNSET] * len(source)
+
+    def __len__(self):
+        return len(self._source)
+
+    def __repr__(self):
+        s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
+        return f"<lazy map [{s}]>"
+
+    def _inflate_slice(self, len_, start, stop, stride):
+        try:
+            l = self._list
+            if start == stop - 1:
+                # optimize single element access
+                elem = l[start]
+                if elem is UNSET:
+                    l[start] = self._func(self._source[start])
+            else:
+                source = self._source
+                func = self._func
+                for i in range(start, stop, stride):
+                    elem = l[i]
+                    if elem is UNSET:
+                        l[i] = func(source[i])
+            return len_
+        except IndexError:
+            # source decided it's actually shorter.
+            newlen = len(self._source)
+            del l[newlen:]
+            return newlen
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -5,10 +5,14 @@ import struct
 from struct import Struct
 from contextlib import contextmanager
 
-from .printing import PrintContext, format_unknown
+from .printing import PrintContext
 from .argtaker import ArgTaker
 from .lazy import LazySequence
 
+import codecs
+
+UTF_16_DECODE = codecs.getdecoder('utf-16-le')
+UTF_16_ENCODE = codecs.getencoder('utf-16-le')
 
 S_COLOR_RGBA = Struct("4f")
 
@@ -49,26 +53,20 @@ MAGIC_12 = 12121212
 MAGIC_32 = 32323232
 
 
-class UnexpectedEOFError(Exception):
-    pass
-
-
-CATCH_EXCEPTIONS = (ValueError, EOFError, UnexpectedEOFError)
+CATCH_EXCEPTIONS = (ValueError, EOFError)
 
 
 class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
 
-    unknown = ()
     sections = ()
     exception = None
-    reported_end_pos = None
     container = None
     sane_end_pos = False
+    start_pos = None
+    end_pos = None
     opts = None
-
-    default_sections = ()
 
     @classmethod
     def maybe(clazz, dbytes, **kw):
@@ -143,6 +141,8 @@ class BytesModel(object):
 
         """
 
+        if n <= 0:
+            return ()
         dbytes = DstBytes.from_arg(dbytes)
         gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
@@ -183,9 +183,6 @@ class BytesModel(object):
                            `dbytes` position when entering this method.
         `exc_pos`        - `dbytes` position where the exception occurred.
 
-        `EOFError` occuring in `_read()` are converted to
-        `UnexpectedEOFError` if any data has been read from `dbytes`.
-
         After `_read()`, regardless of whether an exception was raised,
         it is attempted to `dbytes.seek()` to the position reported
         (if it was) with `_report_end_pos()`. If this is successful,
@@ -206,104 +203,42 @@ class BytesModel(object):
             self._handle_opts(opts)
         try:
             self._read(dbytes, **kw)
-            self.__apply_end_pos(dbytes)
-            self.end_pos = dbytes.tell()
+            end = self.end_pos
+            if end is None:
+                self.end_pos = dbytes.tell()
+            else:
+                dbytes.seek(end - 1)
+                dbytes.read_bytes(1)
             self.sane_end_pos = True
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
             orig_e = e
             exc_pos = dbytes.tell()
-            if exc_pos != start_pos and isinstance(e, EOFError):
-                e = UnexpectedEOFError()
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
             e.exc_pos = exc_pos
-            # prevent I/O for non-whitelisted exceptions
-            if isinstance(e, CATCH_EXCEPTIONS):
-                self.sane_end_pos = self.__apply_end_pos(dbytes, or_to_eof=True)
-            self.end_pos = exc_pos
+            end = self.end_pos
+            if end is None:
+                self.end_pos = exc_pos
+            else:
+                if isinstance(e, CATCH_EXCEPTIONS):
+                    try:
+                        dbytes.seek(end - 1)
+                        dbytes.read_bytes(1)
+                        self.sane_end_pos = True
+                    except EOFError:
+                        pass
             raise e from orig_e
 
     def _read(self, dbytes):
         raise NotImplementedError(
             "Subclass needs to override _read(self, dbytes)")
 
-    def _read_sections(self, end):
-        dbytes = self.dbytes
-        sections = self.sections
-        if sections is ():
-            self.sections = sections = []
-        with dbytes.limit(end):
-            while dbytes.tell() < end:
-                sec = Section(dbytes)
-                sections.append(sec)
-                with dbytes.limit(sec.data_end):
-                    prevpos = dbytes.tell()
-                    if not self._read_section_data(dbytes, sec):
-                        dbytes.seek(prevpos)
-                        sec.read_raw_data(dbytes)
-                dbytes.seek(sec.data_end)
-
-    def _read_section_data(self, dbytes, sec):
-
-        """Read data of the given section.
-
-        Returns `True` if the raw section data is not needed.
-
-        Returns `False` to indicate that raw data of the section
-        shall be saved (e.g. for `_write_section_data()`).
-
-        """
-
-        return False
-
-    def _write_sections(self, dbytes):
-        for sec in self.sections:
-            self._write_section(dbytes, sec)
-
-    def _write_section(self, dbytes, sec):
-        with dbytes.write_section(sec):
-            if not self._write_section_data(dbytes, sec):
-                data = sec.raw_data
-                if data is None:
-                    raise ValueError(
-                        f"Raw data not available for {sec}")
-                dbytes.write_bytes(data)
-
-    def _write_section_data(self, dbytes, sec):
-
-        """Write data of the given section.
-
-        Returns `True` if the section has been written.
-
-        Returns `False` if the raw section data shall be copied
-        from the source that this object has been read from. This
-        is an error if raw data has not been saved for the section
-        (e.g. by returning `False` from `_read_section_data`).
-
-        """
-
-        return False
-
     def _init_defaults(self):
         pass
 
     def _report_end_pos(self, pos):
-        self.reported_end_pos = pos
-
-    def __apply_end_pos(self, dbytes, or_to_eof=False):
-        end_pos = self.reported_end_pos
-        if end_pos is not None:
-            current_pos = dbytes.tell()
-            if current_pos == end_pos:
-                return True
-            if current_pos > end_pos:
-                dbytes.seek(end_pos)
-                return True
-            wanted = end_pos - current_pos
-            remain = self._add_unknown(wanted, or_to_eof=or_to_eof)
-            return len(remain) == wanted
-        return False
+        self.end_pos = pos
 
     def write(self, dbytes):
 
@@ -337,8 +272,6 @@ class BytesModel(object):
                     for sec in self.sections:
                         p.tree_next_child()
                         p.print_data_of(sec)
-        if 'unknown' in p.flags and self.unknown:
-            p(f"Unknown: {format_unknown(self.unknown)}")
         self._print_data(p)
         self._print_children(p)
         if self.exception:
@@ -383,15 +316,6 @@ class BytesModel(object):
                 raise ValueError(f"Invalid object type: {ts.type}")
         return ts
 
-    def _add_unknown(self, nbytes=None, value=None, or_to_eof=False):
-        unknown = self.unknown
-        if unknown is ():
-            self.unknown = unknown = []
-        if value is None:
-            value = self.dbytes.read_bytes(nbytes, or_to_eof=or_to_eof)
-        unknown.append(value)
-        return value
-
     def _require_equal(self, expect, nbytes=None, value=None):
         if nbytes is not None:
             value = self.dbytes.read_int(nbytes)
@@ -412,18 +336,26 @@ class Section(BytesModel):
     type = None
     version = None
     num_sections = None
-    raw_data = None
     id = None
+
+    @classmethod
+    def iter_n_maybe(clazz, dbytes, *args, **kw):
+        """Wraps `BytesModel.iter_n_maybe` to enable section iteration."""
+        # TODO refactor Section for clean iter
+        gen = super().iter_n_maybe(dbytes, *args, **kw)
+        for sec in gen:
+            yield sec
+            dbytes.seek(sec.data_end)
 
     def __init__(self, *args, **kw):
         if args:
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
                 return
-        if args or kw:
+        if not kw.get('plain', False):
             self._init_from_args(*args, **kw)
 
-    def _init_from_args(self, *args, **kw):
+    def _init_from_args(self, *args, any_version=False, **kw):
         if not kw and len(args) == 1 and isinstance(args[0], Section):
             other = args[0]
             if other.magic not in (MAGIC_2, MAGIC_3, MAGIC_32):
@@ -437,7 +369,8 @@ class Section(BytesModel):
         self.magic = magic = arg(0, 'magic')
         if magic in (MAGIC_2, MAGIC_3):
             self.type = arg(1, 'type')
-            self.version = arg(2, 'version')
+            if not any_version:
+                self.version = arg(2, 'version')
             self.id = arg(3, 'id', default=None)
         elif magic == MAGIC_5:
             pass # no data
@@ -446,7 +379,6 @@ class Section(BytesModel):
             self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
             self.layer_name = arg(1, 'layer_name', default=None)
-            self.num_objects = arg(2, 'num_objects', default=None)
         elif magic == MAGIC_8:
             pass # no data
         elif magic == MAGIC_9:
@@ -467,11 +399,14 @@ class Section(BytesModel):
             argstr += f", {self.type!r}"
         return f"Section({argstr})"
 
-    def to_key(self):
+    def to_key(self, any_version=False):
         """Create a key of this section's type identity."""
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
-            return (magic, self.type, self.version)
+            if any_version:
+                return (magic, self.type)
+            else:
+                return (magic, self.type, self.version)
         elif magic == MAGIC_6:
             return (magic, self.type)
         else:
@@ -500,7 +435,7 @@ class Section(BytesModel):
             self.data_size = dbytes.read_int(8)
             self.data_start = dbytes.tell()
             self.type = dbytes.read_str()
-            self._add_unknown(1) # unknown, always 0
+            dbytes.read_bytes(1) # unknown, always 0
             self.id = dbytes.read_id()
             self.num_sections = dbytes.read_int(4)
         elif magic == MAGIC_7:
@@ -521,21 +456,6 @@ class Section(BytesModel):
             self.data_start = dbytes.tell()
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
-
-    def read_raw_data(self, dbytes):
-        """Save this section's raw data in its `raw_data` attribute."""
-        self.raw_data = dbytes.read_bytes(self.data_end - dbytes.tell(),
-                                          or_to_eof=True)
-
-    def match(self, magic, type=None, version=None):
-        """Match the section's type information."""
-        if magic != self.magic:
-            return False
-        if type is not None and type != self.type:
-            return False
-        if version is not None and version != self.version:
-            return False
-        return True
 
     @contextmanager
     def _write_header(self, dbytes):
@@ -561,8 +481,8 @@ class Section(BytesModel):
         elif magic == MAGIC_7:
             with dbytes.write_size():
                 dbytes.write_str(self.layer_name)
-                dbytes.write_int(4, self.num_objects)
-                yield
+                with dbytes.write_num_subsections():
+                    yield
         elif magic == MAGIC_8:
             with dbytes.write_size():
                 yield
@@ -740,7 +660,7 @@ class DstBytes(object):
     def read_str(self):
         length = self.read_var_int()
         data = self.read_bytes(length)
-        return data.decode('utf-16', 'surrogateescape')
+        return UTF_16_DECODE(data, 'surrogateescape')[0]
 
     def read_id(self):
         return self.read_int(4)
@@ -768,7 +688,7 @@ class DstBytes(object):
         self.write_bytes(bytes(l))
 
     def write_str(self, s):
-        data = s.encode('utf-16-le')
+        data = UTF_16_ENCODE(s, 'surrogateescape')[0]
         self.write_var_int(len(data))
         self.write_bytes(data)
 

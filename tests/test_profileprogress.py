@@ -10,7 +10,7 @@ class ProfileProgressTest(unittest.TestCase):
 
     def test_read_new(self):
         obj = ProfileProgress("tests/in/profileprogress/new profile.bytes")
-        self.assertEqual([], obj.levels[:])
+        self.assertEqual(0, len(obj.levels[:]))
 
     def test_read_single_map_started(self):
         obj = ProfileProgress("tests/in/profileprogress/started acclivity.bytes")

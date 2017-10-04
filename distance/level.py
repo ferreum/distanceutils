@@ -4,15 +4,25 @@
 from struct import Struct
 
 from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
-from .base import BaseObject, Fragment
+from .base import (
+    BaseObject, Fragment,
+    BASE_FRAG_PROBER,
+    ForwardFragmentAttrs
+)
 from .lazy import LazySequence
 from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
+from .fragments import PROBER as FRAG_PROBER
 
 
 LEVEL_CONTENT_PROBER = BytesProber()
+
+SETTINGS_FRAG_PROBER = BytesProber()
+
+
+SETTINGS_FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
 S_ABILITIES = Struct("5b")
@@ -25,16 +35,18 @@ def format_layer_flags(gen):
             yield name
 
 
-class BaseLevelSettings(object):
+class LevelSettingsMixin(object):
 
-    version = None
-    name = None
-    skybox_name = None
-    modes = ()
-    medal_times = ()
-    medal_scores = ()
-    abilities = ()
-    difficulty = None
+    value_attrs = dict(
+        version = None,
+        name = None,
+        skybox_name = None,
+        modes = (),
+        medal_times = (),
+        medal_scores = (),
+        abilities = (),
+        difficulty = None,
+    )
 
     def _print_data(self, p):
         if self.name is not None:
@@ -63,43 +75,49 @@ class BaseLevelSettings(object):
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
 
 
-@LEVEL_CONTENT_PROBER.for_type('LevelSettings')
-class LevelSettings(BaseLevelSettings, BaseObject):
+@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
+class LevelSettingsFragment(Fragment):
+
+    locals().update(LevelSettingsMixin.value_attrs)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.match(MAGIC_2, 0x52):
-            self.version = version = sec.version
+        self.version = version = sec.version
 
-            self._add_unknown(8)
-            self.name = dbytes.read_str()
-            self._add_unknown(4)
-            self.modes = modes = {}
-            num_modes = dbytes.read_int(4)
-            for i in range(num_modes):
-                mode = dbytes.read_int(4)
-                modes[mode] = dbytes.read_byte()
-            self.music_id = dbytes.read_int(4)
-            if version <= 3:
-                self.skybox_name = dbytes.read_str()
-                self._add_unknown(57)
-            elif version == 4:
-                self._add_unknown(141)
-            elif version == 5:
-                self._add_unknown(172)
-            elif 6 <= version:
-                # confirmed only for v6..v9
-                self._add_unknown(176)
-            self.medal_times = times = []
-            self.medal_scores = scores = []
-            for i in range(4):
-                times.append(dbytes.read_struct(S_FLOAT)[0])
-                scores.append(dbytes.read_int(4, signed=True))
-            if version >= 1:
-                self.abilities = dbytes.read_struct(S_ABILITIES)
-            if version >= 2:
-                self.difficulty = dbytes.read_int(4)
-            return False
-        return BaseObject._read_section_data(self, dbytes, sec)
+        dbytes.read_bytes(8)
+        self.name = dbytes.read_str()
+        dbytes.read_bytes(4)
+        self.modes = modes = {}
+        num_modes = dbytes.read_int(4)
+        for i in range(num_modes):
+            mode = dbytes.read_int(4)
+            modes[mode] = dbytes.read_byte()
+        self.music_id = dbytes.read_int(4)
+        if version <= 3:
+            self.skybox_name = dbytes.read_str()
+            dbytes.read_bytes(57)
+        elif version == 4:
+            dbytes.read_bytes(141)
+        elif version == 5:
+            dbytes.read_bytes(172)
+        elif 6 <= version:
+            # confirmed only for v6..v9
+            dbytes.read_bytes(176)
+        self.medal_times = times = []
+        self.medal_scores = scores = []
+        for i in range(4):
+            times.append(dbytes.read_struct(S_FLOAT)[0])
+            scores.append(dbytes.read_int(4, signed=True))
+        if version >= 1:
+            self.abilities = dbytes.read_struct(S_ABILITIES)
+        if version >= 2:
+            self.difficulty = dbytes.read_int(4)
+
+
+@LEVEL_CONTENT_PROBER.for_type('LevelSettings')
+@ForwardFragmentAttrs(LevelSettingsFragment, LevelSettingsMixin.value_attrs)
+class LevelSettings(LevelSettingsMixin, BaseObject):
+
+    fragment_prober = SETTINGS_FRAG_PROBER
 
     def _print_type(self, p):
         BaseObject._print_type(self, p)
@@ -108,16 +126,17 @@ class LevelSettings(BaseLevelSettings, BaseObject):
 
 
 @LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
-class OldLevelSettings(BaseLevelSettings, Fragment):
+class OldLevelSettings(LevelSettingsMixin, Fragment):
+
+    locals().update(LevelSettingsMixin.value_attrs)
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps
         self._report_end_pos(sec.data_start + sec.data_size)
-        self._add_unknown(4)
+        dbytes.read_bytes(4)
         self.skybox_name = dbytes.read_str()
-        self._add_unknown(143)
+        dbytes.read_bytes(143)
         self.name = dbytes.read_str()
-        return False
 
     def _print_type(self, p):
         p(f"Type: LevelSettings (old)")
@@ -142,15 +161,12 @@ class Layer(Fragment):
             pass
 
     def _read_section_data(self, dbytes, sec):
-        s7 = self._get_container()
-        if s7.magic != MAGIC_7:
-            raise ValueError(f"Invalid layer section: {s7.magic}")
-        self._report_end_pos(s7.data_end)
-
-        self.layer_name = s7.layer_name
+        if sec.magic != MAGIC_7:
+            raise ValueError(f"Invalid layer section: {sec.magic}")
+        self.layer_name = sec.layer_name
 
         pos = dbytes.tell()
-        if pos + 4 >= s7.data_end:
+        if pos + 4 >= sec.data_end:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
             self.has_layer_flags = False
@@ -169,25 +185,26 @@ class Layer(Fragment):
             self.has_layer_flags = False
             # We read start of first object - need to rewind.
             dbytes.seek(pos)
+        self.objects = self.obj_prober.lazy_n_maybe(
+            dbytes, sec.num_objects, opts=self.opts)
 
-        self.objects = self.obj_prober.lazy_n_maybe(dbytes, s7.num_objects, opts=self.opts)
-
-    def write(self, dbytes):
-        with dbytes.write_section(MAGIC_7, self.layer_name, len(self.objects)):
-            if self.has_layer_flags:
-                flags = self.layer_flags
-                dbytes.write_int(4, self.flags_version)
-                if self.flags_version == 0:
-                    dbytes.write_int(1, 0 if flags[1] else 1)
-                    dbytes.write_int(1, flags[0])
-                    dbytes.write_int(1, flags[2])
-                else:
-                    dbytes.write_int(1, flags[0])
-                    dbytes.write_int(1, flags[1])
-                    dbytes.write_int(1, flags[2])
-                    dbytes.write_int(1, self.unknown_flag)
-            for obj in self.objects:
-                obj.write(dbytes)
+    def _write_section_data(self, dbytes, sec):
+        if sec.magic != MAGIC_7:
+            raise ValueError(f"Invalid layer section: {sec.magic}")
+        if self.has_layer_flags:
+            flags = self.layer_flags
+            dbytes.write_int(4, self.flags_version)
+            if self.flags_version == 0:
+                dbytes.write_int(1, 0 if flags[1] else 1)
+                dbytes.write_int(1, flags[0])
+                dbytes.write_int(1, flags[2])
+            else:
+                dbytes.write_int(1, flags[0])
+                dbytes.write_int(1, flags[1])
+                dbytes.write_int(1, flags[2])
+                dbytes.write_int(1, self.unknown_flag)
+        for obj in self.objects:
+            obj.write(dbytes)
 
     def _print_type(self, p):
         p(f"Layer: {self.layer_name!r}")
@@ -220,21 +237,21 @@ class Level(Fragment):
             raise ValueError(f"Unexpected section: {sec.magic}")
         self._report_end_pos(sec.data_end)
         self.level_name = sec.level_name
-        self.num_layers = sec.num_layers
+
+        num_layers = sec.num_layers
 
         self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
-            dbytes, sec.num_layers + 1, opts=self.opts)
-        self.layers = LazySequence(
-            (obj for obj in self.content if isinstance(obj, Layer)),
-            sec.num_layers)
-        return True
+            dbytes, num_layers + 1, opts=self.opts)
+        if num_layers:
+            self.layers = LazySequence(
+                (obj for obj in self.content if isinstance(obj, Layer)),
+                num_layers)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
             obj.write(dbytes)
-        return True
 
     @property
     def settings(self):

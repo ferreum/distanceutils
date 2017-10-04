@@ -2,6 +2,7 @@ import unittest
 
 from distance.replay import Replay
 from distance.printing import PrintContext
+from .common import check_exceptions
 
 
 def assertColor(first, second):
@@ -104,7 +105,7 @@ class Version4Test(unittest.TestCase):
         assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
         self.assertIsNone(replay.car_color_sparkle)
         self.assertEqual(replay.version, 4)
-        self.assertIsNotNone(replay.exception)
+        self.assertRaises(EOFError, check_exceptions, replay)
 
     def test_partial_2(self):
         replay = Replay.maybe("tests/in/replay/version_4_truncated_2.bytes")
@@ -119,7 +120,7 @@ class Version4Test(unittest.TestCase):
         self.assertIsNone(replay.car_color_glow)
         self.assertIsNone(replay.car_color_sparkle)
         self.assertEqual(replay.version, 4)
-        self.assertIsNotNone(replay.exception)
+        self.assertRaises(EOFError, check_exceptions, replay)
 
     def test_print_data(self):
         p = PrintContext.for_test()

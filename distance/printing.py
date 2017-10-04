@@ -196,17 +196,6 @@ def format_color(color):
     return ', '.join(f"{round(c * 100)}%" for c in color)
 
 
-def format_unknown_value(value):
-    if isinstance(value, (bytes, bytearray)):
-        return format_bytes(value)
-    else:
-        return repr(value)
-
-
-def format_unknown(unknown):
-    return ', '.join(format_unknown_value(v) for v in unknown)
-
-
 def format_transform(trans):
     if trans is None:
         return 'None'
