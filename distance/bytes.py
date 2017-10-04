@@ -533,7 +533,12 @@ class Section(BytesModel):
 
 class DstBytes(object):
 
-    """File wrapper for reading and writing data of .bytes files."""
+    """File wrapper for reading and writing data of .bytes files.
+
+    Using an instance as context manager saves the current position on enter
+    and restores it on exit.
+
+    """
 
     _max_pos = None
     _expect_overread = False
