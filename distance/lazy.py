@@ -62,7 +62,7 @@ class LazySequence(BaseLazySequence):
 
     """
 
-    __slots__ = ['_iterator', '_len', '_list']
+    __slots__ = ('_iterator', '_len', '_list')
 
     def __init__(self, source, length):
         self._iterator = iter(source)
@@ -150,7 +150,7 @@ class LazyMappedSequence(BaseLazySequence):
 
     """
 
-    __slots__ = ['_source', '_func', '_list']
+    __slots__ = ('_source', '_func', '_list')
 
     def __init__(self, source, func):
         self._source = source
