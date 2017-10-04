@@ -192,9 +192,7 @@ class ForwardFragmentAttrs(object):
             # which is set to the value of the last iteration.
             def fget(self, name=name, default=default):
                 frag = self.fragment_by_type(cls)
-                if frag is None:
-                    return default
-                return getattr(frag, name)
+                return getattr(frag, name, default)
             def fset(self, value, name=name):
                 frag = self.fragment_by_type(cls)
                 setattr(frag, name, value)
