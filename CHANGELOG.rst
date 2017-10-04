@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+* version 0.3.1
+
+    * Fragments are now also only loaded on first access.
+
+    * Added `filtered_fragments` to filter fragments by type without loading
+      them.
+
 * version 0.3.0
 
     * First version able to filter most (all?) levels reliably.
