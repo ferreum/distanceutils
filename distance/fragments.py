@@ -803,54 +803,43 @@ _create_property_fragment_classes()
 add_property_fragments_to_prober(PROBER)
 
 
-def raise_attribute_error(obj, name):
-    raise AttributeError(
-        f"{type(obj).__name__!r} object has no attribute {name!r}")
+class ForwardMaterialColors(object):
 
+    """Decorator to forward attributes to colors of MaterialFragment."""
 
-class ForwardFragmentColors(object):
+    def __init__(self, **colors):
+        self.colors = colors
 
-    forward_fragment_colors = ()
-
-    def _init_defaults(self):
-        super()._init_defaults()
-
-        mats = self.material_fragment.materials
-        for matname, colname, value in self.forward_fragment_colors.values():
-            mats.get_or_add(matname)[colname] = value
-
-    def __getattr__(self, name):
-        try:
-            matname, colname, default = self.forward_fragment_colors[name]
-        except KeyError:
-            pass
-        else:
-            mats = self.material_fragment.materials
-            mat = mats.get(matname, None)
-            if mat is None:
-                return None
-            return mat.get(colname, None)
+    def __call__(self, target):
+        doc = f"property forwarded to material color"
+        for attrname, (matname, colname, default) in self.colors.items():
+            # These keyword args are here to capture the values of every
+            # iteration. Otherwise they would all refer to the same variable
+            # which is set to the value of the last iteration.
+            def fget(self, colname=colname):
+                frag = self.fragment_by_type(MaterialFragment)
+                try:
+                    return frag.materials[matname][colname]
+                except KeyError:
+                    return None
+            def fset(self, value, matname=matname, colname=colname):
+                frag = self.fragment_by_type(MaterialFragment)
+                frag.materials.get_or_add(matname)[colname] = value
+            setattr(target, attrname, property(fget, fset, None, doc=doc))
 
         try:
-            return super().__getattr__(name)
+            clsdefaults = target.__default_colors
         except AttributeError:
-            return super().__getattribute__(name)
+            target.__default_colors = clsdefaults = {}
+        clsdefaults.update(self.colors)
 
-    def __setattr__(self, name, value):
-        try:
-            matname, colname, default = self.forward_fragment_colors[name]
-        except KeyError:
-            pass
-        else:
-            mats = self.material_fragment.materials
+        return target
+
+    @staticmethod
+    def reset_colors(obj):
+        mats = obj.fragment_by_type(MaterialFragment).materials
+        for matname, colname, value in obj.__default_colors.values():
             mats.get_or_add(matname)[colname] = value
-            return
-
-        super().__setattr__(name, value)
-
-    @property
-    def material_fragment(self):
-        return self.fragment_by_type(MaterialFragment)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

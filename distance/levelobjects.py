@@ -8,7 +8,7 @@ from .bytes import (
 from .base import BaseObject, ForwardFragmentAttrs
 from .fragments import (
     PROBER as FRAG_PROBER,
-    ForwardFragmentColors,
+    ForwardMaterialColors,
     GoldenSimplesFragment,
     GroupFragment,
     CustomNameFragment,
@@ -221,7 +221,13 @@ class EnableAbilitiesBox(LevelObject):
 
 @PROBER.for_type('WedgeGS')
 @ForwardFragmentAttrs(GoldenSimplesFragment, GoldenSimplesFragment.value_attrs)
-class WedgeGS(ForwardFragmentColors, LevelObject):
+@ForwardMaterialColors(
+    mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
+    mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
+    mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
+    mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
+)
+class WedgeGS(LevelObject):
 
     type = 'WedgeGS'
     has_children = True
@@ -232,12 +238,9 @@ class WedgeGS(ForwardFragmentColors, LevelObject):
         Section(MAGIC_2, 0x83, 3),
     )
 
-    forward_fragment_colors = dict(
-        mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
-        mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
-        mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
-        mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
-    )
+    def _init_defaults(self):
+        super()._init_defaults()
+        ForwardMaterialColors.reset_colors(self)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
