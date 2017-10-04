@@ -544,6 +544,7 @@ class DstBytes(object):
         self.file = file
         self.tell = file.tell
         self.seek = file.seek
+        self._pos_stack = []
 
     @classmethod
     def in_memory(cls):
@@ -611,6 +612,14 @@ class DstBytes(object):
                 raise
         finally:
             self._max_pos = old_max
+
+    def __enter__(self):
+        """Save the position on enter and restore it on exit."""
+        self._pos_stack.append(self.tell())
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.seek(self._pos_stack.pop(-1))
+        return False
 
     def read_bytes(self, n, or_to_eof=False):
 
@@ -720,7 +729,8 @@ class DstBytes(object):
             else:
                 pos = start_pos
             while True:
-                with self.saved_pos(pos):
+                with self:
+                    self.seek(pos)
                     try:
                         obj = next(iterator)
                     except StopIteration:
@@ -738,7 +748,8 @@ class DstBytes(object):
             yield
         finally:
             end = self.tell()
-            with self.saved_pos(start):
+            with self:
+                self.seek(start)
                 self.write_int(8, end - start - 8)
 
     @contextmanager
@@ -755,7 +766,8 @@ class DstBytes(object):
         try:
             yield
         finally:
-            with self.saved_pos(start):
+            with self:
+                self.seek(start)
                 self.write_int(4, self.num_subsections)
 
     @contextmanager
@@ -781,23 +793,6 @@ class DstBytes(object):
                 yield
         finally:
             self.num_subsections = old_count
-
-    @contextmanager
-    def saved_pos(self, set_to=None):
-
-        """Save the position on enter and restore it on exit.
-
-        If set and not `None`, set the position to `set_to` on enter.
-
-        """
-
-        old_pos = self.tell()
-        if set_to is not None:
-            self.seek(set_to)
-        try:
-            yield
-        finally:
-            self.seek(old_pos)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

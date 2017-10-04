@@ -404,7 +404,7 @@ class TextMeshFragment(Fragment):
     def _read_section_data(self, dbytes, sec):
         if sec.data_size > 12:
             if sec.data_size >= 16:
-                with dbytes.saved_pos():
+                with dbytes:
                     # found on v8,v9 endzone
                     if dbytes.read_bytes(4) == SKIP_BYTES:
                         self.text = "00"

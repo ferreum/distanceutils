@@ -90,7 +90,8 @@ class Fragment(BytesModel):
         if data is None:
             start = self.data_start
             dbytes = self.dbytes
-            with dbytes.saved_pos(start):
+            with dbytes:
+                dbytes.seek(start)
                 data = dbytes.read_bytes(self.container.data_end - start)
                 self._raw_data = data
         return data
@@ -240,7 +241,8 @@ class BaseObject(BytesModel):
         if sec.exception:
             raise sec.exception
         dbytes = self.dbytes
-        with dbytes.saved_pos(sec.end_pos):
+        with dbytes:
+            dbytes.seek(sec.end_pos)
             return self.fragment_prober.maybe(
                 dbytes, probe_section=sec,
                 child_prober=self.child_prober)
