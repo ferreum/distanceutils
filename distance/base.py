@@ -194,8 +194,6 @@ class ForwardFragmentAttrs(object):
                 return getattr(frag, name)
             def fset(self, value, name=name):
                 frag = self.fragment_by_type(cls)
-                if frag is None:
-                    return default
                 setattr(frag, name, value)
             setattr(target, name, property(fget, fset, None, doc=doc))
         return target
