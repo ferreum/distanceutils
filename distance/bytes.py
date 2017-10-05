@@ -343,6 +343,7 @@ class Section(BytesModel):
             dbytes.seek(sec.data_end)
 
     def __init__(self, *args, **kw):
+        self.exception = None
         if args:
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
@@ -498,16 +499,19 @@ class Section(BytesModel):
     def _print_type(self, p):
         type_str = ""
         magic = self.magic
-        if magic in (MAGIC_2, MAGIC_3):
-            if self.type is not None:
-                type_str += f" type 0x{self.type:02x}"
-        elif magic == MAGIC_6:
-            if self.type is not None:
-                type_str += f" type {self.type!r}"
-        if self.version is not None:
-            type_str += f" ver {self.version}"
-        if self.id is not None:
+        if magic in (MAGIC_2, MAGIC_3, MAGIC_6):
+            if magic == MAGIC_6:
+                if self.type is not None:
+                    type_str += f" type {self.type!r}"
+            else:
+                if self.type is not None:
+                    type_str += f" type 0x{self.type:02x}"
+                if self.version is not None:
+                    type_str += f" ver {self.version}"
+        try:
             type_str += f" id {self.id}"
+        except AttributeError:
+            pass
         p(f"Section: {self.magic}{type_str}")
 
     def _print_offset(self, p):
