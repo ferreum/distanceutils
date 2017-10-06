@@ -47,7 +47,8 @@ class NamedPropertiesFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.data_size >= 16:
-            self.props.read(dbytes)
+            self.props.read(dbytes, max_pos=sec.data_end,
+                            detect_old=True)
 
     def _write_section_data(self, dbytes, sec):
         if self.props:
@@ -55,6 +56,8 @@ class NamedPropertiesFragment(Fragment):
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
+        if self.props.old_format:
+            p(f"Old properties format")
         if 'allprops' in p.flags and self.props:
             self.props.print_data(p)
 
@@ -762,6 +765,11 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x62, 0), None),
     # from v7 AdventureAbilitySettings
     (Section(22222222, 0x4d, 0), None),
+    # from v3 VirusBase
+    # very old versions (map "birthday bash court") don't use offsets
+    (Section(22222222, 0x27, 0), None),
+    # from s8 (map "The Pumpkin Patch")
+    (Section(22222222, 0x38, 0), None),
 )
 
 

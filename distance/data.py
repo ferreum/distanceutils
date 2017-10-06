@@ -9,27 +9,63 @@ from .printing import format_bytes
 
 class NamedPropertyList(OrderedDict):
 
-    def read(self, dbytes):
+    old_format = False
+
+    def read(self, dbytes, max_pos=None, detect_old=True):
         num_props = dbytes.read_int(4)
         for _ in range(num_props):
-            propname, value = self.read_property(dbytes)
+            propname, value = self._read_property(
+                dbytes, detect_old, max_pos=max_pos)
             self[propname] = value
+            detect_old = False
 
-    def read_property(self, dbytes):
+    def _read_property(self, dbytes, detect_old, max_pos):
         propname = dbytes.read_str()
-        propend = dbytes.read_int(8)
-        value = dbytes.read_bytes(propend - dbytes.tell())
+        if detect_old:
+            propend, self.old_format = self._detect_old(dbytes, max_pos)
+        else:
+            if not self.old_format:
+                propend = dbytes.read_int(8)
+        if not self.old_format:
+            value = dbytes.read_bytes(propend - dbytes.tell())
+        else:
+            value = dbytes.read_bytes(4)
         return propname, value
+
+    def _detect_old(self, dbytes, max_pos):
+
+        """Detect format of very old (s8 levels) named properties.
+
+        With old format, no value end offsets are used, and all values
+        are 4 bytes long.
+
+        """
+
+        if dbytes.tell() + 8 > max_pos:
+            # Too short for offset - assume old format.
+            return None, True
+        propend = dbytes.read_int(8)
+        if propend > max_pos:
+            # Value goes beyond end of our space - assume old format.
+            # In old format this wasn't an offset, so go back 8 bytes.
+            dbytes.seek(-8, 1)
+            return None, True
+        return propend, False
 
     def write(self, dbytes):
         dbytes.write_int(4, len(self))
         for propname, value in self.items():
-            self.write_property(dbytes, propname, value)
+            self._write_property(dbytes, propname, value)
 
-    def write_property(self, dbytes, propname, value):
+    def _write_property(self, dbytes, propname, value):
         dbytes.write_str(propname)
-        dbytes.write_int(8, dbytes.tell() + len(value) + 8)
-        dbytes.write_bytes(value)
+        if not self.old_format:
+            dbytes.write_int(8, dbytes.tell() + len(value) + 8)
+            dbytes.write_bytes(value)
+        else:
+            # Assume value is of correct length. Usually
+            # only 4b values are found.
+            dbytes.write_bytes(value)
 
     def print_data(self, p):
         p(f"Properties: {len(self)}")
