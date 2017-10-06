@@ -115,9 +115,9 @@ def count_objects(objs):
         n_obj += 1
         if obj.is_object_group:
             n_grp += 1
-            res = count_objects(obj.children)
-            n_obj += res[0]
-            n_grp += res[1]
+            no, ng = count_objects(obj.children)
+            n_obj += no
+            n_grp += ng
     return n_obj, n_grp
 
 
