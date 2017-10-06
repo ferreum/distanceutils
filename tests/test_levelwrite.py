@@ -27,4 +27,12 @@ class TheVirusBeginsS8Test(Base.WriteReadTest):
         self.assertEqual("The Virus Begins", level.level_name)
 
 
+class BirthdayBashCourtS8Test(Base.WriteReadTest):
+
+    filename = "tests/in/level-not-included/s8/birthday bash court.bytes"
+
+    def verify_obj(self, level):
+        self.assertEqual("birthday bash court", level.level_name)
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
