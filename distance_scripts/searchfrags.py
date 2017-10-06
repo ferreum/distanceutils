@@ -7,7 +7,6 @@ from io import BytesIO
 
 from distance.level import Level
 from distance.levelobjects import (
-    LevelObject,
     FRAG_PROBER as LEVEL_FRAG_PROBER,
 )
 from distance.bytes import (
@@ -16,7 +15,8 @@ from distance.bytes import (
 )
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
-from distance.base import Fragment
+from distance.base import Fragment, ObjectFragment
+from distance.fragments import NamedPropertiesFragment, MaterialFragment
 
 
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
@@ -69,14 +69,8 @@ KNOWN_GOOD_SECTIONS = [
 KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 
 
-class DetectFragment(Fragment):
-    pass
-
-
-def setup_probers(args):
+def setup_prober(args):
     prober = BytesProber()
-    p_levelobj = BytesProber(baseclass=LevelObject)
-    p_frag = BytesProber(baseclass=Fragment)
 
     @prober.func(high_prio=True)
     def _detect_other(section):
@@ -84,19 +78,7 @@ def setup_probers(args):
             return Level
         return None
 
-    @p_levelobj.func
-    def _fallback_levelobject(section):
-        return LevelObject
-
-    @p_frag.func
-    def _fallback_fragment(section):
-        return DetectFragment
-
-    if not args.all:
-        p_frag.extend(LEVEL_FRAG_PROBER)
-    prober.extend(p_levelobj)
-
-    return prober, p_levelobj, p_frag
+    return prober
 
 
 def iter_objects(source, recurse=-1):
@@ -116,12 +98,9 @@ class FragmentMatcher(object):
 
     def find_matches(self, frag):
         sec = frag.container
-        offset = sec.data_start
+        offset = sec.end_pos
         data = frag.raw_data
         matches = []
-
-        if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
-            return []
 
         if self.closeversions and sec.magic in (MAGIC_2, MAGIC_3):
             ver = sec.version
@@ -148,7 +127,7 @@ class FragmentMatcher(object):
             except Exception:
                 pass
             else:
-                if s and len(list(STR_EXCLUDE_PATTERN.findall(s))) < len(s) // 3:
+                if s and sum(1 for _ in STR_EXCLUDE_PATTERN.findall(s)) < len(s) // 3:
                     matches.append(("String", pos, repr(s)))
             db.seek(pos)
             try:
@@ -162,15 +141,20 @@ class FragmentMatcher(object):
             pos += 1
         return matches
 
+    def filter_fragments(self, sec, prober):
+        if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
+            return False
+        if issubclass(prober.probe_section(sec), (ObjectFragment, NamedPropertiesFragment, MaterialFragment)):
+            return False
+        return True
 
     def visit_object(self, obj, p):
         frags = []
-        for frag in obj.fragments:
-            if isinstance(frag, DetectFragment):
-                matches = self.find_matches(frag)
-                if matches:
-                    frags.append((frag, matches))
-                    self.sections[frag.container.to_key()] = frag.container
+        for frag in obj.filtered_fragments(self.filter_fragments):
+            matches = self.find_matches(frag)
+            if matches:
+                frags.append((frag, matches))
+                self.sections[frag.container.to_key()] = frag.container
 
         if frags:
             p(f"Object: {obj.type!r}")
@@ -206,17 +190,11 @@ def main():
                         help="Level .bytes filename.")
     args = parser.parse_args()
 
-    prober, p_levelobj, p_frag = setup_probers(args)
-
-    opts = dict(
-        level_frag_prober=p_frag,
-        level_subobj_prober=p_levelobj,
-        level_obj_prober=p_levelobj,
-    )
+    prober = setup_prober(args)
 
     matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args)
 
-    content = prober.read(args.IN, opts=opts)
+    content = prober.read(args.IN)
     if isinstance(content, Level):
         object_source = iter_objects(content.iter_objects())
     else:
