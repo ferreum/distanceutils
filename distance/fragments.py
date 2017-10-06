@@ -770,6 +770,8 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x27, 0), None),
     # from s8 (map "The Pumpkin Patch")
     (Section(22222222, 0x38, 0), None),
+    # from SoccerGoalLogic
+    (Section(22222222, 0x29, 0), None),
 )
 
 
