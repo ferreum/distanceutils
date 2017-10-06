@@ -23,46 +23,28 @@ STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 
 KNOWN_GOOD_SECTIONS = [
-    Section(MAGIC_2, 0x25, 2), # PopupLogic
-    Section(22222222, type=0x63, version=0), # Group name
-    Section(22222222, type=0x16, version=1), # TrackNode
-    Section(22222222, type=0x43, version=1), # from VirusSpiritTeaser
-    Section(22222222, type=0x45, version=1), # from GravityTrigger
-    Section(33333333, type=0x7, version=1), # from WorldText
-    Section(22222222, type=0x50, version=1), # from VirusBuilding003Core
-    Section(22222222, type=0x4b, version=1), # from MusicTrigger
-    Section(33333333, type=0x7, version=2), # from v8 SectorNumberTextCeiling
-    Section(22222222, type=0x50, version=2), # from v9 LevelEditorCarSpawner
-    Section(22222222, type=0x77, version=4), # from v9 Biodome
-    Section(22222222, type=0x9a, version=7), # from v9 Light
-    Section(22222222, type=0x89, version=2), # from v9 EventTriggerBox
-    Section(22222222, type=0x2c, version=2), # from v9 BrightenCarHeadlights
-    Section(22222222, type=0x8a, version=1), # v9 component EventListener
-    Section(22222222, type=0x4a, version=2), # InfoDisplayLogic from v9 InfoDisplayBox
-    Section(22222222, type=0x43, version=2), # from v9 VirusMazeCeiling001
-
-    # known good version
-    Section(22222222, type=0x57, version=1), # from v9 CarScreenTextDecodeTrigger
-    Section(22222222, type=0x38, version=1), # from v5 VirusMine, EmpireEndZoneCircle, ...
-    Section(22222222, type=0x17, version=1), # from v5 EmpireCircle
-
-    # false positives
     # bogus offset
-    Section(22222222, type=0x81, version=7), # from v9 particle system
-    Section(22222222, type=0x83, version=3), # from v9 GS
-    Section(33333333, type=0x9, version=3), # from v8 LightbeamRays
-    Section(22222222, type=0x77, version=3), # from v7 Biodome
-    Section(22222222, type=0x77, version=2), # from v5 Biodome
-    Section(22222222, type=0x19, version=1), # from v7 CheckpointLogic
-    Section(33333333, type=0xa, version=1), # from v3 LensFlare
-    Section(33333333, type=0x2, version=0), # from s8 (map The Virus Begins) VirusBuilding004
-    Section(33333333, type=0x9, version=1), # from v3 Light2
-    Section(33333333, type=0x9, version=4), # from v8 Light
+    # Section(22222222, type=0x81, version=7), # from v9 particle system
+    # Section(22222222, type=0x83, version=3), # from v9 GS
+    # Section(33333333, type=0x9, version=3), # from v8 LightbeamRays
+    # Section(22222222, type=0x19, version=1), # from v7 CheckpointLogic
+    # Section(33333333, type=0xa, version=1), # from v3 LensFlare
+    # Section(33333333, type=0x9, version=1), # from v3 Light2
+    # Section(33333333, type=0x9, version=4), # from v8 Light
 
     # contains a string
     Section(22222222, type=0x65, version=1), # from v9 WarningPulseLight (shader property name)
     Section(22222222, type=0x9f, version=1), # from v9 DiscoverableStuntArea (area name)
-    Section(22222222, type=0x61, version=1), # from v3 CreditsNameOrb
+    Section(22222222, type=0x61, version=1), # from v3 CreditsNameOrb (text)
+    Section(22222222, type=0x4a, version=2), # InfoDisplayLogic from v9 InfoDisplayBox (text)
+    Section(22222222, type=0x77, version=4), # v9 Biodome (background name)
+    Section(33333333, type=0x7, version=1), # WorldText v1 (text)
+    Section(33333333, type=0x7, version=2), # WorldText v2 (text)
+    Section(33333333, type=0x2, version=0), # from s8 (map The Virus Begins) VirusBuilding004 (its object name)
+    Section(22222222, type=0x63, version=0), # custom name (the name)
+    Section(22222222, type=0x8a, version=1), # v9 EventListener (custom name)
+    Section(22222222, type=0x89, version=2), # v9 EventTriggerBox (custom name)
+    Section(22222222, type=0x57, version=1), # v9 CarScreenTextDecodeTrigger (text)
 ]
 
 
