@@ -610,8 +610,6 @@ class DstBytes(object):
 
         """
 
-        if n == 0:
-            return b''
         if n < 0:
             raise ValueError("n must be positive")
         result = self.file.read(n)
