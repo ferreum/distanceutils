@@ -174,7 +174,7 @@ class Layer(Fragment):
         version = dbytes.read_uint4()
         if version == 0 or version == 1:
             self.flags_version = version
-            flags = dbytes.read_struct("bbb")
+            flags = dbytes.read_bytes(3)
             if version == 0:
                 frozen = 1 if flags[0] == 0 else 0
                 self.layer_flags = (flags[1], frozen, flags[2])

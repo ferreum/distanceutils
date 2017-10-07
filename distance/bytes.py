@@ -648,8 +648,6 @@ class DstBytes(object):
         return S_ULONG.unpack(self.read_bytes(8))[0]
 
     def read_struct(self, st):
-        if isinstance(st, str):
-            st = struct.Struct(st)
         data = self.read_bytes(st.size)
         return st.unpack(data)
 
