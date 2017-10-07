@@ -407,39 +407,39 @@ class Section(BytesModel):
         self.magic = magic = dbytes.read_uint4()
         data_size = dbytes.read_uint8()
         data_start = dbytes.tell()
-        self.end_pos = data_start + data_size
+        data_end = data_start + data_size
+        self.end_pos = data_end
 
         if magic in (MAGIC_2, MAGIC_3):
             self.type = dbytes.read_uint4()
             self.version = dbytes.read_uint4()
             self.id = dbytes.read_id()
-            hdr_size = 12
+            cstart = data_start + 12
         elif magic == MAGIC_5:
             self.count = dbytes.read_uint4()
-            hdr_size = 4
+            cstart = data_start + 4
         elif magic == MAGIC_6:
             self.type = dbytes.read_str()
             dbytes.read_bytes(1) # unknown, always 0
             self.id = dbytes.read_id()
             self.count = dbytes.read_uint4()
-            hdr_size = dbytes.tell() - data_start
+            cstart = dbytes.tell()
         elif magic == MAGIC_7:
             self.name = dbytes.read_str()
             self.count = dbytes.read_uint4()
-            hdr_size = dbytes.tell() - data_start
+            cstart = dbytes.tell()
         elif magic == MAGIC_9:
             self.name = dbytes.read_str()
             self.count = dbytes.read_uint4()
             self.version = dbytes.read_uint4()
-            hdr_size = dbytes.tell() - data_start
+            cstart = dbytes.tell()
         elif magic in (MAGIC_8, MAGIC_32):
-            hdr_size = 0
+            cstart = data_start
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
 
-        cstart = data_start + hdr_size
         self.content_start = cstart
-        self.content_size = data_size - hdr_size
+        self.content_size = data_end - cstart
 
     @contextmanager
     def _write_header(self, dbytes):
