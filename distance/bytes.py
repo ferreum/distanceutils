@@ -533,8 +533,6 @@ class DstBytes(object):
 
     """
 
-    _max_pos = None
-    _expect_overread = False
     num_subsections = 0
     section_counter = 0x10000000
 
@@ -595,22 +593,6 @@ class DstBytes(object):
                 raise IOError(f"File needs be opened with 'b' mode.")
         return cls(arg)
 
-    @contextmanager
-    def limit(self, max_pos, expect_overread=False):
-        """Limit the read position to the given maximum."""
-        old_max = self._max_pos
-        if old_max is not None and max_pos > old_max:
-            raise ValueError("cannot extend max_pos")
-        self._expect_overread = expect_overread
-        self._max_pos = max_pos
-        try:
-            yield
-        except EOFError:
-            if not self._expect_overread:
-                raise
-        finally:
-            self._max_pos = old_max
-
     def __enter__(self):
         """Save the position on enter and restore it on exit."""
         self._pos_stack.append(self.tell())
@@ -632,9 +614,6 @@ class DstBytes(object):
             return b''
         if n < 0:
             raise ValueError("n must be positive")
-        max_pos = self._max_pos
-        if max_pos is not None and self.tell() + n > max_pos:
-            raise EOFError
         result = self.file.read(n)
         if not or_to_eof and len(result) != n:
             raise EOFError
