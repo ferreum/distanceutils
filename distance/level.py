@@ -25,7 +25,7 @@ SETTINGS_FRAG_PROBER = BytesProber()
 SETTINGS_FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
-S_ABILITIES = Struct("5b")
+S_ABILITIES = Struct("<5b")
 
 
 def format_layer_flags(gen):

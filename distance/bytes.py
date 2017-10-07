@@ -14,18 +14,18 @@ import codecs
 UTF_16_DECODE = codecs.getdecoder('utf-16-le')
 UTF_16_ENCODE = codecs.getencoder('utf-16-le')
 
-S_COLOR_RGBA = Struct("4f")
+S_COLOR_RGBA = Struct("<4f")
 
-S_FLOAT = Struct("f")
-S_DOUBLE = Struct("d")
+S_FLOAT = Struct("<f")
+S_DOUBLE = Struct("<d")
 
-S_FLOAT3 = Struct("fff")
-S_FLOAT4 = Struct("ffff")
+S_FLOAT3 = Struct("<fff")
+S_FLOAT4 = Struct("<ffff")
 
-S_INT = Struct('i')
-S_LONG = Struct('q')
-S_UINT = Struct('I')
-S_ULONG = Struct('Q')
+S_INT = Struct('<i')
+S_LONG = Struct('<q')
+S_UINT = Struct('<I')
+S_ULONG = Struct('<Q')
 
 SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
