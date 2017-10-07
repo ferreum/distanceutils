@@ -219,7 +219,6 @@ class BytesModel(object):
             self.sane_end_pos = True
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
-            orig_e = e
             exc_pos = dbytes.tell()
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
@@ -235,7 +234,7 @@ class BytesModel(object):
                         self.sane_end_pos = True
                     except EOFError:
                         pass
-            raise e from orig_e
+            raise e
 
     def _read(self, dbytes):
         raise NotImplementedError(
@@ -339,10 +338,13 @@ class Section(BytesModel):
         gen = super().iter_n_maybe(dbytes, *args, **kw)
         for sec in gen:
             yield sec
+            if not sec.sane_end_pos:
+                break
             dbytes.seek(sec.data_end)
 
     def __init__(self, *args, **kw):
         self.exception = None
+        self.sane_end_pos = False
         if args:
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
@@ -408,6 +410,7 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
+        self.data_size = None
         self.magic = magic = dbytes.read_uint4()
         if magic in (MAGIC_2, MAGIC_3):
             self.data_size = dbytes.read_uint8()

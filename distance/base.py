@@ -59,7 +59,7 @@ def write_transform(dbytes, trans):
 
 
 def filter_interesting(sec, prober):
-    return (sec.data_size > 12
+    return ((sec.data_size or 0) > 12
             and prober.probe_section(sec).is_interesting)
 
 
