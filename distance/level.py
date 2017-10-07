@@ -25,9 +25,6 @@ SETTINGS_FRAG_PROBER = BytesProber()
 SETTINGS_FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
-S_ABILITIES = Struct("<5b")
-
-
 def format_layer_flags(gen):
     for flag, names in gen:
         name = names.get(flag, f"Unknown({flag})")
@@ -108,7 +105,7 @@ class LevelSettingsFragment(Fragment):
             times.append(dbytes.read_struct(S_FLOAT)[0])
             scores.append(dbytes.read_int4())
         if version >= 1:
-            self.abilities = dbytes.read_struct(S_ABILITIES)
+            self.abilities = dbytes.read_bytes(5)
         if version >= 2:
             self.difficulty = dbytes.read_uint4()
 
