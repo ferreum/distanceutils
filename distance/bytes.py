@@ -292,6 +292,9 @@ class BytesModel(object):
 
     def _print_offset(self, p):
         start = self.start_pos
+        if start is None:
+            # we don't have a position
+            return
         end = self.end_pos
         if 'offset' in p.flags:
             p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
@@ -375,12 +378,16 @@ class Section(BytesModel):
         arg.verify()
 
     def __repr__(self):
-        magic = self.magic
-        argstr = str(magic)
-        if magic in (MAGIC_2, MAGIC_3):
-            argstr += f", type=0x{self.type:x}, version={self.version}"
-        elif magic == MAGIC_6:
-            argstr += f", {self.type!r}"
+        try:
+            magic = self.magic
+        except AttributeError:
+            argstr = "<invalid>"
+        else:
+            argstr = str(magic)
+            if magic in (MAGIC_2, MAGIC_3):
+                argstr += f", type=0x{self.type:x}, version={self.version}"
+            elif magic == MAGIC_6:
+                argstr += f", {self.type!r}"
         return f"Section({argstr})"
 
     def to_key(self, any_version=False):
