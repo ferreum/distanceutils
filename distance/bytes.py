@@ -600,7 +600,7 @@ class DstBytes(object):
         self.seek(self._pos_stack.pop(-1))
         return False
 
-    def read_bytes(self, n, or_to_eof=False):
+    def read_bytes(self, n):
 
         """Read the given number of bytes.
 
@@ -612,7 +612,7 @@ class DstBytes(object):
         if n < 0:
             raise ValueError("n must be positive")
         result = self.file.read(n)
-        if not or_to_eof and len(result) != n:
+        if len(result) != n:
             raise EOFError
         return result
 
