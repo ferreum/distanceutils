@@ -176,10 +176,8 @@ class LazySequenceIndexTest(unittest.TestCase):
     def test_iter_parallel_swap(self):
         it0 = iter(self.lazy)
         it1 = iter(self.lazy)
-        it = zip(it0, it1)
-        self.assertEqual((10, 10), next(it))
-        it = zip(it1, it0)
-        self.assertEqual((11, 11), next(it))
+        self.assertEqual((10, 10), next(zip(it0, it1)))
+        self.assertEqual((11, 11), next(zip(it1, it0)))
 
     def test_earlyexit_iter(self):
         next(self.iter) # steal
@@ -310,11 +308,6 @@ class LazyMappedSequenceTest(unittest.TestCase):
 
     def test_len(self):
         self.assertEqual(5, len(self.lazy))
-
-    def test_len_changed(self):
-        self.list.pop(-1)
-        self.assertEqual(4, len(self.lazy))
-
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

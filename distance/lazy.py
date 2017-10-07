@@ -159,7 +159,7 @@ class LazyMappedSequence(BaseLazySequence):
         self._list = [UNSET] * len(source)
 
     def __len__(self):
-        return len(self._source)
+        return len(self._list)
 
     def __repr__(self):
         s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
@@ -168,6 +168,9 @@ class LazyMappedSequence(BaseLazySequence):
     def __iter__(self):
         l = self._list
         source = self._source
+        if source is None:
+            yield from l
+            return
         func = self._func
         i = 0
         try:
@@ -179,6 +182,8 @@ class LazyMappedSequence(BaseLazySequence):
                 i += 1
         except IndexError:
             del l[i:]
+        # All entries are now inflated.
+        self._source = None
 
     def _inflate_slice(self, len_, start, stop, stride):
         try:
