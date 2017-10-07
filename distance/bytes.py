@@ -22,6 +22,11 @@ S_DOUBLE = Struct("d")
 S_FLOAT3 = Struct("fff")
 S_FLOAT4 = Struct("ffff")
 
+S_INT = Struct('i')
+S_LONG = Struct('q')
+S_UINT = Struct('I')
+S_ULONG = Struct('Q')
+
 SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
 """Used for some properties"""
@@ -409,40 +414,40 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
-        self.magic = magic = dbytes.read_int(4)
+        self.magic = magic = dbytes.read_uint4()
         if magic in (MAGIC_2, MAGIC_3):
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
-            self.type = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
+            self.type = dbytes.read_uint4()
+            self.version = dbytes.read_uint4()
             self.id = dbytes.read_id()
         elif magic == MAGIC_5:
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
-            self.count = dbytes.read_int(4)
+            self.count = dbytes.read_uint4()
         elif magic == MAGIC_6:
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
             self.type = dbytes.read_str()
             dbytes.read_bytes(1) # unknown, always 0
             self.id = dbytes.read_id()
-            self.count = dbytes.read_int(4)
+            self.count = dbytes.read_uint4()
         elif magic == MAGIC_7:
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
             self.name = dbytes.read_str()
-            self.count = dbytes.read_int(4)
+            self.count = dbytes.read_uint4()
         elif magic == MAGIC_9:
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
             self.name = dbytes.read_str()
-            self.count = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
+            self.count = dbytes.read_uint4()
+            self.version = dbytes.read_uint4()
         elif magic == MAGIC_8:
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
         elif magic == MAGIC_32:
-            self.data_size = dbytes.read_int(8)
+            self.data_size = dbytes.read_uint8()
             self.data_start = dbytes.tell()
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
@@ -635,6 +640,19 @@ class DstBytes(object):
         data = self.read_bytes(length)
         return int.from_bytes(data, 'little', signed=signed)
 
+    # faster variants for common ints
+    def read_int4(self):
+        return S_INT.unpack(self.read_bytes(4))[0]
+
+    def read_int8(self):
+        return S_LONG.unpack(self.read_bytes(8))[0]
+
+    def read_uint4(self):
+        return S_UINT.unpack(self.read_bytes(4))[0]
+
+    def read_uint8(self):
+        return S_ULONG.unpack(self.read_bytes(8))[0]
+
     def read_struct(self, st):
         if isinstance(st, str):
             st = struct.Struct(st)
@@ -647,7 +665,7 @@ class DstBytes(object):
         return UTF_16_DECODE(data, 'surrogateescape')[0]
 
     def read_id(self):
-        return self.read_int(4)
+        return self.read_uint4()
 
     def write_bytes(self, data):
 

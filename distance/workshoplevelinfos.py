@@ -43,21 +43,21 @@ class Level(BytesModel):
     rating = None
 
     def _read(self, dbytes):
-        self.id = dbytes.read_int(8)
+        self.id = dbytes.read_uint8()
         self.title = dbytes.read_str()
         self.description = dbytes.read_str()
-        self.updated_date = dbytes.read_int(4)
-        self.published_date = dbytes.read_int(4)
+        self.updated_date = dbytes.read_uint4()
+        self.published_date = dbytes.read_uint4()
         self.tags = dbytes.read_str()
-        self.authorid = dbytes.read_int(8)
+        self.authorid = dbytes.read_uint8()
         self.author = dbytes.read_str()
         self.path = dbytes.read_str()
         self.published_by_user = dbytes.read_byte()
         dbytes.read_bytes(7)
-        self.upvotes = dbytes.read_int(4)
-        self.downvotes = dbytes.read_int(4)
+        self.upvotes = dbytes.read_uint4()
+        self.downvotes = dbytes.read_uint4()
         dbytes.read_bytes(4)
-        self.rating = dbytes.read_int(4)
+        self.rating = dbytes.read_uint4()
 
 
 @FRAG_PROBER.fragment(MAGIC_2, 0x6d, 0)
@@ -66,7 +66,7 @@ class WorkshopLevelInfosFragment(Fragment):
     levels = ()
 
     def _read_section_data(self, dbytes, sec):
-        num_levels = dbytes.read_int(4)
+        num_levels = dbytes.read_uint4()
         self.levels = Level.lazy_n_maybe(dbytes, num_levels,
                                          start_pos=sec.data_start + 20)
 

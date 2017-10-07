@@ -16,14 +16,14 @@ class DstBytesTest(unittest.TestCase):
     def test_from_arg_filename(self):
         res = DstBytes.from_arg("tests/in/customobject/2cubes.bytes")
 
-        self.assertEqual(MAGIC_6, res.read_int(4))
+        self.assertEqual(MAGIC_6, res.read_uint4())
 
     def test_from_arg_file(self):
         with open("tests/in/customobject/2cubes.bytes", 'rb') as f:
 
             res = DstBytes.from_arg(f)
 
-            self.assertEqual(MAGIC_6, res.read_int(4))
+            self.assertEqual(MAGIC_6, res.read_uint4())
 
     def test_from_arg_checks_file_mode(self):
         with open("tests/in/customobject/2cubes.bytes") as f:

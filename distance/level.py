@@ -87,11 +87,11 @@ class LevelSettingsFragment(Fragment):
         self.name = dbytes.read_str()
         dbytes.read_bytes(4)
         self.modes = modes = {}
-        num_modes = dbytes.read_int(4)
+        num_modes = dbytes.read_uint4()
         for i in range(num_modes):
-            mode = dbytes.read_int(4)
+            mode = dbytes.read_uint4()
             modes[mode] = dbytes.read_byte()
-        self.music_id = dbytes.read_int(4)
+        self.music_id = dbytes.read_uint4()
         if version <= 3:
             self.skybox_name = dbytes.read_str()
             dbytes.read_bytes(57)
@@ -106,11 +106,11 @@ class LevelSettingsFragment(Fragment):
         self.medal_scores = scores = []
         for i in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_int(4, signed=True))
+            scores.append(dbytes.read_int4())
         if version >= 1:
             self.abilities = dbytes.read_struct(S_ABILITIES)
         if version >= 2:
-            self.difficulty = dbytes.read_int(4)
+            self.difficulty = dbytes.read_uint4()
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
@@ -171,7 +171,7 @@ class Layer(Fragment):
             # with empty layer at end of file.
             self.has_layer_flags = False
             return
-        version = dbytes.read_int(4)
+        version = dbytes.read_uint4()
         if version == 0 or version == 1:
             self.flags_version = version
             flags = dbytes.read_struct("bbb")

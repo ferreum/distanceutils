@@ -44,11 +44,11 @@ class ReplayFragment(Fragment):
         self.version = version = sec.version
         self.player_name = dbytes.read_str()
         if version >= 2:
-            self.player_id = dbytes.read_int(8)
+            self.player_id = dbytes.read_uint8()
             self.player_name_2 = dbytes.read_str()
             if version >= 3:
-                self.finish_time = dbytes.read_int(4)
-                self.replay_duration = dbytes.read_int(4)
+                self.finish_time = dbytes.read_uint4()
+                self.replay_duration = dbytes.read_uint4()
         dbytes.read_bytes(4)
         self.car_name = dbytes.read_str()
         self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
@@ -58,12 +58,12 @@ class ReplayFragment(Fragment):
 
         if version <= 1:
             self._require_equal(MAGIC_1, 4)
-            section_size = dbytes.read_int(4) * 4
+            section_size = dbytes.read_uint4() * 4
             dbytes.read_bytes(section_size)
             self._require_equal(MAGIC_1, 4)
-            section_size = dbytes.read_int(4)
+            section_size = dbytes.read_uint4()
             dbytes.read_bytes(section_size - 8)
-            self.finish_time = dbytes.read_int(4)
+            self.finish_time = dbytes.read_uint4()
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

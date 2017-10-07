@@ -52,16 +52,16 @@ class LevelProgress(BytesModel):
         dbytes.read_bytes(1) # unknown
 
         self._require_equal(MAGIC_1, 4)
-        num_levels = dbytes.read_int(4)
+        num_levels = dbytes.read_uint4()
         self.completion = completion = []
         for i in range(num_levels):
-            completion.append(dbytes.read_int(4))
+            completion.append(dbytes.read_uint4())
 
         self._require_equal(MAGIC_1, 4)
-        num_levels = dbytes.read_int(4)
+        num_levels = dbytes.read_uint4()
         self.scores = scores = []
         for i in range(num_levels):
-            scores.append(dbytes.read_int(4, signed=True))
+            scores.append(dbytes.read_int4())
         if version > 2:
             dbytes.read_bytes(8)
 
@@ -91,7 +91,7 @@ class Stat(object):
                 return dbytes.read_struct(S_DOUBLE)[0]
         elif type == 'u8':
             def _read(dbytes):
-                return dbytes.read_int(8)
+                return dbytes.read_uint8()
         elif type == 'unk':
             def _read(dbytes):
                 return dbytes.read_bytes(nbytes)
@@ -188,19 +188,19 @@ class ProfileStatsFragment(Fragment):
             stats[k] = stat.read_value(dbytes)
 
         self._require_equal(MAGIC_1, 4)
-        num = dbytes.read_int(4)
+        num = dbytes.read_uint4()
         self.modes_offline = offline_times = []
         for i in range(num):
             offline_times.append(read_double())
 
         self._require_equal(MAGIC_1, 4)
-        num = dbytes.read_int(4)
+        num = dbytes.read_uint4()
         self.modes_unknown = modes_unknown = []
         for i in range(num):
-            modes_unknown.append(dbytes.read_int(8))
+            modes_unknown.append(dbytes.read_uint8())
 
         self._require_equal(MAGIC_1, 4)
-        num = dbytes.read_int(4)
+        num = dbytes.read_uint4()
         self.modes_online = online_times = []
         for i in range(num):
             online_times.append(read_double())
@@ -208,7 +208,7 @@ class ProfileStatsFragment(Fragment):
         if version >= 6:
             dbytes.add_read_bytes(8)
             self._require_equal(MAGIC_1, 4)
-            num = dbytes.read_int(4)
+            num = dbytes.read_uint4()
             self.trackmogrify_mods = mods = []
             for i in range(num):
                 mods.append(dbytes.read_str())
@@ -320,7 +320,7 @@ class ProfileProgressFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         self.version = sec.version
-        num_levels = dbytes.read_int(4)
+        num_levels = dbytes.read_uint4()
         self._data_start = start = dbytes.tell() + 4
         self.levels = LevelProgress.lazy_n_maybe(
             dbytes, num_levels, start_pos=start,
@@ -344,7 +344,7 @@ class ProfileProgressFragment(Fragment):
             with dbytes:
                 dbytes.seek(self._officials_start_pos())
                 self._require_equal(MAGIC_1, 4)
-                num = dbytes.read_int(4)
+                num = dbytes.read_uint4()
                 lazy = StringEntry.lazy_n_maybe(dbytes, num)
             self.lazy = lazy
         return lazy
@@ -372,7 +372,7 @@ class ProfileProgressFragment(Fragment):
                 with dbytes:
                     dbytes.seek(self._tricks_start_pos())
                     self._require_equal(MAGIC_1, 4)
-                    num = dbytes.read_int(4)
+                    num = dbytes.read_uint4()
                     tricks = StringEntry.lazy_n_maybe(dbytes, num)
             self._tricks = tricks
         return tricks
@@ -399,7 +399,7 @@ class ProfileProgressFragment(Fragment):
                 with dbytes:
                     dbytes.seek(self._adventures_start_pos())
                     self._require_equal(MAGIC_1, 4)
-                    num = dbytes.read_int(4)
+                    num = dbytes.read_uint4()
                     adventures = StringEntry.lazy_n_maybe(dbytes, num)
             self._unlocked_adventures = adventures
         return adventures
@@ -427,7 +427,7 @@ class ProfileProgressFragment(Fragment):
                 with dbytes:
                     dbytes.seek(self._somelevels_start_pos())
                     self._require_equal(MAGIC_1, 4)
-                    num = dbytes.read_int(4)
+                    num = dbytes.read_uint4()
                     levels = StringEntry.lazy_n_maybe(dbytes, num)
             self._somelevels = levels
         return levels

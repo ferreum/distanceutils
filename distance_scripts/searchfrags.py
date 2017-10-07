@@ -113,7 +113,7 @@ class FragmentMatcher(object):
                     matches.append(("String", pos, repr(s)))
             db.seek(pos)
             try:
-                i = db.read_int(8)
+                i = db.read_uint8()
             except Exception:
                 pass
             else:

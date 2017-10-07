@@ -26,11 +26,11 @@ class Entry(BytesModel):
 
     def _read(self, dbytes, version=None):
         self.playername = dbytes.read_str()
-        self.time = dbytes.read_int(4)
+        self.time = dbytes.read_uint4()
         if version == 0:
             dbytes.read_bytes(4)
         elif version == 1:
-            self.replay = dbytes.read_int(8)
+            self.replay = dbytes.read_uint8()
             dbytes.read_bytes(12)
         else:
             raise ValueError(f"unknown version: {version}")
@@ -44,7 +44,7 @@ class LeaderboardFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         self.version = version = sec.version
-        num_entries = dbytes.read_int(4)
+        num_entries = dbytes.read_uint4()
         start = sec.data_start + 20
         if version >= 1:
             start += 4

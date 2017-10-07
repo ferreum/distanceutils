@@ -12,7 +12,7 @@ class NamedPropertyList(OrderedDict):
     old_format = False
 
     def read(self, dbytes, max_pos=None, detect_old=True):
-        num_props = dbytes.read_int(4)
+        num_props = dbytes.read_uint4()
         for _ in range(num_props):
             propname, value = self._read_property(
                 dbytes, detect_old, max_pos=max_pos)
@@ -25,7 +25,7 @@ class NamedPropertyList(OrderedDict):
             propend, self.old_format = self._detect_old(dbytes, max_pos)
         else:
             if not self.old_format:
-                propend = dbytes.read_int(8)
+                propend = dbytes.read_uint8()
         if not self.old_format:
             value = dbytes.read_bytes(propend - dbytes.tell())
         else:
@@ -44,7 +44,7 @@ class NamedPropertyList(OrderedDict):
         if dbytes.tell() + 8 > max_pos:
             # Too short for offset - assume old format.
             return None, True
-        propend = dbytes.read_int(8)
+        propend = dbytes.read_uint8()
         if propend > max_pos:
             # Value goes beyond end of our space - assume old format.
             # In old format this wasn't an offset, so go back 8 bytes.
@@ -76,9 +76,9 @@ class NamedPropertyList(OrderedDict):
 class ColorSet(OrderedDict):
 
     def read(self, dbytes):
-        if dbytes.read_int(4) != MAGIC_1:
+        if dbytes.read_uint4() != MAGIC_1:
             raise ValueError(f"expected {MAGIC_1}")
-        num_colors = dbytes.read_int(4)
+        num_colors = dbytes.read_uint4()
         for _ in range(num_colors):
             colname, colors = self.read_color(dbytes)
             self[colname] = colors
@@ -118,9 +118,9 @@ class MaterialSet(OrderedDict):
             return colors
 
     def read(self, dbytes):
-        if dbytes.read_int(4) != MAGIC_1:
+        if dbytes.read_uint4() != MAGIC_1:
             raise ValueError(f"expected {MAGIC_1}")
-        num_mats = dbytes.read_int(4)
+        num_mats = dbytes.read_uint4()
         for _ in range(num_mats):
             matname, colors = self.read_material(dbytes)
             self[matname] = colors
