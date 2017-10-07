@@ -5,7 +5,7 @@ from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
-from .lazy import LazyMappedSequence
+from .lazy import LazySequence, LazyMappedSequence
 
 
 BASE_PROBER = BytesProber()
@@ -209,15 +209,29 @@ class BaseObject(BytesModel):
 
     sections = ()
     fragments = ()
+    _fragtypes = None
 
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
     )
 
     def fragment_by_type(self, typ):
-        for frag in self.fragments:
-            if isinstance(frag, typ):
+        if typ is ObjectFragment:
+            # Optimized ObjectFragment access: it is virtually always first.
+            frag = self.fragments[0]
+            if type(frag) is ObjectFragment:
                 return frag
+            # not first - fall through to regular method
+        types = self._fragtypes
+        if types is None:
+            probe = self.fragment_prober.probe_section
+            secs = self.sections
+            types = LazySequence(map(probe, secs), len(secs))
+        i = 0
+        for sectype in types:
+            if issubclass(sectype, typ):
+                return self.fragments[i]
+            i += 1
         return None
 
     def filtered_fragments(self, type_filter):
