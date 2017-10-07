@@ -682,10 +682,11 @@ class DstBytes(object):
 
     def stable_iter(self, source, start_pos=None):
 
-        """Wrap the `source` for safe iteration using this instance.
+        """Wrap the BytesModel-yielding `source` for safe iteration.
 
-        The returned iterator restores the saved position before every call to
-        `__next__` and saves it afterwards.
+        The returned iterator seeks to `end_pos` of the previous object before
+        every call to `__next__`. If the previous object's `sane_end_pos` is
+        False, the returned iterator exits.
 
         `start_pos` specifies the position before the first iteration. If
         `start_pos` is unset or `None`, the current position when calling this
@@ -707,8 +708,10 @@ class DstBytes(object):
                     obj = next(iterator)
                 except StopIteration:
                     break
-                pos = self.tell()
                 yield obj
+                if not obj.sane_end_pos:
+                    break
+                pos = obj.end_pos
         return gen()
 
     @contextmanager
