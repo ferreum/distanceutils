@@ -236,6 +236,9 @@ class BaseObject(BytesModel):
             self.sections, self._read_fragment)
 
     def _read_fragment(self, sec):
+        if sec.exception:
+            # failed to read section - return object containing the error
+            return Fragment(exception=sec.exception)
         dbytes = self.dbytes
         dbytes.seek(sec.content_start)
         return self.fragment_prober.maybe(

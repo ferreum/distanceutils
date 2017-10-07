@@ -235,7 +235,7 @@ class S5OffsetTest(unittest.TestCase):
 class EmpireEndZoneTest(unittest.TestCase):
 
     def test_normal(self):
-        p = PrintContext.for_test(flags=('children'))
+        p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/endzone.bytes")
         self.assertEqual(len(obj.children), 9)
         win_logic = next(obj.iter_children(name='WinLogic'))

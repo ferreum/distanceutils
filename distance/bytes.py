@@ -148,6 +148,8 @@ class BytesModel(object):
 
         if n <= 0:
             return ()
+        # stable_iter seeks for us
+        kw['seek_end'] = False
         dbytes = DstBytes.from_arg(dbytes)
         gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)

@@ -20,8 +20,13 @@ class LevelTest(unittest.TestCase):
         level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
         results = [level.settings] + list(level.iter_objects())
-        self.assertEqual(len(results), 3)
-        self.assertRaises(EOFError, check_exceptions, results[2])
+        self.assertRaises(EOFError, check_exceptions, results[3])
+        self.assertEqual(len(results), 4)
+
+    def test_truncated_print(self):
+        p = PrintContext(file=None, flags=('offset', 'groups', 'subobjects', 'fragments', 'sections', 'allprops'))
+        level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
+        p.print_data_of(level.layers[0].objects[1].fragments[0])
 
     def test_truncated_iter(self):
         level = Level.maybe("tests/in/level/test-straightroad_truncated_2.bytes")
