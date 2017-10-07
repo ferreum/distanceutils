@@ -152,7 +152,7 @@ class WinLogic(SubObject):
 
 
 @PROBER.for_type('WorldText')
-@ForwardFragmentAttrs(TextMeshFragment, dict(text=None))
+@ForwardFragmentAttrs(TextMeshFragment, dict(text=None, is_skip=False))
 class WorldText(LevelObject):
     pass
 

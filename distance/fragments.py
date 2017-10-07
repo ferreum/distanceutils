@@ -402,7 +402,8 @@ class TextMeshFragment(Fragment):
 
     is_interesting = True
 
-    text = "Hello World"
+    text = None
+    is_skip = False
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
@@ -410,16 +411,24 @@ class TextMeshFragment(Fragment):
                 with dbytes:
                     # found on v8,v9 endzone
                     if dbytes.read_bytes(4) == SKIP_BYTES:
-                        self.text = "00"
+                        self.is_skip = True
+                        # "00"
+                        self.text = None
                         return
             self.text = dbytes.read_str()
         else:
-            self.text = "Hello World"
+            # "Hello World"
+            self.text = None
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
-        if self.text is not None:
-            p(f"World text: {self.text!r}")
+        text = self.text
+        if self.text is None:
+            if self.is_skip:
+                text = "00"
+            else:
+                text = "Hello World"
+        p(f"World text: {text!r}")
 
 
 @PROBER.fragment(MAGIC_2, 0x16, 2)
