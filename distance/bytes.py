@@ -690,7 +690,8 @@ class DstBytes(object):
 
         `start_pos` specifies the position before the first iteration. If
         `start_pos` is unset or `None`, the current position when calling this
-        method is used.
+        method is used. If `start_pos` is callable, it is called without
+        arguments and the result is used as the starting position.
 
         """
 
