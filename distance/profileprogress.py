@@ -341,11 +341,10 @@ class ProfileProgressFragment(Fragment):
         lazy = self._official_levels
         if lazy is None:
             dbytes = self.dbytes
-            with dbytes:
-                dbytes.seek(self._officials_start_pos())
-                dbytes.require_equal_uint4(MAGIC_1)
-                num = dbytes.read_uint4()
-                lazy = StringEntry.lazy_n_maybe(dbytes, num)
+            dbytes.seek(self._officials_start_pos())
+            dbytes.require_equal_uint4(MAGIC_1)
+            num = dbytes.read_uint4()
+            lazy = StringEntry.lazy_n_maybe(dbytes, num)
             self.lazy = lazy
         return lazy
 
@@ -369,11 +368,10 @@ class ProfileProgressFragment(Fragment):
                 tricks = ()
             else:
                 dbytes = self.dbytes
-                with dbytes:
-                    dbytes.seek(self._tricks_start_pos())
-                    dbytes.require_equal_uint4(MAGIC_1)
-                    num = dbytes.read_uint4()
-                    tricks = StringEntry.lazy_n_maybe(dbytes, num)
+                dbytes.seek(self._tricks_start_pos())
+                dbytes.require_equal_uint4(MAGIC_1)
+                num = dbytes.read_uint4()
+                tricks = StringEntry.lazy_n_maybe(dbytes, num)
             self._tricks = tricks
         return tricks
 
@@ -396,11 +394,10 @@ class ProfileProgressFragment(Fragment):
                 adventures = ()
             else:
                 dbytes = self.dbytes
-                with dbytes:
-                    dbytes.seek(self._adventures_start_pos())
-                    dbytes.require_equal_uint4(MAGIC_1)
-                    num = dbytes.read_uint4()
-                    adventures = StringEntry.lazy_n_maybe(dbytes, num)
+                dbytes.seek(self._adventures_start_pos())
+                dbytes.require_equal_uint4(MAGIC_1)
+                num = dbytes.read_uint4()
+                adventures = StringEntry.lazy_n_maybe(dbytes, num)
             self._unlocked_adventures = adventures
         return adventures
 
@@ -424,11 +421,10 @@ class ProfileProgressFragment(Fragment):
                 levels = ()
             else:
                 dbytes = self.dbytes
-                with dbytes:
-                    dbytes.seek(self._somelevels_start_pos())
-                    dbytes.require_equal_uint4(MAGIC_1)
-                    num = dbytes.read_uint4()
-                    levels = StringEntry.lazy_n_maybe(dbytes, num)
+                dbytes.seek(self._somelevels_start_pos())
+                dbytes.require_equal_uint4(MAGIC_1)
+                num = dbytes.read_uint4()
+                levels = StringEntry.lazy_n_maybe(dbytes, num)
             self._somelevels = levels
         return levels
 
