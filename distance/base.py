@@ -209,6 +209,7 @@ class BaseObject(BytesModel):
     fragment_prober = BASE_FRAG_PROBER
     is_object_group = False
 
+    sections = ()
     fragments = ()
 
     default_sections = (

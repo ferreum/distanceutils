@@ -65,7 +65,6 @@ class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
 
-    sections = ()
     exception = None
     container = None
     sane_end_pos = False
@@ -272,12 +271,6 @@ class BytesModel(object):
                 p(f"Container:")
                 with p.tree_children():
                     p.print_data_of(self.container)
-            if self.sections:
-                p(f"Sections: {len(self.sections)}")
-                with p.tree_children():
-                    for sec in self.sections:
-                        p.tree_next_child()
-                        p.print_data_of(sec)
         self._print_data(p)
         self._print_children(p)
         if self.exception:
