@@ -34,7 +34,7 @@ class Entry(BytesModel):
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
         dbytes.read_bytes(16)
-        self._require_equal(MAGIC_12, 4)
+        dbytes.require_equal_uint4(MAGIC_12)
         num_modes = dbytes.read_uint4()
         self.modes = modes = {}
         for _ in range(num_modes):

@@ -57,10 +57,10 @@ class ReplayFragment(Fragment):
         self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
 
         if version <= 1:
-            self._require_equal(MAGIC_1, 4)
+            dbytes.require_equal_uint4(MAGIC_1)
             section_size = dbytes.read_uint4() * 4
             dbytes.read_bytes(section_size)
-            self._require_equal(MAGIC_1, 4)
+            dbytes.require_equal_uint4(MAGIC_1)
             section_size = dbytes.read_uint4()
             dbytes.read_bytes(section_size - 8)
             self.finish_time = dbytes.read_uint4()

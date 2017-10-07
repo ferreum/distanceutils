@@ -323,12 +323,6 @@ class BytesModel(object):
                 raise ValueError(f"Invalid object type: {ts.type}")
         return ts
 
-    def _require_equal(self, expect, nbytes=None, value=None):
-        if nbytes is not None:
-            value = self.dbytes.read_int(nbytes)
-        if value != expect:
-            raise ValueError(f"Unexpected data: {value!r}")
-
 
 class Section(BytesModel):
 
@@ -688,6 +682,10 @@ class DstBytes(object):
             value >>= 7
         l.append(value)
         self.write_bytes(bytes(l))
+
+    def require_equal_uint4(self, expect):
+        if self.read_uint4() != expect:
+            raise ValueError(f"Unexpected data: {value!r}")
 
     def write_str(self, s):
         data = UTF_16_ENCODE(s, 'surrogateescape')[0]

@@ -96,7 +96,7 @@ class GroupFragment(Fragment):
         if sec.data_size < 24:
             self.inspect_children = None
         else:
-            self._require_equal(MAGIC_1, 4)
+            dbytes.require_equal_uint4(MAGIC_1)
             num_values = dbytes.read_uint4()
             self.inspect_children = dbytes.read_uint4()
             # do save raw_data if there are unexpected values following
@@ -612,7 +612,7 @@ class OldCarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Nam
 
     @named_property_getter('AnnouncerPhrases', default=())
     def announcer_phrases(self, db):
-        self._require_equal(MAGIC_1, 4)
+        db.require_equal_uint4(MAGIC_1)
         num_phrases = db.read_uint4()
         phrases = []
         for _ in range(num_phrases):
