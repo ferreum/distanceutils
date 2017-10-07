@@ -94,14 +94,15 @@ class LazySequence(BaseLazySequence):
 
         iterator = self._iterator
         l = self._list
+        if iterator is None:
+            yield from l
+            return
         i = 0
         try:
             while True:
                 try:
                     yield l[i]
                 except IndexError:
-                    if iterator is None:
-                        return
                     v = next(iterator)
                     l.append(v)
                     yield v
