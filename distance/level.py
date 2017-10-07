@@ -161,14 +161,14 @@ class Layer(Fragment):
             raise ValueError(f"Invalid layer section: {sec.magic}")
         self.layer_name = sec.name
 
-        pos = dbytes.tell()
-        if pos + 4 >= sec.end_pos:
+        pos = sec.content_start
+        if sec.content_size < 4:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
             self.has_layer_flags = False
             return
         version = dbytes.read_uint4()
-        if version == 0 or version == 1:
+        if version in (0, 1):
             self.flags_version = version
             flags = dbytes.read_bytes(3)
             if version == 0:
@@ -177,12 +177,12 @@ class Layer(Fragment):
             else:
                 self.layer_flags = flags
                 self.unknown_flag = dbytes.read_byte()
+            obj_start = dbytes.tell()
         else:
             self.has_layer_flags = False
-            # We read start of first object - need to rewind.
-            dbytes.seek(pos)
+            obj_start = sec.content_start
         self.objects = self.obj_prober.lazy_n_maybe(
-            dbytes, sec.count, opts=self.opts)
+            dbytes, sec.count, opts=self.opts, start_pos=obj_start)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
