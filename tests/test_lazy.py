@@ -170,8 +170,16 @@ class LazySequenceIndexTest(unittest.TestCase):
         self.assertEqual([10, 11, 12, 13, 14], res1)
 
     def test_iter_parallel(self):
-        res = list(zip(iter(self.lazy), iter(self.lazy)))
-        self.assertEqual([(10, 10), (11, 11), (12, 12), (13, 13), (14, 14)], res)
+        it = list(zip(iter(self.lazy), iter(self.lazy)))
+        self.assertEqual([(10, 10), (11, 11), (12, 12), (13, 13), (14, 14)], it)
+
+    def test_iter_parallel_swap(self):
+        it0 = iter(self.lazy)
+        it1 = iter(self.lazy)
+        it = zip(it0, it1)
+        self.assertEqual((10, 10), next(it))
+        it = zip(it1, it0)
+        self.assertEqual((11, 11), next(it))
 
     def test_earlyexit_iter(self):
         next(self.iter) # steal
