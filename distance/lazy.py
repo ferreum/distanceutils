@@ -169,8 +169,7 @@ class LazyMappedSequence(BaseLazySequence):
         source = self._source
         func = self._func
         try:
-            for i in range(len(l)):
-                v = l[i]
+            for i, v in enumerate(l):
                 if v is UNSET:
                     v = func(source[i])
                     l[i] = v
