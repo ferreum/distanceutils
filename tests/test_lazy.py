@@ -287,6 +287,19 @@ class LazyMappedSequenceTest(unittest.TestCase):
         self.assertEqual(24, next(it))
         self.assertRaises(StopIteration, next, it)
 
+    def test_iter_twice(self):
+        self.assertEqual([20, 21, 22, 23, 24], list(iter(self.lazy)))
+        self.assertEqual([20, 21, 22, 23, 24], list(iter(self.lazy)))
+
+    def test_iter_parallel(self):
+        it = zip(iter(self.lazy), iter(self.lazy))
+        self.assertEqual([(20, 20), (21, 21), (22, 22), (23, 23), (24, 24)], list(it))
+
+    def test_iter_twice_changed(self):
+        del self.list[4]
+        self.assertEqual([20, 21, 22, 23], list(iter(self.lazy)))
+        self.assertEqual([20, 21, 22, 23], list(iter(self.lazy)))
+
     def test_len(self):
         self.assertEqual(5, len(self.lazy))
 

@@ -164,6 +164,20 @@ class LazyMappedSequence(BaseLazySequence):
         s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
         return f"<lazy map [{s}]>"
 
+    def __iter__(self):
+        l = self._list
+        source = self._source
+        func = self._func
+        try:
+            for i in range(len(l)):
+                v = l[i]
+                if v is UNSET:
+                    v = func(source[i])
+                    l[i] = v
+                yield v
+        except IndexError:
+            del l[i:]
+
     def _inflate_slice(self, len_, start, stop, stride):
         try:
             l = self._list
