@@ -168,12 +168,14 @@ class LazyMappedSequence(BaseLazySequence):
         l = self._list
         source = self._source
         func = self._func
+        i = 0
         try:
-            for i, v in enumerate(l):
+            for v in l:
                 if v is UNSET:
                     v = func(source[i])
                     l[i] = v
                 yield v
+                i += 1
         except IndexError:
             del l[i:]
 
