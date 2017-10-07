@@ -209,7 +209,8 @@ class BaseObject(BytesModel):
 
     sections = ()
     fragments = ()
-    _fragtypes = None
+    _fragment_types = None
+    _fragments_by_type = None
 
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
@@ -222,16 +223,27 @@ class BaseObject(BytesModel):
             if type(frag) is ObjectFragment:
                 return frag
             # not first - fall through to regular method
-        types = self._fragtypes
+        types = self._fragment_types
         if types is None:
             probe = self.fragment_prober.probe_section
             secs = self.sections
             types = LazySequence(map(probe, secs), len(secs))
+            bytype = {}
+            self._fragments_by_type = bytype
+        else:
+            bytype = self._fragments_by_type
+            try:
+                return bytype[typ]
+            except KeyError:
+                pass # not cached, fall through
         i = 0
         for sectype in types:
             if issubclass(sectype, typ):
-                return self.fragments[i]
+                frag = self.fragments[i]
+                bytype[typ] = frag
+                return frag
             i += 1
+        bytype[typ] = None
         return None
 
     def filtered_fragments(self, type_filter):
