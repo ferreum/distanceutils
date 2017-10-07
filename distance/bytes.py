@@ -334,8 +334,6 @@ class Section(BytesModel):
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
     def __init__(self, *args, **kw):
-        self.exception = None
-        self.sane_end_pos = False
         if args:
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
@@ -401,12 +399,16 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
+        self.exception = None
+        self.sane_end_pos = False
         self.content_start = None
         self.content_size = None
+
         self.magic = magic = dbytes.read_uint4()
         data_size = dbytes.read_uint8()
         data_start = dbytes.tell()
         self.end_pos = data_start + data_size
+
         if magic in (MAGIC_2, MAGIC_3):
             self.type = dbytes.read_uint4()
             self.version = dbytes.read_uint4()
@@ -434,6 +436,7 @@ class Section(BytesModel):
             hdr_size = 0
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
+
         cstart = data_start + hdr_size
         self.content_start = cstart
         self.content_size = data_size - hdr_size
