@@ -220,13 +220,12 @@ class BytesModel(object):
         try:
             self.end_pos = None
             self._read(dbytes, **kw)
-            if seek_end:
-                end = self.end_pos
-                if end is None:
-                    self.end_pos = dbytes.tell()
-                else:
-                    dbytes.seek(end - 1)
-                    dbytes.read_bytes(1)
+            end = self.end_pos
+            if end is None:
+                self.end_pos = dbytes.tell()
+            elif seek_end:
+                dbytes.seek(end - 1)
+                dbytes.read_bytes(1)
             self.sane_end_pos = True
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
@@ -237,14 +236,13 @@ class BytesModel(object):
             end = self.end_pos
             if end is None:
                 self.end_pos = exc_pos
-            else:
-                if seek_end and isinstance(e, CATCH_EXCEPTIONS):
-                    try:
-                        dbytes.seek(end - 1)
-                        dbytes.read_bytes(1)
-                        self.sane_end_pos = True
-                    except EOFError:
-                        pass
+            elif seek_end and isinstance(e, CATCH_EXCEPTIONS):
+                try:
+                    dbytes.seek(end - 1)
+                    dbytes.read_bytes(1)
+                    self.sane_end_pos = True
+                except EOFError:
+                    pass
             raise e
 
     def _read(self, dbytes):
