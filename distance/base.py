@@ -237,11 +237,10 @@ class BaseObject(BytesModel):
 
     def _read_fragment(self, sec):
         dbytes = self.dbytes
-        with dbytes:
-            dbytes.seek(sec.content_start)
-            return self.fragment_prober.maybe(
-                dbytes, probe_section=sec,
-                child_prober=self.child_prober)
+        dbytes.seek(sec.content_start)
+        return self.fragment_prober.maybe(
+            dbytes, probe_section=sec,
+            child_prober=self.child_prober)
 
     def write(self, dbytes):
         if self.container is None:
