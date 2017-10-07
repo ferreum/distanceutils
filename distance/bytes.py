@@ -704,8 +704,8 @@ class DstBytes(object):
         `__next__` and saves it afterwards.
 
         `start_pos` specifies the position before the first iteration. If
-        `start_pos` is unset or `None`, the current position at the time of
-        this call is used.
+        `start_pos` is unset or `None`, the current position when calling this
+        method is used.
 
         """
 
@@ -718,13 +718,12 @@ class DstBytes(object):
             else:
                 pos = start_pos
             while True:
-                with self:
-                    self.seek(pos)
-                    try:
-                        obj = next(iterator)
-                    except StopIteration:
-                        break
-                    pos = self.tell()
+                self.seek(pos)
+                try:
+                    obj = next(iterator)
+                except StopIteration:
+                    break
+                pos = self.tell()
                 yield obj
         return gen()
 
