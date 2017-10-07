@@ -237,9 +237,11 @@ class BaseObject(BytesModel):
     def filtered_fragments(self, type_filter):
         fragments = self.fragments
         prober = self.fragment_prober
-        for i, sec in enumerate(self.sections):
+        i = 0
+        for sec in self.sections:
             if type_filter(sec, prober):
                 yield fragments[i]
+            i += 1
 
     def _read(self, dbytes):
         sec = self._get_container()
