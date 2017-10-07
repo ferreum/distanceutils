@@ -59,8 +59,7 @@ def write_transform(dbytes, trans):
 
 
 def filter_interesting(sec, prober):
-    return ((sec.data_size or 0) > 12
-            and prober.probe_section(sec).is_interesting)
+    return sec.content_size and prober.probe_section(sec).is_interesting
 
 
 class Fragment(BytesModel):
@@ -73,8 +72,7 @@ class Fragment(BytesModel):
 
     def _read(self, dbytes, **kw):
         sec = self._get_container()
-        self._report_end_pos(sec.data_end)
-        self.data_start = dbytes.tell()
+        self.end_pos = sec.end_pos
         self._read_section_data(dbytes, sec)
 
     def write(self, dbytes, section=None):
@@ -88,11 +86,11 @@ class Fragment(BytesModel):
     def raw_data(self):
         data = self._raw_data
         if data is None:
-            start = self.data_start
             dbytes = self.dbytes
+            sec = self.container
             with dbytes:
-                dbytes.seek(start)
-                data = dbytes.read_bytes(self.container.data_end - start)
+                dbytes.seek(sec.content_start)
+                data = dbytes.read_bytes(sec.content_size)
                 self._raw_data = data
         return data
 
@@ -141,14 +139,14 @@ class ObjectFragment(Fragment):
 
         """
 
-        end = sec.data_end
-        if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
+        if sec.content_size >= TRANSFORM_MIN_SIZE:
             self.transform = read_transform(dbytes)
-            if dbytes.tell() + Section.MIN_SIZE < end:
-                s5 = Section(dbytes)
+            if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
+                s5 = Section(dbytes, seek_end=False)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.count, opts=self.opts)
+                    dbytes, s5.count, opts=self.opts,
+                    start_pos=s5.content_start)
         return True
 
     def _write_section_data(self, dbytes, sec):
@@ -230,19 +228,17 @@ class BaseObject(BytesModel):
                 yield fragments[i]
 
     def _read(self, dbytes):
-        ts = self._get_container()
-        self.type = ts.type
-        self._report_end_pos(ts.data_end)
-        self.sections = Section.lazy_n_maybe(dbytes, ts.count)
+        sec = self._get_container()
+        self.type = sec.type
+        self.end_pos = sec.end_pos
+        self.sections = Section.lazy_n_maybe(dbytes, sec.count)
         self.fragments = LazyMappedSequence(
             self.sections, self._read_fragment)
 
     def _read_fragment(self, sec):
-        if sec.exception:
-            raise sec.exception
         dbytes = self.dbytes
         with dbytes:
-            dbytes.seek(sec.end_pos)
+            dbytes.seek(sec.content_start)
             return self.fragment_prober.maybe(
                 dbytes, probe_section=sec,
                 child_prober=self.child_prober)

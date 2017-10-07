@@ -80,7 +80,7 @@ class FragmentMatcher(object):
 
     def find_matches(self, frag):
         sec = frag.container
-        offset = sec.end_pos
+        offset = sec.content_start
         data = frag.raw_data
         matches = []
 
@@ -150,7 +150,7 @@ class FragmentMatcher(object):
                     end = frag.end_pos
                     sec = frag.container
                     p(f"Offset: 0x{start:08x} to 0x{end:08x}"
-                      f" (0x{end - start:x} bytes, data 0x{sec.data_size:x} bytes)")
+                      f" (0x{end - start:x} bytes, content 0x{sec.content_size:x} bytes)")
                     p(f"Matches: {len(matches)}")
                     with p.tree_children():
                         for name, offset, text in matches:

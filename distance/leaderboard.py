@@ -45,7 +45,7 @@ class LeaderboardFragment(Fragment):
     def _read_section_data(self, dbytes, sec):
         self.version = version = sec.version
         num_entries = dbytes.read_uint4()
-        start = sec.data_start + 20
+        start = sec.content_start + 8
         if version >= 1:
             start += 4
         self.entries = Entry.lazy_n_maybe(dbytes, num_entries,

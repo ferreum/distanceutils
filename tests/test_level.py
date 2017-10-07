@@ -10,6 +10,7 @@ class LevelTest(unittest.TestCase):
     def test_level(self):
         level = Level("tests/in/level/test-straightroad.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
+        check_exceptions(level)
 
     def test_print_data(self):
         p = PrintContext.for_test()

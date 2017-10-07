@@ -46,8 +46,8 @@ class NamedPropertiesFragment(Fragment):
         Fragment.__init__(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
-            self.props.read(dbytes, max_pos=sec.data_end,
+        if sec.content_size >= 4:
+            self.props.read(dbytes, max_pos=sec.end_pos,
                             detect_old=True)
 
     def _write_section_data(self, dbytes, sec):
@@ -93,7 +93,7 @@ class GroupFragment(Fragment):
             setattr(self, name, value)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size < 24:
+        if sec.content_size < 12:
             self.inspect_children = None
         else:
             dbytes.require_equal_uint4(MAGIC_1)
@@ -122,7 +122,7 @@ class CustomNameFragment(Fragment):
     custom_name = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.custom_name = dbytes.read_str()
 
     def _write_section_data(self, dbytes, sec):
@@ -270,7 +270,7 @@ class TeleporterExitCheckpointFragment(Fragment):
     trigger_checkpoint = 1
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.trigger_checkpoint = dbytes.read_byte()
         else:
             # if section is too short, the checkpoint is enabled
@@ -291,7 +291,7 @@ class SphereColliderFragment(Fragment):
     def _read_section_data(self, dbytes, sec):
         self.trigger_center = (0.0, 0.0, 0.0)
         self.trigger_radius = 50.0
-        if sec.data_size >= 20:
+        if sec.content_size >= 8:
             self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
             self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
 
@@ -306,7 +306,7 @@ class GravityToggleFragment(Fragment):
     drag_scale_angular = 1.0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.disable_gravity = dbytes.read_byte()
             self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
             self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
@@ -332,7 +332,7 @@ class MusicTriggerFragment(Fragment):
     disable_music_trigger = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.music_id = dbytes.read_uint4()
             self.one_time_trigger = dbytes.read_byte()
             self.reset_before_trigger = dbytes.read_byte()
@@ -369,7 +369,7 @@ class ForceZoneFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         self.__dict__.update(self.value_attrs)
-        if sec.data_size > 12:
+        if sec.content_size:
             self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
             self.global_force = dbytes.read_byte()
             self.force_type = dbytes.read_uint4()
@@ -405,8 +405,8 @@ class TextMeshFragment(Fragment):
     text = "Hello World"
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
-            if sec.data_size >= 16:
+        if sec.content_size:
+            if sec.content_size > 4:
                 with dbytes:
                     # found on v8,v9 endzone
                     if dbytes.read_bytes(4) == SKIP_BYTES:
@@ -465,7 +465,7 @@ class MaterialFragment(Fragment):
         Fragment.__init__(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
+        if sec.content_size >= 4:
             self.materials.read(dbytes)
 
     def _write_section_data(self, dbytes, sec):
@@ -624,7 +624,7 @@ class OldCarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Nam
 class CarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Fragment):
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.text = dbytes.read_str()
             self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
             self.clear_on_finish = dbytes.read_byte()
@@ -697,7 +697,7 @@ class InfoDisplayLogicFragment(InfoDisplayLogicMixin, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # only verified in v2
-        if sec.data_size > 12:
+        if sec.content_size:
             self.fadeout_time = dbytes.read_struct(S_FLOAT)
             self.texts = texts = []
             for i in range(5):

@@ -129,7 +129,6 @@ class OldLevelSettings(LevelSettingsMixin, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps
-        self._report_end_pos(sec.data_start + sec.data_size)
         dbytes.read_bytes(4)
         self.skybox_name = dbytes.read_str()
         dbytes.read_bytes(143)
@@ -163,7 +162,7 @@ class Layer(Fragment):
         self.layer_name = sec.name
 
         pos = dbytes.tell()
-        if pos + 4 >= sec.data_end:
+        if pos + 4 >= sec.end_pos:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
             self.has_layer_flags = False
@@ -232,7 +231,6 @@ class Level(Fragment):
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
-        self._report_end_pos(sec.data_end)
         self.level_name = sec.name
 
         num_layers = sec.count

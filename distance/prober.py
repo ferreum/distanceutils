@@ -104,7 +104,7 @@ class BytesProber(object):
 
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:
-            sec = Section(dbytes)
+            sec = Section(dbytes, seek_end=False)
         else:
             sec = probe_section
         cls = self.probe_section(sec)

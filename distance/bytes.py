@@ -97,8 +97,8 @@ class BytesModel(object):
         """Create an iterator for reading the given number of objects.
 
         If an error occurs, yield the partially read object. The exception is
-        stored in the object's `exception` attribute. The iterator exits
-        after reading `n` objects or if a read object has non-sane end-pos.
+        stored in the object's `exception` attribute. The iterator exits after
+        reading `n` objects or if a read object's `sane_end_pos` is False.
 
         """
 
@@ -175,7 +175,7 @@ class BytesModel(object):
     def _handle_opts(self, opts):
         pass
 
-    def read(self, dbytes, container=None, opts=None, **kw):
+    def read(self, dbytes, container=None, seek_end=True, opts=None, **kw):
 
         """Read data of this object from `dbytes`.
 
@@ -190,8 +190,19 @@ class BytesModel(object):
 
         After `_read()`, regardless of whether an exception was raised,
         it is attempted to `dbytes.seek()` to the position reported
-        (if it was) with `_report_end_pos()`. If this is successful,
-        `dbytes` position is considered sane.
+        (if it was) by setting the `end_pos` attribute. If this is
+        successful, the `sane_end_pos` attribute is set to True.
+
+        Arguments:
+        `dbytes` - Anything accepted by `DstBytes.from_arg()`.
+        `container` - The already read container section. `dbytes` needs to
+                      be positioned at the start of this section's
+                      content if set.
+        `seek_end` - Whether to seek to the end of the object after
+                     reading. Mainly useful for reading `Section`, which
+                     positions it at the start of its content if False.
+                     Default: True.
+        `opts` - dict containing optional parameters used by subclasses.
 
         """
 
@@ -209,12 +220,13 @@ class BytesModel(object):
         try:
             self.end_pos = None
             self._read(dbytes, **kw)
-            end = self.end_pos
-            if end is None:
-                self.end_pos = dbytes.tell()
-            else:
-                dbytes.seek(end - 1)
-                dbytes.read_bytes(1)
+            if seek_end:
+                end = self.end_pos
+                if end is None:
+                    self.end_pos = dbytes.tell()
+                else:
+                    dbytes.seek(end - 1)
+                    dbytes.read_bytes(1)
             self.sane_end_pos = True
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
@@ -226,7 +238,7 @@ class BytesModel(object):
             if end is None:
                 self.end_pos = exc_pos
             else:
-                if isinstance(e, CATCH_EXCEPTIONS):
+                if seek_end and isinstance(e, CATCH_EXCEPTIONS):
                     try:
                         dbytes.seek(end - 1)
                         dbytes.read_bytes(1)
@@ -241,9 +253,6 @@ class BytesModel(object):
 
     def _init_defaults(self):
         pass
-
-    def _report_end_pos(self, pos):
-        self.end_pos = pos
 
     def write(self, dbytes):
 
@@ -300,7 +309,7 @@ class BytesModel(object):
     def _get_container(self):
         sec = self.container
         if not sec:
-            self.container = sec = Section(self.dbytes)
+            self.container = sec = Section(self.dbytes, seek_end=False)
         return sec
 
     def _require_type(self, expect):
@@ -318,22 +327,11 @@ class BytesModel(object):
 
 class Section(BytesModel):
 
-    __slots__ = ('magic', 'type', 'version', 'id', 'data_start', 'data_size',
+    __slots__ = ('magic', 'type', 'version', 'id', 'content_start', 'content_size',
                  'count', 'name',
                  'start_pos', 'end_pos', 'dbytes', 'exception', 'sane_end_pos')
 
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
-
-    @classmethod
-    def iter_n_maybe(clazz, dbytes, *args, **kw):
-        """Wraps `BytesModel.iter_n_maybe` to enable section iteration."""
-        # TODO refactor Section for clean iter
-        gen = super().iter_n_maybe(dbytes, *args, **kw)
-        for sec in gen:
-            yield sec
-            if not sec.sane_end_pos:
-                break
-            dbytes.seek(sec.data_end)
 
     def __init__(self, *args, **kw):
         self.exception = None
@@ -403,44 +401,42 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
-        self.data_size = None
+        self.content_start = None
+        self.content_size = None
         self.magic = magic = dbytes.read_uint4()
+        data_size = dbytes.read_uint8()
+        data_start = dbytes.tell()
+        self.end_pos = data_start + data_size
         if magic in (MAGIC_2, MAGIC_3):
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
             self.type = dbytes.read_uint4()
             self.version = dbytes.read_uint4()
             self.id = dbytes.read_id()
+            hdr_size = 12
         elif magic == MAGIC_5:
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
             self.count = dbytes.read_uint4()
+            hdr_size = 4
         elif magic == MAGIC_6:
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
             self.type = dbytes.read_str()
             dbytes.read_bytes(1) # unknown, always 0
             self.id = dbytes.read_id()
             self.count = dbytes.read_uint4()
+            hdr_size = dbytes.tell() - data_start
         elif magic == MAGIC_7:
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
             self.name = dbytes.read_str()
             self.count = dbytes.read_uint4()
+            hdr_size = dbytes.tell() - data_start
         elif magic == MAGIC_9:
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
             self.name = dbytes.read_str()
             self.count = dbytes.read_uint4()
             self.version = dbytes.read_uint4()
-        elif magic == MAGIC_8:
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
-        elif magic == MAGIC_32:
-            self.data_size = dbytes.read_uint8()
-            self.data_start = dbytes.tell()
+            hdr_size = dbytes.tell() - data_start
+        elif magic in (MAGIC_8, MAGIC_32):
+            hdr_size = 0
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
+        cstart = data_start + hdr_size
+        self.content_start = cstart
+        self.content_size = data_size - hdr_size
 
     @contextmanager
     def _write_header(self, dbytes):
@@ -483,14 +479,6 @@ class Section(BytesModel):
         else:
             raise NotImplementedError(f"cannot write section {self.magic}")
 
-    @property
-    def data_end(self):
-        start = self.data_start
-        size = self.data_size
-        if start is None or size is None:
-            return None
-        return start + size
-
     def _print_type(self, p):
         type_str = ""
         magic = self.magic
@@ -510,13 +498,13 @@ class Section(BytesModel):
         p(f"Section: {self.magic}{type_str}")
 
     def _print_offset(self, p):
-        start = self.data_start
-        end = self.data_end
-        if start is not None and end is not None:
+        start = self.content_start
+        size = self.content_size
+        if start is not None and size is not None:
             if 'offset' in p.flags:
-                p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+                p(f"Data offset: 0x{start:08x} to 0x{start + size:08x} (0x{size:x} bytes)")
             else:
-                p(f"Data size: 0x{end - start:x} bytes")
+                p(f"Data size: 0x{size:x} bytes")
 
 
 class DstBytes(object):
