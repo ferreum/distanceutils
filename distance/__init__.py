@@ -75,7 +75,7 @@ __all__ = [
     'ForceType', 'Mode', 'Rating',
 ]
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

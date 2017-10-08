@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+* version 0.3.3
+
+    * Added imports and doc to main distance module.
+
+    * Cleaned up code.
+
 * version 0.3.2
 
     * Improved performance.
