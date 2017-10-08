@@ -76,7 +76,6 @@ class ObjectMatcher(object):
         if self.match_props(obj):
             num = self.num_matches
             self.num_matches = num + 1
-            self.matches.append(obj)
             if self.all:
                 return True
             if num in self.objnum:
@@ -86,11 +85,18 @@ class ObjectMatcher(object):
     def _filter_objects(self, objs, recurse):
         result = []
         for obj in objs:
+            remove = False
             if self.match(obj):
-                continue
-            result.append(obj)
+                self.matches.append(obj)
+                remove  = True
             if obj.is_object_group and recurse != 0:
                 obj.children = self._filter_objects(obj.children, recurse - 1)
+                if not obj.children:
+                    # remove empty group
+                    self.matches.append(obj)
+                    remove = True
+            if not remove:
+                result.append(obj)
         return result
 
     def filter_objects(self, objs):
@@ -109,9 +115,9 @@ def count_objects(objs):
         n_obj += 1
         if obj.is_object_group:
             n_grp += 1
-            res = count_objects(obj.children)
-            n_obj += res[0]
-            n_grp += res[1]
+            no, ng = count_objects(obj.children)
+            n_obj += no
+            n_grp += ng
     return n_obj, n_grp
 
 

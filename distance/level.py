@@ -25,9 +25,6 @@ SETTINGS_FRAG_PROBER = BytesProber()
 SETTINGS_FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
-S_ABILITIES = Struct("5b")
-
-
 def format_layer_flags(gen):
     for flag, names in gen:
         name = names.get(flag, f"Unknown({flag})")
@@ -87,11 +84,11 @@ class LevelSettingsFragment(Fragment):
         self.name = dbytes.read_str()
         dbytes.read_bytes(4)
         self.modes = modes = {}
-        num_modes = dbytes.read_int(4)
+        num_modes = dbytes.read_uint4()
         for i in range(num_modes):
-            mode = dbytes.read_int(4)
+            mode = dbytes.read_uint4()
             modes[mode] = dbytes.read_byte()
-        self.music_id = dbytes.read_int(4)
+        self.music_id = dbytes.read_uint4()
         if version <= 3:
             self.skybox_name = dbytes.read_str()
             dbytes.read_bytes(57)
@@ -106,11 +103,11 @@ class LevelSettingsFragment(Fragment):
         self.medal_scores = scores = []
         for i in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_int(4, signed=True))
+            scores.append(dbytes.read_int4())
         if version >= 1:
-            self.abilities = dbytes.read_struct(S_ABILITIES)
+            self.abilities = dbytes.read_bytes(5)
         if version >= 2:
-            self.difficulty = dbytes.read_int(4)
+            self.difficulty = dbytes.read_uint4()
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
@@ -132,7 +129,6 @@ class OldLevelSettings(LevelSettingsMixin, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps
-        self._report_end_pos(sec.data_start + sec.data_size)
         dbytes.read_bytes(4)
         self.skybox_name = dbytes.read_str()
         dbytes.read_bytes(143)
@@ -163,30 +159,30 @@ class Layer(Fragment):
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
             raise ValueError(f"Invalid layer section: {sec.magic}")
-        self.layer_name = sec.layer_name
+        self.layer_name = sec.name
 
-        pos = dbytes.tell()
-        if pos + 4 >= sec.data_end:
+        pos = sec.content_start
+        if sec.content_size < 4:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.
             self.has_layer_flags = False
             return
-        version = dbytes.read_int(4)
-        if version == 0 or version == 1:
+        version = dbytes.read_uint4()
+        if version in (0, 1):
             self.flags_version = version
-            flags = dbytes.read_struct("bbb")
+            flags = dbytes.read_bytes(3)
             if version == 0:
                 frozen = 1 if flags[0] == 0 else 0
                 self.layer_flags = (flags[1], frozen, flags[2])
             else:
                 self.layer_flags = flags
                 self.unknown_flag = dbytes.read_byte()
+            obj_start = dbytes.tell()
         else:
             self.has_layer_flags = False
-            # We read start of first object - need to rewind.
-            dbytes.seek(pos)
+            obj_start = sec.content_start
         self.objects = self.obj_prober.lazy_n_maybe(
-            dbytes, sec.num_objects, opts=self.opts)
+            dbytes, sec.count, opts=self.opts, start_pos=obj_start)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
@@ -235,10 +231,9 @@ class Level(Fragment):
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
-        self._report_end_pos(sec.data_end)
-        self.level_name = sec.level_name
+        self.level_name = sec.name
 
-        num_layers = sec.num_layers
+        num_layers = sec.count
 
         self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
             dbytes, num_layers + 1, opts=self.opts)

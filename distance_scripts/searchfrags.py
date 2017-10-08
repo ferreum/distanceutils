@@ -7,7 +7,6 @@ from io import BytesIO
 
 from distance.level import Level
 from distance.levelobjects import (
-    LevelObject,
     FRAG_PROBER as LEVEL_FRAG_PROBER,
 )
 from distance.bytes import (
@@ -16,67 +15,44 @@ from distance.bytes import (
 )
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
-from distance.base import Fragment
+from distance.base import Fragment, ObjectFragment
+from distance.fragments import NamedPropertiesFragment, MaterialFragment
 
 
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 
 KNOWN_GOOD_SECTIONS = [
-    Section(MAGIC_2, 0x25, 2), # PopupLogic
-    Section(22222222, type=0x63, version=0), # Group name
-    Section(22222222, type=0x16, version=1), # TrackNode
-    Section(22222222, type=0x43, version=1), # from VirusSpiritTeaser
-    Section(22222222, type=0x45, version=1), # from GravityTrigger
-    Section(33333333, type=0x7, version=1), # from WorldText
-    Section(22222222, type=0x50, version=1), # from VirusBuilding003Core
-    Section(22222222, type=0x4b, version=1), # from MusicTrigger
-    Section(33333333, type=0x7, version=2), # from v8 SectorNumberTextCeiling
-    Section(22222222, type=0x50, version=2), # from v9 LevelEditorCarSpawner
-    Section(22222222, type=0x77, version=4), # from v9 Biodome
-    Section(22222222, type=0x9a, version=7), # from v9 Light
-    Section(22222222, type=0x89, version=2), # from v9 EventTriggerBox
-    Section(22222222, type=0x2c, version=2), # from v9 BrightenCarHeadlights
-    Section(22222222, type=0x8a, version=1), # v9 component EventListener
-    Section(22222222, type=0x4a, version=2), # InfoDisplayLogic from v9 InfoDisplayBox
-    Section(22222222, type=0x43, version=2), # from v9 VirusMazeCeiling001
-
-    # known good version
-    Section(22222222, type=0x57, version=1), # from v9 CarScreenTextDecodeTrigger
-    Section(22222222, type=0x38, version=1), # from v5 VirusMine, EmpireEndZoneCircle, ...
-    Section(22222222, type=0x17, version=1), # from v5 EmpireCircle
-
-    # false positives
     # bogus offset
-    Section(22222222, type=0x81, version=7), # from v9 particle system
-    Section(22222222, type=0x83, version=3), # from v9 GS
-    Section(33333333, type=0x9, version=3), # from v8 LightbeamRays
-    Section(22222222, type=0x77, version=3), # from v7 Biodome
-    Section(22222222, type=0x77, version=2), # from v5 Biodome
-    Section(22222222, type=0x19, version=1), # from v7 CheckpointLogic
-    Section(33333333, type=0xa, version=1), # from v3 LensFlare
-    Section(33333333, type=0x2, version=0), # from s8 (map The Virus Begins) VirusBuilding004
-    Section(33333333, type=0x9, version=1), # from v3 Light2
-    Section(33333333, type=0x9, version=4), # from v8 Light
+    # Section(22222222, type=0x81, version=7), # from v9 particle system
+    # Section(22222222, type=0x83, version=3), # from v9 GS
+    # Section(33333333, type=0x9, version=3), # from v8 LightbeamRays
+    # Section(22222222, type=0x19, version=1), # from v7 CheckpointLogic
+    # Section(33333333, type=0xa, version=1), # from v3 LensFlare
+    # Section(33333333, type=0x9, version=1), # from v3 Light2
+    # Section(33333333, type=0x9, version=4), # from v8 Light
 
     # contains a string
     Section(22222222, type=0x65, version=1), # from v9 WarningPulseLight (shader property name)
     Section(22222222, type=0x9f, version=1), # from v9 DiscoverableStuntArea (area name)
-    Section(22222222, type=0x61, version=1), # from v3 CreditsNameOrb
+    Section(22222222, type=0x61, version=1), # from v3 CreditsNameOrb (text)
+    Section(22222222, type=0x4a, version=2), # InfoDisplayLogic from v9 InfoDisplayBox (text)
+    Section(22222222, type=0x77, version=4), # v9 Biodome (background name)
+    Section(33333333, type=0x7, version=1), # WorldText v1 (text)
+    Section(33333333, type=0x7, version=2), # WorldText v2 (text)
+    Section(33333333, type=0x2, version=0), # from s8 (map The Virus Begins) VirusBuilding004 (its object name)
+    Section(22222222, type=0x63, version=0), # custom name (the name)
+    Section(22222222, type=0x8a, version=1), # v9 EventListener (custom name)
+    Section(22222222, type=0x89, version=2), # v9 EventTriggerBox (custom name)
+    Section(22222222, type=0x57, version=1), # v9 CarScreenTextDecodeTrigger (text)
 ]
 
 
 KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 
 
-class DetectFragment(Fragment):
-    pass
-
-
-def setup_probers(args):
+def setup_prober(args):
     prober = BytesProber()
-    p_levelobj = BytesProber(baseclass=LevelObject)
-    p_frag = BytesProber(baseclass=Fragment)
 
     @prober.func(high_prio=True)
     def _detect_other(section):
@@ -84,19 +60,7 @@ def setup_probers(args):
             return Level
         return None
 
-    @p_levelobj.func
-    def _fallback_levelobject(section):
-        return LevelObject
-
-    @p_frag.func
-    def _fallback_fragment(section):
-        return DetectFragment
-
-    if not args.all:
-        p_frag.extend(LEVEL_FRAG_PROBER)
-    prober.extend(p_levelobj)
-
-    return prober, p_levelobj, p_frag
+    return prober
 
 
 def iter_objects(source, recurse=-1):
@@ -116,12 +80,9 @@ class FragmentMatcher(object):
 
     def find_matches(self, frag):
         sec = frag.container
-        offset = sec.data_start
+        offset = sec.content_start
         data = frag.raw_data
         matches = []
-
-        if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
-            return []
 
         if self.closeversions and sec.magic in (MAGIC_2, MAGIC_3):
             ver = sec.version
@@ -148,11 +109,11 @@ class FragmentMatcher(object):
             except Exception:
                 pass
             else:
-                if s and len(list(STR_EXCLUDE_PATTERN.findall(s))) < len(s) // 3:
+                if s and sum(1 for _ in STR_EXCLUDE_PATTERN.findall(s)) < len(s) // 3:
                     matches.append(("String", pos, repr(s)))
             db.seek(pos)
             try:
-                i = db.read_int(8)
+                i = db.read_uint8()
             except Exception:
                 pass
             else:
@@ -162,15 +123,20 @@ class FragmentMatcher(object):
             pos += 1
         return matches
 
+    def filter_fragments(self, sec, prober):
+        if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
+            return False
+        if issubclass(prober.probe_section(sec), (ObjectFragment, NamedPropertiesFragment, MaterialFragment)):
+            return False
+        return True
 
     def visit_object(self, obj, p):
         frags = []
-        for frag in obj.fragments:
-            if isinstance(frag, DetectFragment):
-                matches = self.find_matches(frag)
-                if matches:
-                    frags.append((frag, matches))
-                    self.sections[frag.container.to_key()] = frag.container
+        for frag in obj.filtered_fragments(self.filter_fragments):
+            matches = self.find_matches(frag)
+            if matches:
+                frags.append((frag, matches))
+                self.sections[frag.container.to_key()] = frag.container
 
         if frags:
             p(f"Object: {obj.type!r}")
@@ -184,7 +150,7 @@ class FragmentMatcher(object):
                     end = frag.end_pos
                     sec = frag.container
                     p(f"Offset: 0x{start:08x} to 0x{end:08x}"
-                      f" (0x{end - start:x} bytes, data 0x{sec.data_size:x} bytes)")
+                      f" (0x{end - start:x} bytes, content 0x{sec.content_size:x} bytes)")
                     p(f"Matches: {len(matches)}")
                     with p.tree_children():
                         for name, offset, text in matches:
@@ -206,17 +172,11 @@ def main():
                         help="Level .bytes filename.")
     args = parser.parse_args()
 
-    prober, p_levelobj, p_frag = setup_probers(args)
-
-    opts = dict(
-        level_frag_prober=p_frag,
-        level_subobj_prober=p_levelobj,
-        level_obj_prober=p_levelobj,
-    )
+    prober = setup_prober(args)
 
     matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args)
 
-    content = prober.read(args.IN, opts=opts)
+    content = prober.read(args.IN)
     if isinstance(content, Level):
         object_source = iter_objects(content.iter_objects())
     else:

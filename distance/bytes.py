@@ -14,13 +14,21 @@ import codecs
 UTF_16_DECODE = codecs.getdecoder('utf-16-le')
 UTF_16_ENCODE = codecs.getencoder('utf-16-le')
 
-S_COLOR_RGBA = Struct("4f")
+S_COLOR_RGBA = Struct("<4f")
 
-S_FLOAT = Struct("f")
-S_DOUBLE = Struct("d")
+S_FLOAT = Struct("<f")
+S_DOUBLE = Struct("<d")
 
-S_FLOAT3 = Struct("fff")
-S_FLOAT4 = Struct("ffff")
+S_FLOAT3 = Struct("<fff")
+S_FLOAT4 = Struct("<ffff")
+
+S_INT = Struct('<i')
+S_LONG = Struct('<q')
+S_UINT = Struct('<I')
+S_ULONG = Struct('<Q')
+
+S_UINT2 = Struct("<II")
+S_UINT3 = Struct("<III")
 
 SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
@@ -60,7 +68,6 @@ class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
 
-    sections = ()
     exception = None
     container = None
     sane_end_pos = False
@@ -92,8 +99,8 @@ class BytesModel(object):
         """Create an iterator for reading the given number of objects.
 
         If an error occurs, yield the partially read object. The exception is
-        stored in the object's `exception` attribute. The iterator exits
-        after reading `n` objects or if a read object has non-sane end-pos.
+        stored in the object's `exception` attribute. The iterator exits after
+        reading `n` objects or if a read object's `sane_end_pos` is False.
 
         """
 
@@ -143,6 +150,8 @@ class BytesModel(object):
 
         if n <= 0:
             return ()
+        # stable_iter seeks for us
+        kw['seek_end'] = False
         dbytes = DstBytes.from_arg(dbytes)
         gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
@@ -170,7 +179,7 @@ class BytesModel(object):
     def _handle_opts(self, opts):
         pass
 
-    def read(self, dbytes, container=None, opts=None, **kw):
+    def read(self, dbytes, container=None, seek_end=True, opts=None, **kw):
 
         """Read data of this object from `dbytes`.
 
@@ -185,8 +194,19 @@ class BytesModel(object):
 
         After `_read()`, regardless of whether an exception was raised,
         it is attempted to `dbytes.seek()` to the position reported
-        (if it was) with `_report_end_pos()`. If this is successful,
-        `dbytes` position is considered sane.
+        (if it was) by setting the `end_pos` attribute. If this is
+        successful, the `sane_end_pos` attribute is set to True.
+
+        Arguments:
+        `dbytes` - Anything accepted by `DstBytes.from_arg()`.
+        `container` - The already read container section. `dbytes` needs to
+                      be positioned at the start of this section's
+                      content if set.
+        `seek_end` - Whether to seek to the end of the object after
+                     reading. Mainly useful for reading `Section`, which
+                     positions it at the start of its content if False.
+                     Default: True.
+        `opts` - dict containing optional parameters used by subclasses.
 
         """
 
@@ -201,18 +221,19 @@ class BytesModel(object):
         if opts:
             self.opts = opts
             self._handle_opts(opts)
+        self.exception = None
+        self.end_pos = None
         try:
             self._read(dbytes, **kw)
             end = self.end_pos
             if end is None:
                 self.end_pos = dbytes.tell()
-            else:
+            elif seek_end:
                 dbytes.seek(end - 1)
                 dbytes.read_bytes(1)
             self.sane_end_pos = True
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
-            orig_e = e
             exc_pos = dbytes.tell()
             e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
             e.start_pos = start_pos
@@ -220,15 +241,14 @@ class BytesModel(object):
             end = self.end_pos
             if end is None:
                 self.end_pos = exc_pos
-            else:
-                if isinstance(e, CATCH_EXCEPTIONS):
-                    try:
-                        dbytes.seek(end - 1)
-                        dbytes.read_bytes(1)
-                        self.sane_end_pos = True
-                    except EOFError:
-                        pass
-            raise e from orig_e
+            elif seek_end and isinstance(e, CATCH_EXCEPTIONS):
+                try:
+                    dbytes.seek(end - 1)
+                    dbytes.read_bytes(1)
+                    self.sane_end_pos = True
+                except EOFError:
+                    pass
+            raise e
 
     def _read(self, dbytes):
         raise NotImplementedError(
@@ -236,9 +256,6 @@ class BytesModel(object):
 
     def _init_defaults(self):
         pass
-
-    def _report_end_pos(self, pos):
-        self.end_pos = pos
 
     def write(self, dbytes):
 
@@ -266,12 +283,6 @@ class BytesModel(object):
                 p(f"Container:")
                 with p.tree_children():
                     p.print_data_of(self.container)
-            if self.sections:
-                p(f"Sections: {len(self.sections)}")
-                with p.tree_children():
-                    for sec in self.sections:
-                        p.tree_next_child()
-                        p.print_data_of(sec)
         self._print_data(p)
         self._print_children(p)
         if self.exception:
@@ -286,6 +297,9 @@ class BytesModel(object):
 
     def _print_offset(self, p):
         start = self.start_pos
+        if start is None:
+            # we don't have a position
+            return
         end = self.end_pos
         if 'offset' in p.flags:
             p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
@@ -301,7 +315,7 @@ class BytesModel(object):
     def _get_container(self):
         sec = self.container
         if not sec:
-            self.container = sec = Section(self.dbytes)
+            self.container = sec = Section(self.dbytes, seek_end=False)
         return sec
 
     def _require_type(self, expect):
@@ -316,36 +330,18 @@ class BytesModel(object):
                 raise ValueError(f"Invalid object type: {ts.type}")
         return ts
 
-    def _require_equal(self, expect, nbytes=None, value=None):
-        if nbytes is not None:
-            value = self.dbytes.read_int(nbytes)
-        if value != expect:
-            raise ValueError(f"Unexpected data: {value!r}")
+
+# section magic (I) + size (Q)
+S_SEC_BASE = Struct("<IQ")
 
 
 class Section(BytesModel):
 
+    __slots__ = ('magic', 'type', 'version', 'id', 'content_start', 'content_size',
+                 'count', 'name',
+                 'start_pos', 'end_pos', 'dbytes', 'exception', 'sane_end_pos')
+
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
-
-    layer_name = None
-    level_name = None
-    num_objects = None
-    layer_flags = ()
-    data_start = None
-    data_size = None
-    type = None
-    version = None
-    num_sections = None
-    id = None
-
-    @classmethod
-    def iter_n_maybe(clazz, dbytes, *args, **kw):
-        """Wraps `BytesModel.iter_n_maybe` to enable section iteration."""
-        # TODO refactor Section for clean iter
-        gen = super().iter_n_maybe(dbytes, *args, **kw)
-        for sec in gen:
-            yield sec
-            dbytes.seek(sec.data_end)
 
     def __init__(self, *args, **kw):
         if args:
@@ -378,12 +374,12 @@ class Section(BytesModel):
             self.type = arg(1, 'type')
             self.id = arg(2, 'id', default=None)
         elif magic == MAGIC_7:
-            self.layer_name = arg(1, 'layer_name', default=None)
+            self.name = arg(1, 'name', default=None)
         elif magic == MAGIC_8:
             pass # no data
         elif magic == MAGIC_9:
-            self.level_name = arg(1, 'level_name', default=None)
-            self.num_layers = arg(2, 'num_layers', default=None)
+            self.name = arg(1, 'name', default=None)
+            self.count = arg(2, 'count', default=None)
             self.version = arg(3, 'version', default=3)
         else:
             raise ValueError(f"invalid magic: {magic} (0x{magic:08x})")
@@ -391,12 +387,16 @@ class Section(BytesModel):
         arg.verify()
 
     def __repr__(self):
-        magic = self.magic
-        argstr = str(magic)
-        if magic in (MAGIC_2, MAGIC_3):
-            argstr += f", type=0x{self.type:x}, version={self.version}"
-        elif magic == MAGIC_6:
-            argstr += f", {self.type!r}"
+        try:
+            magic = self.magic
+        except AttributeError:
+            argstr = "<invalid>"
+        else:
+            argstr = str(magic)
+            if magic in (MAGIC_2, MAGIC_3):
+                argstr += f", type=0x{self.type:x}, version={self.version}"
+            elif magic == MAGIC_6:
+                argstr += f", {self.type!r}"
         return f"Section({argstr})"
 
     def to_key(self, any_version=False):
@@ -413,49 +413,40 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
-        self.magic = magic = dbytes.read_int(4)
-        if magic == MAGIC_2:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
-            self.type = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
-            self.id = dbytes.read_id()
-        elif magic == MAGIC_3:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
-            self.type = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
-            self.id = dbytes.read_id()
+        self.sane_end_pos = False
+
+        magic, data_size = dbytes.read_struct(S_SEC_BASE)
+        self.magic = magic
+        data_start = self.start_pos + 12
+        data_end = data_start + data_size
+        self.end_pos = data_end
+
+        if magic in (MAGIC_2, MAGIC_3):
+            self.type, self.version, self.id = dbytes.read_struct(S_UINT3)
+            cstart = data_start + 12
         elif magic == MAGIC_5:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
-            self.num_objects = dbytes.read_int(4)
-            self.children_start = dbytes.tell()
+            self.count = dbytes.read_uint4()
+            cstart = data_start + 4
         elif magic == MAGIC_6:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
             self.type = dbytes.read_str()
             dbytes.read_bytes(1) # unknown, always 0
-            self.id = dbytes.read_id()
-            self.num_sections = dbytes.read_int(4)
+            self.id, self.count = dbytes.read_struct(S_UINT2)
+            cstart = dbytes.tell()
         elif magic == MAGIC_7:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
-            self.layer_name = dbytes.read_str()
-            self.num_objects = dbytes.read_int(4)
+            self.name = dbytes.read_str()
+            self.count = dbytes.read_uint4()
+            cstart = dbytes.tell()
         elif magic == MAGIC_9:
-            self.data_size = dbytes.read_int(8)
-            self.level_name = dbytes.read_str()
-            self.num_layers = dbytes.read_int(4)
-            self.version = dbytes.read_int(4)
-        elif magic == MAGIC_8:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
-        elif magic == MAGIC_32:
-            self.data_size = dbytes.read_int(8)
-            self.data_start = dbytes.tell()
+            self.name = dbytes.read_str()
+            self.count, self.version = dbytes.read_struct(S_UINT2)
+            cstart = dbytes.tell()
+        elif magic in (MAGIC_8, MAGIC_32):
+            cstart = data_start
         else:
             raise ValueError(f"unknown section: {magic} (0x{magic:08x})")
+
+        self.content_start = cstart
+        self.content_size = data_end - cstart
 
     @contextmanager
     def _write_header(self, dbytes):
@@ -465,7 +456,7 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_int(4, self.type)
                 dbytes.write_int(4, self.version)
-                dbytes.write_id(self.id)
+                dbytes.write_id(getattr(self, 'id', None))
                 yield
         elif magic == MAGIC_5:
             with dbytes.write_size():
@@ -475,12 +466,12 @@ class Section(BytesModel):
             with dbytes.write_size():
                 dbytes.write_str(self.type)
                 dbytes.write_bytes(b'\x00') # unknown, always 0
-                dbytes.write_id(self.id)
+                dbytes.write_id(getattr(self, 'id', None))
                 with dbytes.write_num_subsections():
                     yield
         elif magic == MAGIC_7:
             with dbytes.write_size():
-                dbytes.write_str(self.layer_name)
+                dbytes.write_str(self.name)
                 with dbytes.write_num_subsections():
                     yield
         elif magic == MAGIC_8:
@@ -488,8 +479,8 @@ class Section(BytesModel):
                 yield
         elif magic == MAGIC_9:
             with dbytes.write_size():
-                dbytes.write_str(self.level_name)
-                dbytes.write_int(4, self.num_layers)
+                dbytes.write_str(self.name)
+                dbytes.write_int(4, self.count)
                 dbytes.write_int(4, self.version)
                 yield
         elif magic == MAGIC_32:
@@ -498,45 +489,46 @@ class Section(BytesModel):
         else:
             raise NotImplementedError(f"cannot write section {self.magic}")
 
-    @property
-    def data_end(self):
-        start = self.data_start
-        size = self.data_size
-        if start is None or size is None:
-            return None
-        return start + size
-
     def _print_type(self, p):
         type_str = ""
         magic = self.magic
-        if magic in (MAGIC_2, MAGIC_3):
-            if self.type is not None:
-                type_str += f" type 0x{self.type:02x}"
-        elif magic == MAGIC_6:
-            if self.type is not None:
-                type_str += f" type {self.type!r}"
-        if self.version is not None:
-            type_str += f" ver {self.version}"
-        if self.id is not None:
+        if magic in (MAGIC_2, MAGIC_3, MAGIC_6):
+            if magic == MAGIC_6:
+                if self.type is not None:
+                    type_str += f" type {self.type!r}"
+            else:
+                if self.type is not None:
+                    type_str += f" type 0x{self.type:02x}"
+                if self.version is not None:
+                    type_str += f" ver {self.version}"
+        try:
             type_str += f" id {self.id}"
+        except AttributeError:
+            pass
         p(f"Section: {self.magic}{type_str}")
 
     def _print_offset(self, p):
-        start = self.data_start
-        end = self.data_end
-        if start is not None and end is not None:
+        try:
+            start = self.content_start
+            size = self.content_size
+        except AttributeError:
+            pass # don't have a size
+        else:
             if 'offset' in p.flags:
-                p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
+                p(f"Data offset: 0x{start:08x} to 0x{start + size:08x} (0x{size:x} bytes)")
             else:
-                p(f"Data size: 0x{end - start:x} bytes")
+                p(f"Data size: 0x{size:x} bytes")
 
 
 class DstBytes(object):
 
-    """File wrapper for reading and writing data of .bytes files."""
+    """File wrapper for reading and writing data of .bytes files.
 
-    _max_pos = None
-    _expect_overread = False
+    Using an instance as context manager saves the current position on enter
+    and restores it on exit.
+
+    """
+
     num_subsections = 0
     section_counter = 0x10000000
 
@@ -544,6 +536,7 @@ class DstBytes(object):
         self.file = file
         self.tell = file.tell
         self.seek = file.seek
+        self._pos_stack = []
 
     @classmethod
     def in_memory(cls):
@@ -596,23 +589,15 @@ class DstBytes(object):
                 raise IOError(f"File needs be opened with 'b' mode.")
         return cls(arg)
 
-    @contextmanager
-    def limit(self, max_pos, expect_overread=False):
-        """Limit the read position to the given maximum."""
-        old_max = self._max_pos
-        if old_max is not None and max_pos > old_max:
-            raise ValueError("cannot extend max_pos")
-        self._expect_overread = expect_overread
-        self._max_pos = max_pos
-        try:
-            yield
-        except EOFError:
-            if not self._expect_overread:
-                raise
-        finally:
-            self._max_pos = old_max
+    def __enter__(self):
+        """Save the position on enter and restore it on exit."""
+        self._pos_stack.append(self.tell())
 
-    def read_bytes(self, n, or_to_eof=False):
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.seek(self._pos_stack.pop(-1))
+        return False
+
+    def read_bytes(self, n):
 
         """Read the given number of bytes.
 
@@ -621,15 +606,10 @@ class DstBytes(object):
 
         """
 
-        if n == 0:
-            return b''
         if n < 0:
             raise ValueError("n must be positive")
-        max_pos = self._max_pos
-        if max_pos is not None and self.tell() + n > max_pos:
-            raise EOFError
         result = self.file.read(n)
-        if not or_to_eof and len(result) != n:
+        if len(result) != n:
             raise EOFError
         return result
 
@@ -651,9 +631,20 @@ class DstBytes(object):
         data = self.read_bytes(length)
         return int.from_bytes(data, 'little', signed=signed)
 
+    # faster variants for common ints
+    def read_int4(self):
+        return S_INT.unpack(self.read_bytes(4))[0]
+
+    def read_int8(self):
+        return S_LONG.unpack(self.read_bytes(8))[0]
+
+    def read_uint4(self):
+        return S_UINT.unpack(self.read_bytes(4))[0]
+
+    def read_uint8(self):
+        return S_ULONG.unpack(self.read_bytes(8))[0]
+
     def read_struct(self, st):
-        if isinstance(st, str):
-            st = struct.Struct(st)
         data = self.read_bytes(st.size)
         return st.unpack(data)
 
@@ -663,7 +654,7 @@ class DstBytes(object):
         return UTF_16_DECODE(data, 'surrogateescape')[0]
 
     def read_id(self):
-        return self.read_int(4)
+        return self.read_uint4()
 
     def write_bytes(self, data):
 
@@ -687,6 +678,10 @@ class DstBytes(object):
         l.append(value)
         self.write_bytes(bytes(l))
 
+    def require_equal_uint4(self, expect):
+        if self.read_uint4() != expect:
+            raise ValueError(f"Unexpected data: {value!r}")
+
     def write_str(self, s):
         data = UTF_16_ENCODE(s, 'surrogateescape')[0]
         self.write_var_int(len(data))
@@ -700,14 +695,16 @@ class DstBytes(object):
 
     def stable_iter(self, source, start_pos=None):
 
-        """Wrap the `source` for safe iteration using this instance.
+        """Wrap the BytesModel-yielding `source` for safe iteration.
 
-        The returned iterator restores the saved position before every call to
-        `__next__` and saves it afterwards.
+        The returned iterator seeks to `end_pos` of the previous object before
+        every call to `__next__`. If the previous object's `sane_end_pos` is
+        False, the returned iterator exits.
 
         `start_pos` specifies the position before the first iteration. If
-        `start_pos` is unset or `None`, the current position at the time of
-        this call is used.
+        `start_pos` is unset or `None`, the current position when calling this
+        method is used. If `start_pos` is callable, it is called without
+        arguments and the result is used as the starting position.
 
         """
 
@@ -720,13 +717,15 @@ class DstBytes(object):
             else:
                 pos = start_pos
             while True:
-                with self.saved_pos(pos):
-                    try:
-                        obj = next(iterator)
-                    except StopIteration:
-                        break
-                    pos = self.tell()
+                self.seek(pos)
+                try:
+                    obj = next(iterator)
+                except StopIteration:
+                    break
                 yield obj
+                if not obj.sane_end_pos:
+                    break
+                pos = obj.end_pos
         return gen()
 
     @contextmanager
@@ -738,7 +737,8 @@ class DstBytes(object):
             yield
         finally:
             end = self.tell()
-            with self.saved_pos(start):
+            with self:
+                self.seek(start)
                 self.write_int(8, end - start - 8)
 
     @contextmanager
@@ -755,7 +755,8 @@ class DstBytes(object):
         try:
             yield
         finally:
-            with self.saved_pos(start):
+            with self:
+                self.seek(start)
                 self.write_int(4, self.num_subsections)
 
     @contextmanager
@@ -781,23 +782,6 @@ class DstBytes(object):
                 yield
         finally:
             self.num_subsections = old_count
-
-    @contextmanager
-    def saved_pos(self, set_to=None):
-
-        """Save the position on enter and restore it on exit.
-
-        If set and not `None`, set the position to `set_to` on enter.
-
-        """
-
-        old_pos = self.tell()
-        if set_to is not None:
-            self.seek(set_to)
-        try:
-            yield
-        finally:
-            self.seek(old_pos)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

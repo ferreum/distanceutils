@@ -46,8 +46,9 @@ class NamedPropertiesFragment(Fragment):
         Fragment.__init__(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
-            self.props.read(dbytes)
+        if sec.content_size >= 4:
+            self.props.read(dbytes, max_pos=sec.end_pos,
+                            detect_old=True)
 
     def _write_section_data(self, dbytes, sec):
         if self.props:
@@ -55,6 +56,8 @@ class NamedPropertiesFragment(Fragment):
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
+        if self.props.old_format:
+            p(f"Old properties format")
         if 'allprops' in p.flags and self.props:
             self.props.print_data(p)
 
@@ -90,12 +93,12 @@ class GroupFragment(Fragment):
             setattr(self, name, value)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size < 24:
+        if sec.content_size < 12:
             self.inspect_children = None
         else:
-            self._require_equal(MAGIC_1, 4)
-            num_values = dbytes.read_int(4)
-            self.inspect_children = dbytes.read_int(4)
+            dbytes.require_equal_uint4(MAGIC_1)
+            num_values = dbytes.read_uint4()
+            self.inspect_children = dbytes.read_uint4()
             # do save raw_data if there are unexpected values following
             self._has_more_data = num_values > 0
 
@@ -119,7 +122,7 @@ class CustomNameFragment(Fragment):
     custom_name = None
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.custom_name = dbytes.read_str()
 
     def _write_section_data(self, dbytes, sec):
@@ -161,21 +164,21 @@ class GoldenSimplesFragment(Fragment):
             setattr(self, name, value)
 
     def _read_section_data(self, dbytes, sec):
-        self.image_index = dbytes.read_int(4)
-        self.emit_index = dbytes.read_int(4)
-        dbytes.read_int(4) # preset
+        self.image_index = dbytes.read_uint4()
+        self.emit_index = dbytes.read_uint4()
+        dbytes.read_uint4() # preset
         self.tex_scale = dbytes.read_struct(S_FLOAT3)
         self.tex_offset = dbytes.read_struct(S_FLOAT3)
-        self.flip_tex_uv = dbytes.read_int(1)
-        self.world_mapped = dbytes.read_int(1)
-        self.disable_diffuse = dbytes.read_int(1)
-        self.disable_bump = dbytes.read_int(1)
+        self.flip_tex_uv = dbytes.read_byte()
+        self.world_mapped = dbytes.read_byte()
+        self.disable_diffuse = dbytes.read_byte()
+        self.disable_bump = dbytes.read_byte()
         self.bump_strength = dbytes.read_struct(S_FLOAT)[0]
-        self.disable_reflect = dbytes.read_int(1)
-        self.disable_collision = dbytes.read_int(1)
-        self.additive_transp = dbytes.read_int(1)
-        self.multip_transp = dbytes.read_int(1)
-        self.invert_emit = dbytes.read_int(1)
+        self.disable_reflect = dbytes.read_byte()
+        self.disable_collision = dbytes.read_byte()
+        self.additive_transp = dbytes.read_byte()
+        self.multip_transp = dbytes.read_byte()
+        self.invert_emit = dbytes.read_byte()
 
     def _write_section_data(self, dbytes, sec):
         dbytes.write_int(4, self.image_index)
@@ -214,7 +217,7 @@ class OldTeleporterEntranceFragment(TeleporterEntranceMixin, NamedPropertiesFrag
     @named_property_getter('LinkID', default=0)
     def destination(self, db):
         # type guessed - no example available
-        return db.read_int(4)
+        return db.read_uint4()
 
 
 @PROBER.fragment(MAGIC_2, 0x3e, 1)
@@ -225,7 +228,7 @@ class TeleporterEntranceFragment(TeleporterEntranceMixin, Fragment):
     destination = None
 
     def _read_section_data(self, dbytes, sec):
-        self.destination = dbytes.read_int(4)
+        self.destination = dbytes.read_uint4()
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
@@ -249,7 +252,7 @@ class TeleporterExitFragment(TeleporterExitMixin, Fragment):
     link_id = None
 
     def _read_section_data(self, dbytes, sec):
-        self.link_id = dbytes.read_int(4)
+        self.link_id = dbytes.read_uint4()
 
 
 @PROBER.fragment(MAGIC_2, 0x3f, 0)
@@ -258,7 +261,7 @@ class OldTeleporterExitFragment(TeleporterExitMixin, NamedPropertiesFragment):
     @named_property_getter('LinkID', default=0)
     def link_id(self, db):
         # type guessed - no example available
-        return db.read_int(4)
+        return db.read_uint4()
 
 
 @PROBER.fragment(MAGIC_2, 0x51, 0)
@@ -267,7 +270,7 @@ class TeleporterExitCheckpointFragment(Fragment):
     trigger_checkpoint = 1
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.trigger_checkpoint = dbytes.read_byte()
         else:
             # if section is too short, the checkpoint is enabled
@@ -288,7 +291,7 @@ class SphereColliderFragment(Fragment):
     def _read_section_data(self, dbytes, sec):
         self.trigger_center = (0.0, 0.0, 0.0)
         self.trigger_radius = 50.0
-        if sec.data_size >= 20:
+        if sec.content_size >= 8:
             self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
             self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
 
@@ -303,7 +306,7 @@ class GravityToggleFragment(Fragment):
     drag_scale_angular = 1.0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.disable_gravity = dbytes.read_byte()
             self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
             self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
@@ -329,8 +332,8 @@ class MusicTriggerFragment(Fragment):
     disable_music_trigger = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
-            self.music_id = dbytes.read_int(4)
+        if sec.content_size:
+            self.music_id = dbytes.read_uint4()
             self.one_time_trigger = dbytes.read_byte()
             self.reset_before_trigger = dbytes.read_byte()
             self.disable_music_trigger = dbytes.read_byte()
@@ -366,10 +369,10 @@ class ForceZoneFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         self.__dict__.update(self.value_attrs)
-        if sec.data_size > 12:
+        if sec.content_size:
             self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
             self.global_force = dbytes.read_byte()
-            self.force_type = dbytes.read_int(4)
+            self.force_type = dbytes.read_uint4()
             self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
             self.disable_global_gravity = dbytes.read_byte()
             self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
@@ -399,24 +402,33 @@ class TextMeshFragment(Fragment):
 
     is_interesting = True
 
-    text = "Hello World"
+    text = None
+    is_skip = False
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
-            if sec.data_size >= 16:
-                with dbytes.saved_pos():
+        if sec.content_size:
+            if sec.content_size > 4:
+                with dbytes:
                     # found on v8,v9 endzone
                     if dbytes.read_bytes(4) == SKIP_BYTES:
-                        self.text = "00"
+                        self.is_skip = True
+                        # "00"
+                        self.text = None
                         return
             self.text = dbytes.read_str()
         else:
-            self.text = "Hello World"
+            # "Hello World"
+            self.text = None
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
-        if self.text is not None:
-            p(f"World text: {self.text!r}")
+        text = self.text
+        if self.text is None:
+            if self.is_skip:
+                text = "00"
+            else:
+                text = "Hello World"
+        p(f"World text: {text!r}")
 
 
 @PROBER.fragment(MAGIC_2, 0x16, 2)
@@ -430,9 +442,9 @@ class TrackNodeFragment(Fragment):
     primary = 0
 
     def _read_section_data(self, dbytes, sec):
-        self.parent_id = dbytes.read_int(4)
-        self.snap_id = dbytes.read_int(4)
-        self.conn_id = dbytes.read_int(4)
+        self.parent_id = dbytes.read_uint4()
+        self.snap_id = dbytes.read_uint4()
+        self.conn_id = dbytes.read_uint4()
         self.primary = dbytes.read_byte()
 
     def _write_section_data(self, dbytes, sec):
@@ -462,7 +474,7 @@ class MaterialFragment(Fragment):
         Fragment.__init__(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size >= 16:
+        if sec.content_size >= 4:
             self.materials.read(dbytes)
 
     def _write_section_data(self, dbytes, sec):
@@ -605,12 +617,12 @@ class OldCarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Nam
 
     @named_property_getter('AnnouncerAction')
     def announcer_action(self, db):
-        return db.read_int(4)
+        return db.read_uint4()
 
     @named_property_getter('AnnouncerPhrases', default=())
     def announcer_phrases(self, db):
-        self._require_equal(MAGIC_1, 4)
-        num_phrases = db.read_int(4)
+        db.require_equal_uint4(MAGIC_1)
+        num_phrases = db.read_uint4()
         phrases = []
         for _ in range(num_phrases):
             phrases.append(db.read_str())
@@ -621,7 +633,7 @@ class OldCarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Nam
 class CarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Fragment):
 
     def _read_section_data(self, dbytes, sec):
-        if sec.data_size > 12:
+        if sec.content_size:
             self.text = dbytes.read_str()
             self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
             self.clear_on_finish = dbytes.read_byte()
@@ -630,7 +642,7 @@ class CarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Fragme
             self.time_text = dbytes.read_str()
             self.static_time_text = dbytes.read_byte()
             self.delay = dbytes.read_struct(S_FLOAT)[0]
-            self.announcer_action = dbytes.read_int(4)
+            self.announcer_action = dbytes.read_uint4()
 
 
 class InfoDisplayLogicMixin(object):
@@ -682,7 +694,7 @@ class OldInfoDisplayLogicFragment(InfoDisplayLogicMixin, NamedPropertiesFragment
 
     @named_property_getter('RandomCharCount')
     def clear_on_trigger_exit(self, db):
-        return db.read_int(4)
+        return db.read_uint4()
 
     @named_property_getter('DestroyOnTriggerExit')
     def destroy_on_trigger_exit(self, db):
@@ -694,7 +706,7 @@ class InfoDisplayLogicFragment(InfoDisplayLogicMixin, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # only verified in v2
-        if sec.data_size > 12:
+        if sec.content_size:
             self.fadeout_time = dbytes.read_struct(S_FLOAT)
             self.texts = texts = []
             for i in range(5):
@@ -762,6 +774,13 @@ PROPERTY_FRAGS = (
     (Section(22222222, 0x62, 0), None),
     # from v7 AdventureAbilitySettings
     (Section(22222222, 0x4d, 0), None),
+    # from v3 VirusBase
+    # very old versions (map "birthday bash court") don't use offsets
+    (Section(22222222, 0x27, 0), None),
+    # from s8 (map "The Pumpkin Patch")
+    (Section(22222222, 0x38, 0), None),
+    # from SoccerGoalLogic
+    (Section(22222222, 0x29, 0), None),
 )
 
 

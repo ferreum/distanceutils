@@ -164,14 +164,26 @@ class LazySequenceIndexTest(unittest.TestCase):
         self.assertEqual(14, next(it))
         self.assertRaises(StopIteration, next, it)
 
+    def test_iter_twice(self):
+        list(iter(self.lazy)) # exhaust
+        res1 = list(iter(self.lazy))
+        self.assertEqual([10, 11, 12, 13, 14], res1)
+
+    def test_iter_parallel(self):
+        it = list(zip(iter(self.lazy), iter(self.lazy)))
+        self.assertEqual([(10, 10), (11, 11), (12, 12), (13, 13), (14, 14)], it)
+
+    def test_iter_parallel_swap(self):
+        it0 = iter(self.lazy)
+        it1 = iter(self.lazy)
+        self.assertEqual((10, 10), next(zip(it0, it1)))
+        self.assertEqual((11, 11), next(zip(it1, it0)))
+
     def test_earlyexit_iter(self):
         next(self.iter) # steal
         it = iter(self.lazy)
-        self.assertEqual(11, next(it))
-        self.assertEqual(12, next(it))
-        self.assertEqual(13, next(it))
-        self.assertEqual(14, next(it))
-        self.assertRaises(StopIteration, next, it)
+        self.assertEqual([11, 12, 13, 14], list(it))
+        self.assertEqual(4, len(self.lazy))
 
 
 class LazyMappedSequenceTest(unittest.TestCase):
@@ -281,13 +293,21 @@ class LazyMappedSequenceTest(unittest.TestCase):
         self.assertEqual(24, next(it))
         self.assertRaises(StopIteration, next, it)
 
+    def test_iter_twice(self):
+        self.assertEqual([20, 21, 22, 23, 24], list(iter(self.lazy)))
+        self.assertEqual([20, 21, 22, 23, 24], list(iter(self.lazy)))
+
+    def test_iter_parallel(self):
+        it = zip(iter(self.lazy), iter(self.lazy))
+        self.assertEqual([(20, 20), (21, 21), (22, 22), (23, 23), (24, 24)], list(it))
+
+    def test_iter_twice_changed(self):
+        del self.list[4]
+        self.assertEqual([20, 21, 22, 23], list(iter(self.lazy)))
+        self.assertEqual([20, 21, 22, 23], list(iter(self.lazy)))
+
     def test_len(self):
         self.assertEqual(5, len(self.lazy))
-
-    def test_len_changed(self):
-        self.list.pop(-1)
-        self.assertEqual(4, len(self.lazy))
-
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

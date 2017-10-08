@@ -5,7 +5,7 @@ from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
-from .lazy import LazyMappedSequence
+from .lazy import LazySequence, LazyMappedSequence
 
 
 BASE_PROBER = BytesProber()
@@ -18,23 +18,27 @@ TRANSFORM_MIN_SIZE = 12
 
 
 def read_transform(dbytes):
-    def read_float():
-        return dbytes.read_struct(S_FLOAT)[0]
-    f = dbytes.read_bytes(4)
-    if f == SKIP_BYTES:
+    data = dbytes.read_bytes(12)
+    if data.startswith(SKIP_BYTES):
         pos = ()
+        data = data[4:]
     else:
-        pos = (S_FLOAT.unpack(f)[0], read_float(), read_float())
-    f = dbytes.read_bytes(4)
-    if f == SKIP_BYTES:
+        pos = S_FLOAT3.unpack(data)
+        data = dbytes.read_bytes(8)
+    # len(data) == 8
+    if data.startswith(SKIP_BYTES):
         rot = ()
+        data = data[4:]
     else:
-        rot = (S_FLOAT.unpack(f)[0], read_float(), read_float(), read_float())
-    f = dbytes.read_bytes(4)
-    if f == SKIP_BYTES:
+        ndata = dbytes.read_bytes(12)
+        rot = S_FLOAT4.unpack(data + ndata[:8])
+        data = ndata[8:]
+    # len(data) == 4
+    if data == SKIP_BYTES:
         scale = ()
     else:
-        scale = (S_FLOAT.unpack(f)[0], read_float(), read_float())
+        data = data + dbytes.read_bytes(8)
+        scale = S_FLOAT3.unpack(data)
     return pos, rot, scale
 
 
@@ -59,8 +63,7 @@ def write_transform(dbytes, trans):
 
 
 def filter_interesting(sec, prober):
-    return (sec.data_size > 12
-            and prober.probe_section(sec).is_interesting)
+    return sec.content_size and prober.probe_section(sec).is_interesting
 
 
 class Fragment(BytesModel):
@@ -73,8 +76,7 @@ class Fragment(BytesModel):
 
     def _read(self, dbytes, **kw):
         sec = self._get_container()
-        self._report_end_pos(sec.data_end)
-        self.data_start = dbytes.tell()
+        self.end_pos = sec.end_pos
         self._read_section_data(dbytes, sec)
 
     def write(self, dbytes, section=None):
@@ -88,10 +90,11 @@ class Fragment(BytesModel):
     def raw_data(self):
         data = self._raw_data
         if data is None:
-            start = self.data_start
             dbytes = self.dbytes
-            with dbytes.saved_pos(start):
-                data = dbytes.read_bytes(self.container.data_end - start)
+            sec = self.container
+            with dbytes:
+                dbytes.seek(sec.content_start)
+                data = dbytes.read_bytes(sec.content_size)
                 self._raw_data = data
         return data
 
@@ -140,15 +143,14 @@ class ObjectFragment(Fragment):
 
         """
 
-        end = sec.data_end
-        if dbytes.tell() + TRANSFORM_MIN_SIZE < end:
+        if sec.content_size >= TRANSFORM_MIN_SIZE:
             self.transform = read_transform(dbytes)
-            if dbytes.tell() + Section.MIN_SIZE < end:
-                s5 = Section(dbytes)
+            if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
+                s5 = Section(dbytes, seek_end=False)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.num_objects, start_pos=s5.children_start,
-                    opts=self.opts)
+                    dbytes, s5.count, opts=self.opts,
+                    start_pos=s5.content_start)
         return True
 
     def _write_section_data(self, dbytes, sec):
@@ -209,41 +211,71 @@ class BaseObject(BytesModel):
     fragment_prober = BASE_FRAG_PROBER
     is_object_group = False
 
+    sections = ()
     fragments = ()
+    _fragment_types = None
+    _fragments_by_type = None
 
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
     )
 
     def fragment_by_type(self, typ):
-        for frag in self.fragments:
-            if isinstance(frag, typ):
+        if typ is ObjectFragment:
+            # Optimized ObjectFragment access: it is virtually always first.
+            frag = self.fragments[0]
+            if type(frag) is ObjectFragment:
                 return frag
+            # not first - fall through to regular method
+        types = self._fragment_types
+        if types is None:
+            probe = self.fragment_prober.probe_section
+            secs = self.sections
+            types = LazySequence(map(probe, secs), len(secs))
+            bytype = {}
+            self._fragments_by_type = bytype
+        else:
+            bytype = self._fragments_by_type
+            try:
+                return bytype[typ]
+            except KeyError:
+                pass # not cached, fall through
+        i = 0
+        for sectype in types:
+            if issubclass(sectype, typ):
+                frag = self.fragments[i]
+                bytype[typ] = frag
+                return frag
+            i += 1
+        bytype[typ] = None
         return None
 
     def filtered_fragments(self, type_filter):
         fragments = self.fragments
         prober = self.fragment_prober
-        for i, sec in enumerate(self.sections):
+        i = 0
+        for sec in self.sections:
             if type_filter(sec, prober):
                 yield fragments[i]
+            i += 1
 
     def _read(self, dbytes):
-        ts = self._get_container()
-        self.type = ts.type
-        self._report_end_pos(ts.data_end)
-        self.sections = Section.lazy_n_maybe(dbytes, ts.num_sections)
+        sec = self._get_container()
+        self.type = sec.type
+        self.end_pos = sec.end_pos
+        self.sections = Section.lazy_n_maybe(dbytes, sec.count)
         self.fragments = LazyMappedSequence(
             self.sections, self._read_fragment)
 
     def _read_fragment(self, sec):
         if sec.exception:
-            raise sec.exception
+            # failed to read section - return object containing the error
+            return Fragment(exception=sec.exception)
         dbytes = self.dbytes
-        with dbytes.saved_pos(sec.end_pos):
-            return self.fragment_prober.maybe(
-                dbytes, probe_section=sec,
-                child_prober=self.child_prober)
+        dbytes.seek(sec.content_start)
+        return self.fragment_prober.maybe(
+            dbytes, probe_section=sec,
+            child_prober=self.child_prober)
 
     def write(self, dbytes):
         if self.container is None:

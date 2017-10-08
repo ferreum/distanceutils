@@ -10,20 +10,26 @@ class LevelTest(unittest.TestCase):
     def test_level(self):
         level = Level("tests/in/level/test-straightroad.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
+        check_exceptions(level)
 
     def test_print_data(self):
         p = PrintContext.for_test()
         p.print_data_of(Level("tests/in/level/test-straightroad.bytes"))
 
     def test_truncated(self):
-        level = Level("tests/in/level/test-straightroad_truncated.bytes")
+        level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
         results = [level.settings] + list(level.iter_objects())
-        self.assertEqual(len(results), 3)
-        self.assertRaises(EOFError, check_exceptions, results[2])
+        self.assertRaises(EOFError, check_exceptions, results[3])
+        self.assertEqual(len(results), 4)
+
+    def test_truncated_print(self):
+        p = PrintContext(file=None, flags=('offset', 'groups', 'subobjects', 'fragments', 'sections', 'allprops'))
+        level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
+        p.print_data_of(level.layers[0].objects[1].fragments[0])
 
     def test_truncated_iter(self):
-        level = Level("tests/in/level/test-straightroad_truncated_2.bytes")
+        level = Level.maybe("tests/in/level/test-straightroad_truncated_2.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
         gen = level.iter_objects()
         next(gen)
@@ -31,7 +37,7 @@ class LevelTest(unittest.TestCase):
         self.assertEqual(EOFError, type(obj.exception))
 
     def test_truncated_seq(self):
-        level = Level("tests/in/level/test-straightroad_truncated_2.bytes")
+        level = Level.maybe("tests/in/level/test-straightroad_truncated_2.bytes")
         self.assertEqual(level.level_name, "Test-straightroad")
         objs = level.layers[0].objects[:]
         self.assertEqual(2, len(objs))

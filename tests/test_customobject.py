@@ -50,9 +50,10 @@ class WorldTextTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/worldtext 1.bytes")
         self.assertEqual(obj.text, "Test text")
 
-    def test_read_2(self):
+    def test_read_default_helloworld(self):
         obj = PROBER.read("tests/in/customobject/worldtext helloworld.bytes")
-        self.assertEqual(obj.text, "Hello World")
+        self.assertIsNone(obj.text, None)
+        self.assertFalse(obj.is_skip)
 
     def test_read_3(self):
         obj = PROBER.read("tests/in/customobject/worldtext weird.bytes")
@@ -234,7 +235,7 @@ class S5OffsetTest(unittest.TestCase):
 class EmpireEndZoneTest(unittest.TestCase):
 
     def test_normal(self):
-        p = PrintContext.for_test(flags=('children'))
+        p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/endzone.bytes")
         self.assertEqual(len(obj.children), 9)
         win_logic = next(obj.iter_children(name='WinLogic'))

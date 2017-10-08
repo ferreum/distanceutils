@@ -104,7 +104,7 @@ class BytesProber(object):
 
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:
-            sec = Section(dbytes)
+            sec = Section(dbytes, seek_end=False)
         else:
             sec = probe_section
         cls = self.probe_section(sec)
@@ -160,6 +160,8 @@ class BytesProber(object):
     def lazy_n_maybe(self, dbytes, n, *args, start_pos=None, **kw):
         if n <= 0:
             return ()
+        # stable_iter seeks for us
+        kw['seek_end'] = False
         dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)

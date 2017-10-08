@@ -37,7 +37,7 @@ class ProberTest(unittest.TestCase):
         dbytes.seek(0)
         def raise_error(*_):
             raise IOError
-        dbytes.read_int = raise_error
+        dbytes.read_bytes = raise_error
         self.assertRaises(IOError, prober.maybe, dbytes)
 
 

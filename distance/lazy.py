@@ -46,15 +46,23 @@ class BaseLazySequence(Sequence):
         return self._list[index]
 
 
-def noop_inflate_slice(len_, start, stop, stride):
-    return len_
-
-
 class LazySequence(BaseLazySequence):
 
-    """Lazy sequence using an iterator as source."""
+    """Lazy sequence using an iterator as source.
 
-    __slots__ = ['_iterator', '_len', '_list']
+    If the iterator stops, the reported length of this sequence is adjusted
+    to the number of values yielded up to that point.
+
+    This affects indexing operations, and can result in IndexErrors for ranges
+    that are within the length reported before the iterator stopped.
+
+    Conversely, if the iterator yields more values, these values may be
+    accessed by iterating this sequence or by indexing beyond the reported
+    length.
+
+    """
+
+    __slots__ = ('_iterator', '_len', '_list')
 
     def __init__(self, source, length):
         self._iterator = iter(source)
@@ -75,27 +83,58 @@ class LazySequence(BaseLazySequence):
         else:
             return f"<lazy seq {l!r}>"
 
+    def __iter__(self):
+
+        """Iterate this sequence.
+
+        May yield more or less values than the reported length of this
+        sequence. Iteration is only stopped when the wrapped iterator exits.
+
+        """
+
+        iterator = self._iterator
+        l = self._list
+        if iterator is None:
+            yield from l
+            return
+        i = 0
+        try:
+            while True:
+                try:
+                    yield l[i]
+                except IndexError:
+                    v = next(iterator)
+                    l.append(v)
+                    yield v
+                i += 1
+        except StopIteration:
+            # reached the real end of the iterator
+            self._iterator = None
+            self._len = i
+
     def _inflate_slice(self, len_, start, stop, stride):
         l = self._list
         current = len(l)
         needed = stop - current
         if needed <= 0:
             return len_
+        iterator = self._iterator
+        if iterator is None:
+            return len_
         if needed == 1:
             # optimize single element inflation
             try:
-                l.append(next(self._iterator))
-                return self._len
+                l.append(next(iterator))
+                return len_
             except StopIteration:
                 pass # iterator ended early; fall through
         else:
-            l.extend(islice(self._iterator, needed))
+            l.extend(islice(iterator, needed))
             current = len(l)
             if stop - 1 < current:
                 return len_
         # iterator ended earlier than the reported length.
         # Try to patch our length and hope no one notices.
-        self._inflate_slice = noop_inflate_slice
         self._iterator = None
         self._len = current
         return current
@@ -112,7 +151,7 @@ class LazyMappedSequence(BaseLazySequence):
 
     """
 
-    __slots__ = ['_source', '_func', '_list']
+    __slots__ = ('_source', '_func', '_list')
 
     def __init__(self, source, func):
         self._source = source
@@ -120,11 +159,31 @@ class LazyMappedSequence(BaseLazySequence):
         self._list = [UNSET] * len(source)
 
     def __len__(self):
-        return len(self._source)
+        return len(self._list)
 
     def __repr__(self):
         s = ', '.join('…' if i is UNSET else repr(i) for i in self._list)
         return f"<lazy map [{s}]>"
+
+    def __iter__(self):
+        l = self._list
+        source = self._source
+        if source is None:
+            yield from l
+            return
+        func = self._func
+        i = 0
+        try:
+            for v in l:
+                if v is UNSET:
+                    v = func(source[i])
+                    l[i] = v
+                yield v
+                i += 1
+        except IndexError:
+            del l[i:]
+        # All entries are now inflated.
+        self._source = None
 
     def _inflate_slice(self, len_, start, stop, stride):
         try:

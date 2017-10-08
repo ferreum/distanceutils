@@ -34,17 +34,17 @@ class Entry(BytesModel):
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
         dbytes.read_bytes(16)
-        self._require_equal(MAGIC_12, 4)
-        num_modes = dbytes.read_int(4)
+        dbytes.require_equal_uint4(MAGIC_12)
+        num_modes = dbytes.read_uint4()
         self.modes = modes = {}
         for _ in range(num_modes):
-            mode = dbytes.read_int(4)
+            mode = dbytes.read_uint4()
             modes[mode] = dbytes.read_byte()
         self.medal_times = times = []
         self.medal_scores = scores = []
         for _ in range(4):
             times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_int(4, signed=True))
+            scores.append(dbytes.read_int4())
         dbytes.read_bytes(25)
 
     def _print_data(self, p):
@@ -70,7 +70,7 @@ class LevelInfosFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         self.version = sec.version
-        num_entries = dbytes.read_int(8)
+        num_entries = dbytes.read_uint8()
         self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
 
 
