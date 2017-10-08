@@ -33,7 +33,7 @@ def format_layer_flags(gen):
             yield name
 
 
-class LevelSettingsMixin(object):
+class LevelSettings(object):
 
     value_attrs = dict(
         version = None,
@@ -74,7 +74,7 @@ class LevelSettingsMixin(object):
 
 
 @SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
-@set_default_attrs(LevelSettingsMixin.value_attrs)
+@set_default_attrs(LevelSettings.value_attrs)
 class LevelSettingsFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
@@ -111,8 +111,8 @@ class LevelSettingsFragment(Fragment):
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
-@ForwardFragmentAttrs(LevelSettingsFragment, LevelSettingsMixin.value_attrs)
-class LevelSettings(LevelSettingsMixin, BaseObject):
+@ForwardFragmentAttrs(LevelSettingsFragment, LevelSettings.value_attrs)
+class NewLevelSettings(LevelSettings, BaseObject):
 
     fragment_prober = SETTINGS_FRAG_PROBER
 
@@ -123,8 +123,8 @@ class LevelSettings(LevelSettingsMixin, BaseObject):
 
 
 @LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
-@set_default_attrs(LevelSettingsMixin.value_attrs)
-class OldLevelSettings(LevelSettingsMixin, Fragment):
+@set_default_attrs(LevelSettings.value_attrs)
+class OldLevelSettings(LevelSettings, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps
