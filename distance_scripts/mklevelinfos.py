@@ -5,7 +5,6 @@ import argparse
 import sqlite3
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
-from distance.bytes import DstBytes
 from distance.common import get_cache_filename, get_profile_filename
 
 

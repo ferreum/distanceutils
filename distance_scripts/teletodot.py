@@ -3,7 +3,6 @@
 
 import argparse
 
-from distance.bytes import DstBytes
 from distance.level import Level
 from distance.levelobjects import SubTeleporter
 
@@ -18,8 +17,8 @@ def main():
     def get_teleporters(gen):
         for obj in gen:
             teles = list(o for o in obj.iter_children(ty=SubTeleporter)
-                            if o.link_id is not None or
-                            o.destination is not None)
+                         if o.link_id is not None or
+                         o.destination is not None)
             if teles:
                 yield obj, teles
             if not obj.sane_end_pos:

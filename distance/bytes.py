@@ -1,7 +1,6 @@
 """.bytes file reading and writing primitives."""
 
 
-import struct
 from struct import Struct
 from contextlib import contextmanager
 
@@ -679,7 +678,8 @@ class DstBytes(object):
         self.write_bytes(bytes(l))
 
     def require_equal_uint4(self, expect):
-        if self.read_uint4() != expect:
+        value = self.read_uint4()
+        if value != expect:
             raise ValueError(f"Unexpected data: {value!r}")
 
     def write_str(self, s):

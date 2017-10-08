@@ -2,7 +2,7 @@
 
 
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
-                    SKIP_BYTES, S_FLOAT, S_FLOAT3, S_FLOAT4)
+                    SKIP_BYTES, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
 from .lazy import LazySequence, LazyMappedSequence

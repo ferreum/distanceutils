@@ -15,7 +15,7 @@ from distance.bytes import (
 )
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
-from distance.base import Fragment, ObjectFragment
+from distance.base import ObjectFragment
 from distance.fragments import NamedPropertiesFragment, MaterialFragment
 
 
@@ -23,15 +23,6 @@ STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 
 KNOWN_GOOD_SECTIONS = [
-    # bogus offset
-    # Section(22222222, type=0x81, version=7), # from v9 particle system
-    # Section(22222222, type=0x83, version=3), # from v9 GS
-    # Section(33333333, type=0x9, version=3), # from v8 LightbeamRays
-    # Section(22222222, type=0x19, version=1), # from v7 CheckpointLogic
-    # Section(33333333, type=0xa, version=1), # from v3 LensFlare
-    # Section(33333333, type=0x9, version=1), # from v3 Light2
-    # Section(33333333, type=0x9, version=4), # from v8 Light
-
     # contains a string
     Section(22222222, type=0x65, version=1), # from v9 WarningPulseLight (shader property name)
     Section(22222222, type=0x9f, version=1), # from v9 DiscoverableStuntArea (area name)

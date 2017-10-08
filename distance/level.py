@@ -1,8 +1,6 @@
 """Level and level object (CustomObject) support."""
 
 
-from struct import Struct
-
 from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
 from .base import (
     BaseObject, Fragment,
@@ -14,7 +12,6 @@ from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
-from .fragments import PROBER as FRAG_PROBER
 from .common import set_default_attrs
 
 
@@ -160,7 +157,6 @@ class Layer(Fragment):
             raise ValueError(f"Invalid layer section: {sec.magic}")
         self.layer_name = sec.name
 
-        pos = sec.content_start
         if sec.content_size < 4:
             # Happens with empty old layer sections, this prevents error
             # with empty layer at end of file.

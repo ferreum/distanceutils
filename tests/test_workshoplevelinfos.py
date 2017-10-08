@@ -1,7 +1,6 @@
 import unittest
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
-from distance.bytes import DstBytes
 from distance.printing import PrintContext
 
 

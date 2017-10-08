@@ -8,7 +8,6 @@ from .base import (
     ForwardFragmentAttrs,
 )
 from .prober import BytesProber
-from .printing import format_bytes
 from .constants import Rating
 
 

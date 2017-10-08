@@ -5,7 +5,6 @@ import os
 import sys
 import argparse
 import re
-from io import BytesIO
 
 from distance.level import Level
 from distance.levelobjects import Group

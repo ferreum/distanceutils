@@ -1,8 +1,6 @@
 """Fragment implementations."""
 
 
-import math
-
 from .bytes import (
     Section,
     S_FLOAT, S_FLOAT3,
