@@ -14,6 +14,7 @@ from .base import Fragment, ObjectFragment
 from .prober import BytesProber
 from .data import NamedPropertyList, MaterialSet
 from .constants import ForceType
+from .common import set_default_attrs
 
 
 PROBER = BytesProber(baseclass=Fragment)
@@ -350,22 +351,24 @@ class MusicTriggerFragment(Fragment):
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
+_forcezone_value_attrs = dict(
+    force_direction = (0.0, 0.0, 1.0),
+    global_force = 0,
+    force_type = ForceType.WIND,
+    gravity_magnitude = 25.0,
+    disable_global_gravity = 0,
+    wind_speed = 300.0,
+    drag_multiplier = 1.0,
+)
+
+
 @PROBER.fragment(MAGIC_2, 0xa0, 0)
+@set_default_attrs(_forcezone_value_attrs)
 class ForceZoneFragment(Fragment):
 
     is_interesting = True
 
-    value_attrs = dict(
-        force_direction = (0.0, 0.0, 1.0),
-        global_force = 0,
-        force_type = ForceType.WIND,
-        gravity_magnitude = 25.0,
-        disable_global_gravity = 0,
-        wind_speed = 300.0,
-        drag_multiplier = 1.0,
-    )
-
-    locals().update((k, None) for k in value_attrs)
+    value_attrs = _forcezone_value_attrs
 
     def _read_section_data(self, dbytes, sec):
         self.__dict__.update(self.value_attrs)

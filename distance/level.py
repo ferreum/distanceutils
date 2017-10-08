@@ -15,6 +15,7 @@ from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
 from .fragments import PROBER as FRAG_PROBER
+from .common import set_default_attrs
 
 
 LEVEL_CONTENT_PROBER = BytesProber()
@@ -73,9 +74,8 @@ class LevelSettingsMixin(object):
 
 
 @SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
+@set_default_attrs(LevelSettingsMixin.value_attrs)
 class LevelSettingsFragment(Fragment):
-
-    locals().update(LevelSettingsMixin.value_attrs)
 
     def _read_section_data(self, dbytes, sec):
         self.version = version = sec.version
@@ -123,9 +123,8 @@ class LevelSettings(LevelSettingsMixin, BaseObject):
 
 
 @LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
+@set_default_attrs(LevelSettingsMixin.value_attrs)
 class OldLevelSettings(LevelSettingsMixin, Fragment):
-
-    locals().update(LevelSettingsMixin.value_attrs)
 
     def _read_section_data(self, dbytes, sec):
         # Levelinfo section only found in old (v1) maps

@@ -9,6 +9,7 @@ from .base import (
 )
 from .prober import BytesProber
 from .printing import format_duration, format_color
+from .common import set_default_attrs
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
@@ -20,24 +21,26 @@ FRAG_PROBER = BytesProber()
 FRAG_PROBER.extend(BASE_FRAG_PROBER)
 
 
+_value_attrs = dict(
+    version = None,
+    player_name = None,
+    player_name_2 = None,
+    player_id = None,
+    finish_time = None,
+    replay_duration = None,
+    car_name = None,
+    car_color_primary = None,
+    car_color_secondary = None,
+    car_color_glow = None,
+    car_color_sparkle = None,
+)
+
+
 @FRAG_PROBER.fragment(MAGIC_2, 0x7f, any_version=True)
+@set_default_attrs(_value_attrs)
 class ReplayFragment(Fragment):
 
-    value_attrs = dict(
-        version = None,
-        player_name = None,
-        player_name_2 = None,
-        player_id = None,
-        finish_time = None,
-        replay_duration = None,
-        car_name = None,
-        car_color_primary = None,
-        car_color_secondary = None,
-        car_color_glow = None,
-        car_color_sparkle = None,
-    )
-
-    locals().update(value_attrs)
+    value_attrs = _value_attrs
 
     def _read_section_data(self, dbytes, sec):
         # demo data
