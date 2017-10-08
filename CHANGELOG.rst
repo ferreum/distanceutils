@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+* version 0.3.2
+
+    * Improved performance.
+
+    * Added some missed named properties and added support for an older format.
+
 * version 0.3.1
 
     * Fragments are now also only loaded on first access.
