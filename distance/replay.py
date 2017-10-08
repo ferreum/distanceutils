@@ -40,6 +40,8 @@ _value_attrs = dict(
 @set_default_attrs(_value_attrs)
 class ReplayFragment(Fragment):
 
+    is_interesting = True
+
     value_attrs = _value_attrs
 
     def _read_section_data(self, dbytes, sec):
