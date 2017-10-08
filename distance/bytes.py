@@ -27,6 +27,9 @@ S_LONG = Struct('<q')
 S_UINT = Struct('<I')
 S_ULONG = Struct('<Q')
 
+S_UINT2 = Struct("<II")
+S_UINT3 = Struct("<III")
+
 SKIP_BYTES = b'\xFD\xFF\xFF\x7F'
 
 """Used for some properties"""
@@ -328,6 +331,10 @@ class BytesModel(object):
         return ts
 
 
+# section magic (I) + size (Q)
+S_SEC_BASE = Struct("<IQ")
+
+
 class Section(BytesModel):
 
     __slots__ = ('magic', 'type', 'version', 'id', 'content_start', 'content_size',
@@ -411,16 +418,14 @@ class Section(BytesModel):
         self.content_start = None
         self.content_size = None
 
-        self.magic = magic = dbytes.read_uint4()
-        data_size = dbytes.read_uint8()
+        magic, data_size = dbytes.read_struct(S_SEC_BASE)
+        self.magic = magic
         data_start = dbytes.tell()
         data_end = data_start + data_size
         self.end_pos = data_end
 
         if magic in (MAGIC_2, MAGIC_3):
-            self.type = dbytes.read_uint4()
-            self.version = dbytes.read_uint4()
-            self.id = dbytes.read_id()
+            self.type, self.version, self.id = dbytes.read_struct(S_UINT3)
             cstart = data_start + 12
         elif magic == MAGIC_5:
             self.count = dbytes.read_uint4()
@@ -428,8 +433,7 @@ class Section(BytesModel):
         elif magic == MAGIC_6:
             self.type = dbytes.read_str()
             dbytes.read_bytes(1) # unknown, always 0
-            self.id = dbytes.read_id()
-            self.count = dbytes.read_uint4()
+            self.id, self.count = dbytes.read_struct(S_UINT2)
             cstart = dbytes.tell()
         elif magic == MAGIC_7:
             self.name = dbytes.read_str()
@@ -437,8 +441,7 @@ class Section(BytesModel):
             cstart = dbytes.tell()
         elif magic == MAGIC_9:
             self.name = dbytes.read_str()
-            self.count = dbytes.read_uint4()
-            self.version = dbytes.read_uint4()
+            self.count, self.version = dbytes.read_struct(S_UINT2)
             cstart = dbytes.tell()
         elif magic in (MAGIC_8, MAGIC_32):
             cstart = data_start
