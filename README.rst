@@ -40,6 +40,8 @@ to the ``-f`` option:
 
 * nofragments - Don't print any fragments (hides most object details)
 
+* allprops - Print all fragment properties
+
 * description - Print level descriptions in WorkshopLevelInfos
 
 * nosort - Don't sort LocalLeaderboard entries (entries are not sorted by time
