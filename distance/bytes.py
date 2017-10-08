@@ -413,14 +413,11 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
-        self.exception = None
         self.sane_end_pos = False
-        self.content_start = None
-        self.content_size = None
 
         magic, data_size = dbytes.read_struct(S_SEC_BASE)
         self.magic = magic
-        data_start = dbytes.tell()
+        data_start = self.start_pos + 12
         data_end = data_start + data_size
         self.end_pos = data_end
 
@@ -511,9 +508,12 @@ class Section(BytesModel):
         p(f"Section: {self.magic}{type_str}")
 
     def _print_offset(self, p):
-        start = self.content_start
-        size = self.content_size
-        if start is not None and size is not None:
+        try:
+            start = self.content_start
+            size = self.content_size
+        except AttributeError:
+            pass # don't have a size
+        else:
             if 'offset' in p.flags:
                 p(f"Data offset: 0x{start:08x} to 0x{start + size:08x} (0x{size:x} bytes)")
             else:
