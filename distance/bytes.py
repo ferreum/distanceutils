@@ -89,7 +89,6 @@ class BytesModel(object):
         obj = clazz(plain=True)
         try:
             obj.read(dbytes, **kw)
-            obj.exception = None
         except CATCH_EXCEPTIONS as e:
             obj.exception = e
         return obj
@@ -222,8 +221,9 @@ class BytesModel(object):
         if opts:
             self.opts = opts
             self._handle_opts(opts)
+        self.exception = None
+        self.end_pos = None
         try:
-            self.end_pos = None
             self._read(dbytes, **kw)
             end = self.end_pos
             if end is None:
