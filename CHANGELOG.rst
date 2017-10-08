@@ -11,7 +11,7 @@ Changelog
 
     * Fragments are now also only loaded on first access.
 
-    * Added `filtered_fragments` to filter fragments by type without loading
+    * Added ``filtered_fragments`` to filter fragments by type without loading
       them.
 
 * version 0.3.0
@@ -21,10 +21,10 @@ Changelog
     * Updated existing level object implementations to handle the remaining
       named properties correctly.
 
-    * Added `dst-filterlevel` script entry point for `filterlevel`.
+    * Added ``dst-filterlevel`` script entry point for ``filterlevel``.
 
     * Constructors now also accept a file handle or a file name instead of a
-      `DstBytes` object. See `distance.bytes.DstBytes.from_arg` for details.
+      ``DstBytes`` object. See ``distance.bytes.DstBytes.from_arg`` for details.
 
 * version 0.2.3
 
@@ -32,15 +32,15 @@ Changelog
       which cannot be copied byte-wise. Some fragments are not implemented yet,
       so trying to load modified levels in game still leads to errors.
 
-    * Added the `searchfrags` script to detect such fragments.
+    * Added the ``searchfrags`` script to detect such fragments.
 
 * version 0.2.2
 
-    * Implemented re-writing of `Level` and `Layer` objects. Most modified
+    * Implemented re-writing of ``Level`` and ``Layer`` objects. Most modified
       levels fail to load because some level objects cannot be copied
       byte-wise.
 
-    * Added the `filterlevel` script to try modifying levels.
+    * Added the ``filterlevel`` script to try modifying levels.
 
 * version 0.2.1
 
@@ -52,6 +52,6 @@ Changelog
       create CustomObject .bytes files. Some objects which cannot be copied
       byte-wise lose their properties when copied this way.
 
-    * Added `mkcustomobject` script to try to extract CustomObjects from
-      levels. Exported as `dst-mkcustomobject`.
+    * Added ``mkcustomobject`` script to try to extract CustomObjects from
+      levels. Exported as ``dst-mkcustomobject``.
 

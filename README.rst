@@ -8,7 +8,7 @@ Utilities for the Refract Studios game Distance.
 Intalling
 =========
 
-All modules and utilities are provided by the package `distanceutils`.
+All modules and utilities are provided by the package ``distanceutils``.
 For example, using pip::
 
   $ pip install --user distanceutils
@@ -28,7 +28,7 @@ Dump various data from .bytes files.
 See `.bytes Support`_ for a list of supported files.
 
 Output can be modified by passing flags (comma-separated, or multiple options)
-to the `-f` option:
+to the ``-f`` option:
 
 * transform - Prints transform (position, rotation, scale) of level objects
 
@@ -58,9 +58,9 @@ Example::
 
   $ dst-mkcustomobject Levels/MyLevels/my_level.bytes CustomObjects/my_obj.bytes -n 0 -t Zone
 
-The above extracts the first object of which the type name contains `Zone`.
+The above extracts the first object of which the type name contains ``Zone``.
 
-If multiple objects match and `-n` is not used, a numbered list of candidates
+If multiple objects match and ``-n`` is not used, a numbered list of candidates
 is printed.
 
 
@@ -120,7 +120,7 @@ _`.bytes Support`
 Reading of the following .bytes files and objects is implemented:
 
 
-* Level (`<userdir>/Levels/\*\*.bytes`)
+* Level (``<userdir>/Levels/\*\*.bytes``)
 
   * LevelSettings
 
@@ -132,11 +132,11 @@ Reading of the following .bytes files and objects is implemented:
 
   * Some Object and Subobject properties, see `Level Objects`_
 
-* CustomObjects (`<userdir>/CustomObjects/<name>.bytes`)
+* CustomObjects (``<userdir>/CustomObjects/<name>.bytes``)
 
   * These work exactly the same as objects found on levels. See `Level Objects`_
 
-* LocalLeaderboard (`<userdir>/LocalLeaderboards/<level>/<mode_id>.bytes`)
+* LocalLeaderboard (``<userdir>/LocalLeaderboards/<level>/<mode_id>.bytes``)
 
   - Version 0..1
 
@@ -148,7 +148,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Replay ID
 
-* Replay (`<userdir>/LocalLeaderboards/<level>/<mode_id>_<replay_id>.bytes`)
+* Replay (``<userdir>/LocalLeaderboards/<level>/<mode_id>_<replay_id>.bytes``)
 
   - Version 0..4
 
@@ -164,13 +164,13 @@ Reading of the following .bytes files and objects is implemented:
 
   * Car colors
 
-* LevelInfos (`<userdir>/Settings/LevelInfos.bytes`)
+* LevelInfos (``<userdir>/Settings/LevelInfos.bytes``)
 
   * Level Entries
 
     * Level name
 
-    * Level unique identifier (path in `<userdir>/Levels/`)
+    * Level unique identifier (path in ``<userdir>/Levels/``)
 
     * Level file base name
 
@@ -178,7 +178,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Medal times and scores
 
-* WorkshopLevelInfos (`<userdir>/Levels/WorkshopLevels/WorkshopLevelInfos.bytes`)
+* WorkshopLevelInfos (``<userdir>/Levels/WorkshopLevels/WorkshopLevelInfos.bytes``)
 
   * Workshop level entries
 
@@ -196,7 +196,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Author steam user name
 
-    * Level unique identifier (path within `<Userdir>/Levels/`, always starts with `WorkshopLevels/`)
+    * Level unique identifier (path within ``<Userdir>/Levels/``, always starts with ``WorkshopLevels/``)
 
     * Published by this steam user
 
@@ -204,7 +204,7 @@ Reading of the following .bytes files and objects is implemented:
 
     * Rating by this steam user (None/Positive/Negative)
 
-* ProfileProgress (`<userdir>/Profiles/Progress/<name>.bytes`)
+* ProfileProgress (``<userdir>/Profiles/Progress/<name>.bytes``)
 
   * Level progress entries
 
@@ -388,7 +388,7 @@ The following properties can be modified:
 
 * WedgeGS
 
-  * type (can be set to generate any GS with compatible properties: `SphereGS`
+  * type (can be set to generate any GS with compatible properties: ``SphereGS``
     generates a sphere)
 
   * Material/Emit/Reflect/Spec color
