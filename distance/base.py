@@ -298,6 +298,8 @@ class BaseObject(BytesModel):
                 pass # subclass has to write this section
             else:
                 frag = cls(container=sec)
+                if cls is ObjectFragment:
+                    frag.has_children = self.has_children
                 fragments.append(frag)
 
     def iter_children(self, ty=None, name=None):

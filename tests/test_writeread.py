@@ -96,6 +96,14 @@ class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
         self.assertEqual(res.multip_transp, 1)
         self.assertEqual(res.invert_emit, 1)
 
+    def test_children_section(self):
+        """Distance requires an (even empty) list of children for some objects."""
+        orig = WedgeGS()
+
+        res = write_read(orig)[0]
+
+        self.assertTrue(res.fragments[0].has_children)
+
 
 class GroupTest(unittest.TestCase):
 
