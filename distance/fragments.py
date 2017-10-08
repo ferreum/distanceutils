@@ -192,11 +192,11 @@ class GoldenSimplesFragment(Fragment):
         dbytes.write_int(1, self.disable_diffuse and 1 or 0)
         dbytes.write_int(1, self.disable_bump and 1 or 0)
         dbytes.write_bytes(S_FLOAT.pack(self.bump_strength))
-        dbytes.write_int(1, self.disable_reflect)
-        dbytes.write_int(1, self.disable_collision)
-        dbytes.write_int(1, self.additive_transp)
-        dbytes.write_int(1, self.multip_transp)
-        dbytes.write_int(1, self.invert_emit)
+        dbytes.write_int(1, self.disable_reflect and 1 or 0)
+        dbytes.write_int(1, self.disable_collision and 1 or 0)
+        dbytes.write_int(1, self.additive_transp and 1 or 0)
+        dbytes.write_int(1, self.multip_transp and 1 or 0)
+        dbytes.write_int(1, self.invert_emit and 1 or 0)
 
     def _print_type(self, p):
         p(f"Fragment: GoldenSimples")
