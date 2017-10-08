@@ -38,6 +38,8 @@ to the ``-f`` option:
 
 * nogroups - Don't print objects inside groups
 
+* nofragments - Don't print any fragments (hides most object details)
+
 * description - Print level descriptions in WorkshopLevelInfos
 
 * nosort - Don't sort LocalLeaderboard entries (entries are not sorted by time
@@ -45,8 +47,6 @@ to the ``-f`` option:
 
 * sections - Prints the sections that each object consists of (object format
   intrinsic)
-
-* unknown - Prints unknown data for each object
 
 
 dst-mkcustomobject
