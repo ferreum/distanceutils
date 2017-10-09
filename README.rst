@@ -388,13 +388,15 @@ properties pane in the editor.
 Writing objects
 ---------------
 
-Single objects read from a file can be written as-is to a different file.
+Most objects read from a file can be written as-is to a different file. Some
+properties reference absolute offsets within the file, which are rewritten
+automatically.
 
-There are some problems with this: .bytes files contain a lot of IDs that need
-to be consistent within a file. If an ID occurs multiple times in a single
-file, it cannot be loaded (with varying effects). This means that extracting
-objects from one file works fine, but duplicating objects or merging objects
-from different files leads to errors when loading the level.
+Additionally .bytes files contain a lot of IDs that need to be consistent
+within a file. If an ID occurs multiple times in a single file, it cannot be
+loaded (with varying effects). This means that extracting objects from one file
+works fine, but duplicating objects or merging objects from different files
+leads to errors when loading the level.
 
 
 These objects can be generated:
