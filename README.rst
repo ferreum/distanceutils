@@ -72,6 +72,9 @@ dst-objtobytes
 Take a wavefront .obj file and generate a .bytes CustomObject made from
 simples.
 
+For this script, the additional modules ``numpy`` and ``numpy-quaternion`` need
+to be installed.
+
 * The resulting object is a Group containing WedgeGS objects.
 
 * Subgroups are generated if the .obj contains groups.
