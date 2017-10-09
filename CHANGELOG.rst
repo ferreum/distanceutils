@@ -1,9 +1,15 @@
 Changelog
 ---------
 
+* version 0.3.4
+
+    * Added a missing import to main ``distance`` module.
+
+    * Cleaned up internals.
+
 * version 0.3.3
 
-    * Added imports and doc to main distance module.
+    * Added imports and doc to main ``distance`` module.
 
     * Cleaned up code.
 
