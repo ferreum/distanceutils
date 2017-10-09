@@ -10,9 +10,9 @@ from .bytes import (
 )
 from .base import Fragment, ObjectFragment
 from .prober import BytesProber
-from .data import NamedPropertyList, MaterialSet
+from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
-from .common import set_default_attrs
+from ._common import set_default_attrs
 
 
 PROBER = BytesProber(baseclass=Fragment)

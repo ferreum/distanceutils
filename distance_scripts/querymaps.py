@@ -6,7 +6,7 @@ import argparse
 import sqlite3
 import re
 
-from distance.common import get_cache_filename
+from ._common import get_cache_filename
 
 
 def format_bytes(data):

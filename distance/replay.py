@@ -9,7 +9,7 @@ from .base import (
 )
 from .prober import BytesProber
 from .printing import format_duration, format_color
-from .common import set_default_attrs
+from ._common import set_default_attrs
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "

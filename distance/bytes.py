@@ -5,7 +5,7 @@ from struct import Struct
 from contextlib import contextmanager
 
 from .printing import PrintContext
-from .argtaker import ArgTaker
+from ._argtaker import ArgTaker
 from .lazy import LazySequence
 
 import codecs

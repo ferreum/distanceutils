@@ -12,7 +12,7 @@ from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
-from .common import set_default_attrs
+from ._common import set_default_attrs
 
 
 LEVEL_CONTENT_PROBER = BytesProber()
