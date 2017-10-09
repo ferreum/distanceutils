@@ -6,7 +6,7 @@ from .bytes import (
     MAGIC_2, MAGIC_3, MAGIC_6
 )
 from .base import BaseObject, ForwardFragmentAttrs
-from .fragments import (
+from .levelfragments import (
     PROBER as FRAG_PROBER,
     ForwardMaterialColors,
     GoldenSimplesFragment,

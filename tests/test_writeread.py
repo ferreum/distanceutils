@@ -3,7 +3,7 @@ import unittest
 from distance.levelobjects import (
     LevelObject, WedgeGS, Group, InfoDisplayBox, WinLogic,
 )
-from distance.fragments import (
+from distance.levelfragments import (
     MaterialFragment,
     TrackNodeFragment,
 )

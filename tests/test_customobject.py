@@ -1,7 +1,7 @@
 import unittest
 
 from distance.levelobjects import PROBER, SubTeleporter, WinLogic
-from distance.fragments import (
+from distance.levelfragments import (
     TrackNodeFragment,
     BaseCarScreenTextDecodeTrigger,
     CarScreenTextDecodeTriggerFragment,

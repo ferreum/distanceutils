@@ -16,7 +16,7 @@ from distance.bytes import (
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
 from distance.base import ObjectFragment
-from distance.fragments import NamedPropertiesFragment, MaterialFragment
+from distance.levelfragments import NamedPropertiesFragment, MaterialFragment
 
 
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
