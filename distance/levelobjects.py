@@ -12,8 +12,8 @@ from .fragments import (
     GoldenSimplesFragment,
     GroupFragment,
     CustomNameFragment,
-    TeleporterEntranceMixin,
-    TeleporterExitMixin,
+    BaseTeleporterEntrance,
+    BaseTeleporterExit,
     TeleporterExitCheckpointFragment,
     RaceEndLogicFragment,
     ForceZoneFragment,
@@ -22,8 +22,8 @@ from .fragments import (
     SphereColliderFragment,
     GravityToggleFragment,
     MusicTriggerFragment,
-    CarScreenTextDecodeTriggerMixin,
-    InfoDisplayLogicMixin,
+    BaseCarScreenTextDecodeTrigger,
+    BaseInfoDisplayLogic,
 )
 from .prober import BytesProber
 from .printing import need_counters
@@ -138,8 +138,8 @@ class Group(LevelObject):
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
-@ForwardFragmentAttrs(TeleporterEntranceMixin, dict(destination=None))
-@ForwardFragmentAttrs(TeleporterExitMixin, dict(link_id=None))
+@ForwardFragmentAttrs(BaseTeleporterEntrance, dict(destination=None))
+@ForwardFragmentAttrs(BaseTeleporterExit, dict(link_id=None))
 @ForwardFragmentAttrs(TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None))
 class SubTeleporter(SubObject):
     pass
@@ -158,7 +158,7 @@ class WorldText(LevelObject):
 
 
 @PROBER.for_type('InfoDisplayBox')
-@ForwardFragmentAttrs(InfoDisplayLogicMixin, dict(
+@ForwardFragmentAttrs(BaseInfoDisplayLogic, dict(
     fadeout_time = None,
     texts = (),
     per_char_speed = None,
@@ -170,7 +170,7 @@ class InfoDisplayBox(LevelObject):
 
 
 @PROBER.for_type('CarScreenTextDecodeTrigger')
-@ForwardFragmentAttrs(CarScreenTextDecodeTriggerMixin, dict(
+@ForwardFragmentAttrs(BaseCarScreenTextDecodeTrigger, dict(
     text = None,
     per_char_speed = None,
     clear_on_finish = None,

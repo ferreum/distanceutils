@@ -200,7 +200,7 @@ class GoldenSimplesFragment(Fragment):
         p(f"Fragment: GoldenSimples")
 
 
-class TeleporterEntranceMixin(object):
+class BaseTeleporterEntrance(object):
 
     is_interesting = True
 
@@ -211,7 +211,7 @@ class TeleporterEntranceMixin(object):
 
 
 @PROBER.fragment(MAGIC_2, 0x3e, 0)
-class OldTeleporterEntranceFragment(TeleporterEntranceMixin, NamedPropertiesFragment):
+class OldTeleporterEntranceFragment(BaseTeleporterEntrance, NamedPropertiesFragment):
 
     @named_property_getter('LinkID', default=0)
     def destination(self, db):
@@ -222,7 +222,7 @@ class OldTeleporterEntranceFragment(TeleporterEntranceMixin, NamedPropertiesFrag
 @PROBER.fragment(MAGIC_2, 0x3e, 1)
 @PROBER.fragment(MAGIC_2, 0x3e, 2)
 @PROBER.fragment(MAGIC_2, 0x3e, 3)
-class TeleporterEntranceFragment(TeleporterEntranceMixin, Fragment):
+class TeleporterEntranceFragment(BaseTeleporterEntrance, Fragment):
 
     destination = None
 
@@ -235,7 +235,7 @@ class TeleporterEntranceFragment(TeleporterEntranceMixin, Fragment):
             p(f"Teleports to: {self.destination}")
 
 
-class TeleporterExitMixin(object):
+class BaseTeleporterExit(object):
 
     is_interesting = True
 
@@ -246,7 +246,7 @@ class TeleporterExitMixin(object):
 
 
 @PROBER.fragment(MAGIC_2, 0x3f, 1)
-class TeleporterExitFragment(TeleporterExitMixin, Fragment):
+class TeleporterExitFragment(BaseTeleporterExit, Fragment):
 
     link_id = None
 
@@ -255,7 +255,7 @@ class TeleporterExitFragment(TeleporterExitMixin, Fragment):
 
 
 @PROBER.fragment(MAGIC_2, 0x3f, 0)
-class OldTeleporterExitFragment(TeleporterExitMixin, NamedPropertiesFragment):
+class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
 
     @named_property_getter('LinkID', default=0)
     def link_id(self, db):
@@ -544,7 +544,7 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
             p(f"Bloom out: {self.bloom_out}")
 
 
-class CarScreenTextDecodeTriggerMixin(object):
+class BaseCarScreenTextDecodeTrigger(object):
 
     is_interesting = True
 
@@ -586,7 +586,7 @@ class CarScreenTextDecodeTriggerMixin(object):
 
 
 @PROBER.fragment(MAGIC_2, 0x57, 0)
-class OldCarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, NamedPropertiesFragment):
+class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, NamedPropertiesFragment):
 
     @named_property_getter('Text')
     def text(self, db):
@@ -631,7 +631,7 @@ class OldCarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Nam
 
 
 @PROBER.fragment(MAGIC_2, 0x57, 1)
-class CarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Fragment):
+class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
@@ -646,7 +646,7 @@ class CarScreenTextDecodeTriggerFragment(CarScreenTextDecodeTriggerMixin, Fragme
             self.announcer_action = dbytes.read_uint4()
 
 
-class InfoDisplayLogicMixin(object):
+class BaseInfoDisplayLogic(object):
 
     is_interesting = True
 
@@ -672,7 +672,7 @@ class InfoDisplayLogicMixin(object):
 
 
 @PROBER.fragment(MAGIC_2, 0x4a, 0)
-class OldInfoDisplayLogicFragment(InfoDisplayLogicMixin, NamedPropertiesFragment):
+class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment):
 
     @property
     def texts(self):
@@ -703,7 +703,7 @@ class OldInfoDisplayLogicFragment(InfoDisplayLogicMixin, NamedPropertiesFragment
 
 
 @PROBER.fragment(MAGIC_2, 0x4a, 2)
-class InfoDisplayLogicFragment(InfoDisplayLogicMixin, Fragment):
+class InfoDisplayLogicFragment(BaseInfoDisplayLogic, Fragment):
 
     def _read_section_data(self, dbytes, sec):
         # only verified in v2

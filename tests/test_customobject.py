@@ -3,7 +3,7 @@ import unittest
 from distance.levelobjects import PROBER, SubTeleporter, WinLogic
 from distance.fragments import (
     TrackNodeFragment,
-    CarScreenTextDecodeTriggerMixin,
+    BaseCarScreenTextDecodeTrigger,
     CarScreenTextDecodeTriggerFragment,
     OldCarScreenTextDecodeTriggerFragment,
 )
@@ -264,7 +264,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
     def test_trigger(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/decodetrigger.bytes")
-        frag = obj.fragment_by_type(CarScreenTextDecodeTriggerMixin)
+        frag = obj.fragment_by_type(BaseCarScreenTextDecodeTrigger)
         self.assertEqual(CarScreenTextDecodeTriggerFragment, type(frag))
         p.print_data_of(obj)
         self.assertEqual(obj.text, "Please, help us.")
@@ -274,7 +274,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
     def test_ver0(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/decodetrigger v0.bytes")
-        frag = obj.fragment_by_type(CarScreenTextDecodeTriggerMixin)
+        frag = obj.fragment_by_type(BaseCarScreenTextDecodeTrigger)
         self.assertEqual(OldCarScreenTextDecodeTriggerFragment, type(frag))
         p.print_data_of(frag)
         self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
