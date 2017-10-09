@@ -50,6 +50,12 @@ to the ``-f`` option:
 * sections - Prints the sections that each object consists of (object format
   intrinsic)
 
+Example::
+
+  $ dst-bytes -f transform my_level.bytes
+
+Prints all objects in "my_level.bytes" including their position.
+
 
 dst-mkcustomobject
 ------------------
@@ -86,6 +92,10 @@ to be installed.
 
 * Loading large objects (> 1000 triangles) considerably slows down level load
   times.
+
+Example::
+
+  $ dst-objtobytes teapot.obj teapot.bytes
 
 
 dst-filterlevel
