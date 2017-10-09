@@ -151,7 +151,7 @@ _`.bytes Support`
 Reading of the following .bytes files and objects is implemented:
 
 
-* Level (``<userdir>/Levels/\*\*.bytes``)
+* Level (``<userdir>/Levels/**.bytes``)
 
   * LevelSettings
 
