@@ -57,6 +57,7 @@ from distance.level import Level
 from distance.replay import Replay
 from distance.leaderboard import Leaderboard
 from distance.levelinfos import LevelInfos
+from distance.profileprogress import ProfileProgress
 from distance.workshoplevelinfos import WorkshopLevelInfos
 
 from distance.knowntypes import PROBER
@@ -69,7 +70,7 @@ from distance.constants import (
 
 __all__ = [
     'Level', 'Replay', 'Leaderboard', 'LevelInfos',
-    'WorkshopLevelInfos', 'PROBER', 'DstBytes', 'Section',
+    'ProfileProgress', 'WorkshopLevelInfos', 'PROBER',
 
     'AbilityToggle', 'Completion', 'Difficulty',
     'ForceType', 'Mode', 'Rating',
