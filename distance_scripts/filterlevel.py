@@ -43,7 +43,7 @@ class ObjectMatcher(object):
 
     def __init__(self, args):
         self.all = args.all
-        self.objnum = args.objnum
+        self.numbers = args.numbers
         self.type_patterns = [re.compile(r) for r in args.type]
         self.maxrecurse = args.maxrecurse
         self.num_matches = 0
@@ -77,7 +77,7 @@ class ObjectMatcher(object):
             self.num_matches = num + 1
             if self.all:
                 return True
-            if num in self.objnum:
+            if num in self.numbers:
                 return True
         return False
 
@@ -125,7 +125,7 @@ def main():
         description=__doc__)
     parser.add_argument("-f", "--force", action='store_true',
                         help="Allow overwriting OUT file.")
-    parser.add_argument("-n", "--objnum", action='append',
+    parser.add_argument("-n", "--number", dest='numbers', action='append',
                         type=int, default=[],
                         help="Select by candidate number.")
     parser.add_argument("-a", "--all", action='store_true',
@@ -142,7 +142,7 @@ def main():
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    do_write = args.force or args.all or bool(args.objnum)
+    do_write = args.force or args.all or bool(args.numbers)
     if do_write:
         write_mode = 'xb'
         if args.force:
