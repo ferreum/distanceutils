@@ -75,6 +75,7 @@ class ObjectMatcher(object):
         if self.match_props(obj):
             num = self.num_matches
             self.num_matches = num + 1
+            self.matches.append(obj)
             if self.all:
                 return True
             if num in self.numbers:
@@ -86,7 +87,6 @@ class ObjectMatcher(object):
         for obj in objs:
             remove = False
             if self.match(obj):
-                self.matches.append(obj)
                 remove  = True
             if obj.is_object_group and recurse != 0:
                 obj.children = self._filter_objects(obj.children, recurse - 1)
