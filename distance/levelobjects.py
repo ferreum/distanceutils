@@ -93,8 +93,8 @@ class SubObject(LevelObject):
 
 
 @PROBER.for_type('Group')
-@ForwardFragmentAttrs(GroupFragment, GroupFragment.value_attrs)
-@ForwardFragmentAttrs(CustomNameFragment, CustomNameFragment.value_attrs)
+@ForwardFragmentAttrs(GroupFragment, **GroupFragment.value_attrs)
+@ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 class Group(LevelObject):
 
     child_prober = PROBER
@@ -138,39 +138,39 @@ class Group(LevelObject):
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
-@ForwardFragmentAttrs(BaseTeleporterEntrance, dict(destination=None))
-@ForwardFragmentAttrs(BaseTeleporterExit, dict(link_id=None))
-@ForwardFragmentAttrs(TeleporterExitCheckpointFragment, dict(trigger_checkpoint=None))
+@ForwardFragmentAttrs(BaseTeleporterEntrance, destination=None)
+@ForwardFragmentAttrs(BaseTeleporterExit, link_id=None)
+@ForwardFragmentAttrs(TeleporterExitCheckpointFragment, trigger_checkpoint=None)
 class SubTeleporter(SubObject):
     pass
 
 
 @SUBOBJ_PROBER.for_type('WinLogic')
-@ForwardFragmentAttrs(RaceEndLogicFragment, dict(delay_before_broadcast=None))
+@ForwardFragmentAttrs(RaceEndLogicFragment, delay_before_broadcast=None)
 class WinLogic(SubObject):
     pass
 
 
 @PROBER.for_type('WorldText')
-@ForwardFragmentAttrs(TextMeshFragment, dict(text=None, is_skip=False))
+@ForwardFragmentAttrs(TextMeshFragment, text=None, is_skip=False)
 class WorldText(LevelObject):
     pass
 
 
 @PROBER.for_type('InfoDisplayBox')
-@ForwardFragmentAttrs(BaseInfoDisplayLogic, dict(
+@ForwardFragmentAttrs(BaseInfoDisplayLogic,
     fadeout_time = None,
     texts = (),
     per_char_speed = None,
     destroy_on_trigger_exit = None,
     random_char_count = None,
-))
+)
 class InfoDisplayBox(LevelObject):
     pass
 
 
 @PROBER.for_type('CarScreenTextDecodeTrigger')
-@ForwardFragmentAttrs(BaseCarScreenTextDecodeTrigger, dict(
+@ForwardFragmentAttrs(BaseCarScreenTextDecodeTrigger,
     text = None,
     per_char_speed = None,
     clear_on_finish = None,
@@ -181,46 +181,46 @@ class InfoDisplayBox(LevelObject):
     delay = None,
     announcer_action = None,
     announcer_phrases = (),
-))
+)
 class CarScreenTextDecodeTrigger(LevelObject):
     pass
 
 
 @PROBER.for_type('GravityTrigger')
-@ForwardFragmentAttrs(SphereColliderFragment, dict(
+@ForwardFragmentAttrs(SphereColliderFragment,
     trigger_center = None,
     trigger_radius = None,
-))
-@ForwardFragmentAttrs(GravityToggleFragment, dict(
+)
+@ForwardFragmentAttrs(GravityToggleFragment,
     disable_gravity = None,
     drag_scale = None,
     drag_scale_angular = None,
-))
-@ForwardFragmentAttrs(MusicTriggerFragment, dict(
+)
+@ForwardFragmentAttrs(MusicTriggerFragment,
     music_id = None,
     one_time_trigger = None,
     reset_before_trigger = None,
     disable_music_trigger = None,
-))
+)
 class GravityTrigger(LevelObject):
     pass
 
 
 @PROBER.for_type('ForceZoneBox')
-@ForwardFragmentAttrs(CustomNameFragment, CustomNameFragment.value_attrs)
-@ForwardFragmentAttrs(ForceZoneFragment, ForceZoneFragment.value_attrs)
+@ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
+@ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment.value_attrs)
 class ForceZoneBox(LevelObject):
     pass
 
 
 @PROBER.for_type('EnableAbilitiesBox')
-@ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, dict(abilities=None, bloom_out=None))
+@ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None)
 class EnableAbilitiesBox(LevelObject):
     pass
 
 
 @PROBER.for_type('WedgeGS')
-@ForwardFragmentAttrs(GoldenSimplesFragment, GoldenSimplesFragment.value_attrs)
+@ForwardFragmentAttrs(GoldenSimplesFragment, **GoldenSimplesFragment.value_attrs)
 @ForwardMaterialColors(
     mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
     mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),

@@ -74,7 +74,7 @@ class LevelInfosFragment(Fragment):
         self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
 
 
-@ForwardFragmentAttrs(LevelInfosFragment, dict(levels=(), version=None))
+@ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
 class LevelInfos(BaseObject):
 
     fragment_prober = FRAG_PROBER

@@ -108,7 +108,7 @@ class LevelSettingsFragment(Fragment):
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
-@ForwardFragmentAttrs(LevelSettingsFragment, LevelSettings.value_attrs)
+@ForwardFragmentAttrs(LevelSettingsFragment, **LevelSettings.value_attrs)
 class NewLevelSettings(LevelSettings, BaseObject):
 
     fragment_prober = SETTINGS_FRAG_PROBER

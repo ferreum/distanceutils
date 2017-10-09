@@ -181,7 +181,7 @@ class ForwardFragmentAttrs(object):
 
     """Decorator to forward attributes of a objects to their fragments."""
 
-    def __init__(self, cls, attrs):
+    def __init__(self, cls, **attrs):
         self.cls = cls
         self.attrs = attrs
 
@@ -202,7 +202,7 @@ class ForwardFragmentAttrs(object):
         return target
 
 
-@ForwardFragmentAttrs(ObjectFragment, dict(transform=None, children=()))
+@ForwardFragmentAttrs(ObjectFragment, transform=None, children=())
 class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""

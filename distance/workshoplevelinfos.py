@@ -70,7 +70,7 @@ class WorkshopLevelInfosFragment(Fragment):
                                          start_pos=sec.content_start + 8)
 
 
-@ForwardFragmentAttrs(WorkshopLevelInfosFragment, dict(levels=()))
+@ForwardFragmentAttrs(WorkshopLevelInfosFragment, levels=())
 class WorkshopLevelInfos(BaseObject):
 
     fragment_prober = FRAG_PROBER

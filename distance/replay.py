@@ -84,7 +84,7 @@ class ReplayFragment(Fragment):
         p(f"Car color sparkle: {format_color(self.car_color_sparkle)}")
 
 
-@ForwardFragmentAttrs(ReplayFragment, ReplayFragment.value_attrs)
+@ForwardFragmentAttrs(ReplayFragment, **ReplayFragment.value_attrs)
 class Replay(BaseObject):
 
     fragment_prober = FRAG_PROBER

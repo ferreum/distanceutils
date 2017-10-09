@@ -429,7 +429,7 @@ class ProfileProgressFragment(Fragment):
         return levels
 
 
-@ForwardFragmentAttrs(ProfileProgressFragment, ProfileProgressFragment.value_attrs)
+@ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
 class ProfileProgress(BaseObject):
 
     fragment_prober = FRAG_PROBER

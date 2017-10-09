@@ -53,7 +53,7 @@ class LeaderboardFragment(Fragment):
                                           version=version)
 
 
-@ForwardFragmentAttrs(LeaderboardFragment, dict(version=None, entries=()))
+@ForwardFragmentAttrs(LeaderboardFragment, version=None, entries=())
 class Leaderboard(BaseObject):
 
     fragment_prober = FRAG_PROBER
