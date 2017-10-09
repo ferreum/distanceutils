@@ -30,9 +30,9 @@ See `.bytes Support`_ for a list of supported files.
 Output can be modified by passing flags (comma-separated, or multiple options)
 to the ``-f`` option:
 
-* transform - Prints transform (position, rotation, scale) of level objects
+* transform - Print transform (position, rotation, scale) of level objects
 
-* offset - Prints hexadecimal offset of objects in the .bytes file
+* offset - Print hexadecimal offset of objects in the .bytes file
 
 * nosubobjects - Don't print subobjects
 
@@ -47,8 +47,10 @@ to the ``-f`` option:
 * nosort - Don't sort LocalLeaderboard entries (entries are not sorted by time
   in the file)
 
-* sections - Prints the sections that each object consists of (object format
+* sections - Print the sections that each object consists of (object format
   intrinsic)
+
+* track - Print connection reference IDs of track elements
 
 Example::
 
