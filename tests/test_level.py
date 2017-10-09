@@ -9,7 +9,7 @@ class LevelTest(unittest.TestCase):
 
     def test_level(self):
         level = Level("tests/in/level/test-straightroad.bytes")
-        self.assertEqual(level.level_name, "Test-straightroad")
+        self.assertEqual(level.name, "Test-straightroad")
         check_exceptions(level)
 
     def test_print_data(self):
@@ -18,7 +18,7 @@ class LevelTest(unittest.TestCase):
 
     def test_truncated(self):
         level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
-        self.assertEqual(level.level_name, "Test-straightroad")
+        self.assertEqual(level.name, "Test-straightroad")
         results = [level.settings] + list(level.iter_objects())
         self.assertRaises(EOFError, check_exceptions, results[3])
         self.assertEqual(len(results), 4)
@@ -30,7 +30,7 @@ class LevelTest(unittest.TestCase):
 
     def test_truncated_iter(self):
         level = Level.maybe("tests/in/level/test-straightroad_truncated_2.bytes")
-        self.assertEqual(level.level_name, "Test-straightroad")
+        self.assertEqual(level.name, "Test-straightroad")
         gen = level.iter_objects()
         next(gen)
         obj = next(gen)
@@ -38,14 +38,14 @@ class LevelTest(unittest.TestCase):
 
     def test_truncated_seq(self):
         level = Level.maybe("tests/in/level/test-straightroad_truncated_2.bytes")
-        self.assertEqual(level.level_name, "Test-straightroad")
+        self.assertEqual(level.name, "Test-straightroad")
         objs = level.layers[0].objects[:]
         self.assertEqual(2, len(objs))
         self.assertEqual(EOFError, type(objs[-1].exception))
 
     def test_invalid_str(self):
         level = Level("tests/in/level/invalid-groupname.bytes")
-        self.assertEqual(level.level_name, "Test Group")
+        self.assertEqual(level.name, "Test Group")
         results = list(level.iter_objects())
         self.assertEqual(len(results), 5)
         for i, obj in enumerate(results):

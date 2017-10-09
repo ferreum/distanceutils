@@ -221,12 +221,12 @@ class Level(Fragment):
 
     _settings = Ellipsis
     layers = ()
-    level_name = None
+    name = None
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
-        self.level_name = sec.name
+        self.name = sec.name
 
         num_layers = sec.count
 
@@ -268,7 +268,7 @@ class Level(Fragment):
                 yield from layer.objects
 
     def _print_data(self, p):
-        p(f"Level name: {self.level_name!r}")
+        p(f"Level name: {self.name!r}")
         try:
             settings = self.settings
             with p.tree_children():
