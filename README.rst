@@ -88,6 +88,20 @@ to be installed.
   times.
 
 
+dst-filterlevel
+---------------
+
+Remove selected objects from a level file.
+
+Takes an input and an output filename. The option ``-t`` matches object types
+by regex. ``-n <num>`` selects matching objects by index, ``-a`` selects all
+matching objects.
+
+For example, to remove all roads from "my_level.bytes"::
+
+  $ dst-filterlevel my_level.bytes result.bytes -t Road -a
+
+
 dst-teletodot
 -------------
 
