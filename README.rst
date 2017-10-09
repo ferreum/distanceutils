@@ -5,8 +5,8 @@ distanceutils
 Utilities for the Refract Studios game Distance.
 ################################################
 
-Intalling
-=========
+Installing
+==========
 
 All modules and utilities are provided by the package ``distanceutils``.
 For example, using pip::
