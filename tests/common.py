@@ -1,5 +1,6 @@
 import unittest
 from io import BytesIO
+from contextlib import contextmanager
 
 from distance.bytes import DstBytes
 from distance.level import Level, Layer
@@ -66,17 +67,29 @@ class WriteReadTest(unittest.TestCase):
 
     exact = True
 
+    skip_if_missing = False
+
     def read_obj_pre(self, dbytes):
         return self.read_obj(dbytes)
 
+    @contextmanager
+    def open(self, filename):
+        try:
+            with open(filename, 'rb') as f:
+                yield f
+        except FileNotFoundError:
+            if self.skip_if_missing:
+                self.skipTest("file {filename!r} is missing")
+            raise
+
     def test_read(self):
-        with open(self.filename, 'rb') as f:
+        with self.open(self.filename) as f:
             res = self.read_obj(DstBytes(f))
 
             self.verify_obj(res)
 
     def test_write_read(self):
-        with open(self.filename, 'rb') as f:
+        with self.open(self.filename) as f:
             orig_bytes = f.read()
             orig_buf = BytesIO(orig_bytes)
 

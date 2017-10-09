@@ -72,7 +72,10 @@ class Base(object):
             for file in self.files:
                 with self.subTest(file=file):
                     p = PrintContext.for_test()
-                    p.print_data_of(Level(f"tests/in/level-not-included/{file}.bytes"))
+                    try:
+                        p.print_data_of(Level(f"tests/in/level-not-included/{file}.bytes"))
+                    except FileNotFoundError:
+                        self.skipTest(f"file {file!r} is missing")
 
 
 class Version0Test(BaseTest):

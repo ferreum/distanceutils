@@ -22,6 +22,7 @@ class StraightroadTest(Base.WriteReadTest):
 class TheVirusBeginsS8Test(Base.WriteReadTest):
 
     filename = "tests/in/level-not-included/v1/the virus begins.bytes"
+    skip_if_missing = True
 
     def verify_obj(self, level):
         self.assertEqual("The Virus Begins", level.level_name)
@@ -30,6 +31,7 @@ class TheVirusBeginsS8Test(Base.WriteReadTest):
 class BirthdayBashCourtS8Test(Base.WriteReadTest):
 
     filename = "tests/in/level-not-included/s8/birthday bash court.bytes"
+    skip_if_missing = True
 
     def verify_obj(self, level):
         self.assertEqual("birthday bash court", level.level_name)
