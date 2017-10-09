@@ -69,8 +69,10 @@ class NamedPropertyList(OrderedDict):
 
     def print_data(self, p):
         p(f"Properties: {len(self)}")
-        for k, v in self.items():
-            p(f"Property: {k!r} = {format_bytes(v)}")
+        with p.tree_children():
+            for k, v in self.items():
+                p.tree_next_child()
+                p(f"Property: {k!r} = {format_bytes(v)}")
 
 
 class ColorSet(OrderedDict):
