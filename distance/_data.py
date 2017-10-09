@@ -106,7 +106,7 @@ class ColorSet(OrderedDict):
             for colname, color in self.items():
                 p.tree_next_child()
                 cstr = ", ".join(format(v, ".3f") for v in color)
-                p(f"Color: {colname!r} {cstr}")
+                p(f"Color: {colname!r} = {cstr}")
 
 
 class MaterialSet(OrderedDict):
