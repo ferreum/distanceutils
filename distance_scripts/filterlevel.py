@@ -22,11 +22,10 @@ PROBER = BytesProber()
 
 
 PROBER.add_type('Group', Group)
+PROBER.add_fragment(Level, MAGIC_9)
 
 @PROBER.func
 def _detect_other(section):
-    if section.magic == MAGIC_9:
-        return Level
     return BaseObject
 
 

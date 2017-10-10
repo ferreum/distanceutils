@@ -19,14 +19,13 @@ PROBER = BytesProber({
     FTYPE_PROFILEPROGRESS: ProfileProgress,
 })
 
+PROBER.add_fragment(Level, MAGIC_9)
 
 @PROBER.func
 def _detect_other(section):
     if section.magic == MAGIC_6:
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
-    if section.magic == MAGIC_9:
-        return Level
     return None
 
 

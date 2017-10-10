@@ -44,12 +44,7 @@ KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 
 def setup_prober(args):
     prober = BytesProber()
-
-    @prober.func(high_prio=True)
-    def _detect_other(section):
-        if section.magic == MAGIC_9:
-            return Level
-        return None
+    prober.add_fragment(Level, MAGIC_9)
 
     return prober
 
