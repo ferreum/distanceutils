@@ -102,7 +102,7 @@ class LevelSettingsFragment(Fragment):
             times.append(dbytes.read_struct(S_FLOAT)[0])
             scores.append(dbytes.read_int4())
         if version >= 1:
-            self.abilities = dbytes.read_bytes(5)
+            self.abilities = tuple(dbytes.read_bytes(5))
         if version >= 2:
             self.difficulty = dbytes.read_uint4()
 
