@@ -278,8 +278,10 @@ class BaseObject(BytesModel):
             child_prober=self.child_prober)
 
     def write(self, dbytes):
-        if self.container is None:
-            self.container = Section(MAGIC_6, self.type)
+        try:
+            container = self.container
+        except AttributeError:
+            self.container = container = Section(MAGIC_6, self.type)
         if self.sections is ():
             self._init_defaults()
         with dbytes.write_section(self.container):

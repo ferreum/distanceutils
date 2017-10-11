@@ -127,6 +127,7 @@ class BytesProber(object):
         except CATCH_EXCEPTIONS as e:
             ins = self.baseclass()
             ins.exception = e
+            ins.sane_end_pos = False
             return ins
         kw.update(add_kw)
         return cls.maybe(dbytes, **kw)

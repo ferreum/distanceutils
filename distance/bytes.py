@@ -67,12 +67,9 @@ class BytesModel(object):
 
     """Base object representing a set amount of data in .bytes files."""
 
-    exception = None
-    container = None
-    sane_end_pos = False
-    start_pos = None
-    end_pos = None
-    opts = None
+    __slots__ = ('exception', 'container',
+                 'start_pos', 'end_pos', 'sane_end_pos',
+                 'opts', 'dbytes')
 
     @classmethod
     def maybe(clazz, dbytes, **kw):
@@ -220,8 +217,11 @@ class BytesModel(object):
         if opts:
             self.opts = opts
             self._handle_opts(opts)
-        self.exception = None
+        else:
+            self.opts = None
         self.end_pos = None
+        self.exception = None
+        self.sane_end_pos = False
         try:
             self._read(dbytes, **kw)
             end = self.end_pos
@@ -278,7 +278,11 @@ class BytesModel(object):
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
         if 'sections' in p.flags:
-            if self.container is not None:
+            try:
+                container = self.container
+            except AttributeError:
+                pass
+            else:
                 p(f"Container:")
                 with p.tree_children():
                     p.print_data_of(self.container)
@@ -289,17 +293,22 @@ class BytesModel(object):
             p.print_exception(self.exception)
 
     def _print_type(self, p):
-        container = self.container
-        if container and container.magic == MAGIC_6:
-            type_str = container.type
-            p(f"Object type: {type_str!r}")
+        try:
+            container = self.container
+        except AttributeError:
+            pass
+        else:
+            if container and container.magic == MAGIC_6:
+                type_str = container.type
+                p(f"Object type: {type_str!r}")
 
     def _print_offset(self, p):
-        start = self.start_pos
-        if start is None:
+        try:
+            start = self.start_pos
+            end = self.end_pos
+        except AttributeError:
             # we don't have a position
             return
-        end = self.end_pos
         if 'offset' in p.flags:
             p(f"Data offset: 0x{start:08x} to 0x{end:08x} (0x{end - start:x} bytes)")
         else:
@@ -312,10 +321,11 @@ class BytesModel(object):
         pass
 
     def _get_container(self):
-        sec = self.container
-        if not sec:
+        try:
+            return self.container
+        except AttributeError:
             self.container = sec = Section(self.dbytes, seek_end=False)
-        return sec
+            return sec
 
     def _require_type(self, expect):
         ts = self._get_container()
@@ -336,9 +346,9 @@ S_SEC_BASE = Struct("<IQ")
 
 class Section(BytesModel):
 
-    __slots__ = ('magic', 'type', 'version', 'id', 'content_start', 'content_size',
-                 'count', 'name',
-                 'start_pos', 'end_pos', 'dbytes', 'exception', 'sane_end_pos')
+    __slots__ = ('magic', 'type', 'version', 'id',
+                 'content_start', 'content_size',
+                 'count', 'name')
 
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
@@ -412,8 +422,6 @@ class Section(BytesModel):
             return magic
 
     def _read(self, dbytes):
-        self.sane_end_pos = False
-
         magic, data_size = dbytes.read_struct(S_SEC_BASE)
         self.magic = magic
         data_start = self.start_pos + 12
