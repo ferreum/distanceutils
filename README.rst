@@ -403,7 +403,7 @@ These objects can be generated:
 
 * Group
 
-* WedgeGS (and any compatible GS, see properties below)
+* GoldenSimple (any non-spline golden simple)
 
 The following properties can be modified:
 
@@ -419,10 +419,10 @@ The following properties can be modified:
 
   * Group name
 
-* WedgeGS
+* GoldenSimple
 
-  * type (can be set to generate any GS with compatible properties: ``SphereGS``
-    generates a sphere)
+  * type (Specifies which golden simple to generate: ``SphereGS`` generates a
+    sphere. Splines are not supported.)
 
   * Material/Emit/Reflect/Spec color
 
