@@ -219,6 +219,68 @@ class EnableAbilitiesBox(LevelObject):
     pass
 
 
+BASIC_GOLDEN_SIMPLES_NAMES = (
+    'AppleGS',
+    'ArchGS',
+    'ArchQuarterGS',
+    'CapsuleGS',
+    'CheeseGS',
+    'CircleFrustumGS',
+    'ConeGS',
+    'CubeGS',
+    'CylinderGS',
+    'CylinderHDGS',
+    'DodecahedronGS',
+    'FrustumGS',
+    'HemisphereGS',
+    'HexagonGS',
+    'IcosahedronGS',
+    'IrregularCapsule1GS',
+    'IrregularCapsule2GS',
+    'IrregularConeGS',
+    'IrregularCubeGS',
+    'IrregularCylinderGS',
+    'IrregularDodecahedronGS',
+    'IrregularFlatDropGS 1',
+    'IrregularHexagonGS',
+    'IrregularIcosahedronGS',
+    'IrregularOctahedronGS',
+    'IrregularPlaneGS',
+    'IrregularPyramid001GS',
+    'IrregularPyramid002GS',
+    'IrregularRectangle001GS',
+    'IrregularRectangle002GS',
+    'IrregularRectangle003GS',
+    'IrregularRectangle004GS',
+    'IrregularRingGS',
+    'IrregularSphere001GS',
+    'IrregularSphere002GS',
+    'IrregularTeardropGS',
+    'IrregularTube001GS',
+    'IrregularTube002GS',
+    'OctahedronGS',
+    'PeanutGS',
+    'PentagonGS',
+    'PlaneGS',
+    'PlaneOneSidedGS',
+    'PointyGS',
+    'PyramidGS',
+    'QuadGS',
+    'RingGS',
+    'RingHalfGS',
+    'Rock1GS',
+    'Rock2GS',
+    'Rock3GS',
+    'SphereGS',
+    'SphereHDGS',
+    'TeardropGS',
+    'TetrahedronGS',
+    'TrapezoidGS',
+    'TubeGS',
+    'WedgeGS',
+)
+
+
 @PROBER.for_type('WedgeGS')
 @ForwardFragmentAttrs(GoldenSimplesFragment, **GoldenSimplesFragment.value_attrs)
 @ForwardMaterialColors(
@@ -227,9 +289,8 @@ class EnableAbilitiesBox(LevelObject):
     mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
     mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
 )
-class WedgeGS(LevelObject):
+class GoldenSimple(LevelObject):
 
-    type = 'WedgeGS'
     has_children = True
 
     default_sections = (
@@ -241,6 +302,15 @@ class WedgeGS(LevelObject):
     def _init_defaults(self):
         super()._init_defaults()
         ForwardMaterialColors.reset_colors(self)
+
+
+for name in BASIC_GOLDEN_SIMPLES_NAMES:
+    PROBER.add_type(GoldenSimple, name)
+del name
+
+
+class WedgeGS(GoldenSimple):
+    type = 'WedgeGS'
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
