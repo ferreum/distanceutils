@@ -357,8 +357,10 @@ class Section(BytesModel):
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
                 return
-        if not kw.get('plain', False):
+        if not kw.pop('plain', False):
             self._init_from_args(*args, **kw)
+        elif kw or args:
+            raise TypeError(f"Invalid arguments: {args!r}, {kw!r}")
 
     def _init_from_args(self, *args, any_version=False, **kw):
         if not kw and len(args) == 1 and isinstance(args[0], Section):
