@@ -73,8 +73,7 @@ class FragmentMatcher(object):
         if self.closeversions and type(frag) is Fragment and sec.magic in (MAGIC_2, MAGIC_3):
             ver = sec.version
             versions = []
-            if ver > 0:
-                versions.extend(range(ver))
+            versions.extend(range(ver))
             versions.extend(range(ver + 1, ver + 3))
             for ver in versions:
                 probe_sec = Section(sec.magic, sec.type, ver)
