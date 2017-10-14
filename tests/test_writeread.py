@@ -1,7 +1,7 @@
 import unittest
 
 from distance.levelobjects import (
-    LevelObject, WedgeGS, Group, InfoDisplayBox, WinLogic,
+    LevelObject, GoldenSimple, Group, InfoDisplayBox, WinLogic,
 )
 from distance.levelfragments import (
     MaterialFragment,
@@ -44,7 +44,7 @@ def _fallback_unknown(sec):
 class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
 
     def test_simple(self):
-        orig = WedgeGS()
+        orig = GoldenSimple(type='WedgeGS')
         orig.image_index = 39
 
         res = write_read(orig)[0]
@@ -52,7 +52,7 @@ class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
         self.assertEqual(39, res.image_index)
 
     def test_properties(self):
-        orig = WedgeGS()
+        orig = GoldenSimple(type='WedgeGS')
 
         orig.mat_color = (.1, .1, .1, .2)
         orig.mat_emit = (.3, .3, .3, .3)
@@ -98,7 +98,7 @@ class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
 
     def test_children_section(self):
         """Distance requires an (even empty) list of children for some objects."""
-        orig = WedgeGS()
+        orig = GoldenSimple(type='WedgeGS')
 
         res = write_read(orig)[0]
 

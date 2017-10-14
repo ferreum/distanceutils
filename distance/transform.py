@@ -3,7 +3,7 @@
 
 import numpy as np, quaternion
 
-from .levelobjects import WedgeGS
+from .levelobjects import GoldenSimple
 
 
 quaternion # suppress warning
@@ -75,7 +75,7 @@ def rangle_to_vers(va, vb):
 def rtri_to_transform(verts, srot=None):
 
     """Converts the given vetices representing a right triangle to a
-    transform for a WedgeGS."""
+    transform for a WedgeGS GoldenSimple."""
 
     pr, pa, pb = verts
 
@@ -93,7 +93,7 @@ def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
     pmax - the vertex with the greatest angle
     pnext, plast - the remaining vertices
     objs - the list to put the objects into
-    simple_args - args to pass to WedgeGS"""
+    simple_args - args to pass to GoldenSimple"""
 
     from numpy import dot
 
@@ -104,10 +104,10 @@ def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
     pr = vr + pnext
 
     transform = rtri_to_transform(np.array([pr, pmax, pnext]))
-    objs.append(WedgeGS(transform=transform, **simple_args))
+    objs.append(GoldenSimple(type='WedgeGS', transform=transform, **simple_args))
 
     transform = rtri_to_transform(np.array([pr, plast, pmax]))
-    objs.append(WedgeGS(transform=transform, **simple_args))
+    objs.append(GoldenSimple(type='WedgeGS', transform=transform, **simple_args))
 
 
 def create_single_wedge(pr, pa, pb, objs, simple_args={}):
@@ -117,12 +117,12 @@ def create_single_wedge(pr, pa, pb, objs, simple_args={}):
     pmax - the vertex with the right angle
     pnext, plast - the remaining vertices
     objs - the list to put the objects into
-    simple_args - args to pass to WedgeGS"""
+    simple_args - args to pass to GoldenSimple"""
 
     import numpy as np
 
     transform = rtri_to_transform(np.array([pr, pa, pb]))
-    objs.append(WedgeGS(transform=transform, **simple_args))
+    objs.append(GoldenSimple(type='WedgeGS', transform=transform, **simple_args))
 
 
 def create_triangle_simples(verts, objs, simple_args={}):
@@ -131,7 +131,7 @@ def create_triangle_simples(verts, objs, simple_args={}):
 
     verts - sequence containing the three vertices
     objs - list to put the objects into
-    simple_args - args to pass to WedgeGS"""
+    simple_args - args to pass to GoldenSimple"""
 
     from numpy import pi
 
@@ -154,7 +154,7 @@ def create_triangle_simples(verts, objs, simple_args={}):
         # any other triangle
         create_two_wedges(pmax, pnext, plast, objs, simple_args=simple_args)
 
-    # objs.append(WedgeGS(
+    # objs.append(GoldenSimple(
     #     type='SphereGS',
     #     transform=[pr, (), [.7/SIMPLE_SIZE]*3]))
 

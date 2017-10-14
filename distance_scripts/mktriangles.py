@@ -4,7 +4,7 @@
 import argparse
 
 from distance.bytes import DstBytes
-from distance.levelobjects import WedgeGS, Group
+from distance.levelobjects import GoldenSimple, Group
 
 
 def main():
@@ -65,8 +65,8 @@ def main():
 
                 if args.vertices:
                     objs.extend(
-                        WedgeGS(type='SphereGS',
-                                transform=[point, (), [.7/SIMPLE_SIZE]*3])
+                        GoldenSimple(type='SphereGS',
+                                     transform=[point, (), [.7/SIMPLE_SIZE]*3])
                         for point in verts)
 
     group = Group(children=objs)
