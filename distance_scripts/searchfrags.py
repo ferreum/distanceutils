@@ -14,7 +14,7 @@ from distance.bytes import (
 )
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
-from distance.base import ObjectFragment
+from distance.base import Fragment, ObjectFragment
 from distance.levelfragments import NamedPropertiesFragment, MaterialFragment
 
 
@@ -70,7 +70,7 @@ class FragmentMatcher(object):
         data = frag.raw_data
         matches = []
 
-        if self.closeversions and sec.magic in (MAGIC_2, MAGIC_3):
+        if self.closeversions and type(frag) is Fragment and sec.magic in (MAGIC_2, MAGIC_3):
             ver = sec.version
             versions = []
             if ver > 0:
@@ -79,11 +79,12 @@ class FragmentMatcher(object):
             for ver in versions:
                 probe_sec = Section(sec.magic, sec.type, ver)
                 try:
-                    self.real_frag_prober.probe_section(probe_sec)
+                    cls = self.real_frag_prober.probe_section(probe_sec)
                 except ProbeError:
                     pass
                 else:
-                    matches.append(("Other version", None, repr(probe_sec)))
+                    if not cls is Fragment:
+                        matches.append(("Other version", None, repr(probe_sec)))
 
         pos = 0
         buf = BytesIO(data)
