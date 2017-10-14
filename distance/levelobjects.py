@@ -281,7 +281,6 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 
 
-@PROBER.for_type('WedgeGS')
 @ForwardFragmentAttrs(GoldenSimplesFragment, **GoldenSimplesFragment.value_attrs)
 @ForwardMaterialColors(
     mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
