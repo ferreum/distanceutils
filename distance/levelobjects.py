@@ -312,4 +312,65 @@ class WedgeGS(GoldenSimple):
     type = 'WedgeGS'
 
 
+@ForwardMaterialColors(
+    color_diffuse = ('Default-Diffuse', '_Color', (0.3, 0.3, 0.3, 1)),
+    color_emit = ('EmitDetail__ArchGrid', '_EmitColor', (0.2, 0.2, 0.2, 0.5))
+)
+class OldSimple(LevelObject):
+
+    has_children = True
+
+    default_sections = (
+        *LevelObject.default_sections,
+        Section(MAGIC_3, 3, 2), # material
+    )
+
+    def _init_defaults(self):
+        super()._init_defaults()
+        ForwardMaterialColors.reset_colors(self)
+        if self.type.startswith('Emissive'):
+            del self.color_diffuse
+        else:
+            del self.color_emit
+        if self.type.endswith('WithCollision'):
+            sec = Section(MAGIC_3, 0x0f, 2)
+            frag = Fragment(container=sec)
+            # box collider fragment seems to be empty for simples
+            frag.raw_data = b''
+            self.sections.append(sec)
+            self.fragments.append(frag)
+
+
+OLD_SIMPLES_SHAPES = (
+    'Capsule',
+    'Cone',
+    'Cube',
+    'Cylinder',
+    'CylinderTapered',
+    'Dodecahedron',
+    'FlatDrop',
+    'Hexagon',
+    'Icosahedron',
+    'IrregularCapsule002',
+    'IrregularFlatDrop',
+    'Octahedron',
+    'Plane',
+    'Pyramid',
+    'Ring',
+    'RingHalf',
+    'Sphere',
+    'Teardrop',
+    'TrueCone',
+    'Tube',
+    'Wedge',
+)
+
+for shape in OLD_SIMPLES_SHAPES:
+    PROBER.add_type(shape, OldSimple)
+    PROBER.add_type('Emissive' + shape, OldSimple)
+    PROBER.add_type(shape + 'WithCollision', OldSimple)
+    PROBER.add_type('Emissive' + shape + 'WithCollision', OldSimple)
+del shape
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

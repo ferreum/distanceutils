@@ -2,6 +2,7 @@ import unittest
 
 from distance.levelobjects import (
     LevelObject, GoldenSimple, Group, InfoDisplayBox, WinLogic,
+    OldSimple,
 )
 from distance.levelfragments import (
     MaterialFragment,
@@ -147,6 +148,18 @@ class GroupWriteReadTest(common.WriteReadTest):
         check_exceptions(obj)
         self.assertEqual(3, len(obj.sections))
         self.assertEqual("2cubes", obj.custom_name)
+
+
+class OldSimpleTest(ExtraAssertMixin, common.WriteReadTest):
+
+    read_obj = OldSimple
+
+    filename = "tests/in/customobject/oldsimple cube.bytes"
+
+    def verify_obj(self, obj):
+        self.assertSeqAlmostEqual((1, 1, 1, .5), obj.color_diffuse)
+        self.assertSeqAlmostEqual((50, 50, 50), obj.transform[2])
+        self.assertFalse(hasattr(obj, 'color_emit'))
 
 
 class UnknownTest(common.WriteReadTest):
