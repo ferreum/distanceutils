@@ -104,6 +104,13 @@ class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
 
         self.assertTrue(res.fragments[0].has_children)
 
+    def test_mat_color_delete(self):
+        orig = GoldenSimple(type='WedgeGS')
+
+        del orig.mat_spec
+
+        self.assertFalse(hasattr(orig, 'mat_spec'))
+
 
 class GroupTest(unittest.TestCase):
 

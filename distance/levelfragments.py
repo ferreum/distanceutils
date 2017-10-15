@@ -836,16 +836,26 @@ class ForwardMaterialColors(object):
             # These keyword args are here to capture the values of every
             # iteration. Otherwise they would all refer to the same variable
             # which is set to the value of the last iteration.
-            def fget(self, colname=colname):
+            def fget(self, matname=matname, colname=colname):
                 frag = self.fragment_by_type(MaterialFragment)
                 try:
                     return frag.materials[matname][colname]
                 except KeyError:
-                    return None
+                    raise AttributeError(f"color {matname!r}.{colname!r}")
             def fset(self, value, matname=matname, colname=colname):
                 frag = self.fragment_by_type(MaterialFragment)
                 frag.materials.get_or_add(matname)[colname] = value
-            setattr(target, attrname, property(fget, fset, None, doc=doc))
+            def fdel(self, matname=matname, colname=colname):
+                frag = self.fragment_by_type(MaterialFragment)
+                mats = frag.materials
+                try:
+                    mat = mats[matname]
+                    del mat[colname]
+                except KeyError:
+                    raise AttributeError(f"color {matname!r}.{colname!r}")
+                if not mat:
+                    del mats[matname]
+            setattr(target, attrname, property(fget, fset, fdel, doc=doc))
 
         try:
             clsdefaults = target.__default_colors
