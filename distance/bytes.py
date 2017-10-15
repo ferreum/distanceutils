@@ -164,6 +164,7 @@ class BytesModel(object):
 
         """
 
+        self.exception = None
         if dbytes is not None:
             self.read(dbytes, **kw)
         else:
@@ -220,7 +221,6 @@ class BytesModel(object):
         else:
             self.opts = None
         self.end_pos = None
-        self.exception = None
         self.sane_end_pos = False
         try:
             self._read(dbytes, **kw)
@@ -353,6 +353,7 @@ class Section(BytesModel):
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
     def __init__(self, *args, **kw):
+        self.exception = None
         if args:
             if not isinstance(args[0], (int, Section)):
                 self.read(*args, **kw)
