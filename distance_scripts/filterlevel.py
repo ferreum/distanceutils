@@ -7,7 +7,7 @@ import argparse
 import re
 
 from distance.level import Level
-from distance.levelobjects import Group
+from distance.levelobjects import Group, GoldenSimple, OldSimple
 from distance.base import BaseObject
 from distance.bytes import (
     DstBytes,
@@ -30,6 +30,149 @@ def _detect_other(section):
 
 
 MAGICMAP = {2: MAGIC_2, 3: MAGIC_3, 32: MAGIC_32}
+
+
+FILTERS = {}
+
+
+class ObjectFilter(object):
+
+    def __init__(self, name):
+        self.name = name
+
+    def filter_object(self, obj):
+        return obj,
+
+    def filter_group(self, grp):
+        grp.children = self.filter_objects(grp.children)
+        if not grp.children:
+            # remove empty group
+            return ()
+        return grp,
+
+    def filter_objects(self, objects):
+        res = []
+        for obj in objects:
+            if obj.is_object_group:
+                res.extend(self.filter_group(obj))
+            else:
+                res.extend(self.filter_object(obj))
+        return res
+
+    def apply_level(self, level):
+        for layer in level.layers:
+            layer.objects = self.filter_objects(layer.objects)
+
+    def apply_group(self, grp):
+        # not using filter_group, because we never want to remove the root
+        # group object
+        grp.children = self.filter_objects(grp.children)
+
+    def apply(self, content):
+        if isinstance(content, Level):
+            self.apply_level(content)
+        elif isinstance(content, Group):
+            self.apply_group(grp)
+        else:
+            raise TypeError(f'Unknown object type: {type(content).__name__!r}')
+
+
+OLD_TO_GOLD_SIMPLES_MAP = {
+
+    # 'Capsule': 'CapsuleGS',
+
+    # 'Cone': 'ConeGS',
+
+    'Cube': 'CubeGS',
+
+    # 'Cylinder': 'CylinderGS',
+
+    # # # center point is different
+    # # 'CylinderTapered': 'CircleFrustumGS',
+
+    # # different rotation
+    # 'Dodecahedron': 'DodecahedronGS',
+
+    # # # no match
+    # # 'FlatDrop': 'CheeseGS',
+
+    # 'Hexagon': 'HexagonGS',
+
+    # # different rotation
+    # 'Icosahedron': 'IcosahedronGS',
+
+    # # # different scale
+    # # 'IrregularCapsule002': 'IrregularCapsule2GS',
+
+    # # # differnt rotation/scale
+    # # 'IrregularFlatDrop': 'IrregularDodecahedronGS',
+
+    # 'Octahedron': 'OctahedronGS',
+
+    # 'Plane': 'PlaneGS',
+
+    # # different center, distorted
+    # 'Pyramid': 'PyramidGS',
+
+    # 'Ring': 'RingGS',
+
+    # # 'RingHalf': 'RingHalfGS',
+
+    # # different rotation
+    # 'Sphere': 'SphereGS',
+
+    # # 'Teardrop': 'TeardropGS',
+
+    # # 'TrueCone',
+
+    # 'Tube': 'TubeGS',
+
+    # # different rotation/shape
+    # 'Wedge': 'WedgeGS',
+
+}
+
+
+class GoldifyFilter(ObjectFilter):
+
+    def __init__(self, name, args=''):
+        super().__init__(name)
+
+    def filter_object(self, obj):
+        if isinstance(obj, OldSimple):
+            pos, rot, scale = obj.transform
+            if not scale:
+                scale = (1, 1, 1)
+            scale = tuple(s / 64 for s in scale)
+            transform = pos, rot, scale
+            typ = re.sub(r"^Emissive", '', obj.type)
+            typ = re.sub(r"WithCollision$", '', typ)
+            try:
+                typ = OLD_TO_GOLD_SIMPLES_MAP[typ]
+            except KeyError:
+                # leave unimplemented alone
+                return obj,
+            gs = GoldenSimple(type=typ, transform=transform)
+            emissive = obj.type.startswith('Emissive')
+            if emissive:
+                # gs.mat_emit = (.8, .1, .6, .3) # obj.color_emit
+                gs.mat_emit =  obj.color_emit
+                gs.mat_reflect = (0, 0, 0, 0)
+                gs.emit_index = 59
+            else:
+                gs.mat_color = obj.color_diffuse
+                gs.image_index = 17
+                gs.emit_index = 17
+                gs.disable_bump = True
+                gs.disable_diffuse = True
+                gs.disable_reflect = True
+            gs.mat_spec = (0, 0, 0, 0)
+            gs.additive_transp = emissive
+            gs.disable_collision = not obj.type.endswith('WithCollision')
+            return gs,
+        return obj,
+
+FILTERS['goldify'] = GoldifyFilter
 
 
 def parse_section(arg):
@@ -119,6 +262,12 @@ def count_objects(objs):
     return n_obj, n_grp
 
 
+def create_filter(option):
+    typ, sep, rem = option.partition(':')
+    cls = FILTERS[typ]
+    return cls(typ, args=rem)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
@@ -135,13 +284,20 @@ def main():
                         help="Match object type (regex).")
     parser.add_argument("-s", "--section", action='append', default=[],
                         help="Match sections.")
+    parser.add_argument("-o", "--option", dest='options', action='append',
+                        default=[],
+                        help="Specify a filter option.")
+    parser.add_argument("--list", action='store_true',
+                        help="Print list of written objects.")
     parser.add_argument("IN",
                         help="Level .bytes filename.")
     parser.add_argument("OUT",
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    do_write = args.force or args.all or bool(args.numbers)
+    filters = [create_filter(f) for f in args.options]
+
+    do_write = filters or args.force or args.all or bool(args.numbers)
     if do_write:
         write_mode = 'xb'
         if args.force:
@@ -152,29 +308,38 @@ def main():
             return 1
 
     content = PROBER.read(args.IN)
-    matcher = ObjectMatcher(args)
-    if isinstance(content, Level):
-        content = matcher.filter_level(content)
-    else:
-        if not content.is_object_group:
-            print(f"CustomObject is a {content.type!r}, but"
-                    f" CustomObject filtering is only supported for"
-                    f" object Groups.", file=sys.stderr)
-            return 1
-        content.children = matcher.filter_objects(content.children)
+    do_match = args.type or args.numbers
+    if do_match:
+        matcher = ObjectMatcher(args)
+        if isinstance(content, Level):
+            content = matcher.filter_level(content)
+        else:
+            if not content.is_object_group:
+                print(f"CustomObject is a {content.type!r}, but"
+                        f" CustomObject filtering is only supported for"
+                        f" object Groups.", file=sys.stderr)
+                return 1
+            content.children = matcher.filter_objects(content.children)
 
     if not do_write:
         from .mkcustomobject import print_candidates
         print_candidates(matcher.matches)
         return 1
 
+    if filters:
+        for f in filters:
+            f.apply(content)
+
     p = PrintContext(flags=('groups', 'subobjects'))
-    p.print_data_of(content)
-    num_objs, num_groups = count_objects(matcher.matches)
-    p(f"Removed matches: {len(matcher.matches)}")
-    if num_objs != len(matcher.matches):
-        p(f"Removed objects: {num_objs}")
-        p(f"Removed groups: {num_groups}")
+    if args.list:
+        p.print_data_of(content)
+
+    if do_match:
+        p(f"Removed matches: {len(matcher.matches)}")
+        num_objs, num_groups = count_objects(matcher.matches)
+        if num_objs != len(matcher.matches):
+            p(f"Removed objects: {num_objs}")
+            p(f"Removed groups: {num_groups}")
 
     print("writing...")
     dbytes = DstBytes.in_memory()
