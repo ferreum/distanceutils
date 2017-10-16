@@ -284,8 +284,8 @@ def main():
                         help="Match object type (regex).")
     parser.add_argument("-s", "--section", action='append', default=[],
                         help="Match sections.")
-    parser.add_argument("-o", "--option", dest='options', action='append',
-                        default=[],
+    parser.add_argument("-o", "--of", "--objfilter", dest='objfilters',
+                        action='append', default=[],
                         help="Specify a filter option.")
     parser.add_argument("--list", action='store_true',
                         help="Print list of written objects.")
@@ -295,7 +295,7 @@ def main():
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    filters = [create_filter(f) for f in args.options]
+    filters = [create_filter(f) for f in args.objfilters]
 
     do_write = filters or args.force or args.all or bool(args.numbers)
     if do_write:
