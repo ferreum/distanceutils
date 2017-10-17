@@ -157,13 +157,13 @@ def create_simples_mappers():
         'Octahedron': OldToGsMapper('OctahedronGS', size_factor=1/32),
     }
     inexact = {
+        **safe,
         'Pyramid': OldToGsMapper('PyramidGS', size_factor=(.025898, .03867, .025898),
                                  offset=(lambda scale: (0, scale[1] * 1.23914, 0))),
-        **safe,
     }
     pending = {
     }
-    unsafe = dict(safe)
+    unsafe = dict(inexact)
     unsafe.update(pending)
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
