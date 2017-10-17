@@ -143,6 +143,7 @@ def create_simples_mappers():
     }
     safe = {
         'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
+        'Plane': OldToGsMapper('PlaneOneSidedGS', size_factor=1/6.4),
     }
     # TODO add more mappers
     unsafe = dict(safe)
