@@ -5,6 +5,7 @@ import os
 import sys
 import argparse
 import re
+import collections
 
 from distance.level import Level
 from distance.levelobjects import Group, GoldenSimple, OldSimple
@@ -101,10 +102,11 @@ class DoNotReplace(Exception):
 
 class OldToGsMapper(object):
 
-    def __init__(self, type, size_factor=1, collision_only=False):
+    def __init__(self, type, size_factor=1, offset=None, collision_only=False):
         self.type = type
         self.size_factor = size_factor
         self.collision_only = collision_only
+        self.offset = offset
 
     def apply(self, obj):
         return self._apply_default(obj)
@@ -117,7 +119,14 @@ class OldToGsMapper(object):
         pos, rot, scale = obj.transform or ((), (), ())
         if not scale:
             scale = (1, 1, 1)
-        scale = tuple(s * self.size_factor for s in scale)
+        if self.offset:
+            if not pos:
+                pos = (0, 0, 0)
+            pos = tuple(p + q for p, q in zip(pos, self.offset(scale)))
+        if isinstance(self.size_factor, collections.Sequence):
+            scale = tuple(s * f for s, f in zip(scale, self.size_factor))
+        else:
+            scale = tuple(s * self.size_factor for s in scale)
         transform = pos, rot, scale
         gs = GoldenSimple(type=self.type, transform=transform)
         if emissive:
@@ -144,10 +153,19 @@ def create_simples_mappers():
     safe = {
         'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
         'Plane': OldToGsMapper('PlaneOneSidedGS', size_factor=1/6.4),
+        'Hexagon': OldToGsMapper('HexagonGS', size_factor=(1/32, .03, 1/32)),
+        'Octahedron': OldToGsMapper('OctahedronGS', size_factor=1/32),
     }
-    # TODO add more mappers
+    inexact = {
+        'Pyramid': OldToGsMapper('PyramidGS', size_factor=(.025898, .03867, .025898),
+                                 offset=(lambda scale: (0, scale[1] * 1.23914, 0))),
+        **safe,
+    }
+    pending = {
+    }
     unsafe = dict(safe)
-    return dict(bugs=bugs, safe=safe, unsafe=unsafe)
+    unsafe.update(pending)
+    return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
 OLD_TO_GOLD_SIMPLES_MAPPERS = create_simples_mappers()
 
@@ -163,6 +181,10 @@ class GoldifyFilter(ObjectFilter):
                          help="Replace glitched simples (CubeWithCollision).")
         grp.add_argument("--safe", action='store_const', const="safe", dest='mode',
                          help="Do all safe (exact) replacements (default).")
+        grp.add_argument("--inexact", action='store_const', const="inexact", dest='mode',
+                         help="Include replacements with imperfect precision.")
+        grp.add_argument("--pending", action='store_const', const="pending", dest='mode',
+                         help="Only use unfinished implementations (debug).")
         grp.add_argument("--unsafe", action='store_const', const="unsafe", dest='mode',
                          help="Do all replacements.")
         grp.set_defaults(mode='safe')
