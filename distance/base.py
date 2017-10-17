@@ -310,6 +310,9 @@ class BaseObject(BytesModel):
                 if name is None or obj.type == name:
                     yield obj
 
+    def _print_type(self, p):
+        p(f"Object type: {self.type!r}")
+
     def _print_data(self, p):
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.transform)}")

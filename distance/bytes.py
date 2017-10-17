@@ -293,14 +293,7 @@ class BytesModel(object):
             p.print_exception(self.exception)
 
     def _print_type(self, p):
-        try:
-            container = self.container
-        except AttributeError:
-            pass
-        else:
-            if container and container.magic == MAGIC_6:
-                type_str = container.type
-                p(f"Object type: {type_str!r}")
+        pass
 
     def _print_offset(self, p):
         try:
