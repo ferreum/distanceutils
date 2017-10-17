@@ -95,100 +95,105 @@ class ObjectFilter(object):
         pass
 
 
-OLD_TO_GOLD_SIMPLES_MAP = {
+class DoNotReplace(Exception):
+    pass
 
-    # 'Capsule': 'CapsuleGS',
 
-    # 'Cone': 'ConeGS',
+class OldToGsMapper(object):
 
-    'Cube': 'CubeGS',
+    def __init__(self, type, size_factor=1, collision_only=False):
+        self.type = type
+        self.size_factor = size_factor
+        self.collision_only = collision_only
 
-    # 'Cylinder': 'CylinderGS',
+    def apply(self, obj):
+        return self._apply_default(obj)
 
-    # # # center point is different
-    # # 'CylinderTapered': 'CircleFrustumGS',
+    def _apply_default(self, obj):
+        collision = obj.type.endswith('WithCollision')
+        emissive = obj.type.startswith('Emissive')
+        if self.collision_only and not collision:
+            raise DoNotReplace
+        pos, rot, scale = obj.transform or ((), (), ())
+        if not scale:
+            scale = (1, 1, 1)
+        scale = tuple(s * self.size_factor for s in scale)
+        transform = pos, rot, scale
+        gs = GoldenSimple(type=self.type, transform=transform)
+        if emissive:
+            gs.mat_emit =  obj.color_emit
+            gs.mat_reflect = (0, 0, 0, 0)
+            gs.emit_index = 59
+        else:
+            gs.mat_color = obj.color_diffuse
+            gs.image_index = 17
+            gs.emit_index = 17
+            gs.disable_bump = True
+            gs.disable_diffuse = True
+            gs.disable_reflect = True
+        gs.mat_spec = (0, 0, 0, 0)
+        gs.additive_transp = emissive
+        gs.disable_collision = not collision
+        return gs,
 
-    # # different rotation
-    # 'Dodecahedron': 'DodecahedronGS',
 
-    # # # no match
-    # # 'FlatDrop': 'CheeseGS',
+def create_simples_mappers():
+    bugs = {
+        'Cube': OldToGsMapper('CubeGS', size_factor=1/64, collision_only=True),
+    }
+    safe = {
+        'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
+    }
+    # TODO add more mappers
+    unsafe = dict(safe)
+    return dict(bugs=bugs, safe=safe, unsafe=unsafe)
 
-    # 'Hexagon': 'HexagonGS',
-
-    # # different rotation
-    # 'Icosahedron': 'IcosahedronGS',
-
-    # # # different scale
-    # # 'IrregularCapsule002': 'IrregularCapsule2GS',
-
-    # # # differnt rotation/scale
-    # # 'IrregularFlatDrop': 'IrregularDodecahedronGS',
-
-    # 'Octahedron': 'OctahedronGS',
-
-    # 'Plane': 'PlaneGS',
-
-    # # different center, distorted
-    # 'Pyramid': 'PyramidGS',
-
-    # 'Ring': 'RingGS',
-
-    # # 'RingHalf': 'RingHalfGS',
-
-    # # different rotation
-    # 'Sphere': 'SphereGS',
-
-    # # 'Teardrop': 'TeardropGS',
-
-    # # 'TrueCone',
-
-    # 'Tube': 'TubeGS',
-
-    # # different rotation/shape
-    # 'Wedge': 'WedgeGS',
-
-}
+OLD_TO_GOLD_SIMPLES_MAPPERS = create_simples_mappers()
 
 
 class GoldifyFilter(ObjectFilter):
 
+    @classmethod
+    def add_args(cls, parser):
+        super().add_args(parser)
+        parser.add_argument("--debug", action='store_true')
+        grp = parser.add_mutually_exclusive_group()
+        grp.add_argument("--bugs", action='store_const', const="bugs", dest='mode',
+                         help="Replace glitched simples (CubeWithCollision).")
+        grp.add_argument("--safe", action='store_const', const="safe", dest='mode',
+                         help="Do all safe (exact) replacements (default).")
+        grp.add_argument("--unsafe", action='store_const', const="unsafe", dest='mode',
+                         help="Do all replacements.")
+        grp.set_defaults(mode='safe')
+
     def __init__(self, name, args):
         super().__init__(name, args)
+        self.mappers = OLD_TO_GOLD_SIMPLES_MAPPERS[args.mode]
+        self.debug = args.debug
         self.num_replaced = 0
 
     def filter_object(self, obj):
         if isinstance(obj, OldSimple):
-            pos, rot, scale = obj.transform or ((), (), ())
-            if not scale:
-                scale = (1, 1, 1)
-            scale = tuple(s / 64 for s in scale)
-            transform = pos, rot, scale
             typ = re.sub(r"^Emissive", '', obj.type)
             typ = re.sub(r"WithCollision$", '', typ)
             try:
-                typ = OLD_TO_GOLD_SIMPLES_MAP[typ]
+                mapper = self.mappers[typ]
             except KeyError:
-                # leave unimplemented alone
+                # object not mapped in this mode
                 return obj,
-            gs = GoldenSimple(type=typ, transform=transform)
-            emissive = obj.type.startswith('Emissive')
-            if emissive:
-                gs.mat_emit =  obj.color_emit
-                gs.mat_reflect = (0, 0, 0, 0)
-                gs.emit_index = 59
-            else:
-                gs.mat_color = obj.color_diffuse
-                gs.image_index = 17
-                gs.emit_index = 17
-                gs.disable_bump = True
-                gs.disable_diffuse = True
-                gs.disable_reflect = True
-            gs.mat_spec = (0, 0, 0, 0)
-            gs.additive_transp = emissive
-            gs.disable_collision = not obj.type.endswith('WithCollision')
+            try:
+                result = mapper.apply(obj)
+            except DoNotReplace:
+                return obj,
             self.num_replaced += 1
-            return gs,
+            if self.debug:
+                for res in result:
+                    if res.additive_transp:
+                        res.mat_emit = (1, .3, .3, .4)
+                    else:
+                        res.mat_color = (1, .3, .3, 1)
+                return result + (obj,)
+            return result
         return obj,
 
     def print_summary(self, p):
