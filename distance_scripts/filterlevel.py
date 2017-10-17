@@ -327,7 +327,7 @@ def create_filter(option, defaults):
     name, sep, argstr = option.partition(':')
     cls = FILTERS[name]
 
-    parser = argparse.ArgumentParser(prog=name, add_help=False)
+    parser = argparse.ArgumentParser(prog=name)
     parser.set_defaults(**defaults)
     cls.add_args(parser)
     args = parser.parse_args(make_arglist(argstr))
@@ -353,7 +353,8 @@ def main():
                         help="output .bytes filename.")
     args = parser.parse_args()
 
-    filters = [create_filter(f, args.__dict__) for f in args.objfilters]
+    defaults = dict(maxrecurse=args.maxrecurse)
+    filters = [create_filter(f, defaults) for f in args.objfilters]
 
     write_mode = 'xb'
     if args.force:
