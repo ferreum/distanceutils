@@ -227,6 +227,7 @@ class RemoveFilter(ObjectFilter):
         self.sections = {parse_section(arg).to_key() for arg in args.section}
         self.num_matches = 0
         self.matches = []
+        self.removed = []
 
     def _match_sections(self, obj):
         for sec in obj.sections:
@@ -264,6 +265,7 @@ class RemoveFilter(ObjectFilter):
         remove = self.match(obj)
         res = super().filter_any_object(obj, levels)
         if remove:
+            self.removed.append(obj)
             return ()
         return res
 
@@ -275,9 +277,9 @@ class RemoveFilter(ObjectFilter):
         return False
 
     def print_summary(self, p):
-        p(f"Removed matches: {len(self.matches)}")
-        num_objs, num_groups = count_objects(self.matches)
-        if num_objs != len(self.matches):
+        p(f"Removed matches: {len(self.removed)}")
+        num_objs, num_groups = count_objects(self.removed)
+        if num_objs != len(self.removed):
             p(f"Removed objects: {num_objs}")
             p(f"Removed groups: {num_groups}")
 
@@ -362,23 +364,22 @@ def main():
 
     content = PROBER.read(args.IN)
 
+    p = PrintContext(flags=('groups', 'subobjects'))
+
     for f in filters:
         f.apply(content)
         if not f.post_filter(content):
             return 1
-
-    p = PrintContext(flags=('groups', 'subobjects'))
+        f.print_summary(p)
 
     if args.list:
         p.print_data_of(content)
 
-    for f in filters:
-        f.print_summary(p)
-
-    print("writing...")
+    print("generating...")
     dbytes = DstBytes.in_memory()
     content.write(dbytes)
 
+    print("writing...")
     with open(args.OUT, write_mode) as out_f:
         n = out_f.write(dbytes.file.getbuffer())
 
