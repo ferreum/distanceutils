@@ -174,7 +174,6 @@ class GoldifyFilter(ObjectFilter):
             gs = GoldenSimple(type=typ, transform=transform)
             emissive = obj.type.startswith('Emissive')
             if emissive:
-                # gs.mat_emit = (.8, .1, .6, .3) # obj.color_emit
                 gs.mat_emit =  obj.color_emit
                 gs.mat_reflect = (0, 0, 0, 0)
                 gs.emit_index = 59
