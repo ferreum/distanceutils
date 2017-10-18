@@ -314,6 +314,7 @@ class WedgeGS(GoldenSimple):
 
 @ForwardMaterialColors(
     color_diffuse = ('Default-Diffuse', '_Color', (0.3, 0.3, 0.3, 1)),
+    color_cone = ('Cone', '_Color', (0.3, 0.3, 0.3, 1)),
     color_emit = ('EmitDetail__ArchGrid', '_EmitColor', (0.2, 0.2, 0.2, 0.5))
 )
 class OldSimple(LevelObject):
@@ -330,8 +331,11 @@ class OldSimple(LevelObject):
         ForwardMaterialColors.reset_colors(self)
         if self.type.startswith('Emissive'):
             del self.color_diffuse
+            del self.color_cone
         else:
             del self.color_emit
+        if 'Cone' not in self.type:
+            del self.color_cone
         if self.type.endswith('WithCollision'):
             sec = Section(MAGIC_3, 0x0f, 2)
             frag = Fragment(container=sec)
@@ -339,6 +343,28 @@ class OldSimple(LevelObject):
             frag.raw_data = b''
             self.sections.append(sec)
             self.fragments.append(frag)
+
+    @property
+    def color_fixed_diffuse(self):
+        """Get the diffuse color, but for opaque Cones return the 'Cone' color."""
+        if 'Cone' in self.type:
+            return self.color_cone
+        else:
+            return self.color_diffuse
+
+    @color_fixed_diffuse.setter
+    def color_fixed_diffuse(self, value):
+        if 'Cone' in self.type:
+            self.color_cone = value
+        else:
+            self.color_diffuse = value
+
+    @color_fixed_diffuse.deleter
+    def color_fixed_diffuse(self):
+        if 'Cone' in self.type:
+            del self.color_cone
+        else:
+            del self.color_diffuse
 
 
 OLD_SIMPLES_SHAPES = (

@@ -102,11 +102,15 @@ class DoNotReplace(Exception):
 
 class OldToGsMapper(object):
 
-    def __init__(self, type, size_factor=1, offset=None, collision_only=False):
+    def __init__(self, type, size_factor=1, offset=None, collision_only=False,
+                 post_transform=None):
         self.type = type
+        if not isinstance(size_factor, collections.Sequence):
+            size_factor = (size_factor, size_factor, size_factor)
         self.size_factor = size_factor
         self.collision_only = collision_only
         self.offset = offset
+        self.post_transform = post_transform
 
     def apply(self, obj):
         return self._apply_default(obj)
@@ -123,18 +127,17 @@ class OldToGsMapper(object):
             if not pos:
                 pos = (0, 0, 0)
             pos = tuple(p + q for p, q in zip(pos, self.offset(scale)))
-        if isinstance(self.size_factor, collections.Sequence):
-            scale = tuple(s * f for s, f in zip(scale, self.size_factor))
-        else:
-            scale = tuple(s * self.size_factor for s in scale)
+        scale = tuple(s * f for s, f in zip(scale, self.size_factor))
         transform = pos, rot, scale
+        if self.post_transform:
+            transform = self.post_transform(transform)
         gs = GoldenSimple(type=self.type, transform=transform)
         if emissive:
             gs.mat_emit =  obj.color_emit
             gs.mat_reflect = (0, 0, 0, 0)
             gs.emit_index = 59
         else:
-            gs.mat_color = obj.color_diffuse
+            gs.mat_color = obj.color_fixed_diffuse
             gs.image_index = 17
             gs.emit_index = 17
             gs.disable_bump = True
@@ -156,15 +159,68 @@ def create_simples_mappers():
         'Hexagon': OldToGsMapper('HexagonGS', size_factor=(1/32, .03, 1/32)),
         'Octahedron': OldToGsMapper('OctahedronGS', size_factor=1/32),
     }
+
+    def make_post_rotate_x(alpha):
+        def post_transform(transform):
+            import numpy as np, quaternion
+            from math import isclose, radians
+
+            pos, rot, scale = transform
+            if scale and not isclose(scale[1], scale[2]):
+                # Cannot scale on these axes independently, because we need to
+                # rotate our new object differently.
+                raise DoNotReplace
+
+            if not rot:
+                rot = (0, 0, 0, 1)
+            angle = radians(alpha)
+            qrot = np.quaternion(rot[3], *rot[0:3])
+            qrot *= np.quaternion(np.cos(angle/2), np.sin(angle/2), 0, 0)
+            rot = (qrot.x, qrot.y, qrot.z, qrot.w)
+
+            return pos, rot, scale
+        return post_transform
+
+    def transform_cone(transform):
+        import numpy as np, quaternion
+        from math import isclose, radians
+        from distance.transform import rotpoint
+
+        pos, rot, scale = transform
+        if not rot:
+            rot = (0, 0, 0, 1)
+        if not pos:
+            pos = (0, 0, 0)
+
+        qrot = np.quaternion(rot[3], *rot[0:3])
+        pos += rotpoint(qrot, (0, 0, 1.409 * scale[2]))
+
+        qrot *= np.quaternion(np.cos(np.pi/4), np.sin(np.pi/4), 0, 0)
+        rot = (qrot.x, qrot.y, qrot.z, qrot.w)
+
+        scale *= np.array([1/32, 1/21.33333, 1/32])
+
+        return pos, rot, scale
+
     inexact = {
         **safe,
         'Pyramid': OldToGsMapper('PyramidGS', size_factor=(.025898, .03867, .025898),
                                  offset=(lambda scale: (0, scale[1] * 1.23914, 0))),
+        'Dodecahedron': OldToGsMapper('DodecahedronGS', size_factor=1/31.5412, # 1/31.5415..1/31.541
+                                      post_transform=make_post_rotate_x(301.717)), # 301.715..301.72
+        'Icosahedron': OldToGsMapper('IcosahedronGS', size_factor=.0312505, # 0.031250..0.031251
+                                     post_transform=make_post_rotate_x(301.717)),
+        'Ring': OldToGsMapper('RingGS', size_factor=.018679666), # 0.01867966..0.01867967
+        'Tube': OldToGsMapper('TubeGS', size_factor=.02342865), # 0.0234286..0.0234287
     }
     pending = {
     }
-    unsafe = dict(inexact)
-    unsafe.update(pending)
+    unsafe = {
+        **inexact,
+        **pending,
+        'Sphere': OldToGsMapper('SphereGS', size_factor=1/63.5),
+        'Cone': OldToGsMapper('ConeGS', post_transform=transform_cone),
+    }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
 OLD_TO_GOLD_SIMPLES_MAPPERS = create_simples_mappers()
