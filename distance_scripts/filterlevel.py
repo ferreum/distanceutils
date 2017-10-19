@@ -212,6 +212,8 @@ def create_simples_mappers():
                               offset=(0, 0, 1.409),
                               rotate=mkrotx(90),
                               size_factor=(1/32, 1/21.33333, 1/32)),
+        'Cylinder': OldToGsMapper('CylinderGS', # y 0.023437..0.023438
+                                  size_factor=(.014, .0234375, .014)),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
