@@ -181,31 +181,42 @@ def create_simples_mappers():
             return pos, rot, scale
         return post_transform
 
-    def transform_cone(transform):
-        import numpy as np, quaternion
-        from math import isclose, radians
-        from distance.transform import rotpoint
+    def make_transform_offset(offset, rotate, size_factor):
+        def post_transform(transform):
+            import numpy as np, quaternion
+            from math import isclose, radians
+            from distance.transform import rotpoint
 
-        pos, rot, scale = transform
-        if not rot:
-            rot = (0, 0, 0, 1)
-        if not pos:
-            pos = (0, 0, 0)
+            pos, rot, scale = transform
+            if not rot:
+                rot = (0, 0, 0, 1)
+            if not pos:
+                pos = (0, 0, 0)
 
-        qrot = np.quaternion(rot[3], *rot[0:3])
-        pos += rotpoint(qrot, (0, 0, 1.409 * scale[2]))
+            qrot = np.quaternion(rot[3], *rot[0:3])
+            pos += rotpoint(qrot, offset(scale))
 
-        qrot *= np.quaternion(np.cos(np.pi/4), np.sin(np.pi/4), 0, 0)
-        rot = (qrot.x, qrot.y, qrot.z, qrot.w)
+            qrot *= np.quaternion(*rotate)
+            rot = (qrot.x, qrot.y, qrot.z, qrot.w)
 
-        scale *= np.array([1/32, 1/21.33333, 1/32])
+            scale *= np.array(size_factor)
 
-        return pos, rot, scale
+            return pos, rot, scale
+        return post_transform
+
+    from math import sin, cos, pi
+
+    transform_pyramid = make_transform_offset(offset=(lambda scale: (0, scale[1] * 1.23914, 0)),
+                                              rotate=(1, 0, 0, 0),
+                                              size_factor=(.025898, .03867, .025898))
+
+    transform_cone = make_transform_offset(offset=(lambda scale: (0, 0, 1.409 * scale[2])),
+                                           rotate=(cos(pi/4), sin(pi/4), 0, 0),
+                                           size_factor=(1/32, 1/21.33333, 1/32))
 
     inexact = {
         **safe,
-        'Pyramid': OldToGsMapper('PyramidGS', size_factor=(.025898, .03867, .025898),
-                                 offset=(lambda scale: (0, scale[1] * 1.23914, 0))),
+        'Pyramid': OldToGsMapper('PyramidGS', post_transform=transform_pyramid),
         'Dodecahedron': OldToGsMapper('DodecahedronGS', size_factor=1/31.5412, # 1/31.5415..1/31.541
                                       post_transform=make_post_rotate_x(301.717)), # 301.715..301.72
         'Icosahedron': OldToGsMapper('IcosahedronGS', size_factor=.0312505, # 0.031250..0.031251
