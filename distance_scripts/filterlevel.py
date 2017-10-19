@@ -105,8 +105,13 @@ class OldToGsMapper(object):
     def __init__(self, type, offset=None, rotate=None, size_factor=1,
                  collision_only=False, locked_scale_axes=()):
         self.type = type
-        if not isinstance(size_factor, collections.Sequence):
-            size_factor = (size_factor, size_factor, size_factor)
+        if not callable(size_factor):
+            if isinstance(size_factor, collections.Sequence):
+                def size_factor(scale, factor=size_factor):
+                    return tuple(s * f for s, f in zip(scale, factor))
+            else:
+                def size_factor(scale, factor=size_factor):
+                    return tuple(s * factor for s in scale)
         self.offset = offset
         self.rotate = rotate
         self.size_factor = size_factor
@@ -149,7 +154,7 @@ class OldToGsMapper(object):
             qrot *= np.quaternion(*self.rotate)
             rot = (*qrot.imag, qrot.real)
 
-        scale = tuple(s * f for s, f in zip(scale, self.size_factor))
+        scale = self.size_factor(scale)
 
         transform = pos, rot, scale
 
@@ -172,8 +177,8 @@ class OldToGsMapper(object):
 
 
 def create_simples_mappers():
+    from math import sin, cos, radians
     def mkrotx(degrees):
-        from math import sin, cos, radians
         rads = radians(degrees)
         return (cos(rads/2), sin(rads/2), 0, 0)
 
@@ -204,6 +209,12 @@ def create_simples_mappers():
     }
     pending = {
     }
+
+    def factor_wedge(scale):
+        xz = 3/160
+        y = .016141797 # 0.016141795..0.016141798
+        return (scale[2] * xz, scale[1] * y, scale[0] * xz)
+
     unsafe = {
         **inexact,
         **pending,
@@ -214,6 +225,9 @@ def create_simples_mappers():
                               size_factor=(1/32, 1/21.33333, 1/32)),
         'Cylinder': OldToGsMapper('CylinderGS', # y 0.023437..0.023438
                                   size_factor=(.014, .0234375, .014)),
+        'Wedge': OldToGsMapper('WedgeGS',
+                               rotate=(cos(radians(90)/2), 0, sin(radians(90)/2), 0),
+                               size_factor=factor_wedge),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
