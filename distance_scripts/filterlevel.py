@@ -147,8 +147,9 @@ class OldToGsMapper(object):
             from distance.transform import rotpoint
             if not pos:
                 pos = (0, 0, 0)
-            roffset = rotpoint(qrot, self.offset)
-            pos = tuple(p + (o * s) for p, o, s in zip(pos, roffset, scale))
+            soffset = tuple(o * s for o, s in zip(self.offset, scale))
+            rsoffset = rotpoint(qrot, soffset)
+            pos = tuple(p + o for p, o in zip(pos, rsoffset))
 
         if self.rotate:
             qrot *= np.quaternion(*self.rotate)
@@ -215,6 +216,9 @@ def create_simples_mappers():
         y = .016141797 # 0.016141795..0.016141798
         return (scale[2] * xz, scale[1] * y, scale[0] * xz)
 
+    def factor_cone(scale):
+        return (scale[0] * 1/32, scale[2] * 3/64, scale[1] * 1/32)
+
     unsafe = {
         **inexact,
         **pending,
@@ -222,7 +226,7 @@ def create_simples_mappers():
         'Cone': OldToGsMapper('ConeGS',
                               offset=(0, 0, 1.409),
                               rotate=mkrotx(90),
-                              size_factor=(1/32, 1/21.33333, 1/32)),
+                              size_factor=factor_cone),
         'Cylinder': OldToGsMapper('CylinderGS', # y 0.023437..0.023438
                                   size_factor=(.014, .0234375, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
