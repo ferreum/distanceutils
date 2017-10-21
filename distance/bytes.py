@@ -260,10 +260,13 @@ class BytesModel(object):
 
         """Write this object to `dbytes`.
 
-        Subclasses need to implement this method.
+        Subclasses need to implement _write() for this to work.
 
         """
 
+        return DstBytes._write_arg(self, dbytes)
+
+    def _write(self, dbytes):
         raise NotImplementedError(
             "Subclass needs to override write(self, dbytes)")
 
@@ -591,6 +594,26 @@ class DstBytes(object):
             if not 'b' in file_mode:
                 raise IOError(f"File needs be opened with 'b' mode.")
         return cls(arg)
+
+    @classmethod
+    def _write_arg(cls, obj, arg):
+        if isinstance(arg, cls):
+            return obj._write(arg)
+        if isinstance(arg, (str, bytes)):
+            tmpdb = DstBytes.in_memory()
+            obj._write(tmpdb)
+            with open(arg, 'wb') as f:
+                return f.write(tmpdb.file.getbuffer())
+        try:
+            file_mode = arg.mode
+        except AttributeError:
+            pass
+        else:
+            if not 'b' in file_mode:
+                raise IOError(f"File needs to be opened with 'b' mode.")
+        tmpdb = DstBytes.in_memory()
+        obj._write(tmpdb)
+        return arg.write(tmpdb.file.getbuffer())
 
     def __enter__(self):
         """Save the position on enter and restore it on exit."""

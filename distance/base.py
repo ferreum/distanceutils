@@ -79,8 +79,8 @@ class Fragment(BytesModel):
         self.end_pos = sec.end_pos
         self._read_section_data(dbytes, sec)
 
-    def write(self, dbytes, section=None):
-        sec = self.container if section is None else section
+    def _write(self, dbytes):
+        sec = self.container
         if sec is None:
             self.container = sec = self._init_section()
         with dbytes.write_section(sec):
@@ -277,7 +277,7 @@ class BaseObject(BytesModel):
             dbytes, probe_section=sec,
             child_prober=self.child_prober)
 
-    def write(self, dbytes):
+    def _write(self, dbytes):
         container = getattr(self, 'container', None)
         try:
             cid = self.container.id

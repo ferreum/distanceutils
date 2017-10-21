@@ -113,11 +113,7 @@ def main():
     tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
 
     print("writing...")
-    dbytes = DstBytes.in_memory()
-    tosave.write(dbytes)
-
-    with open(args.OUT, write_mode) as out_f:
-        n = out_f.write(dbytes.file.getbuffer())
+    n = tosave.write(args.OUT)
     print(f"{n} bytes written")
     return 0
 

@@ -243,14 +243,8 @@ def main():
     group = Group(children=objs, custom_name=args.name)
 
     print(f"writing...")
-    dbytes = DstBytes.in_memory()
-    group.write(dbytes)
-
-    with open(args.BYTESOUT, 'wb') as f:
-        n = f.write(dbytes.file.getbuffer())
-
+    n = group.write(args.BYTESOUT)
     print(f"{n} bytes written")
-
     return 0
 
 

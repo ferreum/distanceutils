@@ -473,14 +473,8 @@ def main():
     if args.list:
         p.print_data_of(content)
 
-    print("generating...")
-    dbytes = DstBytes.in_memory()
-    content.write(dbytes)
-
     print("writing...")
-    with open(args.OUT, write_mode) as out_f:
-        n = out_f.write(dbytes.file.getbuffer())
-
+    n = content.write(args.OUT)
     print(f"{n} bytes written")
     return 0
 
