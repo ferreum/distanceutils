@@ -182,6 +182,10 @@ def create_simples_mappers():
     def mkrotx(degrees):
         rads = radians(degrees)
         return (cos(rads/2), sin(rads/2), 0, 0)
+    def factor_ringhalf(scale):
+        s = .0161605
+        return (scale[2] * s, scale[1] * s, scale[0] * s)
+    rot_y90 = (cos(radians(90)/2), 0, sin(radians(90)/2), 0)
 
     bugs = {
         'Cube': OldToGsMapper('CubeGS', size_factor=1/64, collision_only=True),
@@ -207,6 +211,10 @@ def create_simples_mappers():
                                      size_factor=.0312505, # 0.031250..0.031251
                                      locked_scale_axes=(1, 2)),
         'Ring': OldToGsMapper('RingGS', size_factor=.018679666), # 0.01867966..0.01867967
+        'RingHalf': OldToGsMapper('RingHalfGS',
+                                  offset=(0, 0.29891, 0),
+                                  rotate=rot_y90,
+                                  size_factor=factor_ringhalf),
         'Tube': OldToGsMapper('TubeGS', size_factor=.02342865), # 0.0234286..0.0234287
         'IrregularCapsule001': OldToGsMapper('IrregularCapsule1GS',
                                              size_factor=0.01410507), #0.0140506..0.01410508
@@ -235,7 +243,7 @@ def create_simples_mappers():
         'Cylinder': OldToGsMapper('CylinderGS',
                                   size_factor=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
-                               rotate=(cos(radians(90)/2), 0, sin(radians(90)/2), 0),
+                               rotate=rot_y90,
                                size_factor=factor_wedge),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
