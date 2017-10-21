@@ -377,6 +377,7 @@ OLD_SIMPLES_SHAPES = (
     'FlatDrop',
     'Hexagon',
     'Icosahedron',
+    'IrregularCapsule001',
     'IrregularCapsule002',
     'IrregularFlatDrop',
     'Octahedron',

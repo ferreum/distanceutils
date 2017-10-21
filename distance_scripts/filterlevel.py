@@ -208,6 +208,10 @@ def create_simples_mappers():
                                      locked_scale_axes=(1, 2)),
         'Ring': OldToGsMapper('RingGS', size_factor=.018679666), # 0.01867966..0.01867967
         'Tube': OldToGsMapper('TubeGS', size_factor=.02342865), # 0.0234286..0.0234287
+        'IrregularCapsule001': OldToGsMapper('IrregularCapsule1GS',
+                                             size_factor=0.01410507), #0.0140506..0.01410508
+        'IrregularCapsule002': OldToGsMapper('IrregularCapsule2GS',
+                                             size_factor=0.01410507), #0.0140506..0.01410508
     }
     pending = {
     }
