@@ -150,6 +150,17 @@ class GroupWriteReadTest(common.WriteReadTest):
         self.assertEqual("2cubes", obj.custom_name)
 
 
+class ChangeTypeTest(unittest.TestCase):
+
+    def test_writeread(self):
+        orig = OldSimple("tests/in/customobject/oldsimple cube.bytes")
+        orig.type = 'Cylinder'
+
+        res = write_read(orig)[0]
+
+        self.assertEqual('Cylinder', res.type)
+
+
 class OldSimpleTest(ExtraAssertMixin, common.WriteReadTest):
 
     read_obj = OldSimple

@@ -278,13 +278,14 @@ class BaseObject(BytesModel):
             child_prober=self.child_prober)
 
     def write(self, dbytes):
+        container = getattr(self, 'container', None)
         try:
-            container = self.container
+            cid = self.container.id
         except AttributeError:
-            self.container = container = Section(MAGIC_6, self.type)
+            cid = None
         if self.sections is ():
             self._init_defaults()
-        with dbytes.write_section(self.container):
+        with dbytes.write_section(MAGIC_6, self.type, id=cid):
             for frag in self.fragments:
                 frag.write(dbytes)
 
