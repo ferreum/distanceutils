@@ -347,7 +347,12 @@ class OldSimple(LevelObject):
     @property
     def color_fixed_diffuse(self):
         """Get the diffuse color, but for opaque Cones return the 'Cone' color."""
-        if 'Cone' in self.type:
+        t = self.type
+        if t.startswith('Emissive'):
+            t = t[8:]
+        if t.endswith('WithCollision'):
+            t = t[:-13]
+        if t == 'Cone':
             return self.color_cone
         else:
             return self.color_diffuse

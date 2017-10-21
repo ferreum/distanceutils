@@ -223,8 +223,6 @@ def create_simples_mappers():
         'IrregularCapsule002': OldToGsMapper('IrregularCapsule2GS',
                                              size_factor=0.01410507), #0.01410506..0.01410508
     }
-    pending = {
-    }
 
     def factor_wedge(scale):
         xz = 3/160
@@ -234,6 +232,12 @@ def create_simples_mappers():
     def factor_cone(scale):
         return (scale[0] * 1/32, scale[2] * 3/64, scale[1] * 1/32)
 
+    def factor_truecone(scale):
+        s = .03125
+        return (scale[0] * s, scale[2] * s, scale[1] * s)
+
+    pending = {
+    }
     unsafe = {
         **inexact,
         **pending,
@@ -247,6 +251,9 @@ def create_simples_mappers():
         'Wedge': OldToGsMapper('WedgeGS',
                                rotate=rot_y90,
                                size_factor=factor_wedge),
+        'TrueCone': OldToGsMapper('ConeGS',
+                                  rotate=mkrotx(90),
+                                  size_factor=factor_truecone),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
