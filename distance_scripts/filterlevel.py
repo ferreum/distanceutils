@@ -215,11 +215,13 @@ def create_simples_mappers():
                                   offset=(0, 0.29891, 0),
                                   rotate=rot_y90,
                                   size_factor=factor_ringhalf),
+        'Teardrop': OldToGsMapper('TeardropGS',
+                                  size_factor=0.0140161),
         'Tube': OldToGsMapper('TubeGS', size_factor=.02342865), # 0.0234286..0.0234287
         'IrregularCapsule001': OldToGsMapper('IrregularCapsule1GS',
-                                             size_factor=0.01410507), #0.0140506..0.01410508
+                                             size_factor=0.01410507), #0.01410506..0.01410508
         'IrregularCapsule002': OldToGsMapper('IrregularCapsule2GS',
-                                             size_factor=0.01410507), #0.0140506..0.01410508
+                                             size_factor=0.01410507), #0.01410506..0.01410508
     }
     pending = {
     }
