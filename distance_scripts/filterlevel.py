@@ -161,7 +161,9 @@ class OldToGsMapper(object):
         if obj.emissive:
             gs.mat_emit =  obj.color_emit
             gs.mat_reflect = (0, 0, 0, 0)
-            gs.emit_index = 59
+            gs.emit_index = 42
+            gs.tex_scale = (-.175, .5, 1)
+            gs.tex_offset = (0, .125, 0)
         else:
             gs.mat_color = obj.color_fixed_diffuse
             gs.image_index = 17
