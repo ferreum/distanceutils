@@ -178,7 +178,7 @@ class OldToGsMapper(object):
 
 
 def create_simples_mappers():
-    from math import sin, cos, radians
+    from math import sin, cos, sqrt, radians
     def mkrotx(degrees):
         rads = radians(degrees)
         return (cos(rads/2), sin(rads/2), 0, 0)
@@ -195,14 +195,15 @@ def create_simples_mappers():
     inexact = {
         **safe,
         'Pyramid': OldToGsMapper('PyramidGS',
-                                 offset=(0, 1.23914, 0),
-                                 size_factor=(.025898, .03867, .025898)),
+                                 offset=(0, 1.2391397, 0), # 1.2391395..1.2391398
+                                 # x,z: 0.0258984..0.02589845
+                                 size_factor=(.02589842, 7/128/sqrt(2), .02589842)),
         'Dodecahedron': OldToGsMapper('DodecahedronGS',
-                                      rotate=mkrotx(301.717), # 301.715..301.72
-                                      size_factor=1/31.5412, # 1/31.5415..1/31.541
+                                      rotate=mkrotx(301.7171), # 301.717..301.7172
+                                      size_factor=0.0317045, # 0.0317042..0.0317047
                                       locked_scale_axes=(1, 2)),
         'Icosahedron': OldToGsMapper('IcosahedronGS',
-                                     rotate=mkrotx(301.717),
+                                     rotate=mkrotx(301.7171),
                                      size_factor=.0312505, # 0.031250..0.031251
                                      locked_scale_axes=(1, 2)),
         'Ring': OldToGsMapper('RingGS', size_factor=.018679666), # 0.01867966..0.01867967
@@ -227,8 +228,8 @@ def create_simples_mappers():
                               offset=(0, 0, 1.409),
                               rotate=mkrotx(90),
                               size_factor=factor_cone),
-        'Cylinder': OldToGsMapper('CylinderGS', # y 0.023437..0.023438
-                                  size_factor=(.014, .0234375, .014)),
+        'Cylinder': OldToGsMapper('CylinderGS',
+                                  size_factor=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
                                rotate=(cos(radians(90)/2), 0, sin(radians(90)/2), 0),
                                size_factor=factor_wedge),
