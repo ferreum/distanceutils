@@ -119,9 +119,7 @@ class OldToGsMapper(object):
         self.locked_scale_axes = locked_scale_axes
 
     def apply(self, obj):
-        collision = obj.type.endswith('WithCollision')
-        emissive = obj.type.startswith('Emissive')
-        if self.collision_only and not collision:
+        if self.collision_only and not obj.with_collision:
             raise DoNotReplace
 
         pos, rot, scale = obj.transform or ((), (), ())
@@ -160,7 +158,7 @@ class OldToGsMapper(object):
         transform = pos, rot, scale
 
         gs = GoldenSimple(type=self.type, transform=transform)
-        if emissive:
+        if obj.emissive:
             gs.mat_emit =  obj.color_emit
             gs.mat_reflect = (0, 0, 0, 0)
             gs.emit_index = 59
@@ -172,8 +170,8 @@ class OldToGsMapper(object):
             gs.disable_diffuse = True
             gs.disable_reflect = True
         gs.mat_spec = (0, 0, 0, 0)
-        gs.additive_transp = emissive
-        gs.disable_collision = not collision
+        gs.additive_transp = obj.emissive
+        gs.disable_collision = not obj.with_collision
         return gs,
 
 
@@ -287,10 +285,8 @@ class GoldifyFilter(ObjectFilter):
 
     def filter_object(self, obj):
         if isinstance(obj, OldSimple):
-            typ = re.sub(r"^Emissive", '', obj.type)
-            typ = re.sub(r"WithCollision$", '', typ)
             try:
-                mapper = self.mappers[typ]
+                mapper = self.mappers[obj.shape]
             except KeyError:
                 # object not mapped in this mode
                 return obj,

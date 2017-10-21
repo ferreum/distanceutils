@@ -5,7 +5,7 @@ from .bytes import (
     Section,
     MAGIC_2, MAGIC_3, MAGIC_6
 )
-from .base import BaseObject, ForwardFragmentAttrs
+from .base import BaseObject, Fragment, ForwardFragmentAttrs
 from .levelfragments import (
     PROBER as FRAG_PROBER,
     ForwardMaterialColors,
@@ -326,17 +326,16 @@ class OldSimple(LevelObject):
         Section(MAGIC_3, 3, 2), # material
     )
 
-    def _init_defaults(self):
-        super()._init_defaults()
-        ForwardMaterialColors.reset_colors(self)
-        if self.type.startswith('Emissive'):
+    def _after_init(self):
+        super()._after_init()
+        if self.emissive:
             del self.color_diffuse
             del self.color_cone
         else:
             del self.color_emit
-        if 'Cone' not in self.type:
-            del self.color_cone
-        if self.type.endswith('WithCollision'):
+            if self.shape != 'Cone':
+                del self.color_cone
+        if self.with_collision:
             sec = Section(MAGIC_3, 0x0f, 2)
             frag = Fragment(container=sec)
             # box collider fragment seems to be empty for simples
@@ -344,29 +343,72 @@ class OldSimple(LevelObject):
             self.sections.append(sec)
             self.fragments.append(frag)
 
+    def _init_defaults(self):
+        super()._init_defaults()
+        ForwardMaterialColors.reset_colors(self)
+        self.type = 'Cube'
+
+    @property
+    def split_type(self):
+        emit, coll = "", ""
+        typ = self.type
+        if typ.startswith('Emissive'):
+            emit = 'Emissive'
+            typ = typ[8:]
+        if typ.endswith('WithCollision'):
+            coll = 'WithCollision'
+            typ = typ[:-13]
+        return emit, typ, coll
+
+    @split_type.setter
+    def split_type(self, split):
+        self.type = ''.join(split)
+
+    @property
+    def emissive(self):
+        return self.type.startswith('Emissive')
+
+    @emissive.setter
+    def emissive(self, value):
+        old, typ, coll = self.split_type
+        self.split_type = value and 'Emissive' or '', typ, coll
+
+    @property
+    def with_collision(self):
+        return self.type.endswith("WithCollision")
+
+    @with_collision.setter
+    def with_collision(self, value):
+        emit, typ, old = self.split_type
+        self.split_type = emit, typ, value and 'WithCollision' or ''
+
+    @property
+    def shape(self):
+        return self.split_type[1]
+
+    @shape.setter
+    def shape(self, value):
+        emit, old, coll = self.split_type
+        self.split_type = emit, value, coll
+
     @property
     def color_fixed_diffuse(self):
         """Get the diffuse color, but for opaque Cones return the 'Cone' color."""
-        t = self.type
-        if t.startswith('Emissive'):
-            t = t[8:]
-        if t.endswith('WithCollision'):
-            t = t[:-13]
-        if t == 'Cone':
+        if self.shape == 'Cone':
             return self.color_cone
         else:
             return self.color_diffuse
 
     @color_fixed_diffuse.setter
     def color_fixed_diffuse(self, value):
-        if 'Cone' in self.type:
+        if self.shape == 'Cone':
             self.color_cone = value
         else:
             self.color_diffuse = value
 
     @color_fixed_diffuse.deleter
     def color_fixed_diffuse(self):
-        if 'Cone' in self.type:
+        if self.shape == 'Cone':
             del self.color_cone
         else:
             del self.color_diffuse

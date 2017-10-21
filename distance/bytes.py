@@ -168,10 +168,13 @@ class BytesModel(object):
         if dbytes is not None:
             self.read(dbytes, **kw)
         else:
-            if not kw.pop('plain', False):
+            plain = kw.pop('plain', False)
+            if not plain:
                 self._init_defaults()
             for k, v in kw.items():
                 setattr(self, k, v)
+            if not plain:
+                self._after_init()
 
     def _handle_opts(self, opts):
         pass
@@ -254,6 +257,9 @@ class BytesModel(object):
             "Subclass needs to override _read(self, dbytes)")
 
     def _init_defaults(self):
+        pass
+
+    def _after_init(self):
         pass
 
     def write(self, dbytes):

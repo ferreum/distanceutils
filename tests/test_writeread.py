@@ -161,7 +161,7 @@ class ChangeTypeTest(unittest.TestCase):
         self.assertEqual('Cylinder', res.type)
 
 
-class OldSimpleTest(ExtraAssertMixin, common.WriteReadTest):
+class OldSimpleWriteReadTest(ExtraAssertMixin, common.WriteReadTest):
 
     read_obj = OldSimple
 
@@ -171,6 +171,38 @@ class OldSimpleTest(ExtraAssertMixin, common.WriteReadTest):
         self.assertSeqAlmostEqual((1, 1, 1, .5), obj.color_diffuse)
         self.assertSeqAlmostEqual((50, 50, 50), obj.transform[2])
         self.assertFalse(hasattr(obj, 'color_emit'))
+
+
+class OldSimpleTest(ExtraAssertMixin, unittest.TestCase):
+
+    def test_init(self):
+        self.assertEqual('Cylinder', OldSimple(shape='Cylinder').type)
+        self.assertEqual('CylinderWithCollision',
+                         OldSimple(shape='Cylinder', with_collision=True).type)
+        self.assertEqual('EmissiveCylinder',
+                         OldSimple(shape='Cylinder', emissive=True).type)
+
+    def test_setters(self):
+        obj = OldSimple()
+        obj.shape='Ring'
+        self.assertEqual('Ring', obj.type)
+        obj.with_collision = True
+        self.assertEqual('RingWithCollision', obj.type)
+        obj.emissive = True
+        self.assertEqual('EmissiveRingWithCollision', obj.type)
+
+    def test_get_collision(self):
+        self.assertTrue(OldSimple(type='RingWithCollision').with_collision)
+        self.assertFalse(OldSimple(type='EmissiveCube').with_collision)
+
+    def test_get_emissive(self):
+        self.assertTrue(OldSimple(type='EmissiveCube').emissive)
+        self.assertFalse(OldSimple(type='RingWithCollision').emissive)
+
+    def test_get_shape(self):
+        self.assertEqual('Cylinder', OldSimple(type='Cylinder').shape)
+        self.assertEqual('Ring', OldSimple(type='RingWithCollision').shape)
+        self.assertEqual('Cone', OldSimple(type='EmissiveConeWithCollision').shape)
 
 
 class UnknownTest(common.WriteReadTest):
