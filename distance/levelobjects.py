@@ -304,7 +304,7 @@ class GoldenSimple(LevelObject):
 
 
 for name in BASIC_GOLDEN_SIMPLES_NAMES:
-    PROBER.add_type(GoldenSimple, name)
+    PROBER.add_type(name, GoldenSimple)
 del name
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from distance.levelobjects import PROBER, SubTeleporter, WinLogic
+from distance.levelobjects import PROBER, SubTeleporter, WinLogic, GoldenSimple
 from distance.levelfragments import (
     TrackNodeFragment,
     BaseCarScreenTextDecodeTrigger,
@@ -297,6 +297,14 @@ class SplineRoadTest(unittest.TestCase):
         self.assertEqual(79, node1.parent_id)
         self.assertEqual(100, node1.snap_id)
         p.print_data_of(obj)
+
+
+class CubeGsTest(unittest.TestCase):
+
+    def test_probe(self):
+        obj = PROBER.read("tests/in/customobject/2cubes.bytes")
+        self.assertEqual(GoldenSimple, type(obj.children[0]))
+        self.assertEqual(GoldenSimple, type(obj.children[1]))
 
 
 if __name__ == '__main__':
