@@ -18,26 +18,26 @@ class ObjectFilter(object):
     def filter_object(self, obj):
         return obj,
 
-    def filter_group(self, grp, levels):
+    def filter_group(self, grp, levels, **kw):
         orig_empty = not grp.children
-        grp.children = self.filter_objects(grp.children, levels)
+        grp.children = self.filter_objects(grp.children, levels, **kw)
         if not orig_empty and not grp.children:
             # remove empty group
             return ()
         return grp,
 
-    def filter_any_object(self, obj, levels):
+    def filter_any_object(self, obj, levels, **kw):
         if obj.is_object_group:
             if levels == 0:
                 return obj,
-            return self.filter_group(obj, levels - 1)
+            return self.filter_group(obj, levels - 1, **kw)
         else:
-            return self.filter_object(obj)
+            return self.filter_object(obj, **kw)
 
-    def filter_objects(self, objects, levels):
+    def filter_objects(self, objects, levels, **kw):
         res = []
         for obj in objects:
-            res.extend(self.filter_any_object(obj, levels))
+            res.extend(self.filter_any_object(obj, levels, **kw))
         return res
 
     def apply_level(self, level):

@@ -33,7 +33,7 @@ class OldToGsMapper(object):
         self.default_rotation = default_rotation
         self.default_scale = default_scale
 
-    def apply(self, obj):
+    def apply(self, obj, scaled_group=False):
         if self.collision_only and not obj.with_collision:
             raise DoNotReplace
 
@@ -43,6 +43,8 @@ class OldToGsMapper(object):
             scale = self.default_scale
 
         if self.locked_scale_axes:
+            if scaled_group:
+                raise DoNotReplace
             from math import isclose
             v1 = scale[self.locked_scale_axes[0]]
             for i in self.locked_scale_axes[1:]:
@@ -205,7 +207,7 @@ class GoldifyFilter(ObjectFilter):
         self.debug = args.debug
         self.num_replaced = 0
 
-    def filter_object(self, obj):
+    def filter_object(self, obj, scaled_group=False):
         if isinstance(obj, OldSimple):
             try:
                 mapper = self.mappers[obj.shape]
@@ -213,7 +215,7 @@ class GoldifyFilter(ObjectFilter):
                 # object not mapped in this mode
                 return obj,
             try:
-                result = mapper.apply(obj)
+                result = mapper.apply(obj, scaled_group=scaled_group)
             except DoNotReplace:
                 return obj,
             self.num_replaced += 1
@@ -226,6 +228,18 @@ class GoldifyFilter(ObjectFilter):
                 return result + (obj,)
             return result
         return obj,
+
+    def filter_group(self, grp, level, **kw):
+        if not kw.get('scaled_group', False):
+            pos, rot, scale = grp.transform or ((), (), ())
+            if scale:
+                from math import isclose
+                v1 = scale[0]
+                for v in scale[1:]:
+                    if not isclose(v, v1):
+                        kw['scaled_group'] = True
+                        break
+        return super().filter_group(grp, level, **kw)
 
     def print_summary(self, p):
         p(f"Goldified simples: {self.num_replaced}")
