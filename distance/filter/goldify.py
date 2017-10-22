@@ -168,7 +168,8 @@ def create_simples_mappers():
                                size_factor=factor_wedge),
         'TrueCone': OldToGsMapper('ConeGS',
                                   rotate=mkrotx(90),
-                                  size_factor=factor_truecone),
+                                  size_factor=factor_truecone,
+                                  default_rotation=mkrotx(270)),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
