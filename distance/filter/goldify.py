@@ -15,7 +15,8 @@ class OldToGsMapper(object):
 
     def __init__(self, type, offset=None, rotate=None, size_factor=1,
                  collision_only=False, locked_scale_axes=(),
-                 default_rotation=(1, 0, 0, 0)):
+                 default_rotation=(1, 0, 0, 0),
+                 default_scale=(1, 1, 1)):
         self.type = type
         if not callable(size_factor):
             if isinstance(size_factor, collections.Sequence):
@@ -30,6 +31,7 @@ class OldToGsMapper(object):
         self.collision_only = collision_only
         self.locked_scale_axes = locked_scale_axes
         self.default_rotation = default_rotation
+        self.default_scale = default_scale
 
     def apply(self, obj):
         if self.collision_only and not obj.with_collision:
@@ -38,7 +40,7 @@ class OldToGsMapper(object):
         pos, rot, scale = obj.transform or ((), (), ())
 
         if not scale:
-            scale = (1, 1, 1)
+            scale = self.default_scale
 
         if self.locked_scale_axes:
             from math import isclose
@@ -160,7 +162,8 @@ def create_simples_mappers():
                               offset=(0, 0, 1.409),
                               rotate=mkrotx(90),
                               size_factor=factor_cone,
-                              default_rotation=mkrotx(270)),
+                              default_rotation=mkrotx(270),
+                              default_scale=(.5, .5, .5)),
         'Cylinder': OldToGsMapper('CylinderGS',
                                   size_factor=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
@@ -169,7 +172,8 @@ def create_simples_mappers():
         'TrueCone': OldToGsMapper('ConeGS',
                                   rotate=mkrotx(90),
                                   size_factor=factor_truecone,
-                                  default_rotation=mkrotx(270)),
+                                  default_rotation=mkrotx(270),
+                                  default_scale=(.5, .5, .5)),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
