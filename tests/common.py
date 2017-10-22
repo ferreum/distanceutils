@@ -108,10 +108,14 @@ class WriteReadTest(unittest.TestCase):
 
 class ExtraAssertMixin(object):
 
-    def assertSeqAlmostEqual(self, a, b):
-        self.assertEqual(len(a), len(b), msg=f"\na={a}\nb={b}")
+    def assertSeqAlmostEqual(self, a, b, msg="", **kw):
+        if msg:
+            msg = f" :\n{msg}"
+        if len(a) != len(b):
+            self.assertEqual(a, b)
+            raise AssertionError(f"{a} != {b}\na={a}\nb={b}{msg}")
         for i, (va, vb) in enumerate(zip(a, b)):
-            self.assertAlmostEqual(va, vb, msg=f"\ni={i}\na={a}\nb={b}")
+            self.assertAlmostEqual(va, vb, msg=f"\nindex={i}\na={a}\nb={b}{msg}", **kw)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
