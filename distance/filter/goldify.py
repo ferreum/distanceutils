@@ -14,7 +14,8 @@ class DoNotReplace(Exception):
 class OldToGsMapper(object):
 
     def __init__(self, type, offset=None, rotate=None, size_factor=1,
-                 collision_only=False, locked_scale_axes=()):
+                 collision_only=False, locked_scale_axes=(),
+                 default_rotation=(1, 0, 0, 0)):
         self.type = type
         if not callable(size_factor):
             if isinstance(size_factor, collections.Sequence):
@@ -28,6 +29,7 @@ class OldToGsMapper(object):
         self.size_factor = size_factor
         self.collision_only = collision_only
         self.locked_scale_axes = locked_scale_axes
+        self.default_rotation = default_rotation
 
     def apply(self, obj):
         if self.collision_only and not obj.with_collision:
@@ -49,8 +51,9 @@ class OldToGsMapper(object):
         if self.offset or self.rotate:
             import numpy as np, quaternion
             if not rot:
-                rot = (0, 0, 0, 1)
-            qrot = np.quaternion(rot[3], *rot[0:3])
+                qrot = np.quaternion(*self.default_rotation)
+            else:
+                qrot = np.quaternion(rot[3], *rot[0:3])
 
         if self.offset:
             from distance.transform import rotpoint
@@ -156,7 +159,8 @@ def create_simples_mappers():
         'Cone': OldToGsMapper('ConeGS',
                               offset=(0, 0, 1.409),
                               rotate=mkrotx(90),
-                              size_factor=factor_cone),
+                              size_factor=factor_cone,
+                              default_rotation=mkrotx(270)),
         'Cylinder': OldToGsMapper('CylinderGS',
                                   size_factor=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
