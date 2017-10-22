@@ -2,11 +2,13 @@
 
 from distance.filter.goldify import GoldifyFilter
 from distance.filter.remove import RemoveFilter
+from distance.filter.unkill import UnkillFilter
 
 
 __all__ = [
     'GoldifyFilter',
     'RemoveFilter',
+    'UnkillFilter',
 ]
 
 

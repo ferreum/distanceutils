@@ -1,4 +1,7 @@
+"""Base classes for filters."""
 
+
+import collections
 
 from distance.level import Level
 from distance.levelobjects import Group
@@ -62,6 +65,80 @@ class ObjectFilter(object):
 
     def print_summary(self, p):
         pass
+
+
+class DoNotReplace(Exception):
+    pass
+
+
+class ObjectMapper(object):
+
+    def __init__(self, offset=None, rotate=None, size_factor=1,
+                 collision_only=False, locked_scale_axes=(),
+                 default_rotation=(1, 0, 0, 0),
+                 default_scale=(1, 1, 1)):
+        if not callable(size_factor):
+            if isinstance(size_factor, collections.Sequence):
+                def size_factor(scale, factor=size_factor):
+                    return tuple(s * f for s, f in zip(scale, factor))
+            else:
+                def size_factor(scale, factor=size_factor):
+                    return tuple(s * factor for s in scale)
+        self.offset = offset
+        self.rotate = rotate
+        self.size_factor = size_factor
+        self.collision_only = collision_only
+        self.locked_scale_axes = locked_scale_axes
+        self.default_rotation = default_rotation
+        self.default_scale = default_scale
+
+    def apply(self, obj, scaled_group=False, **kw):
+        if self.collision_only and not obj.with_collision:
+            raise DoNotReplace
+
+        pos, rot, scale = obj.transform or ((), (), ())
+
+        if not scale:
+            scale = self.default_scale
+
+        if self.locked_scale_axes:
+            if scaled_group:
+                raise DoNotReplace
+            from math import isclose
+            v1 = scale[self.locked_scale_axes[0]]
+            for i in self.locked_scale_axes[1:]:
+                if not isclose(scale[i], v1):
+                    # Rotated object cannot scale these axes independently.
+                    raise DoNotReplace
+
+        if self.offset or self.rotate:
+            import numpy as np, quaternion
+            quaternion # suppress warning
+            if not rot:
+                qrot = np.quaternion(*self.default_rotation)
+            else:
+                qrot = np.quaternion(rot[3], *rot[0:3])
+
+        if self.offset:
+            from distance.transform import rotpoint
+            if not pos:
+                pos = (0, 0, 0)
+            soffset = tuple(o * s for o, s in zip(self.offset, scale))
+            rsoffset = rotpoint(qrot, soffset)
+            pos = tuple(p + o for p, o in zip(pos, rsoffset))
+
+        if self.rotate:
+            qrot *= np.quaternion(*self.rotate)
+            rot = (*qrot.imag, qrot.real)
+
+        scale = self.size_factor(scale)
+
+        transform = pos, rot, scale
+
+        return self.create_result(obj, transform, **kw)
+
+    def create_result(self, old, transform):
+        raise NotImplementedError
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

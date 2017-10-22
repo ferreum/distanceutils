@@ -1,98 +1,34 @@
 """Filter for replacing old simples with golden simples"""
 
 
-import collections
-
 from distance.levelobjects import GoldenSimple, OldSimple
-from .base import ObjectFilter
+from .base import ObjectFilter, ObjectMapper, DoNotReplace
 
 
-class DoNotReplace(Exception):
-    pass
+class OldToGsMapper(ObjectMapper):
 
-
-class OldToGsMapper(object):
-
-    def __init__(self, type, offset=None, rotate=None, size_factor=1,
-                 collision_only=False, locked_scale_axes=(),
-                 default_rotation=(1, 0, 0, 0),
-                 default_scale=(1, 1, 1)):
+    def __init__(self, type, **kw):
+        super().__init__(**kw)
         self.type = type
-        if not callable(size_factor):
-            if isinstance(size_factor, collections.Sequence):
-                def size_factor(scale, factor=size_factor):
-                    return tuple(s * f for s, f in zip(scale, factor))
-            else:
-                def size_factor(scale, factor=size_factor):
-                    return tuple(s * factor for s in scale)
-        self.offset = offset
-        self.rotate = rotate
-        self.size_factor = size_factor
-        self.collision_only = collision_only
-        self.locked_scale_axes = locked_scale_axes
-        self.default_rotation = default_rotation
-        self.default_scale = default_scale
 
-    def apply(self, obj, scaled_group=False):
-        if self.collision_only and not obj.with_collision:
-            raise DoNotReplace
-
-        pos, rot, scale = obj.transform or ((), (), ())
-
-        if not scale:
-            scale = self.default_scale
-
-        if self.locked_scale_axes:
-            if scaled_group:
-                raise DoNotReplace
-            from math import isclose
-            v1 = scale[self.locked_scale_axes[0]]
-            for i in self.locked_scale_axes[1:]:
-                if not isclose(scale[i], v1):
-                    # Rotated object cannot scale these axes independently.
-                    raise DoNotReplace
-
-        if self.offset or self.rotate:
-            import numpy as np, quaternion
-            quaternion # suppress warning
-            if not rot:
-                qrot = np.quaternion(*self.default_rotation)
-            else:
-                qrot = np.quaternion(rot[3], *rot[0:3])
-
-        if self.offset:
-            from distance.transform import rotpoint
-            if not pos:
-                pos = (0, 0, 0)
-            soffset = tuple(o * s for o, s in zip(self.offset, scale))
-            rsoffset = rotpoint(qrot, soffset)
-            pos = tuple(p + o for p, o in zip(pos, rsoffset))
-
-        if self.rotate:
-            qrot *= np.quaternion(*self.rotate)
-            rot = (*qrot.imag, qrot.real)
-
-        scale = self.size_factor(scale)
-
-        transform = pos, rot, scale
-
+    def create_result(self, old, transform):
         gs = GoldenSimple(type=self.type, transform=transform)
-        if obj.emissive:
-            gs.mat_emit =  obj.color_emit
+        if old.emissive:
+            gs.mat_emit =  old.color_emit
             gs.mat_reflect = (0, 0, 0, 0)
             gs.emit_index = 42
             gs.tex_scale = (-.175, .5, 1)
             gs.tex_offset = (0, .125, 0)
         else:
-            gs.mat_color = obj.color_fixed_diffuse
+            gs.mat_color = old.color_fixed_diffuse
             gs.image_index = 17
             gs.emit_index = 17
             gs.disable_bump = True
             gs.disable_diffuse = True
             gs.disable_reflect = True
         gs.mat_spec = (0, 0, 0, 0)
-        gs.additive_transp = obj.emissive
-        gs.disable_collision = not obj.with_collision
+        gs.additive_transp = old.emissive
+        gs.disable_collision = not old.with_collision
         return gs,
 
 
