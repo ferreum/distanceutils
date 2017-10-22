@@ -54,6 +54,7 @@ class OldToGsMapper(object):
 
         if self.offset or self.rotate:
             import numpy as np, quaternion
+            quaternion # suppress warning
             if not rot:
                 qrot = np.quaternion(*self.default_rotation)
             else:

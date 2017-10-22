@@ -3,7 +3,6 @@
 
 import argparse
 
-from distance.bytes import DstBytes
 from distance.levelobjects import GoldenSimple, Group
 
 

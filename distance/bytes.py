@@ -294,7 +294,7 @@ class BytesModel(object):
             else:
                 p(f"Container:")
                 with p.tree_children():
-                    p.print_data_of(self.container)
+                    p.print_data_of(container)
         self._print_data(p)
         self._print_children(p)
         if self.exception:

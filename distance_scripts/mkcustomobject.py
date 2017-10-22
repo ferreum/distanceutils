@@ -8,7 +8,7 @@ import re
 
 from distance.level import Level
 from distance.levelobjects import PROBER as LEVELOBJ_PROBER
-from distance.bytes import DstBytes, MAGIC_9
+from distance.bytes import MAGIC_9
 from distance.printing import PrintContext
 from distance.prober import BytesProber
 

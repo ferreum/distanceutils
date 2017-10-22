@@ -4,7 +4,6 @@
 import sys
 import argparse
 
-from distance.bytes import DstBytes
 from distance.levelobjects import Group
 
 

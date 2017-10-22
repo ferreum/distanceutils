@@ -3,7 +3,6 @@ import unittest
 
 from distance import Level
 from distance.filter import RemoveFilter
-from tests.common import ExtraAssertMixin
 
 
 def mkargs(maxrecurse=-1, type=[], all=False, numbers=[], section=[]):

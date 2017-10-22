@@ -278,7 +278,6 @@ class BaseObject(BytesModel):
             child_prober=self.child_prober)
 
     def _write(self, dbytes):
-        container = getattr(self, 'container', None)
         try:
             cid = self.container.id
         except AttributeError:
