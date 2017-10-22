@@ -262,7 +262,7 @@ class BytesModel(object):
     def _after_init(self):
         pass
 
-    def write(self, dbytes):
+    def write(self, dbytes, **kw):
 
         """Write this object to `dbytes`.
 
@@ -270,7 +270,7 @@ class BytesModel(object):
 
         """
 
-        return DstBytes._write_arg(self, dbytes)
+        return DstBytes._write_arg(self, dbytes, **kw)
 
     def _write(self, dbytes):
         raise NotImplementedError(
@@ -602,13 +602,13 @@ class DstBytes(object):
         return cls(arg)
 
     @classmethod
-    def _write_arg(cls, obj, arg):
+    def _write_arg(cls, obj, arg, write_mode='wb'):
         if isinstance(arg, cls):
             return obj._write(arg)
         if isinstance(arg, (str, bytes)):
             tmpdb = DstBytes.in_memory()
             obj._write(tmpdb)
-            with open(arg, 'wb') as f:
+            with open(arg, write_mode) as f:
                 return f.write(tmpdb.file.getbuffer())
         try:
             file_mode = arg.mode

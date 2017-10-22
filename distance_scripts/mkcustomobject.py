@@ -113,7 +113,7 @@ def main():
     tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
 
     print("writing...")
-    n = tosave.write(args.OUT)
+    n = tosave.write(args.OUT, write_mode=write_mode)
     print(f"{n} bytes written")
     return 0
 

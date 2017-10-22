@@ -107,7 +107,7 @@ def main():
         p.print_data_of(content)
 
     print("writing...")
-    n = content.write(args.OUT)
+    n = content.write(args.OUT, write_mode=write_mode)
     print(f"{n} bytes written")
     return 0
 
