@@ -21,6 +21,7 @@ class KillgridMapper(ObjectMapper):
                 color = matfragment.materials['KillGridFinite']['_Color']
             except AttributeError:
                 pass
+        color = color[:3] + (color[3] * .5,)
         gs.mat_emit = color
         gs.mat_reflect = (0, 0, 0, 0)
         gs.mat_spec = (0, 0, 0, 0)
