@@ -1,4 +1,4 @@
-"""Filter objects from a level or CustomObject."""
+"""Apply filters to a level or CustomObject."""
 
 
 import os
