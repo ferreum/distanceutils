@@ -549,5 +549,3 @@ The following properties can be modified:
 
   * Invert emit
 
-
-.. vim:set sw=2 ts=2 sts=0 et sr ft=rst fdm=manual tw=0:
