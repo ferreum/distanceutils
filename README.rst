@@ -128,7 +128,7 @@ aborts the program without executing any filters.
 filter: ``rm``
 ''''''''''''''
 
-Remove objects with matching by type, index or sections.
+Remove objects with matching type, index or sections.
 
 For example, to remove all roads from "my_level.bytes"::
 
