@@ -148,41 +148,41 @@ Not all simples have exact golden counterparts. The quality of the replacement
 differs depending on the shape and other properties of the simple. For this
 reason the replacements are put into categories:
 
-  * ``safe`` (default); all exact replacements:
-    ``Cube``, ``Plane``, ``Hexagon``, ``Octahedron``.
+* ``safe`` (default); all exact replacements:
+  ``Cube``, ``Plane``, ``Hexagon``, ``Octahedron``.
 
-    These shapes are exact matches with their golden counterparts, and are
-    scaled to exactly match the original.
+  These shapes are exact matches with their golden counterparts, and are
+  scaled to exactly match the original.
 
-  * ``inexact``; scale, rotation or position may not be exact:
-    ``Pyramid``, ``Dodecahedron``, ``Icosahedron``, ``Ring``, ``RingHalf``,
-    ``TearDrop``, ``Tube``, ``IrregularCapsule001``, ``IrregularCapsule002``
-    and all ``safe`` replacements.
+* ``inexact``; scale, rotation or position may not be exact:
+  ``Pyramid``, ``Dodecahedron``, ``Icosahedron``, ``Ring``, ``RingHalf``,
+  ``TearDrop``, ``Tube``, ``IrregularCapsule001``, ``IrregularCapsule002``
+  and all ``safe`` replacements.
 
-    The transformations of these objects were estimated by binary-search. The
-    lower precision may be noticeable for objects with very large scale, but
-    generally, this category should be safe to use.
+  The transformations of these objects were estimated by binary-search. The
+  lower precision may be noticeable for objects with very large scale, but
+  generally, this category should be safe to use.
 
-    ``Dodecahedron`` and ``Icosahedron`` need to be rotated in a way that they
-    cannot retain independent scale on y and z axes. The filter skips the
-    replacement if this is the case, retaining the old object.
+  ``Dodecahedron`` and ``Icosahedron`` need to be rotated in a way that they
+  cannot retain independent scale on y and z axes. The filter skips the
+  replacement if this is the case, retaining the old object.
 
-  * ``unsafe``; objects that don't have the correct shape:
-    ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone`` and all
-    ``inexact`` replacements.
+* ``unsafe``; objects that don't have the correct shape:
+  ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone`` and all
+  ``inexact`` replacements.
 
-    The shape differences may be noticeable depending on the scale:
+  The shape differences may be noticeable depending on the scale:
 
-    The rounded surfaces of ``Sphere``, ``Cone``, ``TrueCone`` and ``Cylinder``
-    are made of a different number of triangles.
+  The rounded surfaces of ``Sphere``, ``Cone``, ``TrueCone`` and ``Cylinder``
+  are made of a different number of triangles.
 
-    The old ``Wedge`` is not exactly right-angled, but the new ``WedgeGS`` is.
+  The old ``Wedge`` is not exactly right-angled, but the new ``WedgeGS`` is.
 
-  * ``bugs``; just fix collisions with ``Cube`` objects.
+* ``bugs``; just fix collisions with ``Cube`` objects.
 
-    This is a work-around for the glitch with collisions with  old ``Cube``
-    objects. This category just replaces all ``[Emissive]CubeWithCollision``
-    with ``CubeGS``.
+  This is a work-around for the glitch with collisions with  old ``Cube``
+  objects. This category just replaces all ``[Emissive]CubeWithCollision``
+  with ``CubeGS``.
 
 The category is specified as argument to the filter. For example, to use all
 replacements::
