@@ -149,7 +149,7 @@ differs depending on the shape and other properties of the simple. For this
 reason the replacements are put into categories:
 
 * ``safe`` (default); all exact replacements:
-  ``Cube``, ``Plane``, ``Hexagon``, ``Octahedron``.
+  ``Cube``, ``Hexagon``, ``Octahedron``.
 
   These shapes are exact matches with their golden counterparts, and are
   scaled to exactly match the original.
@@ -168,8 +168,8 @@ reason the replacements are put into categories:
   replacement if this is the case, retaining the old object.
 
 * ``unsafe``; objects that don't have the correct shape:
-  ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone`` and all
-  ``inexact`` replacements.
+  ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone``, ``Plane`` and
+  all ``inexact`` replacements.
 
   The shape differences may be noticeable depending on the scale:
 
@@ -178,10 +178,14 @@ reason the replacements are put into categories:
 
   The old ``Wedge`` is not exactly right-angled, but the new ``WedgeGS`` is.
 
+  ``[Emissive]PlaneWithCollision`` can be passed through in one direction, but
+  has collision in the other. The replacement ``PlaneGS`` has collision in both
+  directions.
+
 * ``bugs``; just fix collisions with ``Cube`` objects.
 
   This is a work-around for the glitch with collisions with  old ``Cube``
-  objects. This category just replaces all ``[Emissive]CubeWithCollision``
+  simples. This category just replaces all ``[Emissive]CubeWithCollision``
   with ``CubeGS``.
 
 The category is specified as argument to the filter. For example, to use all

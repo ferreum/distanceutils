@@ -47,7 +47,6 @@ def create_simples_mappers():
     }
     safe = {
         'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
-        'Plane': OldToGsMapper('PlaneOneSidedGS', size_factor=1/6.4),
         'Hexagon': OldToGsMapper('HexagonGS', size_factor=(1/32, .03, 1/32)),
         'Octahedron': OldToGsMapper('OctahedronGS', size_factor=1/32),
     }
@@ -113,6 +112,7 @@ def create_simples_mappers():
                                   size_factor=factor_truecone,
                                   default_rotation=mkrotx(270),
                                   default_scale=(.5, .5, .5)),
+        'Plane': OldToGsMapper('PlaneGS', size_factor=1/6.4),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
