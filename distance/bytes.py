@@ -527,9 +527,9 @@ class Section(BytesModel):
             pass # don't have a size
         else:
             if 'offset' in p.flags:
-                p(f"Data offset: 0x{start:08x} to 0x{start + size:08x} (0x{size:x} bytes)")
+                p(f"Content offset: 0x{start:08x} to 0x{start + size:08x} (0x{size:x} bytes)")
             else:
-                p(f"Data size: 0x{size:x} bytes")
+                p(f"Content size: 0x{size:x} bytes")
 
 
 class DstBytes(object):
