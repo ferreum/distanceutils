@@ -7,8 +7,8 @@ Changelog
 
   * Added ``rm`` filter for removing matching objects.
 
-* Added ``goldify`` filter for replacing most old simples with golden
-  simples.
+  * Added ``goldify`` filter for replacing most old simples with golden
+    simples.
 
   * Added ``unkill`` filter for replacing kill grids with harmless simples.
 
