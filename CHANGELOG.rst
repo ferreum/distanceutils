@@ -1,6 +1,23 @@
 Changelog
 ---------
 
+* version 0.4.0
+
+    * Added ``GoldenSimple`` object used for all non-spline golden simples.
+
+    * Added ``rm`` filter for removing matching objects.
+
+    * Added ``goldify`` filter for replacing most old simples with golden
+      simples.
+
+    * Added ``unkill`` filter for replacing kill grids with harmless simples.
+
+    * ``dst-filterlevel`` now utilizes these filters. Its old parameters have
+      been removed. The same functions are now available with the ``rm``
+      filter.
+
+    * ``write()`` methods now also accept a file name or a file object.
+
 * version 0.3.4
 
     * Added a missing import to main ``distance`` module.
