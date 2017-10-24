@@ -200,6 +200,9 @@ filter: ``unkill``
 Replace kill grids with harmless (kind-of similar looking) simples. Useful for
 exploration, practice, and finding hidden routes.
 
+Note: only finite kill grids are replaced for now, because they are most
+significant for routing, and infinite ones are more difficult to replace.
+
 Example::
 
   $ dst-filterlevel my_level.bytes result.bytes -o unkill
