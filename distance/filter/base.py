@@ -94,8 +94,8 @@ class ObjectMapper(object):
         self.default_rotation = default_rotation
         self.default_scale = default_scale
 
-    def apply(self, obj, scaled_group=False, **kw):
-        pos, rot, scale = obj.transform or ((), (), ())
+    def _apply_transform(self, transform):
+        pos, rot, scale = transform or ((), (), ())
 
         if not scale:
             scale = self.default_scale
@@ -132,7 +132,10 @@ class ObjectMapper(object):
 
         scale = self.size_factor(scale)
 
-        transform = pos, rot, scale
+        return pos, rot, scale
+
+    def apply(self, obj, scaled_group=False, **kw):
+        transform = self._apply_transform(obj.transform)
 
         return self.create_result(obj, transform, **kw)
 
