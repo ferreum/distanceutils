@@ -1,6 +1,8 @@
 """Filter for replacing old simples with golden simples"""
 
 
+from collections import defaultdict
+
 from distance.levelobjects import GoldenSimple, OldSimple
 from .base import ObjectFilter, ObjectMapper, DoNotReplace
 
@@ -14,7 +16,7 @@ class OldToGsMapper(ObjectMapper):
 
     def create_result(self, old, transform):
         if self.collision_only and not old.with_collision:
-            raise DoNotReplace
+            raise DoNotReplace('unmatched')
 
         gs = GoldenSimple(type=self.type, transform=transform)
         if old.emissive:
@@ -123,6 +125,13 @@ def create_simples_mappers():
 OLD_TO_GOLD_SIMPLES_MAPPERS = create_simples_mappers()
 
 
+REASON_TITLES = {
+    'unmatched': "Not in category",
+    'locked_scale': "Incompatible scale",
+    'locked_scale_group': "Inside group with incompatible scale",
+}
+
+
 class GoldifyFilter(ObjectFilter):
 
     @classmethod
@@ -147,6 +156,7 @@ class GoldifyFilter(ObjectFilter):
         self.mappers = OLD_TO_GOLD_SIMPLES_MAPPERS[args.mode]
         self.debug = args.debug
         self.num_replaced = 0
+        self.skipped_by_reason = defaultdict(lambda: 0)
 
     def filter_object(self, obj, scaled_group=False):
         if isinstance(obj, OldSimple):
@@ -154,10 +164,12 @@ class GoldifyFilter(ObjectFilter):
                 mapper = self.mappers[obj.shape]
             except KeyError:
                 # object not mapped in this mode
+                self.skipped_by_reason['unmatched'] += 1
                 return obj,
             try:
                 result = mapper.apply(obj, scaled_group=scaled_group)
-            except DoNotReplace:
+            except DoNotReplace as e:
+                self.skipped_by_reason[e.reason] += 1
                 return obj,
             self.num_replaced += 1
             if self.debug:
@@ -184,6 +196,15 @@ class GoldifyFilter(ObjectFilter):
 
     def print_summary(self, p):
         p(f"Goldified simples: {self.num_replaced}")
+        skipped = self.skipped_by_reason
+        if skipped:
+            num_retained = sum(skipped.values())
+            p(f"Retained simples: {num_retained}")
+            with p.tree_children():
+                for reason, num in skipped.items():
+                    r_str = REASON_TITLES.get(reason, reason)
+                    p(f"{r_str}: {num}")
+                    p.tree_next_child()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
