@@ -7,11 +7,15 @@ from .base import ObjectFilter, ObjectMapper, DoNotReplace
 
 class OldToGsMapper(ObjectMapper):
 
-    def __init__(self, type, **kw):
+    def __init__(self, type, collision_only=False, **kw):
         super().__init__(**kw)
         self.type = type
+        self.collision_only = collision_only
 
     def create_result(self, old, transform):
+        if self.collision_only and not old.with_collision:
+            raise DoNotReplace
+
         gs = GoldenSimple(type=self.type, transform=transform)
         if old.emissive:
             gs.mat_emit =  old.color_emit

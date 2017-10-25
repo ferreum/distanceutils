@@ -74,7 +74,7 @@ class DoNotReplace(Exception):
 class ObjectMapper(object):
 
     def __init__(self, offset=None, rotate=None, size_factor=1,
-                 collision_only=False, locked_scale_axes=(),
+                 locked_scale_axes=(),
                  default_rotation=(1, 0, 0, 0),
                  default_scale=(1, 1, 1)):
         if not callable(size_factor):
@@ -87,15 +87,11 @@ class ObjectMapper(object):
         self.offset = offset
         self.rotate = rotate
         self.size_factor = size_factor
-        self.collision_only = collision_only
         self.locked_scale_axes = locked_scale_axes
         self.default_rotation = default_rotation
         self.default_scale = default_scale
 
     def apply(self, obj, scaled_group=False, **kw):
-        if self.collision_only and not obj.with_collision:
-            raise DoNotReplace
-
         pos, rot, scale = obj.transform or ((), (), ())
 
         if not scale:
