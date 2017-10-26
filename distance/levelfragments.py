@@ -1,6 +1,8 @@
 """Level fragment implementations."""
 
 
+import math
+
 from .bytes import (
     Section,
     S_FLOAT, S_FLOAT3,
@@ -288,11 +290,12 @@ class SphereColliderFragment(Fragment):
     trigger_radius = None
 
     def _read_section_data(self, dbytes, sec):
-        self.trigger_center = (0.0, 0.0, 0.0)
-        self.trigger_radius = 50.0
         if sec.content_size >= 8:
             self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
-            self.trigger_radius = dbytes.read_struct(S_FLOAT)[0]
+            radius = dbytes.read_struct(S_FLOAT)[0]
+            if math.isnan(radius):
+                radius = None
+            self.trigger_radius = radius
 
 
 @PROBER.fragment(MAGIC_2, 0x45, 1)

@@ -14,13 +14,12 @@ VIS_MAPPERS = []
 
 class VisualizeMapper(object):
 
-    def __init__(self, type, color, **kw):
+    def __init__(self, color, **kw):
         super().__init__(**kw)
-        self.type = type
         self.color = color + (0.03,)
 
-    def _create_gs(self, transform):
-        gs = GoldenSimple(type=self.type, transform=transform)
+    def _create_gs(self, type, transform):
+        gs = GoldenSimple(type=type, transform=transform)
         gs.mat_emit =  self.color
         gs.emit_index = 7
         gs.tex_scale = (12, 12, 12)
@@ -30,6 +29,35 @@ class VisualizeMapper(object):
         gs.invert_emit = True
         return gs
 
+    def _visualize_spherecollider(self, main, coll,
+                                  offset=(0, 0, 0), scale_factor=1,
+                                  center_factor=1,
+                                  default_center=(0, 0, 0),
+                                  default_radius=50):
+        coll_center = coll.trigger_center or default_center
+        radius = coll.trigger_radius or default_radius
+
+        pos, rot, scale = main.transform or ((), (), ())
+        if not scale:
+            scale = (1, 1, 1)
+        tpos = pos
+
+        import numpy as np, quaternion
+        quaternion # suppress warning
+        from distance.transform import rotpoint
+        rel_center = np.array(coll_center) * center_factor + offset
+        center = (scale or (1, 1, 1)) * rel_center
+        if rot:
+            qrot = np.quaternion(rot[3], *rot[:3])
+        else:
+            qrot = np.quaternion(1, 0, 0, 0)
+        tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
+        tscale = (scale_factor * max(scale) * radius,) * 3
+        transform = tpos, rot, tscale
+
+        gs = self._create_gs('SphereHDGS', transform)
+        return gs,
+
 
 class GravityTriggerMapper(VisualizeMapper):
 
@@ -38,7 +66,7 @@ class GravityTriggerMapper(VisualizeMapper):
     )
 
     def __init__(self):
-        super().__init__('SphereGS', (.82, .44, 0))
+        super().__init__((.82, .44, 0))
 
     def apply(self, matches):
         main = None
@@ -49,28 +77,49 @@ class GravityTriggerMapper(VisualizeMapper):
         if main is None:
             raise DoNotReplace
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        center = coll.trigger_center
-        radius = coll.trigger_radius or 50
-
-        pos, rot, scale = main.transform or ((), (), ())
-        if not scale:
-            scale = (1, 1, 1)
-        tpos = pos
-        if rot and center and any(-0.01 < v < 0.01 for v in center):
-            import numpy as np, quaternion
-            quaternion # suppress warning
-            from distance.transform import rotpoint
-            center = center * np.array(scale or (1, 1, 1))
-            qrot = np.quaternion(rot[3], *rot[:3])
-            tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
-        tscale = tuple(1.575 / 50 * s * radius for s in scale)
-        transform = tpos, rot, tscale
-
-        gs = self._create_gs(transform)
-        return gs,
-
+        return self._visualize_spherecollider(
+            main, coll, scale_factor=.03126, default_radius=50)
 
 VIS_MAPPERS.append(GravityTriggerMapper())
+
+
+class TeleporterMapper(VisualizeMapper):
+
+    match_sections = (
+        # tele entrance
+        Section(MAGIC_2, 0x3e, 0),
+        Section(MAGIC_2, 0x3e, 1),
+        Section(MAGIC_2, 0x3e, 2),
+        Section(MAGIC_2, 0x3e, 3),
+        # tele exit
+        Section(MAGIC_2, 0x3f, 0),
+        Section(MAGIC_2, 0x3f, 1),
+    )
+
+    def __init__(self):
+        super().__init__((0, .482, 1))
+
+    def apply(self, matches):
+        main = None
+        exit = None
+        for objpath, frag in matches:
+            if isinstance(frag, levelfrags.TeleporterEntranceFragment):
+                main = objpath[0]
+                tele = objpath[-1]
+                entrance = frag
+            elif isinstance(frag, levelfrags.TeleporterExitFragment):
+                main = objpath[0]
+                tele = objpath[-1]
+                exit = frag
+        if main is None or tele is None:
+            raise DoNotReplace
+        coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is None:
+            raise DoNotReplace
+        return self._visualize_spherecollider(
+            main, coll, offset=(0, 4.817, 0), center_factor=(15.972,) * 3, scale_factor=.5, default_radius=.5)
+
+VIS_MAPPERS.append(TeleporterMapper())
 
 
 class VisualizeFilter(ObjectFilter):
