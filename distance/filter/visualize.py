@@ -46,6 +46,8 @@ class GravityTriggerMapper(VisualizeMapper):
             if isinstance(frag, levelfrags.GravityToggleFragment):
                 main = objpath[0]
                 break
+        if main is None:
+            raise DoNotReplace
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         center = coll.trigger_center
         radius = coll.trigger_radius or 50
