@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 
-from distance.levelobjects import GoldenSimple
+from distance.levelobjects import GoldenSimple, Group
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
 from .base import ObjectFilter, DoNotReplace
@@ -53,10 +53,20 @@ class VisualizeMapper(object):
             qrot = np.quaternion(1, 0, 0, 0)
         tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
         tscale = (scale_factor * max(scale) * radius,) * 3
-        transform = tpos, rot, tscale
+        transform = tpos, (0, 0, 0, 1), tscale
 
         gs = self._create_gs('SphereHDGS', transform)
-        return gs,
+        group = Group(children=[gs])
+        if pos:
+            group.recenter(pos)
+            group.transform = group.transform[0], rot, ()
+        anim = main.fragment_by_type(levelfrags.AnimatorFragment)
+        if anim is not None:
+            frags = list(group.fragments)
+            anim_copy = levelfrags.AnimatorFragment(raw_data=anim.raw_data, container=Section(anim.container))
+            frags.append(anim_copy)
+            group.fragments = frags
+        return group,
 
 
 class GravityTriggerMapper(VisualizeMapper):

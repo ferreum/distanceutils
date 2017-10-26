@@ -718,6 +718,11 @@ class InfoDisplayLogicFragment(BaseInfoDisplayLogic, Fragment):
                 texts.append(dbytes.read_str())
 
 
+@PROBER.fragment(MAGIC_2, 0x9a, 7)
+class AnimatorFragment(Fragment):
+    pass
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
