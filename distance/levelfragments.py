@@ -723,6 +723,12 @@ class AnimatorFragment(Fragment):
     pass
 
 
+@PROBER.fragment(MAGIC_2, 0x8a, 0)
+@PROBER.fragment(MAGIC_2, 0x8a, 1)
+class EventListenerFragment(Fragment):
+    pass
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),

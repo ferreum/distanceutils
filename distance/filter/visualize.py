@@ -12,6 +12,12 @@ from .base import ObjectFilter, DoNotReplace
 VIS_MAPPERS = []
 
 
+COPY_FRAG_TYPES = (
+    levelfrags.AnimatorFragment,
+    levelfrags.EventListenerFragment,
+)
+
+
 class VisualizeMapper(object):
 
     def __init__(self, color, **kw):
@@ -60,12 +66,12 @@ class VisualizeMapper(object):
         if pos:
             group.recenter(pos)
             group.transform = group.transform[0], rot, ()
-        anim = main.fragment_by_type(levelfrags.AnimatorFragment)
-        if anim is not None:
-            frags = list(group.fragments)
-            anim_copy = levelfrags.AnimatorFragment(raw_data=anim.raw_data, container=Section(anim.container))
-            frags.append(anim_copy)
-            group.fragments = frags
+        group_frags = list(group.fragments)
+        for ty in COPY_FRAG_TYPES:
+            copyfrag = main.fragment_by_type(ty)
+            if copyfrag is not None:
+                group_frags.append(copyfrag.clone())
+        group.fragments = group_frags
         return group,
 
 

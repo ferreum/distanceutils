@@ -102,6 +102,16 @@ class Fragment(BytesModel):
     def raw_data(self, value):
         self._raw_data = value
 
+    def clone(self):
+        new = type(self)()
+        if self.container:
+            new.container = Section(self.container)
+        self._clone_data(new)
+        return new
+
+    def _clone_data(self, new):
+        new.raw_data = self.raw_data
+
     def _init_section(self):
         return self.default_section
 
