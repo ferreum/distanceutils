@@ -136,6 +136,29 @@ class Group(LevelObject):
             pos = tuple(o + d for o, d in zip(pos, diff))
             obj.transform = pos, rot, scale
 
+    def rerotate(self, rot):
+        import numpy as np, quaternion
+        from distance.transform import rotpoint
+        quaternion # suppress warning
+        qrot = np.quaternion(rot[3], *rot[:3])
+        pos, orot, scale = self.transform or ((), (), ())
+        if not orot:
+            orot = (0, 0, 0, 1)
+        qorot = np.quaternion(orot[3], *orot[:3])
+        self.transform = pos, rot, scale
+        diff = qorot * qrot.conj()
+        diffconj = diff.conj()
+        for obj in self.children:
+            pos, orot, scale = obj.transform or ((), (), ())
+            if not orot:
+                orot = (0, 0, 0, 1)
+            qorot = np.quaternion(orot[3], orot[:3])
+            qorot = qorot * diffconj
+            nrot = (*qorot.imag, qorot.real)
+            if pos:
+                pos = rotpoint(diff, pos)
+            obj.transform = pos, nrot, scale
+
 
 @SUBOBJ_PROBER.for_type('Teleporter')
 @ForwardFragmentAttrs(BaseTeleporterEntrance, destination=None)

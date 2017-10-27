@@ -59,20 +59,27 @@ class VisualizeMapper(object):
             qrot = np.quaternion(1, 0, 0, 0)
         tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
         tscale = (scale_factor * max(scale) * radius,) * 3
-        transform = tpos, (0, 0, 0, 1), tscale
-
-        gs = self._create_gs('SphereHDGS', transform)
-        group = Group(children=[gs])
-        if pos:
-            group.recenter(pos)
-            group.transform = group.transform[0], rot, ()
-        group_frags = list(group.fragments)
+        copied_frags = []
         for ty in COPY_FRAG_TYPES:
             copyfrag = main.fragment_by_type(ty)
             if copyfrag is not None:
-                group_frags.append(copyfrag.clone())
-        group.fragments = group_frags
-        return group,
+                copied_frags.append(copyfrag.clone())
+
+        transform = tpos, rot, tscale
+
+        gs = self._create_gs('SphereHDGS', transform)
+
+        if copied_frags:
+            group = Group(children=[gs])
+            if pos:
+                group.recenter(pos)
+            group.rerotate(rot or (0, 0, 0, 1))
+            group_frags = list(group.fragments)
+            group_frags.extend(copied_frags)
+            group.fragments = group_frags
+            return group,
+        else:
+            return gs,
 
 
 class GravityTriggerMapper(VisualizeMapper):
