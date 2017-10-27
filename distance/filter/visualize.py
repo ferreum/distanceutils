@@ -127,7 +127,7 @@ class GravityTriggerMapper(VisualizeMapper):
             raise DoNotReplace
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         return self._visualize_spherecollider(
-            main, coll, scale_factor=.03126, default_radius=50)
+            main, coll, scale_factor=1/32, default_radius=50)
 
 VIS_MAPPERS.append(GravityTriggerMapper())
 
@@ -191,9 +191,10 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             raise DoNotReplace
-        return self._visualize_spherecollider(main, coll,
-                                              scale_factor=.03126,
-                                              default_radius=100)
+        return self._visualize_spherecollider(
+            main, coll,
+            scale_factor=1/32,
+            default_radius=100)
 
 VIS_MAPPERS.append(VirusSpiritSpawnerMapper())
 
@@ -221,10 +222,10 @@ class EventTriggerMapper(VisualizeMapper):
             return self._visualize_boxcollider(
                 main, coll,
                 default_scale=(35, 35, 35),
-                scale_factor=.015628)
+                scale_factor=1/64)
         return self._visualize_spherecollider(
             main, coll,
-            scale_factor=.03126,
+            scale_factor=1/32,
             default_radius=1,
             default_scale=(35, 35, 35))
 
@@ -251,7 +252,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
             raise DoNotReplace
         return self._visualize_boxcollider(
             main, coll,
-            scale_factor=.015628,
+            scale_factor=1/64,
             default_scale=(100, 100, 100))
 
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
@@ -277,7 +278,7 @@ class ForceZoneMapper(VisualizeMapper):
             raise DoNotReplace
         return self._visualize_boxcollider(
             main, coll,
-            scale_factor=.015628,
+            scale_factor=1/64,
             default_scale=(35, 35, 35))
 
 VIS_MAPPERS.append(ForceZoneMapper())
@@ -302,13 +303,13 @@ class WingCorruptionZoneMapper(VisualizeMapper):
         if coll is not None:
             return self._visualize_boxcollider(
                 main, coll,
-                scale_factor=.015628,
+                scale_factor=1/64,
                 default_scale=(100, 100, 100))
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is not None:
             return self._visualize_spherecollider(
                 main, coll,
-                scale_factor=.015625*2,
+                scale_factor=1/32,
                 default_radius=.5,
                 default_scale=(1000, 1000, 1000))
         raise DoNotReplace
