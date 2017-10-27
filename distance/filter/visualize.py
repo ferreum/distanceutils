@@ -35,15 +35,13 @@ class VisualizeMapper(object):
         gs.invert_emit = True
         return gs
 
-    def _visualize_spherecollider(self, main, coll,
-                                  offset=(0, 0, 0), scale_factor=1,
-                                  center_factor=1,
-                                  default_center=(0, 0, 0),
-                                  default_radius=50,
-                                  default_scale=(1, 1, 1)):
-        coll_center = coll.trigger_center or default_center
-        radius = coll.trigger_radius or default_radius
-
+    def _visualize_collider(self, main,
+                            type, size=(1, 1, 1),
+                            coll_center=(0, 0, 0),
+                            offset=(0, 0, 0), scale_factor=1,
+                            center_factor=1,
+                            locked_scale=False,
+                            default_scale=(1, 1, 1)):
         pos, rot, scale = main.transform or ((), (), ())
         if not scale:
             scale = default_scale
@@ -59,7 +57,10 @@ class VisualizeMapper(object):
         else:
             qrot = np.quaternion(1, 0, 0, 0)
         tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
-        tscale = (scale_factor * max(scale) * radius,) * 3
+        apply_scale = scale
+        if locked_scale:
+            apply_scale = (max(scale),) * 3
+        tscale = tuple(scale_factor * sc * sz for sc, sz in zip(apply_scale, size))
         copied_frags = []
         for ty in COPY_FRAG_TYPES:
             copyfrag = main.fragment_by_type(ty)
@@ -68,7 +69,7 @@ class VisualizeMapper(object):
 
         transform = tpos, rot, tscale
 
-        gs = self._create_gs('SphereHDGS', transform)
+        gs = self._create_gs(type, transform)
 
         if copied_frags:
             group = Group(children=[gs])
@@ -82,6 +83,29 @@ class VisualizeMapper(object):
             return group,
         else:
             return gs,
+
+    def _visualize_spherecollider(self, main, coll,
+                                  default_radius=50,
+                                  **kw):
+        coll_center = coll.trigger_center or (0, 0, 0)
+        radius = coll.trigger_radius or default_radius
+        return self._visualize_collider(
+            main, type='SphereHDGS',
+            coll_center=coll_center,
+            size=(radius, radius, radius),
+            locked_scale=True,
+            **kw)
+
+    def _visualize_boxcollider(self, main, coll,
+                               default_trigger_size=(1, 1, 1),
+                               **kw):
+        coll_center = coll.trigger_center or (0, 0, 0)
+        size = coll.trigger_size or default_trigger_size
+        return self._visualize_collider(
+            main, type='CubeGS',
+            coll_center=coll_center,
+            size=size,
+            **kw)
 
 
 class GravityTriggerMapper(VisualizeMapper):
@@ -142,7 +166,9 @@ class TeleporterMapper(VisualizeMapper):
         if coll is None:
             raise DoNotReplace
         return self._visualize_spherecollider(
-            main, coll, offset=(0, 4.817, 0), center_factor=(15.972,) * 3, scale_factor=.5, default_radius=.5)
+            main, coll, offset=(0, 4.817, 0),
+            center_factor=(15.972,) * 3,
+            scale_factor=.5, default_radius=.5)
 
 VIS_MAPPERS.append(TeleporterMapper())
 
@@ -189,11 +215,18 @@ class EventTriggerMapper(VisualizeMapper):
             raise DoNotReplace
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
-            raise DoNotReplace
-        return self._visualize_spherecollider(main, coll,
-                                              scale_factor=.03126,
-                                              default_radius=1,
-                                              default_scale=(35, 35, 35))
+            coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+            if coll is None:
+                raise DoNotReplace
+            return self._visualize_boxcollider(
+                main, coll,
+                default_scale=(35, 35, 35),
+                scale_factor=.015628)
+        return self._visualize_spherecollider(
+            main, coll,
+            scale_factor=.03126,
+            default_radius=1,
+            default_scale=(35, 35, 35))
 
 VIS_MAPPERS.append(EventTriggerMapper())
 

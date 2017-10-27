@@ -291,11 +291,23 @@ class SphereColliderFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size >= 8:
-            self.trigger_center = read_n_floats(dbytes, 3, (0.0, 0.0, 0.0))
+            self.trigger_center = read_n_floats(dbytes, 3, None)
             radius = dbytes.read_struct(S_FLOAT)[0]
             if math.isnan(radius):
                 radius = None
             self.trigger_radius = radius
+
+
+@PROBER.fragment(MAGIC_3, 0xf, 2)
+class BoxColliderFragment(Fragment):
+
+    trigger_center = None
+    trigger_size = None
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.content_size:
+            self.trigger_center = read_n_floats(dbytes, 3, None)
+            self.trigger_size = read_n_floats(dbytes, 3, None)
 
 
 @PROBER.fragment(MAGIC_2, 0x45, 1)
