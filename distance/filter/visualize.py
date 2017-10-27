@@ -299,12 +299,19 @@ class WingCorruptionZoneMapper(VisualizeMapper):
         if main is None:
             raise DoNotReplace
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is None:
-            raise DoNotReplace
-        return self._visualize_boxcollider(
-            main, coll,
-            scale_factor=.015628,
-            default_scale=(100, 100, 100))
+        if coll is not None:
+            return self._visualize_boxcollider(
+                main, coll,
+                scale_factor=.015628,
+                default_scale=(100, 100, 100))
+        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is not None:
+            return self._visualize_spherecollider(
+                main, coll,
+                scale_factor=.015625*2,
+                default_radius=.5,
+                default_scale=(1000, 1000, 1000))
+        raise DoNotReplace
 
 VIS_MAPPERS.append(WingCorruptionZoneMapper())
 
