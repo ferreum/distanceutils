@@ -215,19 +215,18 @@ class EventTriggerMapper(VisualizeMapper):
         if main is None:
             raise DoNotReplace
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is None:
-            coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
-            if coll is None:
-                raise DoNotReplace
+        if coll is not None:
+            return self._visualize_spherecollider(
+                main, coll,
+                scale_factor=1/32,
+                default_radius=1,
+                default_scale=(35, 35, 35))
+        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is not None:
             return self._visualize_boxcollider(
                 main, coll,
                 default_scale=(35, 35, 35),
                 scale_factor=1/64)
-        return self._visualize_spherecollider(
-            main, coll,
-            scale_factor=1/32,
-            default_radius=1,
-            default_scale=(35, 35, 35))
 
 VIS_MAPPERS.append(EventTriggerMapper())
 
