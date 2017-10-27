@@ -146,6 +146,31 @@ class TeleporterMapper(VisualizeMapper):
 VIS_MAPPERS.append(TeleporterMapper())
 
 
+class VirusSpiritSpawnerMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x3a, 0),
+    )
+
+    def __init__(self):
+        super().__init__((.878, .184, .184))
+
+    def apply(self, matches):
+        main = None
+        for objpath, frag in matches:
+            main = objpath[0]
+        if main is None:
+            raise DoNotReplace
+        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is None:
+            raise DoNotReplace
+        return self._visualize_spherecollider(main, coll,
+                                              scale_factor=.03126,
+                                              default_radius=100)
+
+VIS_MAPPERS.append(VirusSpiritSpawnerMapper())
+
+
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):
