@@ -73,7 +73,8 @@ class VisualizeMapper(object):
             group = Group(children=[gs])
             if pos:
                 group.recenter(pos)
-            group.rerotate(rot or (0, 0, 0, 1))
+            if rot:
+                group.rerotate(rot)
             group_frags = list(group.fragments)
             group_frags.extend(copied_frags)
             group.fragments = group_frags
