@@ -231,6 +231,58 @@ class EventTriggerMapper(VisualizeMapper):
 VIS_MAPPERS.append(EventTriggerMapper())
 
 
+class EnableAbilitiesTriggerMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x5e, 0),
+    )
+
+    def __init__(self):
+        super().__init__((.686, .686, .686))
+
+    def apply(self, matches):
+        main = None
+        for objpath, frag in matches:
+            main = objpath[0]
+        if main is None:
+            raise DoNotReplace
+        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is None:
+            raise DoNotReplace
+        return self._visualize_boxcollider(
+            main, coll,
+            scale_factor=.015628,
+            default_scale=(100, 100, 100))
+
+VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
+
+
+class ForceZoneMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0xa0, 0),
+    )
+
+    def __init__(self):
+        super().__init__((.9134, .345, 1))
+
+    def apply(self, matches):
+        main = None
+        for objpath, frag in matches:
+            main = objpath[0]
+        if main is None:
+            raise DoNotReplace
+        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is None:
+            raise DoNotReplace
+        return self._visualize_boxcollider(
+            main, coll,
+            scale_factor=.015628,
+            default_scale=(35, 35, 35))
+
+VIS_MAPPERS.append(ForceZoneMapper())
+
+
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):
