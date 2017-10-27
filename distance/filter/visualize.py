@@ -283,6 +283,32 @@ class ForceZoneMapper(VisualizeMapper):
 VIS_MAPPERS.append(ForceZoneMapper())
 
 
+class WingCorruptionZoneMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x53, 0),
+    )
+
+    def __init__(self):
+        super().__init__((.545, .545, 0))
+
+    def apply(self, matches):
+        main = None
+        for objpath, frag in matches:
+            main = objpath[0]
+        if main is None:
+            raise DoNotReplace
+        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is None:
+            raise DoNotReplace
+        return self._visualize_boxcollider(
+            main, coll,
+            scale_factor=.015628,
+            default_scale=(100, 100, 100))
+
+VIS_MAPPERS.append(WingCorruptionZoneMapper())
+
+
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):
