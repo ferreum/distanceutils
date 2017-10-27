@@ -39,13 +39,14 @@ class VisualizeMapper(object):
                                   offset=(0, 0, 0), scale_factor=1,
                                   center_factor=1,
                                   default_center=(0, 0, 0),
-                                  default_radius=50):
+                                  default_radius=50,
+                                  default_scale=(1, 1, 1)):
         coll_center = coll.trigger_center or default_center
         radius = coll.trigger_radius or default_radius
 
         pos, rot, scale = main.transform or ((), (), ())
         if not scale:
-            scale = (1, 1, 1)
+            scale = default_scale
         tpos = pos
 
         import numpy as np, quaternion
@@ -169,6 +170,32 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
                                               default_radius=100)
 
 VIS_MAPPERS.append(VirusSpiritSpawnerMapper())
+
+
+class EventTriggerMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x89, 2),
+    )
+
+    def __init__(self):
+        super().__init__((0, .8, 0))
+
+    def apply(self, matches):
+        main = None
+        for objpath, frag in matches:
+            main = objpath[0]
+        if main is None:
+            raise DoNotReplace
+        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is None:
+            raise DoNotReplace
+        return self._visualize_spherecollider(main, coll,
+                                              scale_factor=.03126,
+                                              default_radius=1,
+                                              default_scale=(35, 35, 35))
+
+VIS_MAPPERS.append(EventTriggerMapper())
 
 
 class VisualizeFilter(ObjectFilter):
