@@ -23,6 +23,16 @@ class Transform(tuple):
 
     __slots__ = ()
 
+    @classmethod
+    def fill(cls, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        if len(pos) != 3:
+            raise TypeError("Invalid pos")
+        if len(rot) != 4:
+            raise TypeError("Invalid rot")
+        if len(scale) != 3:
+            raise TypeError("Invalid scale")
+        return cls(pos, rot, scale)
+
     def __new__(cls, *args):
         if len(args) not in (0, 3):
             raise TypeError('Invalid number of arguments')
@@ -263,6 +273,13 @@ class BaseObject(BytesModel):
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
     )
+    default_transform = None
+
+    @property
+    def effective_transform(self):
+        t = self.transform
+        defs = self.default_transform
+        return t.effective(*defs)
 
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:

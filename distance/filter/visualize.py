@@ -17,22 +17,6 @@ COPY_FRAG_TYPES = (
 )
 
 
-class ObjectDefaults(dict):
-
-    def add(self, type, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
-        self[type] = pos, rot, scale
-
-    def get_effective(self, obj, transform=None):
-        if transform is None:
-            transform = obj.transform
-        defs = self.get(obj.type, ())
-        return transform.effective(*defs)
-
-
-_OBJ_DEFAULTS = ObjectDefaults()
-_defaults = _OBJ_DEFAULTS.add
-
-
 class VisualizeMapper(object):
 
     def __init__(self, color, **kw):
@@ -60,7 +44,7 @@ class VisualizeMapper(object):
         quaternion # suppress warning
         from distance.transform import rotpoint
 
-        opos, orot, oscale = _OBJ_DEFAULTS.get_effective(main)
+        opos, orot, oscale = main.effective_transform
 
         center = (np.array(coll_center) * center_factor + offset) * oscale
         qrot = np.quaternion(orot[3], *orot[:3])
@@ -219,8 +203,6 @@ class EventTriggerMapper(VisualizeMapper):
                 main, coll,
                 scale_factor=1/64)
 
-_defaults('EventTriggerBox', scale=(35, 35, 35))
-_defaults('EventTriggerSphere', scale=(35, 35, 35))
 VIS_MAPPERS.append(EventTriggerMapper())
 
 
@@ -246,7 +228,6 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
             main, coll,
             scale_factor=1/64)
 
-_defaults('EnableAbilitiesBox', scale=(100, 100, 100))
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
 
 
@@ -272,7 +253,6 @@ class ForceZoneMapper(VisualizeMapper):
             main, coll,
             scale_factor=1/64)
 
-_defaults('ForceZone', scale=(35, 35, 35))
 VIS_MAPPERS.append(ForceZoneMapper())
 
 
@@ -304,8 +284,6 @@ class WingCorruptionZoneMapper(VisualizeMapper):
                 default_radius=.5)
         raise DoNotReplace
 
-_defaults('WingCorruptionZone', (100, 100, 100))
-_defaults('WingCorruptionZoneLarge', (1000, 1000, 1000))
 VIS_MAPPERS.append(WingCorruptionZoneMapper())
 
 
@@ -329,7 +307,7 @@ class VisualizeFilter(ObjectFilter):
                 copied_frags.append(copyfrag.clone())
         if not copied_frags:
             return objs
-        pos, rot, scale = _OBJ_DEFAULTS.get_effective(main)
+        pos, rot, scale = main.effective_transform
         group = Group(children=objs)
         group.recenter(pos)
         group.rerotate(rot)

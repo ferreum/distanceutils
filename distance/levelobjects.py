@@ -5,7 +5,7 @@ from .bytes import (
     Section,
     MAGIC_2, MAGIC_3, MAGIC_6
 )
-from .base import BaseObject, Fragment, ForwardFragmentAttrs
+from .base import Transform, BaseObject, Fragment, ForwardFragmentAttrs
 from .levelfragments import (
     PROBER as FRAG_PROBER,
     ForwardMaterialColors,
@@ -107,6 +107,7 @@ class Group(LevelObject):
         Section(MAGIC_2, 0x1d, version=1),
         Section(MAGIC_2, 0x63, version=0),
     )
+    default_transform = Transform.fill()
 
     def _handle_opts(self, opts):
         LevelObject._handle_opts(self, opts)
@@ -158,6 +159,12 @@ class Group(LevelObject):
             if pos:
                 pos = rotpoint(diff, pos)
             obj.transform = pos, nrot, scale
+
+
+@PROBER.for_type('Teleporter', 'TeleporterVirus')
+class Teleporter(LevelObject):
+
+    default_transform = Transform.fill()
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
@@ -226,20 +233,52 @@ class CarScreenTextDecodeTrigger(LevelObject):
     disable_music_trigger = None,
 )
 class GravityTrigger(LevelObject):
-    pass
+    default_transform = Transform.fill()
 
 
 @PROBER.for_type('ForceZoneBox')
 @ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 @ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment.value_attrs)
 class ForceZoneBox(LevelObject):
-    pass
+
+    default_transform = Transform.fill(scale=(35, 35, 35))
 
 
 @PROBER.for_type('EnableAbilitiesBox')
 @ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None)
 class EnableAbilitiesBox(LevelObject):
-    pass
+
+    default_transform = Transform.fill(scale=(100, 100, 100))
+
+
+@PROBER.for_type('EventTriggerBox')
+class EvenTriggerBox(LevelObject):
+
+    default_transform = Transform.fill(scale=(35, 35, 35))
+
+
+@PROBER.for_type('EventTriggerSphere')
+class EvenTriggerSphere(LevelObject):
+
+    default_transform = Transform.fill(scale=(35, 35, 35))
+
+
+@PROBER.for_type('WingCorruptionZone')
+class WingCorruptionZone(LevelObject):
+
+    default_transform = Transform.fill(scale=(100, 100, 100))
+
+
+@PROBER.for_type('WingCorruptionZoneLarge')
+class WingCorruptionZoneLarge(LevelObject):
+
+    default_transform = Transform.fill(scale=(1000, 1000, 1000))
+
+
+@PROBER.for_type('VirusSpiritSpawner')
+class VirusSpiritSpawner(LevelObject):
+
+    default_transform = Transform.fill()
 
 
 BASIC_GOLDEN_SIMPLES_NAMES = (
