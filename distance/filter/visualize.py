@@ -333,7 +333,7 @@ class EventTriggerMapper(VisualizeMapper):
         Section(MAGIC_2, 0x89, 2),
     )
 
-    color = (0, .8, 0)
+    color = (0, .4, 0)
 
     vis_box = BoxVisualizer(color, scale_factor=1/64)
     vis_sphere = SphereVisualizer(color, scale_factor=1/32)
