@@ -281,6 +281,15 @@ class VirusSpiritSpawner(LevelObject):
     default_transform = Transform.fill()
 
 
+@PROBER.for_type('VirusMazeTowerFat')
+@PROBER.for_type('VirusMazeCeiling001')
+@PROBER.for_type('VirusMazeTowerFat002')
+@PROBER.for_type('VirusMazeTowerFat003')
+class VirusMazeBuilding(LevelObject):
+
+    default_transform = Transform.fill()
+
+
 BASIC_GOLDEN_SIMPLES_NAMES = (
     'AppleGS',
     'ArchGS',

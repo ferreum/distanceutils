@@ -87,9 +87,10 @@ class BoxVisualizer(Visualizer):
 class SphereVisualizer(Visualizer):
 
     locked_scale = True
+    default_center = (0, 0, 0)
 
     def transform(self, main, coll):
-        coll_center = coll.trigger_center or (0, 0, 0)
+        coll_center = coll.trigger_center or self.default_center
         radius = coll.trigger_radius or self.default_radius
         return self._transform_collider(
             main,
@@ -272,6 +273,45 @@ class WingCorruptionZoneMapper(object):
         raise DoNotReplace
 
 VIS_MAPPERS.append(WingCorruptionZoneMapper())
+
+
+class VirusMazeMapper(object):
+
+    match_sections = (
+        Section(MAGIC_2, 0x43, 2),
+    )
+
+    _opts = dict(
+        color = (.455, .147, 0),
+        scale_factor = 1/32,
+    )
+    _vis_ceiling = SphereVisualizer(
+        default_radius = 66.591,
+        **_opts,
+    )
+    _vis_tower = SphereVisualizer(
+        default_center = (.107, .593, 63.197),
+        default_radius = 176.755,
+        **_opts,
+    )
+
+    visualizers = {
+        'VirusMazeCeiling001': _vis_ceiling,
+        'VirusMazeTowerFat': _vis_tower,
+        'VirusMazeTowerFat002': _vis_tower,
+        'VirusMazeTowerFat003': _vis_tower,
+    }
+
+    def apply(self, main, matches):
+        vis = self.visualizers.get(main.type, None)
+        if vis is None:
+            raise DoNotReplace
+        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is not None:
+            return vis.visualize(main, coll)
+        raise DoNotReplace
+
+VIS_MAPPERS.append(VirusMazeMapper())
 
 
 class VisualizeFilter(ObjectFilter):
