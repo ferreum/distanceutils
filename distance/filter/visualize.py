@@ -64,18 +64,18 @@ class VisualizeMapper(object):
         quaternion # suppress warning
         from distance.transform import rotpoint
 
-        pos, rot, scale = _OBJ_DEFAULTS.get_effective(main)
+        opos, orot, oscale = _OBJ_DEFAULTS.get_effective(main)
 
-        rel_center = np.array(coll_center) * center_factor + offset
-        center = (scale or (1, 1, 1)) * rel_center
-        qrot = np.quaternion(rot[3], *rot[:3])
-        tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
-        apply_scale = scale
+        center = (np.array(coll_center) * center_factor + offset) * oscale
+        qrot = np.quaternion(orot[3], *orot[:3])
+        tpos = np.array(opos) + rotpoint(qrot, center)
+
+        apply_scale = oscale
         if locked_scale:
-            apply_scale = (max(scale),) * 3
-        tscale = tuple(scale_factor * sc * sz for sc, sz in zip(apply_scale, size))
+            apply_scale = max(oscale)
+        tscale = np.array(size) * scale_factor * apply_scale
 
-        transform = tpos, rot, tscale
+        transform = tpos, orot, tscale
 
         gs = self._create_gs(type, transform)
         return gs,
