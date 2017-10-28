@@ -51,6 +51,36 @@ class Transform(tuple):
         tpos, trot, tscale = self or ((), (), ())
         return type(self)(tpos or pos, trot or rot, tscale or scale)
 
+    @property
+    def is_effective(self):
+        return self and all(len(e) > 0 for e in self)
+
+    def apply(self, other):
+        """Calculate the resulting global Transform when moving the the given
+        Transform into this Transform's point of reference."""
+
+        if not self.is_effective or not other.is_effective:
+            raise TypeError('need effective transform')
+
+        import numpy as np, quaternion
+        from .transform import rotpoint
+        quaternion
+
+        pos, rot, scale = self
+        opos, orot, oscale = other
+
+        qrot = np.quaternion(rot[3], *rot[:3])
+        qorot = np.quaternion(orot[3], *orot[:3])
+
+        ascale = np.array(scale)
+
+        rpos = tuple(pos + rotpoint(qrot, opos * ascale))
+        qrrot = qrot * qorot
+        rrot = (*qrrot.imag, qrrot.real)
+        rscale = tuple(ascale * oscale)
+
+        return rpos, rrot, rscale
+
     @classmethod
     def read_from(cls, dbytes):
         data = dbytes.read_bytes(12)
