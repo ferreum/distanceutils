@@ -11,11 +11,30 @@ from .base import ObjectFilter, DoNotReplace
 
 VIS_MAPPERS = []
 
-
 COPY_FRAG_TYPES = (
     levelfrags.AnimatorFragment,
     levelfrags.EventListenerFragment,
 )
+
+
+class ObjectDefaults(dict):
+
+    def add(self, type, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        self[type] = pos, rot, scale
+
+    def get_effective(self, obj, transform=None):
+        if transform is None:
+            transform = obj.transform
+        defs = self.get(obj.type, ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1)))
+        if not transform:
+            return defs
+        pos, rot, scale = transform
+        dpos, drot, dscale = defs
+        return (pos or dpos, rot or drot, scale or dscale)
+
+
+_OBJ_DEFAULTS = ObjectDefaults()
+_defaults = _OBJ_DEFAULTS.add
 
 
 class VisualizeMapper(object):
@@ -40,49 +59,26 @@ class VisualizeMapper(object):
                             coll_center=(0, 0, 0),
                             offset=(0, 0, 0), scale_factor=1,
                             center_factor=1,
-                            locked_scale=False,
-                            default_scale=(1, 1, 1)):
-        pos, rot, scale = main.transform or ((), (), ())
-        if not scale:
-            scale = default_scale
-        tpos = pos
-
+                            locked_scale=False):
         import numpy as np, quaternion
         quaternion # suppress warning
         from distance.transform import rotpoint
+
+        pos, rot, scale = _OBJ_DEFAULTS.get_effective(main)
+
         rel_center = np.array(coll_center) * center_factor + offset
         center = (scale or (1, 1, 1)) * rel_center
-        if rot:
-            qrot = np.quaternion(rot[3], *rot[:3])
-        else:
-            qrot = np.quaternion(1, 0, 0, 0)
+        qrot = np.quaternion(rot[3], *rot[:3])
         tpos = tuple(np.array(pos or (0, 0, 0)) + rotpoint(qrot, center))
         apply_scale = scale
         if locked_scale:
             apply_scale = (max(scale),) * 3
         tscale = tuple(scale_factor * sc * sz for sc, sz in zip(apply_scale, size))
-        copied_frags = []
-        for ty in COPY_FRAG_TYPES:
-            copyfrag = main.fragment_by_type(ty)
-            if copyfrag is not None:
-                copied_frags.append(copyfrag.clone())
 
         transform = tpos, rot, tscale
 
         gs = self._create_gs(type, transform)
-
-        if copied_frags:
-            group = Group(children=[gs])
-            if pos:
-                group.recenter(pos)
-            if rot:
-                group.rerotate(rot)
-            group_frags = list(group.fragments)
-            group_frags.extend(copied_frags)
-            group.fragments = group_frags
-            return group,
-        else:
-            return gs,
+        return gs,
 
     def _visualize_spherecollider(self, main, coll,
                                   default_radius=50,
@@ -219,15 +215,15 @@ class EventTriggerMapper(VisualizeMapper):
             return self._visualize_spherecollider(
                 main, coll,
                 scale_factor=1/32,
-                default_radius=1,
-                default_scale=(35, 35, 35))
+                default_radius=1)
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is not None:
             return self._visualize_boxcollider(
                 main, coll,
-                default_scale=(35, 35, 35),
                 scale_factor=1/64)
 
+_defaults('EventTriggerBox', scale=(35, 35, 35))
+_defaults('EventTriggerSphere', scale=(35, 35, 35))
 VIS_MAPPERS.append(EventTriggerMapper())
 
 
@@ -251,9 +247,9 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
             raise DoNotReplace
         return self._visualize_boxcollider(
             main, coll,
-            scale_factor=1/64,
-            default_scale=(100, 100, 100))
+            scale_factor=1/64)
 
+_defaults('EnableAbilitiesTrigger', scale=(100, 100, 100))
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
 
 
@@ -277,9 +273,9 @@ class ForceZoneMapper(VisualizeMapper):
             raise DoNotReplace
         return self._visualize_boxcollider(
             main, coll,
-            scale_factor=1/64,
-            default_scale=(35, 35, 35))
+            scale_factor=1/64)
 
+_defaults('ForceZone', scale=(35, 35, 35))
 VIS_MAPPERS.append(ForceZoneMapper())
 
 
@@ -302,17 +298,17 @@ class WingCorruptionZoneMapper(VisualizeMapper):
         if coll is not None:
             return self._visualize_boxcollider(
                 main, coll,
-                scale_factor=1/64,
-                default_scale=(100, 100, 100))
+                scale_factor=1/64)
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is not None:
             return self._visualize_spherecollider(
                 main, coll,
                 scale_factor=1/32,
-                default_radius=.5,
-                default_scale=(1000, 1000, 1000))
+                default_radius=.5)
         raise DoNotReplace
 
+_defaults('WingCorruptionZone', (100, 100, 100))
+_defaults('WingCorruptionZoneLarge', (1000, 1000, 1000))
 VIS_MAPPERS.append(WingCorruptionZoneMapper())
 
 
@@ -327,6 +323,23 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_sec = dict(bysection)
         self._mappers_by_id = {id(m): m for m in VIS_MAPPERS}
         self.num_visualized = 0
+
+    def _apply_animators(self, main, objs):
+        copied_frags = []
+        for ty in COPY_FRAG_TYPES:
+            copyfrag = main.fragment_by_type(ty)
+            if copyfrag is not None:
+                copied_frags.append(copyfrag.clone())
+        if not copied_frags:
+            return objs
+        pos, rot, scale = _OBJ_DEFAULTS.get_effective(main)
+        group = Group(children=objs)
+        group.recenter(pos)
+        group.rerotate(rot)
+        group_frags = list(group.fragments)
+        group_frags.extend(copied_frags)
+        group.fragments = group_frags
+        return group,
 
     def _match_object(self, objpath):
         def filter_frags(sec, prober):
@@ -343,14 +356,17 @@ class VisualizeFilter(ObjectFilter):
 
     def filter_object(self, obj):
         mappers = self._match_object((obj,))
-        result = [obj]
+        result = []
         for id_, matches in mappers.items():
             try:
                 result.extend(self._mappers_by_id[id_].apply(matches))
                 self.num_visualized += 1
             except DoNotReplace:
                 pass
-        return result
+        if result:
+            result = self._apply_animators(obj, result)
+            return (obj, *result)
+        return obj,
 
     def print_summary(self, p):
         p(f"Visualized objects: {self.num_visualized}")
