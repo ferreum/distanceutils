@@ -72,14 +72,10 @@ class BoxVisualizer(Visualizer):
             coll_center=coll_center,
             size=size)
 
-    def visualize(self, main, coll, **kw):
+    def visualize(self, main, coll):
         coll_center = coll.trigger_center or (0, 0, 0)
         size = coll.trigger_size or self.default_trigger_size
-        transform = self._transform_collider(
-            main,
-            coll_center=coll_center,
-            size=size,
-            **kw)
+        transform = self.transform(main, coll)
         gs = self._create_gs('CubeGS', transform)
         return gs,
 
