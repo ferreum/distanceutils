@@ -279,6 +279,8 @@ class BaseObject(BytesModel):
     def effective_transform(self):
         t = self.transform
         defs = self.default_transform
+        if defs is None:
+            raise TypeError(f"default transform unknown for {self.type!r}")
         return t.effective(*defs)
 
     def fragment_by_type(self, typ):
