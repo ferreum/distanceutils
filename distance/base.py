@@ -42,11 +42,6 @@ class Transform(tuple):
     rot = property(itemgetter(1))
     scale = property(itemgetter(2))
 
-    def nonempty(self):
-        if self:
-            return self
-        return type(self)()
-
     def effective(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
         tpos, trot, tscale = self or ((), (), ())
         return type(self)(tpos or pos, trot or rot, tscale or scale)
