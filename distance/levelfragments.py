@@ -27,7 +27,7 @@ def _fallback_fragment(sec):
     return Fragment
 
 
-def read_n_floats(dbytes, n, default):
+def read_n_floats(dbytes, n, default=None):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]
     fdata = dbytes.read_bytes(4)
@@ -291,7 +291,7 @@ class SphereColliderFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size >= 8:
-            self.trigger_center = read_n_floats(dbytes, 3, None)
+            self.trigger_center = read_n_floats(dbytes, 3)
             radius = dbytes.read_struct(S_FLOAT)[0]
             if math.isnan(radius):
                 radius = None
@@ -306,8 +306,8 @@ class BoxColliderFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
-            self.trigger_center = read_n_floats(dbytes, 3, None)
-            self.trigger_size = read_n_floats(dbytes, 3, None)
+            self.trigger_center = read_n_floats(dbytes, 3)
+            self.trigger_size = read_n_floats(dbytes, 3)
 
 
 @PROBER.fragment(MAGIC_2, 0x45, 1)
