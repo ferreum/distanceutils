@@ -78,7 +78,7 @@ class Transform(tuple):
         rrot = (*qrrot.imag, qrrot.real)
         rscale = tuple(ascale * scale)
 
-        return rpos, rrot, rscale
+        return type(self)(rpos, rrot, rscale)
 
     @classmethod
     def read_from(cls, dbytes):
