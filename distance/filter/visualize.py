@@ -226,17 +226,31 @@ class TeleporterMapper(VisualizeMapper):
         self._exits = defaultdict(list)
 
     def prepare(self, main, matches):
+        dest, link_id = None, None
         for objpath, frag in matches:
             if isinstance(frag, levelfrags.TeleporterEntranceFragment):
                 if frag.destination is not None:
-                    self._entrances[frag.destination].append(main)
+                    dest = frag.destination
+                    self._entrances[dest].append(main)
             elif isinstance(frag, levelfrags.TeleporterExitFragment):
                 if frag.link_id is not None:
-                    self._exits[frag.link_id].append(main)
+                    link_id = frag.link_id
+                    self._exits[link_id].append(main)
+        main.__dest_id = dest
 
     def post_prepare(self):
         self._entrances = dict(self._entrances)
         self._exits = dict(self._exits)
+
+    def _real_dest(self, main):
+        if main is None:
+            return None
+        dests = self._exits.get(main.__dest_id, ())
+        for dest in dests:
+            if dest is not main:
+                return dest
+        # not connected, or teleports to self
+        return None
 
     def apply(self, main, matches):
         link_id, dest_id = None, None
@@ -259,22 +273,22 @@ class TeleporterMapper(VisualizeMapper):
             transform = self.vis.transform(main, coll)
         creators = [self.vis.creator]
 
-        dests = self._exits.get(dest_id, ())
         entrances = self._entrances.get(link_id, ())
-        odests = [d for d in dests if d is not main]
-        oexits = [e for e in entrances if e is not main]
-        is_bidi = len(odests) == 1 and odests == oexits
+        can_exit = any(1 for e in entrances if self._real_dest(e) is main)
+        real_dest = self._real_dest(main)
+        ddst = self._real_dest(real_dest)
+        is_bidi = real_dest is not None and ddst is main
 
-        if odests:
-            if oexits:
+        if real_dest:
+            if can_exit:
                 if is_bidi:
-                    deco_color = (0.2, 1, 0)
+                    deco_color = (.2, 1, 0)
                 else:
                     deco_color = (.4, .4, 1)
             else:
                 deco_color = (.7, .7, 0)
         else:
-            if oexits:
+            if can_exit:
                 deco_color = (.8, 0, .6)
             else:
                 deco_color = (1, 0, 0)
