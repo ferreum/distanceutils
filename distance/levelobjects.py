@@ -148,12 +148,11 @@ class Group(LevelObject):
         qorot = np.quaternion(orot[3], *orot[:3])
         self.transform = pos, rot, scale
         diff = qorot * qrot.conj()
-        diffconj = diff.conj()
         for obj in self.children:
             pos, orot, scale = obj.transform or ((), (), ())
             if not orot:
                 orot = (0, 0, 0, 1)
-            qorot = np.quaternion(orot[3], *orot[:3]) * diff
+            qorot = diff * np.quaternion(orot[3], *orot[:3])
             nrot = (*qorot.imag, qorot.real)
             if pos:
                 pos = rotpoint(diff, pos)
