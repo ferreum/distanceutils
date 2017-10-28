@@ -249,7 +249,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
             main, coll,
             scale_factor=1/64)
 
-_defaults('EnableAbilitiesTrigger', scale=(100, 100, 100))
+_defaults('EnableAbilitiesBox', scale=(100, 100, 100))
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
 
 
