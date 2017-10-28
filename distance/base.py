@@ -1,6 +1,8 @@
 """Provides BaseObject."""
 
 
+from operator import itemgetter
+
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
@@ -17,49 +19,67 @@ EMPTY_PROBER = BytesProber()
 TRANSFORM_MIN_SIZE = 12
 
 
-def read_transform(dbytes):
-    data = dbytes.read_bytes(12)
-    if data.startswith(SKIP_BYTES):
-        pos = ()
-        data = data[4:]
-    else:
-        pos = S_FLOAT3.unpack(data)
-        data = dbytes.read_bytes(8)
-    # len(data) == 8
-    if data.startswith(SKIP_BYTES):
-        rot = ()
-        data = data[4:]
-    else:
-        ndata = dbytes.read_bytes(12)
-        rot = S_FLOAT4.unpack(data + ndata[:8])
-        data = ndata[8:]
-    # len(data) == 4
-    if data == SKIP_BYTES:
-        scale = ()
-    else:
-        data = data + dbytes.read_bytes(8)
-        scale = S_FLOAT3.unpack(data)
-    return pos, rot, scale
+class Transform(tuple):
 
+    __slots__ = ()
 
-def write_transform(dbytes, trans):
-    if trans is None:
-        trans = ()
-    if len(trans) > 0 and len(trans[0]):
-        pos = trans[0]
-        dbytes.write_bytes(S_FLOAT3.pack(*pos))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 1 and len(trans[1]):
-        rot = trans[1]
-        dbytes.write_bytes(S_FLOAT4.pack(*rot))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 2 and len(trans[2]):
-        scale = trans[2]
-        dbytes.write_bytes(S_FLOAT3.pack(*scale))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
+    def __new__(cls, *args):
+        if len(args) not in (0, 3):
+            raise TypeError('Invalid number of arguments')
+        return tuple.__new__(cls, args)
+
+    pos = property(itemgetter(0))
+    rot = property(itemgetter(1))
+    scale = property(itemgetter(2))
+
+    def nonempty(self):
+        if self:
+            return self
+        return type(self)()
+
+    def effective(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        tpos, trot, tscale = self or ((), (), ())
+        return type(self)(tpos or pos, trot or rot, tscale or scale)
+
+    @classmethod
+    def read_from(cls, dbytes):
+        data = dbytes.read_bytes(12)
+        if data.startswith(SKIP_BYTES):
+            pos = ()
+            data = data[4:]
+        else:
+            pos = S_FLOAT3.unpack(data)
+            data = dbytes.read_bytes(8)
+        # len(data) == 8
+        if data.startswith(SKIP_BYTES):
+            rot = ()
+            data = data[4:]
+        else:
+            ndata = dbytes.read_bytes(12)
+            rot = S_FLOAT4.unpack(data + ndata[:8])
+            data = ndata[8:]
+        # len(data) == 4
+        if data == SKIP_BYTES:
+            scale = ()
+        else:
+            data = data + dbytes.read_bytes(8)
+            scale = S_FLOAT3.unpack(data)
+        return cls(pos, rot, scale)
+
+    def write_to(self, dbytes):
+        pos, rot, scale = self or ((), (), ())
+        if len(pos):
+            dbytes.write_bytes(S_FLOAT3.pack(*pos))
+        else:
+            dbytes.write_bytes(SKIP_BYTES)
+        if len(rot):
+            dbytes.write_bytes(S_FLOAT4.pack(*rot))
+        else:
+            dbytes.write_bytes(SKIP_BYTES)
+        if len(scale):
+            dbytes.write_bytes(S_FLOAT3.pack(*scale))
+        else:
+            dbytes.write_bytes(SKIP_BYTES)
 
 
 def filter_interesting(sec, prober):
@@ -134,9 +154,23 @@ class Fragment(BytesModel):
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
-    transform = None
+    _transform = None
     has_children = False
     children = ()
+
+    @property
+    def transform(self):
+        t = self._transform
+        if t is None:
+            return Transform()
+        return t
+
+    @transform.setter
+    def transform(self, value):
+        if value is not None:
+            if not isinstance(value, Transform):
+                value = Transform(*value)
+        self._transform = value
 
     def _read(self, *args, **kw):
         self.child_prober = kw.get('child_prober', EMPTY_PROBER)
@@ -154,7 +188,7 @@ class ObjectFragment(Fragment):
         """
 
         if sec.content_size >= TRANSFORM_MIN_SIZE:
-            self.transform = read_transform(dbytes)
+            self.transform = Transform.read_from(dbytes)
             if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
                 s5 = Section(dbytes, seek_end=False)
                 self.has_children = True
@@ -179,7 +213,7 @@ class ObjectFragment(Fragment):
         children = self.children
         has_children = self.has_children or children
         if self.transform or has_children:
-            write_transform(dbytes, self.transform)
+            self.transform.write_to(dbytes)
         if self.has_children or self.children:
             with dbytes.write_section(MAGIC_5):
                 for obj in self.children:
