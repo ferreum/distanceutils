@@ -6,6 +6,7 @@ from collections import defaultdict
 from distance.levelobjects import GoldenSimple, Group
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
+from distance.base import Transform
 from .base import ObjectFilter, DoNotReplace
 
 
@@ -17,6 +18,63 @@ COPY_FRAG_TYPES = (
 )
 
 
+class SimpleCreator(object):
+
+    defaults = {}
+
+    def __init__(self, type, *, transform=Transform(), **options):
+        self.transform = transform
+        options['type'] = type
+        options.update({k: v for k, v in self.defaults.items()
+                        if k not in options})
+        self.options = options
+
+    def create(self, transform, **kw):
+        options = self.options
+        if kw:
+            options = dict(options)
+            options.update(kw)
+        if self.transform:
+            transform = transform.apply(*self.transform)
+        return GoldenSimple(transform=transform, **options)
+
+
+class HoloSimpleCreator(SimpleCreator):
+
+    defaults = dict(
+        emit_index = 7,
+        tex_scale = (12, 12, 12),
+        invert_emit = True,
+        additive_transp = True,
+        disable_reflect = True,
+        disable_collision = True,
+    )
+
+    def __init__(self, type, color, **kw):
+        if len(color) == 3:
+            color = color + (.03,)
+        kw['mat_emit'] = color
+        super().__init__(type, **kw)
+
+
+class DecoSimpleCreator(SimpleCreator):
+
+    defaults = dict(
+        image_index = 17,
+        emit_index = 17,
+        mat_spec = (0, 0, 0, 0),
+        invert_emit = True,
+        disable_diffuse = True,
+        disable_reflect = True,
+        disable_collision = True,
+    )
+
+    def __init__(self, type, color, **kw):
+        kw['mat_color'] = color + (1,)
+        kw['mat_emit'] = color + (.03,)
+        super().__init__(type, **kw)
+
+
 class Visualizer(object):
 
     default_radius = 1
@@ -25,21 +83,9 @@ class Visualizer(object):
     center_factor = 1
     locked_scale = False
 
-    def __init__(self, color, **kw):
-        self.color = color + (0.03,)
+    def __init__(self, **kw):
         for k, v in kw.items():
             setattr(self, k, v)
-
-    def _create_gs(self, type, transform):
-        gs = GoldenSimple(type=type, transform=transform)
-        gs.mat_emit =  self.color
-        gs.emit_index = 7
-        gs.tex_scale = (12, 12, 12)
-        gs.additive_transp = True
-        gs.disable_collision = True
-        gs.disable_reflect = True
-        gs.invert_emit = True
-        return gs
 
     def _transform_collider(self, main, size=(1, 1, 1), coll_center=(0, 0, 0)):
         import numpy as np, quaternion
@@ -57,12 +103,16 @@ class Visualizer(object):
             apply_scale = max(oscale)
         tscale = np.array(size) * self.scale_factor * apply_scale
 
-        return tpos, orot, tscale
+        return Transform(tpos, orot, tscale)
 
 
 class BoxVisualizer(Visualizer):
 
     default_trigger_size = (1, 1, 1)
+
+    def __init__(self, color, **kw):
+        super().__init__(**kw)
+        self.creator = HoloSimpleCreator('CubeGS', color)
 
     def transform(self, main, coll):
         coll_center = coll.trigger_center or (0, 0, 0)
@@ -74,7 +124,7 @@ class BoxVisualizer(Visualizer):
 
     def visualize(self, main, coll):
         transform = self.transform(main, coll)
-        gs = self._create_gs('CubeGS', transform)
+        gs = self.creator.create(transform)
         return gs,
 
 
@@ -82,6 +132,10 @@ class SphereVisualizer(Visualizer):
 
     locked_scale = True
     default_center = (0, 0, 0)
+
+    def __init__(self, color, **kw):
+        super().__init__(**kw)
+        self.creator = HoloSimpleCreator('SphereHDGS', color)
 
     def transform(self, main, coll):
         coll_center = coll.trigger_center or self.default_center
@@ -93,11 +147,26 @@ class SphereVisualizer(Visualizer):
 
     def visualize(self, main, coll):
         transform = self.transform(main, coll)
-        gs = self._create_gs('SphereHDGS', transform)
+        gs = self.creator.create(transform)
         return gs,
 
 
-class GravityTriggerMapper(object):
+class VisualizeMapper(object):
+
+    def prepare(self, main, matches):
+        """First pass, for gathering information"""
+        pass
+
+    def post_prepare(self):
+        """Called after first pass and before second pass."""
+        pass
+
+    def apply(self, main, matches):
+        """Second pass, apply filter."""
+        return ()
+
+
+class GravityTriggerMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x45, 1),
@@ -113,10 +182,10 @@ class GravityTriggerMapper(object):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         return self.vis.visualize(main, coll)
 
-VIS_MAPPERS.append(GravityTriggerMapper())
+VIS_MAPPERS.append(GravityTriggerMapper)
 
 
-class TeleporterMapper(object):
+class TeleporterMapper(VisualizeMapper):
 
     match_sections = (
         # tele entrance
@@ -137,26 +206,87 @@ class TeleporterMapper(object):
         default_radius = .5,
     )
 
+    from math import sin, cos, pi
+
+    deco_status = (
+        DecoSimpleCreator(
+            'TubeGS', (0, 1, .482),
+            transform = Transform.fill(scale=(1.71, 0.03, 1.71)),
+        ), DecoSimpleCreator(
+            'TubeGS', (0, 1, .482),
+            transform = Transform.fill(rot=(2**.5/2, 0, 0, 2**.5/2), scale=(1.71, 0.03, 1.71)),
+        ), DecoSimpleCreator(
+            'TubeGS', (0, 1, .482),
+            transform = Transform.fill(rot=(0, 0, 2**.5/2, 2**.5/2), scale=(1.71, 0.03, 1.71)),
+        ),
+    )
+
+    def __init__(self):
+        self._entrances = defaultdict(list)
+        self._exits = defaultdict(list)
+
+    def prepare(self, main, matches):
+        for objpath, frag in matches:
+            if isinstance(frag, levelfrags.TeleporterEntranceFragment):
+                self._entrances[frag.destination].append(main)
+            elif isinstance(frag, levelfrags.TeleporterExitFragment):
+                self._exits[frag.link_id].append(main)
+
+    def post_prepare(self):
+        self._entrances = dict(self._entrances)
+        self._exits = dict(self._exits)
+
     def apply(self, main, matches):
-        exit = None
+        link_id, dest_id = None, None
         for objpath, frag in matches:
             if isinstance(frag, levelfrags.TeleporterEntranceFragment):
                 tele = objpath[-1]
-                entrance = frag
+                dest_id = frag.destination
             elif isinstance(frag, levelfrags.TeleporterExitFragment):
                 tele = objpath[-1]
-                exit = frag
+                link_id = frag.link_id
         if tele is None:
             raise DoNotReplace
         coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             raise DoNotReplace
-        return self.vis.visualize(main, coll)
+        transform = self.vis.transform(main, coll)
+        creators = [self.vis.creator]
 
-VIS_MAPPERS.append(TeleporterMapper())
+        dests = self._exits.get(dest_id, ())
+        entrances = self._exits.get(link_id, ())
+        can_enter = sum(d is not main for d in dests)
+        can_exit = sum(e is not main for e in entrances)
+        is_bidi = can_enter == 1 and can_exit == 1
+
+        if can_enter:
+            if can_exit:
+                if is_bidi:
+                    deco_color = (0.2, 1, 0)
+                else:
+                    deco_color = (.4, .4, 1)
+            else:
+                deco_color = (.7, .7, 0)
+        else:
+            if can_exit:
+                deco_color = (.8, 0, .6)
+            else:
+                deco_color = (1, 0, 0)
+
+        res = []
+        res.append(self.vis.creator.create(transform))
+        status_color = (*deco_color, 1)
+        status_emit = (*deco_color, .02)
+        for deco in self.deco_status:
+            res.append(deco.create(transform,
+                                   mat_color=status_color,
+                                   mat_emit=status_emit))
+        return res
+
+VIS_MAPPERS.append(TeleporterMapper)
 
 
-class VirusSpiritSpawnerMapper(object):
+class VirusSpiritSpawnerMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x3a, 0),
@@ -174,10 +304,10 @@ class VirusSpiritSpawnerMapper(object):
             raise DoNotReplace
         return self.vis.visualize(main, coll)
 
-VIS_MAPPERS.append(VirusSpiritSpawnerMapper())
+VIS_MAPPERS.append(VirusSpiritSpawnerMapper)
 
 
-class EventTriggerMapper(object):
+class EventTriggerMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x89, 2),
@@ -197,10 +327,10 @@ class EventTriggerMapper(object):
             return self.vis_sphere.visualize(main, coll)
         raise DoNotReplace
 
-VIS_MAPPERS.append(EventTriggerMapper())
+VIS_MAPPERS.append(EventTriggerMapper)
 
 
-class EnableAbilitiesTriggerMapper(object):
+class EnableAbilitiesTriggerMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x5e, 0),
@@ -217,10 +347,10 @@ class EnableAbilitiesTriggerMapper(object):
             raise DoNotReplace
         return self.vis.visualize(main, coll)
 
-VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
+VIS_MAPPERS.append(EnableAbilitiesTriggerMapper)
 
 
-class ForceZoneMapper(object):
+class ForceZoneMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0xa0, 0),
@@ -237,10 +367,10 @@ class ForceZoneMapper(object):
             raise DoNotReplace
         return self.vis.visualize(main, coll)
 
-VIS_MAPPERS.append(ForceZoneMapper())
+VIS_MAPPERS.append(ForceZoneMapper)
 
 
-class WingCorruptionZoneMapper(object):
+class WingCorruptionZoneMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x53, 0),
@@ -266,10 +396,10 @@ class WingCorruptionZoneMapper(object):
             return self.vis_sphere.visualize(main, coll)
         raise DoNotReplace
 
-VIS_MAPPERS.append(WingCorruptionZoneMapper())
+VIS_MAPPERS.append(WingCorruptionZoneMapper)
 
 
-class VirusMazeMapper(object):
+class VirusMazeMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x43, 0),
@@ -310,19 +440,21 @@ class VirusMazeMapper(object):
             return vis.visualize(main, coll)
         raise DoNotReplace
 
-VIS_MAPPERS.append(VirusMazeMapper())
+VIS_MAPPERS.append(VirusMazeMapper)
 
 
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):
         super().__init__("vis", args)
+        mappers = [cls() for cls in VIS_MAPPERS]
         bysection = defaultdict(list)
-        for mapper in VIS_MAPPERS:
+        for mapper in mappers:
             for sec in mapper.match_sections:
                 bysection[sec.to_key()].append(mapper)
+        self._mappers = mappers
         self._mappers_by_sec = dict(bysection)
-        self._mappers_by_id = {id(m): m for m in VIS_MAPPERS}
+        self._mappers_by_id = {id(m): m for m in mappers}
         self.num_visualized = 0
 
     def _apply_animators(self, main, objs):
@@ -357,17 +489,30 @@ class VisualizeFilter(ObjectFilter):
 
     def filter_object(self, obj):
         mappers = self._match_object((obj,))
-        result = []
-        for id_, matches in mappers.items():
-            try:
-                result.extend(self._mappers_by_id[id_].apply(obj, matches))
-                self.num_visualized += 1
-            except DoNotReplace:
-                pass
-        if result:
-            result = self._apply_animators(obj, result)
-            return (obj, *result)
-        return obj,
+        if self.passnum == 0:
+            for id_, matches in mappers.items():
+                self._mappers_by_id[id_].prepare(obj, matches)
+            return obj,
+        elif self.passnum == 1:
+            result = []
+            for id_, matches in mappers.items():
+                try:
+                    result.extend(self._mappers_by_id[id_].apply(obj, matches))
+                    self.num_visualized += 1
+                except DoNotReplace:
+                    pass
+            if result:
+                result = self._apply_animators(obj, result)
+                return (obj, *result)
+            return obj,
+
+    def apply(self, content):
+        self.passnum = 0
+        super().apply(content)
+        for m in self._mappers:
+            m.post_prepare()
+        self.passnum = 1
+        return super().apply(content)
 
     def print_summary(self, p):
         p(f"Visualized objects: {self.num_visualized}")
