@@ -25,12 +25,8 @@ class ObjectDefaults(dict):
     def get_effective(self, obj, transform=None):
         if transform is None:
             transform = obj.transform
-        defs = self.get(obj.type, ((0, 0, 0), (0, 0, 0, 1), (1, 1, 1)))
-        if not transform:
-            return defs
-        pos, rot, scale = transform
-        dpos, drot, dscale = defs
-        return (pos or dpos, rot or drot, scale or dscale)
+        defs = self.get(obj.type, ())
+        return transform.effective(*defs)
 
 
 _OBJ_DEFAULTS = ObjectDefaults()
