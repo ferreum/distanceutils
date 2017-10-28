@@ -54,8 +54,8 @@ class VisualizeMapper(object):
         gs.invert_emit = True
         return gs
 
-    def _visualize_collider(self, main,
-                            type, size=(1, 1, 1),
+    def _transform_collider(self, main,
+                            size=(1, 1, 1),
                             coll_center=(0, 0, 0),
                             offset=(0, 0, 0), scale_factor=1,
                             center_factor=1,
@@ -75,33 +75,34 @@ class VisualizeMapper(object):
             apply_scale = max(oscale)
         tscale = np.array(size) * scale_factor * apply_scale
 
-        transform = tpos, orot, tscale
-
-        gs = self._create_gs(type, transform)
-        return gs,
+        return tpos, orot, tscale
 
     def _visualize_spherecollider(self, main, coll,
                                   default_radius=50,
                                   **kw):
         coll_center = coll.trigger_center or (0, 0, 0)
         radius = coll.trigger_radius or default_radius
-        return self._visualize_collider(
-            main, type='SphereHDGS',
+        transform = self._transform_collider(
+            main,
             coll_center=coll_center,
             size=(radius, radius, radius),
             locked_scale=True,
             **kw)
+        gs = self._create_gs('SphereHDGS', transform)
+        return gs,
 
     def _visualize_boxcollider(self, main, coll,
                                default_trigger_size=(1, 1, 1),
                                **kw):
         coll_center = coll.trigger_center or (0, 0, 0)
         size = coll.trigger_size or default_trigger_size
-        return self._visualize_collider(
-            main, type='CubeGS',
+        transform = self._transform_collider(
+            main,
             coll_center=coll_center,
             size=size,
             **kw)
+        gs = self._create_gs('CubeGS', transform)
+        return gs,
 
 
 class GravityTriggerMapper(VisualizeMapper):
