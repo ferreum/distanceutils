@@ -53,30 +53,51 @@ class Transform(tuple):
 
     @property
     def is_effective(self):
-        return self and all(len(e) > 0 for e in self)
+        if not self:
+            return False
+        pos, rot, scale = self
+        return len(pos) == 3 and len(rot) == 4 and len(scale) == 3
 
     def apply(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
         """Calculate the resulting global Transform when applying the
         given transformation inside this Transform's point of reference."""
 
-        if not self.is_effective:
+        if not self.is_effective or not Transform(pos, rot, scale).is_effective:
             raise TypeError('need effective transform')
 
         import numpy as np, quaternion
         from .transform import rotpoint
         quaternion
 
+        def isclose(a, b):
+            return -0.00001 < abs(a - b) < 0.00001
+
         mpos, mrot, mscale = self
 
-        qrot = np.quaternion(mrot[3], *mrot[:3])
-        qorot = np.quaternion(rot[3], *rot[:3])
+        qmrot = np.quaternion(mrot[3], *mrot[:3])
+        qrot = np.quaternion(rot[3], *rot[:3])
 
-        ascale = np.array(mscale)
+        ascale = np.array(scale)
+        amscale = np.array(mscale)
 
-        rpos = tuple(mpos + rotpoint(qrot, pos * ascale))
-        qrrot = qrot * qorot
+        rotmat = quaternion.as_rotation_matrix(qrot)
+        scaleaxes = [None, None, None]
+        for i, row in enumerate(rotmat):
+            for j, v in enumerate(row):
+                if isclose(1, abs(v)):
+                    scaleaxes[i] = j
+                elif not isclose(0, v):
+                    si, sj = mscale[i], mscale[j]
+                    if not isclose(si, sj):
+                        raise ValueError('Incompatible rotation and scale')
+                    scaleaxes[i] = j
+
+        rpos = tuple(mpos + rotpoint(qmrot, pos * amscale))
+        qrrot = qmrot * qrot
         rrot = (*qrrot.imag, qrrot.real)
-        rscale = tuple(ascale * scale)
+
+        rot_amscale = tuple(amscale[i] for i in scaleaxes)
+        rscale = tuple(rot_amscale * ascale)
 
         return type(self)(rpos, rrot, rscale)
 
