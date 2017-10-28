@@ -278,11 +278,13 @@ VIS_MAPPERS.append(WingCorruptionZoneMapper())
 class VirusMazeMapper(object):
 
     match_sections = (
+        Section(MAGIC_2, 0x43, 0),
+        Section(MAGIC_2, 0x43, 1),
         Section(MAGIC_2, 0x43, 2),
     )
 
     _opts = dict(
-        color = (.455, .147, 0),
+        color = (.355, .077, 0),
         scale_factor = 1/32,
     )
     _vis_ceiling = SphereVisualizer(
@@ -303,6 +305,9 @@ class VirusMazeMapper(object):
     }
 
     def apply(self, main, matches):
+        interp_frag = main.fragment_by_type(levelfrags.BaseInterpolateToPositiononTrigger)
+        if interp_frag and not interp_frag.actually_interpolate:
+            raise DoNotReplace
         vis = self.visualizers.get(main.type, None)
         if vis is None:
             raise DoNotReplace

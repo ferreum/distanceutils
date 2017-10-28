@@ -741,13 +741,57 @@ class EventListenerFragment(Fragment):
     pass
 
 
+class BaseInterpolateToPositiononTrigger(object):
+    pass
+
+
+@PROBER.fragment(MAGIC_2, 0x43, 0)
+class OldInterpolateToPositionOnTriggerFragment(
+        BaseInterpolateToPositiononTrigger, NamedPropertiesFragment):
+
+    relative = 1
+    local_movement = 0
+
+    @named_property_getter('ActuallyInterpolate')
+    def actually_interpolate(self, dbytes):
+        return dbytes.read_byte()
+
+    @named_property_getter('EndPos')
+    def interp_end_pos(self, dbytes):
+        return read_n_floats(dbytes, 3)
+
+    @named_property_getter('MoveTime')
+    def interp_time(self, dbytes):
+        return dbytes.read_struct(S_FLOAT)[0]
+
+
+@PROBER.fragment(MAGIC_2, 0x43, 1)
+@PROBER.fragment(MAGIC_2, 0x43, 2)
+class InterpolateToPositionOnTriggerFragment(
+        BaseInterpolateToPositiononTrigger, Fragment):
+
+    actually_interpolate = 0
+    relative = 1
+    interp_end_pos = None
+    interp_time = None
+    local_movement = 0
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.content_size:
+            self.actually_interpolate = dbytes.read_byte()
+            self.relative = dbytes.read_byte()
+            self.interp_end_pos = read_n_floats(dbytes, 3)
+            self.interp_time = dbytes.read_struct(S_FLOAT)[0]
+            if sec.version >= 2:
+                self.local_movement = dbytes.read_byte()
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
     (Section(MAGIC_2, 0x39, 0), "ParticleEmitLogic"),
     (Section(MAGIC_2, 0x26, 0), "Light"),
     (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
-    (Section(MAGIC_2, 0x43, 0), "InterpolateToPositionOnTrigger"),
     (Section(MAGIC_2, 0x45, 0), None),
     (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
     (Section(MAGIC_2, 0x50, 0), "Pulse"),

@@ -161,7 +161,8 @@ class Group(LevelObject):
             obj.transform = pos, nrot, scale
 
 
-@PROBER.for_type('Teleporter', 'TeleporterVirus')
+@PROBER.for_type('Teleporter', 'TeleporterVirus',
+                 'TeleporterAndAmbientChangeTrigger', 'TeleporterExit')
 class Teleporter(LevelObject):
 
     default_transform = Transform.fill()
