@@ -1,6 +1,7 @@
 import unittest
 from io import BytesIO
 from contextlib import contextmanager
+from collections import Sequence
 
 from distance.bytes import DstBytes
 from distance.level import Level, Layer
@@ -115,7 +116,10 @@ class ExtraAssertMixin(object):
             self.assertEqual(a, b)
             raise AssertionError(f"{a} != {b}\na={a}\nb={b}{msg}")
         for i, (va, vb) in enumerate(zip(a, b)):
-            self.assertAlmostEqual(va, vb, msg=f"\nindex={i}\na={a}\nb={b}{msg}", **kw)
+            if isinstance(va, Sequence):
+                self.assertSeqAlmostEqual(va, vb)
+            else:
+                self.assertAlmostEqual(va, vb, msg=f"\nindex={i}\na={a}\nb={b}{msg}", **kw)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
