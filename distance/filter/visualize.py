@@ -249,8 +249,12 @@ class TeleporterMapper(VisualizeMapper):
             raise DoNotReplace
         coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
-            raise DoNotReplace
-        transform = self.vis.transform(main, coll)
+            if main.type != 'TeleporterExit':
+                raise DoNotReplace
+            transform = main.effective_transform.apply(
+                pos=self.vis.offset, scale=(.25, .25, .25))
+        else:
+            transform = self.vis.transform(main, coll)
         creators = [self.vis.creator]
 
         dests = self._exits.get(dest_id, ())
