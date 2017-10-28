@@ -200,8 +200,8 @@ class TeleporterMapper(VisualizeMapper):
 
     vis = SphereVisualizer(
         color = (0, .482, 1),
-        offset = (0, 4.817, 0),
-        center_factor = (15.972,) * 3,
+        offset = (0, 4.8, 0),
+        center_factor = (16, 16, 16),
         scale_factor = .5,
         default_radius = .5,
     )
