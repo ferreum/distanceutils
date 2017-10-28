@@ -228,9 +228,11 @@ class TeleporterMapper(VisualizeMapper):
     def prepare(self, main, matches):
         for objpath, frag in matches:
             if isinstance(frag, levelfrags.TeleporterEntranceFragment):
-                self._entrances[frag.destination].append(main)
+                if frag.destination is not None:
+                    self._entrances[frag.destination].append(main)
             elif isinstance(frag, levelfrags.TeleporterExitFragment):
-                self._exits[frag.link_id].append(main)
+                if frag.link_id is not None:
+                    self._exits[frag.link_id].append(main)
 
     def post_prepare(self):
         self._entrances = dict(self._entrances)
@@ -258,13 +260,13 @@ class TeleporterMapper(VisualizeMapper):
         creators = [self.vis.creator]
 
         dests = self._exits.get(dest_id, ())
-        entrances = self._exits.get(link_id, ())
-        can_enter = sum(d is not main for d in dests)
-        can_exit = sum(e is not main for e in entrances)
-        is_bidi = can_enter == 1 and can_exit == 1
+        entrances = self._entrances.get(link_id, ())
+        odests = [d for d in dests if d is not main]
+        oexits = [e for e in entrances if e is not main]
+        is_bidi = len(odests) == 1 and odests == oexits
 
-        if can_enter:
-            if can_exit:
+        if odests:
+            if oexits:
                 if is_bidi:
                     deco_color = (0.2, 1, 0)
                 else:
@@ -272,7 +274,7 @@ class TeleporterMapper(VisualizeMapper):
             else:
                 deco_color = (.7, .7, 0)
         else:
-            if can_exit:
+            if oexits:
                 deco_color = (.8, 0, .6)
             else:
                 deco_color = (1, 0, 0)
