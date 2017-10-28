@@ -17,11 +17,18 @@ COPY_FRAG_TYPES = (
 )
 
 
-class VisualizeMapper(object):
+class Visualizer(object):
+
+    default_radius = 1
+    offset = (0, 0, 0)
+    scale_factor = 1
+    center_factor = 1
+    locked_scale = False
 
     def __init__(self, color, **kw):
-        super().__init__(**kw)
         self.color = color + (0.03,)
+        for k, v in kw.items():
+            setattr(self, k, v)
 
     def _create_gs(self, type, transform):
         gs = GoldenSimple(type=type, transform=transform)
@@ -34,48 +41,40 @@ class VisualizeMapper(object):
         gs.invert_emit = True
         return gs
 
-    def _transform_collider(self, main,
-                            size=(1, 1, 1),
-                            coll_center=(0, 0, 0),
-                            offset=(0, 0, 0), scale_factor=1,
-                            center_factor=1,
-                            locked_scale=False):
+    def _transform_collider(self, main, size=(1, 1, 1), coll_center=(0, 0, 0)):
         import numpy as np, quaternion
         quaternion # suppress warning
         from distance.transform import rotpoint
 
         opos, orot, oscale = main.effective_transform
 
-        center = (np.array(coll_center) * center_factor + offset) * oscale
+        center = (np.array(coll_center) * self.center_factor + self.offset) * oscale
         qrot = np.quaternion(orot[3], *orot[:3])
         tpos = np.array(opos) + rotpoint(qrot, center)
 
         apply_scale = oscale
-        if locked_scale:
+        if self.locked_scale:
             apply_scale = max(oscale)
-        tscale = np.array(size) * scale_factor * apply_scale
+        tscale = np.array(size) * self.scale_factor * apply_scale
 
         return tpos, orot, tscale
 
-    def _visualize_spherecollider(self, main, coll,
-                                  default_radius=50,
-                                  **kw):
+
+class BoxVisualizer(Visualizer):
+
+    default_trigger_size = (1, 1, 1)
+
+    def transform(self, main, coll):
         coll_center = coll.trigger_center or (0, 0, 0)
-        radius = coll.trigger_radius or default_radius
-        transform = self._transform_collider(
+        size = coll.trigger_size or self.default_trigger_size
+        return self._transform_collider(
             main,
             coll_center=coll_center,
-            size=(radius, radius, radius),
-            locked_scale=True,
-            **kw)
-        gs = self._create_gs('SphereHDGS', transform)
-        return gs,
+            size=size)
 
-    def _visualize_boxcollider(self, main, coll,
-                               default_trigger_size=(1, 1, 1),
-                               **kw):
+    def visualize(self, main, coll, **kw):
         coll_center = coll.trigger_center or (0, 0, 0)
-        size = coll.trigger_size or default_trigger_size
+        size = coll.trigger_size or self.default_trigger_size
         transform = self._transform_collider(
             main,
             coll_center=coll_center,
@@ -85,31 +84,44 @@ class VisualizeMapper(object):
         return gs,
 
 
-class GravityTriggerMapper(VisualizeMapper):
+class SphereVisualizer(Visualizer):
+
+    locked_scale = True
+
+    def transform(self, main, coll):
+        coll_center = coll.trigger_center or (0, 0, 0)
+        radius = coll.trigger_radius or self.default_radius
+        return self._transform_collider(
+            main,
+            coll_center=coll_center,
+            size=(radius, radius, radius))
+
+    def visualize(self, main, coll):
+        transform = self.transform(main, coll)
+        gs = self._create_gs('SphereHDGS', transform)
+        return gs,
+
+
+class GravityTriggerMapper(object):
 
     match_sections = (
         Section(MAGIC_2, 0x45, 1),
     )
 
-    def __init__(self):
-        super().__init__((.82, .44, 0))
+    vis = SphereVisualizer(
+        color = (.82, .44, 0),
+        default_radius = 50,
+        scale_factor = 1/32,
+    )
 
-    def apply(self, matches):
-        main = None
-        for objpath, frag in matches:
-            if isinstance(frag, levelfrags.GravityToggleFragment):
-                main = objpath[0]
-                break
-        if main is None:
-            raise DoNotReplace
+    def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        return self._visualize_spherecollider(
-            main, coll, scale_factor=1/32, default_radius=50)
+        return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(GravityTriggerMapper())
 
 
-class TeleporterMapper(VisualizeMapper):
+class TeleporterMapper(object):
 
     match_sections = (
         # tele entrance
@@ -122,166 +134,141 @@ class TeleporterMapper(VisualizeMapper):
         Section(MAGIC_2, 0x3f, 1),
     )
 
-    def __init__(self):
-        super().__init__((0, .482, 1))
+    vis = SphereVisualizer(
+        color = (0, .482, 1),
+        offset = (0, 4.817, 0),
+        center_factor = (15.972,) * 3,
+        scale_factor = .5,
+        default_radius = .5,
+    )
 
-    def apply(self, matches):
-        main = None
+    def apply(self, main, matches):
         exit = None
         for objpath, frag in matches:
             if isinstance(frag, levelfrags.TeleporterEntranceFragment):
-                main = objpath[0]
                 tele = objpath[-1]
                 entrance = frag
             elif isinstance(frag, levelfrags.TeleporterExitFragment):
-                main = objpath[0]
                 tele = objpath[-1]
                 exit = frag
-        if main is None or tele is None:
+        if tele is None:
             raise DoNotReplace
         coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             raise DoNotReplace
-        return self._visualize_spherecollider(
-            main, coll, offset=(0, 4.817, 0),
-            center_factor=(15.972,) * 3,
-            scale_factor=.5, default_radius=.5)
+        return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(TeleporterMapper())
 
 
-class VirusSpiritSpawnerMapper(VisualizeMapper):
+class VirusSpiritSpawnerMapper(object):
 
     match_sections = (
         Section(MAGIC_2, 0x3a, 0),
     )
 
-    def __init__(self):
-        super().__init__((.878, .184, .184))
+    vis = SphereVisualizer(
+        color = (.878, .184, .184),
+        scale_factor = 1/32,
+        default_radius = 100,
+    )
 
-    def apply(self, matches):
-        main = None
-        for objpath, frag in matches:
-            main = objpath[0]
-        if main is None:
-            raise DoNotReplace
+    def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             raise DoNotReplace
-        return self._visualize_spherecollider(
-            main, coll,
-            scale_factor=1/32,
-            default_radius=100)
+        return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(VirusSpiritSpawnerMapper())
 
 
-class EventTriggerMapper(VisualizeMapper):
+class EventTriggerMapper(object):
 
     match_sections = (
         Section(MAGIC_2, 0x89, 2),
     )
 
-    def __init__(self):
-        super().__init__((0, .8, 0))
+    color = (0, .8, 0)
 
-    def apply(self, matches):
-        main = None
-        for objpath, frag in matches:
-            main = objpath[0]
-        if main is None:
-            raise DoNotReplace
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is not None:
-            return self._visualize_spherecollider(
-                main, coll,
-                scale_factor=1/32,
-                default_radius=1)
+    vis_box = BoxVisualizer(color, scale_factor=1/64)
+    vis_sphere = SphereVisualizer(color, scale_factor=1/32)
+
+    def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is not None:
-            return self._visualize_boxcollider(
-                main, coll,
-                scale_factor=1/64)
+            return self.vis_box.visualize(main, coll)
+        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is not None:
+            return self.vis_sphere.visualize(main, coll)
+        raise DoNotReplace
 
 VIS_MAPPERS.append(EventTriggerMapper())
 
 
-class EnableAbilitiesTriggerMapper(VisualizeMapper):
+class EnableAbilitiesTriggerMapper(object):
 
     match_sections = (
         Section(MAGIC_2, 0x5e, 0),
     )
 
-    def __init__(self):
-        super().__init__((.686, .686, .686))
+    vis = BoxVisualizer(
+        color = (.686, .686, .686),
+        scale_factor = 1/64,
+    )
 
-    def apply(self, matches):
-        main = None
-        for objpath, frag in matches:
-            main = objpath[0]
-        if main is None:
-            raise DoNotReplace
+    def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
             raise DoNotReplace
-        return self._visualize_boxcollider(
-            main, coll,
-            scale_factor=1/64)
+        return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper())
 
 
-class ForceZoneMapper(VisualizeMapper):
+class ForceZoneMapper(object):
 
     match_sections = (
         Section(MAGIC_2, 0xa0, 0),
     )
 
-    def __init__(self):
-        super().__init__((.9134, .345, 1))
+    vis = BoxVisualizer(
+        color = (.9134, .345, 1),
+        scale_factor = 1/64,
+    )
 
-    def apply(self, matches):
-        main = None
-        for objpath, frag in matches:
-            main = objpath[0]
-        if main is None:
-            raise DoNotReplace
+    def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
             raise DoNotReplace
-        return self._visualize_boxcollider(
-            main, coll,
-            scale_factor=1/64)
+        return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(ForceZoneMapper())
 
 
-class WingCorruptionZoneMapper(VisualizeMapper):
+class WingCorruptionZoneMapper(object):
 
     match_sections = (
         Section(MAGIC_2, 0x53, 0),
     )
 
-    def __init__(self):
-        super().__init__((.545, .545, 0))
+    vis_box = BoxVisualizer(
+        color = (.545, .545, 0),
+        scale_factor = 1/64,
+    )
 
-    def apply(self, matches):
-        main = None
-        for objpath, frag in matches:
-            main = objpath[0]
-        if main is None:
-            raise DoNotReplace
+    vis_sphere = SphereVisualizer(
+        color = (.545, .545, 0),
+        scale_factor = 1/32,
+        default_radius = .5,
+    )
+
+    def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is not None:
-            return self._visualize_boxcollider(
-                main, coll,
-                scale_factor=1/64)
+            return self.vis_box.visualize(main, coll)
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is not None:
-            return self._visualize_spherecollider(
-                main, coll,
-                scale_factor=1/32,
-                default_radius=.5)
+            return self.vis_sphere.visualize(main, coll)
         raise DoNotReplace
 
 VIS_MAPPERS.append(WingCorruptionZoneMapper())
@@ -334,7 +321,7 @@ class VisualizeFilter(ObjectFilter):
         result = []
         for id_, matches in mappers.items():
             try:
-                result.extend(self._mappers_by_id[id_].apply(matches))
+                result.extend(self._mappers_by_id[id_].apply(obj, matches))
                 self.num_visualized += 1
             except DoNotReplace:
                 pass
