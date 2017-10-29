@@ -3,6 +3,7 @@
 
 from collections import defaultdict
 
+from distance.base import Transform
 from distance.levelobjects import GoldenSimple, OldSimple
 from .base import ObjectFilter, ObjectMapper, DoNotApply
 
@@ -137,7 +138,7 @@ class GoldifyFilter(ObjectFilter):
         self.num_replaced = 0
         self.skipped_by_reason = defaultdict(lambda: 0)
 
-    def filter_object(self, obj, scaled_group=False):
+    def filter_object(self, obj, global_transform=Transform.fill()):
         if isinstance(obj, OldSimple):
             try:
                 mapper = self.mappers[obj.shape]
@@ -146,7 +147,7 @@ class GoldifyFilter(ObjectFilter):
                 self.skipped_by_reason['unmatched'] += 1
                 return obj,
             try:
-                result = mapper.apply(obj, scaled_group=scaled_group)
+                result = mapper.apply(obj, global_transform=global_transform)
             except DoNotApply as e:
                 self.skipped_by_reason[e.reason] += 1
                 return obj,
@@ -161,17 +162,10 @@ class GoldifyFilter(ObjectFilter):
             return result
         return obj,
 
-    def filter_group(self, grp, level, **kw):
-        if not kw.get('scaled_group', False):
-            pos, rot, scale = grp.transform or ((), (), ())
-            if scale:
-                from math import isclose
-                v1 = scale[0]
-                for v in scale[1:]:
-                    if not isclose(v, v1):
-                        kw['scaled_group'] = True
-                        break
-        return super().filter_group(grp, level, **kw)
+    def filter_group(self, grp, level, global_transform=Transform.fill(), **kw):
+        global_transform = global_transform.apply(*grp.transform)
+        return super().filter_group(grp, level,
+                                    global_transform=global_transform, **kw)
 
     def print_summary(self, p):
         p(f"Goldified simples: {self.num_replaced}")

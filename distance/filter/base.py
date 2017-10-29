@@ -82,15 +82,22 @@ class ObjectMapper(object):
             size_factor = (size_factor,) * 3
         self.transform = Transform(offset, rotate, size_factor)
 
-    def _apply_transform(self, transform, scaled_group=False):
+    def _apply_transform(self, transform, global_transform=Transform.fill()):
         try:
-            return transform.apply(*self.transform)
+            res = transform.apply(*self.transform)
         except TransformError:
             raise DoNotApply('locked_scale')
+        try:
+            # raises TransformError if we are inside groups with
+            # incompatible scale
+            global_transform.apply(*res)
+        except TransformError:
+            raise DoNotApply('locked_scale_group')
+        return res
 
-    def apply(self, obj, scaled_group=False, **kw):
+    def apply(self, obj, global_transform=Transform.fill(), **kw):
         transform = self._apply_transform(obj.transform,
-                                          scaled_group=scaled_group)
+                                          global_transform=global_transform)
 
         return self.create_result(obj, transform, **kw)
 
