@@ -305,6 +305,12 @@ class NitronicCheckpoint(LevelObject):
     default_transform = Transform.fill(scale=1.097)
 
 
+@PROBER.for_type('CooldownTriggerNoVisual')
+class CooldownTriggerNoVisual(LevelObject):
+
+    default_transform = Transform.fill()
+
+
 @PROBER.for_type('VirusMazeTowerFat')
 @PROBER.for_type('VirusMazeCeiling001')
 @PROBER.for_type('VirusMazeTowerFat002')

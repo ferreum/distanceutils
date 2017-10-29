@@ -155,6 +155,9 @@ class SphereVisualizer(Visualizer):
 
 class VisualizeMapper(object):
 
+    match_sections = ()
+    match_types = ()
+
     def prepare(self, main, matches):
         """First pass, for gathering information"""
         pass
@@ -499,17 +502,41 @@ class CheckpointMapper(VisualizeMapper):
 VIS_MAPPERS.append(CheckpointMapper)
 
 
+class CooldownTriggerNoVisualMapper(VisualizeMapper):
+
+    match_sections = ()
+    match_types = ('CooldownTriggerNoVisual',)
+
+    vis = BoxVisualizer(
+        color = (.15, .45, .45),
+        default_size = (50, 50, 40),
+        scale_factor = 1/64,
+    )
+
+    def apply(self, main, matches):
+        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is None:
+            raise DoNotApply
+        return self.vis.visualize(main, coll)
+
+VIS_MAPPERS.append(CooldownTriggerNoVisualMapper)
+
+
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):
         super().__init__("vis", args)
         mappers = [cls() for cls in VIS_MAPPERS]
         bysection = defaultdict(list)
+        bytype = defaultdict(list)
         for mapper in mappers:
             for sec in mapper.match_sections:
                 bysection[sec.to_key()].append(mapper)
+            for type in mapper.match_types:
+                bytype[type].append(mapper)
         self._mappers = mappers
         self._mappers_by_sec = dict(bysection)
+        self._mappers_by_type = dict(bytype)
         self._mappers_by_id = {id(m): m for m in mappers}
         self.num_visualized = 0
 
@@ -530,6 +557,10 @@ class VisualizeFilter(ObjectFilter):
         def filter_frags(sec, prober):
             return sec.to_key() in self._mappers_by_sec
         mappers = defaultdict(list)
+        if len(objpath) == 1:
+            bytype = self._mappers_by_type.get(objpath[0].type, ())
+            for mapper in bytype:
+                mappers[id(mapper)].append((objpath, None))
         obj = objpath[-1]
         for frag in obj.filtered_fragments(filter_frags):
             for mapper in self._mappers_by_sec[frag.container.to_key()]:
