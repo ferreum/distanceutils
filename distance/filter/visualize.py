@@ -471,22 +471,18 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_id = {id(m): m for m in mappers}
         self.num_visualized = 0
 
-    def _apply_animators(self, main, objs):
+    def _create_group(self, main, objs):
         copied_frags = []
         for ty in COPY_FRAG_TYPES:
             copyfrag = main.fragment_by_type(ty)
             if copyfrag is not None:
                 copied_frags.append(copyfrag.clone())
-        if not copied_frags:
-            return objs
         pos, rot, scale = main.effective_transform
         group = Group(children=objs)
         group.recenter(pos)
         group.rerotate(rot)
-        group_frags = list(group.fragments)
-        group_frags.extend(copied_frags)
-        group.fragments = group_frags
-        return group,
+        group.fragments = list(group.fragments) + copied_frags
+        return group
 
     def _match_object(self, objpath):
         def filter_frags(sec, prober):
@@ -516,8 +512,8 @@ class VisualizeFilter(ObjectFilter):
                 except DoNotReplace:
                     pass
             if result:
-                result = self._apply_animators(obj, result)
-                return (obj, *result)
+                grp = self._create_group(obj, result)
+                return obj, grp
             return obj,
 
     def apply(self, content):
