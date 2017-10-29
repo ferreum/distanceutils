@@ -36,7 +36,7 @@ class Transform(tuple):
     def __new__(cls, *args):
         if len(args) not in (0, 3):
             raise TypeError('Invalid number of arguments')
-        return tuple.__new__(cls, args)
+        return tuple.__new__(cls, map(tuple, args))
 
     pos = property(itemgetter(0))
     rot = property(itemgetter(1))
