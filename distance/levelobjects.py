@@ -396,6 +396,15 @@ class OldSimple(LevelObject):
         *LevelObject.default_sections,
         Section(MAGIC_3, 3, 2), # material
     )
+    default_cone_transform = Transform.fill(rot=(2**.5/2, 0, 0, 2**.5/-2),
+                                            scale=(.5, .5, .5))
+    default_other_transform = Transform.fill()
+
+    @property
+    def default_transform(self):
+        if self.shape in ('Cone', 'TrueCone'):
+            return self.default_cone_transform
+        return self.default_other_transform
 
     def _after_init(self):
         super()._after_init()

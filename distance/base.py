@@ -219,23 +219,23 @@ class Fragment(BytesModel):
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
-    _transform = None
+    _real_transform = None
     has_children = False
     children = ()
 
     @property
-    def transform(self):
-        t = self._transform
+    def real_transform(self):
+        t = self._real_transform
         if t is None:
             return Transform()
         return t
 
-    @transform.setter
-    def transform(self, value):
+    @real_transform.setter
+    def real_transform(self, value):
         if value is not None:
             if not isinstance(value, Transform):
                 value = Transform(*value)
-        self._transform = value
+        self._real_transform = value
 
     def _read(self, *args, **kw):
         self.child_prober = kw.get('child_prober', EMPTY_PROBER)
@@ -253,7 +253,7 @@ class ObjectFragment(Fragment):
         """
 
         if sec.content_size >= TRANSFORM_MIN_SIZE:
-            self.transform = Transform.read_from(dbytes)
+            self.real_transform = Transform.read_from(dbytes)
             if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
                 s5 = Section(dbytes, seek_end=False)
                 self.has_children = True
@@ -277,8 +277,8 @@ class ObjectFragment(Fragment):
 
         children = self.children
         has_children = self.has_children or children
-        if self.transform or has_children:
-            self.transform.write_to(dbytes)
+        if self.real_transform or has_children:
+            self.real_transform.write_to(dbytes)
         if self.has_children or self.children:
             with dbytes.write_section(MAGIC_5):
                 for obj in self.children:
@@ -311,7 +311,7 @@ class ForwardFragmentAttrs(object):
         return target
 
 
-@ForwardFragmentAttrs(ObjectFragment, transform=None, children=())
+@ForwardFragmentAttrs(ObjectFragment, real_transform=None, children=())
 class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""
@@ -331,12 +331,17 @@ class BaseObject(BytesModel):
     default_transform = None
 
     @property
-    def effective_transform(self):
-        t = self.transform
+    def transform(self):
+        t = self.real_transform
         defs = self.default_transform
         if defs is None:
             raise TypeError(f"default transform unknown for {self.type!r}")
         return t.effective(*defs)
+
+    @transform.setter
+    def transform(self, value):
+        # TODO clear out default values
+        self.real_transform = value
 
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:

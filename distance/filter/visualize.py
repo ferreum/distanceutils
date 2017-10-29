@@ -92,7 +92,7 @@ class Visualizer(object):
         quaternion # suppress warning
         from distance.transform import rotpoint
 
-        opos, orot, oscale = main.effective_transform
+        opos, orot, oscale = main.transform
 
         center = (np.array(coll_center) * self.center_factor + self.offset) * oscale
         qrot = np.quaternion(orot[3], *orot[:3])
@@ -262,7 +262,7 @@ class TeleporterMapper(VisualizeMapper):
         if coll is None:
             if main.type != 'TeleporterExit':
                 raise DoNotApply
-            transform = main.effective_transform.apply(
+            transform = main.transform.apply(
                 pos=self.vis.offset, scale=(.25, .25, .25))
         else:
             transform = self.vis.transform(main, coll)
@@ -477,7 +477,7 @@ class VisualizeFilter(ObjectFilter):
             copyfrag = main.fragment_by_type(ty)
             if copyfrag is not None:
                 copied_frags.append(copyfrag.clone())
-        pos, rot, scale = main.effective_transform
+        pos, rot, scale = main.transform
         group = Group(children=objs)
         group.recenter(pos)
         group.rerotate(rot)
