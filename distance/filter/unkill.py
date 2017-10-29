@@ -38,17 +38,13 @@ def create_mappers():
     from math import sin, cos, radians
     def mkrotx(degrees):
         rads = radians(degrees)
-        return (cos(rads/2), sin(rads/2), 0, 0)
-
-    def scale_cylinder(scale):
-        s = 1/64
-        return (scale[0] * s, scale[2] * s, scale[1] * s)
+        return (sin(rads/2), 0, 0, cos(rads/2))
 
     return {
-        'KillGridBox': KillgridMapper('CubeGS', size_factor=1/64),
+        'KillGridBox': KillgridMapper('CubeGS', scale=1/64),
         'KillGridCylinder': KillgridMapper('CylinderGS',
-                                           size_factor=scale_cylinder,
-                                           rotate=mkrotx(90)),
+                                           rot=mkrotx(90),
+                                           scale=1/64),
     }
 
 KILLGRID_MAPPERS = create_mappers()

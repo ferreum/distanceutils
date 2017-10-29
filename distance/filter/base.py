@@ -3,6 +3,7 @@
 
 import collections
 
+from distance.base import Transform, TransformError
 from distance.level import Level
 from distance.levelobjects import Group
 
@@ -76,57 +77,25 @@ class DoNotApply(Exception):
 
 class ObjectMapper(object):
 
-    def __init__(self, offset=None, rotate=None, size_factor=1,
-                 locked_scale_axes=()):
-        if not callable(size_factor):
-            if isinstance(size_factor, collections.Sequence):
-                def size_factor(scale, factor=size_factor):
-                    return tuple(s * f for s, f in zip(scale, factor))
-            else:
-                def size_factor(scale, factor=size_factor):
-                    return tuple(s * factor for s in scale)
-        self.offset = offset
-        self.rotate = rotate
-        self.size_factor = size_factor
-        self.locked_scale_axes = locked_scale_axes
+    def __init__(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        self.transform = Transform.fill(pos=pos, rot=rot, scale=scale)
 
-    def _apply_transform(self, transform, scaled_group=False):
-        pos, rot, scale = transform or ((), (), ())
+    def _apply_transform(self, transform, global_transform=Transform.fill()):
+        try:
+            res = transform.apply(*self.transform)
+        except TransformError:
+            raise DoNotApply('locked_scale')
+        try:
+            # raises TransformError if we are inside groups with
+            # incompatible scale
+            global_transform.apply(*res)
+        except TransformError:
+            raise DoNotApply('locked_scale_group')
+        return res
 
-        if self.locked_scale_axes:
-            if scaled_group:
-                raise DoNotApply('locked_scale_group')
-            from math import isclose
-            v1 = scale[self.locked_scale_axes[0]]
-            for i in self.locked_scale_axes[1:]:
-                if not isclose(scale[i], v1):
-                    # Rotated object cannot scale these axes independently.
-                    raise DoNotApply('locked_scale')
-
-        if self.offset or self.rotate:
-            import numpy as np, quaternion
-            quaternion # suppress warning
-            qrot = np.quaternion(rot[3], *rot[0:3])
-
-        if self.offset:
-            from distance.transform import rotpoint
-            if not pos:
-                pos = (0, 0, 0)
-            soffset = tuple(o * s for o, s in zip(self.offset, scale))
-            rsoffset = rotpoint(qrot, soffset)
-            pos = tuple(p + o for p, o in zip(pos, rsoffset))
-
-        if self.rotate:
-            qrot *= np.quaternion(*self.rotate)
-            rot = (*qrot.imag, qrot.real)
-
-        scale = self.size_factor(scale)
-
-        return pos, rot, scale
-
-    def apply(self, obj, scaled_group=False, **kw):
+    def apply(self, obj, global_transform=Transform.fill(), **kw):
         transform = self._apply_transform(obj.transform,
-                                          scaled_group=scaled_group)
+                                          global_transform=global_transform)
 
         return self.create_result(obj, transform, **kw)
 

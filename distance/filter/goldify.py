@@ -3,6 +3,7 @@
 
 from collections import defaultdict
 
+from distance.base import Transform
 from distance.levelobjects import GoldenSimple, OldSimple
 from .base import ObjectFilter, ObjectMapper, DoNotApply
 
@@ -42,79 +43,62 @@ def create_simples_mappers():
     from math import sin, cos, sqrt, radians
     def mkrotx(degrees):
         rads = radians(degrees)
-        return (cos(rads/2), sin(rads/2), 0, 0)
-    def factor_ringhalf(scale):
-        s = .0161605
-        return (scale[2] * s, scale[1] * s, scale[0] * s)
-    rot_y90 = (cos(radians(90)/2), 0, sin(radians(90)/2), 0)
+        return (sin(rads/2), 0, 0, cos(rads/2))
+    rot_y90 = (0, sin(radians(90)/2), 0, cos(radians(90)/2))
 
     bugs = {
-        'Cube': OldToGsMapper('CubeGS', size_factor=1/64, collision_only=True),
+        'Cube': OldToGsMapper('CubeGS', scale=1/64),
     }
     safe = {
-        'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
-        'Hexagon': OldToGsMapper('HexagonGS', size_factor=(1/32, .03, 1/32)),
-        'Octahedron': OldToGsMapper('OctahedronGS', size_factor=1/32),
+        'Cube': OldToGsMapper('CubeGS', scale=1/64),
+        'Hexagon': OldToGsMapper('HexagonGS', scale=(1/32, .03, 1/32)),
+        'Octahedron': OldToGsMapper('OctahedronGS', scale=1/32),
     }
     inexact = {
         **safe,
         'Pyramid': OldToGsMapper('PyramidGS',
-                                 offset=(0, 1.2391397, 0), # 1.2391395..1.2391398
+                                 pos=(0, 1.2391397, 0), # 1.2391395..1.2391398
                                  # x,z: 0.0258984..0.02589845
-                                 size_factor=(.02589842, 7/128/sqrt(2), .02589842)),
+                                 scale=(.02589842, 7/128/sqrt(2), .02589842)),
         'Dodecahedron': OldToGsMapper('DodecahedronGS',
-                                      rotate=mkrotx(301.7171), # 301.717..301.7172
-                                      size_factor=0.0317045, # 0.0317042..0.0317047
-                                      locked_scale_axes=(1, 2)),
+                                      rot=mkrotx(301.7171), # 301.717..301.7172
+                                      scale=0.0317045), # 0.0317042..0.0317047
         'Icosahedron': OldToGsMapper('IcosahedronGS',
-                                     rotate=mkrotx(301.7171),
-                                     size_factor=.0312505, # 0.031250..0.031251
-                                     locked_scale_axes=(1, 2)),
-        'Ring': OldToGsMapper('RingGS', size_factor=.018679666), # 0.01867966..0.01867967
+                                     rot=mkrotx(301.7171),
+                                     scale=.0312505), # 0.031250..0.031251
+        'Ring': OldToGsMapper('RingGS', scale=.018679666), # 0.01867966..0.01867967
         'RingHalf': OldToGsMapper('RingHalfGS',
-                                  offset=(0, 0.29891, 0),
-                                  rotate=rot_y90,
-                                  size_factor=factor_ringhalf),
+                                  pos=(0, 0.29891, 0),
+                                  rot=rot_y90,
+                                  scale=.0161605),
         'Teardrop': OldToGsMapper('TeardropGS',
-                                  size_factor=0.0140161),
-        'Tube': OldToGsMapper('TubeGS', size_factor=.02342865), # 0.0234286..0.0234287
+                                  scale=0.0140161),
+        'Tube': OldToGsMapper('TubeGS', scale=.02342865), # 0.0234286..0.0234287
         'IrregularCapsule001': OldToGsMapper('IrregularCapsule1GS',
-                                             size_factor=0.01410507), #0.01410506..0.01410508
+                                             scale=0.01410507), #0.01410506..0.01410508
         'IrregularCapsule002': OldToGsMapper('IrregularCapsule2GS',
-                                             size_factor=0.01410507), #0.01410506..0.01410508
+                                             scale=0.01410507), #0.01410506..0.01410508
     }
-
-    def factor_wedge(scale):
-        xz = 3/160
-        y = .016141797 # 0.016141795..0.016141798
-        return (scale[2] * xz, scale[1] * y, scale[0] * xz)
-
-    def factor_cone(scale):
-        return (scale[0] * 1/32, scale[2] * 3/64, scale[1] * 1/32)
-
-    def factor_truecone(scale):
-        s = .03125
-        return (scale[0] * s, scale[2] * s, scale[1] * s)
 
     pending = {
     }
     unsafe = {
         **inexact,
         **pending,
-        'Sphere': OldToGsMapper('SphereGS', size_factor=1/63.5),
+        'Sphere': OldToGsMapper('SphereGS', scale=1/63.5),
         'Cone': OldToGsMapper('ConeGS',
-                              offset=(0, 0, 1.409),
-                              rotate=mkrotx(90),
-                              size_factor=factor_cone),
+                              pos=(0, 0, 1.409),
+                              rot=mkrotx(90),
+                              scale=(1/32, 3/64, 1/32)),
         'Cylinder': OldToGsMapper('CylinderGS',
-                                  size_factor=(.014, 3/128, .014)),
+                                  scale=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
-                               rotate=rot_y90,
-                               size_factor=factor_wedge),
+                               rot=rot_y90,
+                               scale=(3/160, .016141797, 3/160)), # 0.016141795..0.016141798
         'TrueCone': OldToGsMapper('ConeGS',
-                                  rotate=mkrotx(90),
-                                  size_factor=factor_truecone),
-        'Plane': OldToGsMapper('PlaneGS', size_factor=1/6.4),
+                                  rot=mkrotx(90),
+                                  scale=.03125),
+        'Plane': OldToGsMapper('PlaneGS', scale=1/6.4),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
@@ -154,7 +138,7 @@ class GoldifyFilter(ObjectFilter):
         self.num_replaced = 0
         self.skipped_by_reason = defaultdict(lambda: 0)
 
-    def filter_object(self, obj, scaled_group=False):
+    def filter_object(self, obj, global_transform=Transform.fill()):
         if isinstance(obj, OldSimple):
             try:
                 mapper = self.mappers[obj.shape]
@@ -163,7 +147,7 @@ class GoldifyFilter(ObjectFilter):
                 self.skipped_by_reason['unmatched'] += 1
                 return obj,
             try:
-                result = mapper.apply(obj, scaled_group=scaled_group)
+                result = mapper.apply(obj, global_transform=global_transform)
             except DoNotApply as e:
                 self.skipped_by_reason[e.reason] += 1
                 return obj,
@@ -178,17 +162,10 @@ class GoldifyFilter(ObjectFilter):
             return result
         return obj,
 
-    def filter_group(self, grp, level, **kw):
-        if not kw.get('scaled_group', False):
-            pos, rot, scale = grp.transform or ((), (), ())
-            if scale:
-                from math import isclose
-                v1 = scale[0]
-                for v in scale[1:]:
-                    if not isclose(v, v1):
-                        kw['scaled_group'] = True
-                        break
-        return super().filter_group(grp, level, **kw)
+    def filter_group(self, grp, level, global_transform=Transform.fill(), **kw):
+        global_transform = global_transform.apply(*grp.transform)
+        return super().filter_group(grp, level,
+                                    global_transform=global_transform, **kw)
 
     def print_summary(self, p):
         p(f"Goldified simples: {self.num_replaced}")
