@@ -4,6 +4,7 @@ from distance.filter.goldify import GoldifyFilter
 from distance.filter.remove import RemoveFilter
 from distance.filter.unkill import UnkillFilter
 from distance.filter.visualize import VisualizeFilter
+from distance.filter.settings import SettingsFilter
 
 
 __all__ = [
@@ -11,6 +12,7 @@ __all__ = [
     'RemoveFilter',
     'UnkillFilter',
     'VisualizeFilter',
+    'SettingsFilter',
 ]
 
 

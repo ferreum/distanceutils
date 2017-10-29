@@ -14,6 +14,7 @@ from distance.filter import (
     RemoveFilter,
     UnkillFilter,
     VisualizeFilter,
+    SettingsFilter,
 )
 from distance.printing import PrintContext
 from distance.prober import BytesProber
@@ -35,6 +36,7 @@ FILTERS['goldify'] = GoldifyFilter
 FILTERS['rm'] = RemoveFilter
 FILTERS['unkill'] = UnkillFilter
 FILTERS['vis'] = VisualizeFilter
+FILTERS['settings'] = SettingsFilter
 
 
 def make_arglist(s):
