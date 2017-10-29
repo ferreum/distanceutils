@@ -169,6 +169,7 @@ class VisualizeMapper(object):
 class GravityTriggerMapper(VisualizeMapper):
 
     match_sections = (
+        Section(MAGIC_2, 0x45, 0),
         Section(MAGIC_2, 0x45, 1),
     )
 
