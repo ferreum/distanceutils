@@ -506,7 +506,6 @@ VIS_MAPPERS.append(CheckpointMapper)
 
 class CooldownTriggerMapper(VisualizeMapper):
 
-    match_sections = ()
     match_types = ('CooldownTriggerNoVisual',)
     match_subtypes = ('CooldownLogic', 'FlyingRingLogic',)
 
