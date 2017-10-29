@@ -8,6 +8,7 @@ from distance.bytes import (
     Section,
 )
 from .base import ObjectFilter
+from distance.printing import PrintContext
 
 
 MAGICMAP = {2: MAGIC_2, 3: MAGIC_3, 32: MAGIC_32}
@@ -20,6 +21,17 @@ def parse_section(arg):
     parts = arg.split(",")
     magic = MAGICMAP[int(parts[0])]
     return Section(magic, *(int(p, base=0) for p in parts[1:]))
+
+
+def print_candidates(candidates):
+    p = PrintContext(flags=('groups', 'subobjects'))
+    p(f"Candidates: {len(candidates)}")
+    with p.tree_children():
+        for i, obj in enumerate(candidates):
+            p.tree_next_child()
+            p(f"Candidate: {i}")
+            p.print_data_of(obj)
+    p(f"Use -n to specify candidate.")
 
 
 class RemoveFilter(ObjectFilter):
@@ -90,7 +102,6 @@ class RemoveFilter(ObjectFilter):
     def post_filter(self, content):
         if self.all or (self.numbers and self.matches):
             return True
-        from .mkcustomobject import print_candidates
         print_candidates(self.matches)
         return False
 
