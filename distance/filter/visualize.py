@@ -15,6 +15,7 @@ VIS_MAPPERS = []
 COPY_FRAG_TYPES = (
     levelfrags.AnimatorFragment,
     levelfrags.EventListenerFragment,
+    levelfrags.TrackAttachmentFragment,
 )
 
 

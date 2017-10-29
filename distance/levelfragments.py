@@ -741,6 +741,11 @@ class EventListenerFragment(Fragment):
     pass
 
 
+@PROBER.fragment(MAGIC_2, 0x68, 0)
+class TrackAttachmentFragment(Fragment):
+    pass
+
+
 class BaseInterpolateToPositiononTrigger(object):
     pass
 
