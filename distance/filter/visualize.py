@@ -45,6 +45,7 @@ class HoloSimpleCreator(SimpleCreator):
         emit_index = 7,
         tex_scale = (12, 12, 12),
         invert_emit = True,
+        tex_offset = (0.003, -0.003, 0),
         additive_transp = True,
         disable_reflect = True,
         disable_collision = True,
