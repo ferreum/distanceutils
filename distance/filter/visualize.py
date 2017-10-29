@@ -459,27 +459,44 @@ class VirusMazeMapper(VisualizeMapper):
 VIS_MAPPERS.append(VirusMazeMapper)
 
 
-class CheckpointNoVisualMapper(VisualizeMapper):
+class CheckpointMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x19, 1),
     )
 
-    vis = BoxVisualizer(
+    _opts = dict(
         color = (0, .733, .498),
-        default_center = (0, 1.25, 0),
-        default_size = (5, 3.5, .5),
         scale_factor = 1/64,
     )
 
+    vis = BoxVisualizer(
+        **_opts,
+        default_center = (0, 1.25, 0),
+        default_size = (5, 3.5, .5),
+    )
+    vis_for_type = {
+        'EmpireCheckpoint': BoxVisualizer(
+            **_opts,
+            default_size = (5, 6, .5),
+        ),
+        'NitronicCheckpoint': BoxVisualizer(
+            **_opts,
+            default_center = (0, 5.81, 0),
+            default_size = (38.36, 21.0, 6.746),
+        )
+    }
+
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        obj = matches[0][0][-1]
+        coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
             raise DoNotApply
-        return self.vis.visualize(main, coll)
+        vis = self.vis_for_type.get(main.type, self.vis)
+        return vis.visualize(main, coll)
 
 
-VIS_MAPPERS.append(CheckpointNoVisualMapper)
+VIS_MAPPERS.append(CheckpointMapper)
 
 
 class VisualizeFilter(ObjectFilter):
