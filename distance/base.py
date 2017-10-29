@@ -53,6 +53,16 @@ class Transform(tuple):
         pos, rot, scale = self
         return len(pos) == 3 and len(rot) == 4 and len(scale) == 3
 
+    def set(self, pos=None, rot=None, scale=None):
+        opos, orot, oscale = self or ((), (), ())
+        if pos is not None:
+            opos = pos
+        if rot is not None:
+            orot = rot
+        if scale is not None:
+            oscale = scale
+        return type(self)(opos, orot, oscale)
+
     def apply(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
         """Calculate the resulting global Transform when applying the
         given transformation inside this Transform's point of reference."""
