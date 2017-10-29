@@ -7,7 +7,7 @@ from distance.levelobjects import GoldenSimple, Group
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
 from distance.base import Transform
-from .base import ObjectFilter, DoNotReplace
+from .base import ObjectFilter, DoNotApply
 
 
 VIS_MAPPERS = []
@@ -182,7 +182,7 @@ class GravityTriggerMapper(VisualizeMapper):
     def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
-            raise DoNotReplace
+            raise DoNotApply
         return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(GravityTriggerMapper)
@@ -261,7 +261,7 @@ class TeleporterMapper(VisualizeMapper):
         coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             if main.type != 'TeleporterExit':
-                raise DoNotReplace
+                raise DoNotApply
             transform = main.effective_transform.apply(
                 pos=self.vis.offset, scale=(.25, .25, .25))
         else:
@@ -315,7 +315,7 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
     def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
-            raise DoNotReplace
+            raise DoNotApply
         return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(VirusSpiritSpawnerMapper)
@@ -339,7 +339,7 @@ class EventTriggerMapper(VisualizeMapper):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is not None:
             return self.vis_sphere.visualize(main, coll)
-        raise DoNotReplace
+        raise DoNotApply
 
 VIS_MAPPERS.append(EventTriggerMapper)
 
@@ -358,7 +358,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
     def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
-            raise DoNotReplace
+            raise DoNotApply
         return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper)
@@ -378,7 +378,7 @@ class ForceZoneMapper(VisualizeMapper):
     def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
-            raise DoNotReplace
+            raise DoNotApply
         return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(ForceZoneMapper)
@@ -408,7 +408,7 @@ class WingCorruptionZoneMapper(VisualizeMapper):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is not None:
             return self.vis_sphere.visualize(main, coll)
-        raise DoNotReplace
+        raise DoNotApply
 
 VIS_MAPPERS.append(WingCorruptionZoneMapper)
 
@@ -445,14 +445,14 @@ class VirusMazeMapper(VisualizeMapper):
     def apply(self, main, matches):
         interp_frag = main.fragment_by_type(levelfrags.BaseInterpolateToPositiononTrigger)
         if interp_frag and not interp_frag.actually_interpolate:
-            raise DoNotReplace
+            raise DoNotApply
         vis = self.visualizers.get(main.type, None)
         if vis is None:
-            raise DoNotReplace
+            raise DoNotApply
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is not None:
             return vis.visualize(main, coll)
-        raise DoNotReplace
+        raise DoNotApply
 
 VIS_MAPPERS.append(VirusMazeMapper)
 
@@ -509,7 +509,7 @@ class VisualizeFilter(ObjectFilter):
                 try:
                     result.extend(self._mappers_by_id[id_].apply(obj, matches))
                     self.num_visualized += 1
-                except DoNotReplace:
+                except DoNotApply:
                     pass
             if result:
                 grp = self._create_group(obj, result)

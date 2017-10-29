@@ -3,7 +3,7 @@
 
 from distance.levelfragments import MaterialFragment
 from distance.levelobjects import GoldenSimple
-from .base import ObjectFilter, ObjectMapper, DoNotReplace
+from .base import ObjectFilter, ObjectMapper, DoNotApply
 
 
 class KillgridMapper(ObjectMapper):
@@ -90,7 +90,7 @@ class UnkillFilter(ObjectFilter):
         try:
             result = mapper.apply(obj, collision=self.collision,
                                   copy_color=self.color)
-        except DoNotReplace:
+        except DoNotApply:
             return obj,
         self.num_replaced += 1
         if self.debug:

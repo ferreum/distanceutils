@@ -67,7 +67,7 @@ class ObjectFilter(object):
         pass
 
 
-class DoNotReplace(Exception):
+class DoNotApply(Exception):
 
     def __init__(self, reason=None, *args, **kw):
         super().__init__(*args, **kw)
@@ -102,13 +102,13 @@ class ObjectMapper(object):
 
         if self.locked_scale_axes:
             if scaled_group:
-                raise DoNotReplace('locked_scale_group')
+                raise DoNotApply('locked_scale_group')
             from math import isclose
             v1 = scale[self.locked_scale_axes[0]]
             for i in self.locked_scale_axes[1:]:
                 if not isclose(scale[i], v1):
                     # Rotated object cannot scale these axes independently.
-                    raise DoNotReplace('locked_scale')
+                    raise DoNotApply('locked_scale')
 
         if self.offset or self.rotate:
             import numpy as np, quaternion

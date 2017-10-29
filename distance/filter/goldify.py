@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 from distance.levelobjects import GoldenSimple, OldSimple
-from .base import ObjectFilter, ObjectMapper, DoNotReplace
+from .base import ObjectFilter, ObjectMapper, DoNotApply
 
 
 class OldToGsMapper(ObjectMapper):
@@ -16,7 +16,7 @@ class OldToGsMapper(ObjectMapper):
 
     def create_result(self, old, transform):
         if self.collision_only and not old.with_collision:
-            raise DoNotReplace('unmatched')
+            raise DoNotApply('unmatched')
 
         gs = GoldenSimple(type=self.type, transform=transform)
         if old.emissive:
@@ -168,7 +168,7 @@ class GoldifyFilter(ObjectFilter):
                 return obj,
             try:
                 result = mapper.apply(obj, scaled_group=scaled_group)
-            except DoNotReplace as e:
+            except DoNotApply as e:
                 self.skipped_by_reason[e.reason] += 1
                 return obj,
             self.num_replaced += 1
