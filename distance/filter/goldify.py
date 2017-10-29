@@ -14,7 +14,7 @@ class OldToGsMapper(ObjectMapper):
         self.type = type
         self.collision_only = collision_only
 
-    def create_result(self, old, transform):
+    def create_result(self, old, transform, scaled_group=False):
         if self.collision_only and not old.with_collision:
             raise DoNotApply('unmatched')
 
