@@ -367,6 +367,7 @@ class GoldenSimple(LevelObject):
         Section(MAGIC_3, 3, 2),
         Section(MAGIC_2, 0x83, 3),
     )
+    default_transform = Transform.fill()
 
     def _init_defaults(self):
         super()._init_defaults()
