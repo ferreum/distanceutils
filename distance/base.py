@@ -19,6 +19,10 @@ EMPTY_PROBER = BytesProber()
 TRANSFORM_MIN_SIZE = 12
 
 
+class TransformError(ValueError):
+    pass
+
+
 class Transform(tuple):
 
     __slots__ = ()
@@ -65,7 +69,12 @@ class Transform(tuple):
 
     def apply(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
         """Calculate the resulting global Transform when applying the
-        given transformation inside this Transform's point of reference."""
+        given transformation inside this Transform's point of reference.
+
+        Raises
+            TransformError - if rotation and scale are incompatible.
+
+        """
 
         if not self.is_effective or not Transform(pos, rot, scale).is_effective:
             raise TypeError('need effective transform')
@@ -94,7 +103,7 @@ class Transform(tuple):
                 elif not isclose(0, v):
                     si, sj = mscale[i], mscale[j]
                     if not isclose(si, sj):
-                        raise ValueError('Incompatible rotation and scale')
+                        raise TransformError('Incompatible rotation and scale')
                     scaleaxes[i] = j
 
         rpos = tuple(mpos + rotpoint(qmrot, pos * amscale))

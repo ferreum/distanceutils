@@ -2,7 +2,7 @@ import unittest
 from math import sqrt, sin, cos, pi
 
 from distance.bytes import DstBytes, SKIP_BYTES, S_FLOAT3, S_FLOAT4
-from distance.base import Transform
+from distance.base import Transform, TransformError
 from tests.common import ExtraAssertMixin
 
 
@@ -109,7 +109,7 @@ class DstBytesTest(ExtraAssertMixin, unittest.TestCase):
     def test_apply_scale_axislock_error(self):
         rot = (sin(pi/3), 0, 0, cos(pi/3))
         self.assertRaisesRegex(
-            ValueError, r"Incompatible",
+            TransformError, r"Incompatible",
             Transform.fill(scale=(2, 2, 4)).apply, rot=rot)
 
     def test_apply_not_effective(self):

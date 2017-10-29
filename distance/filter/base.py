@@ -3,6 +3,7 @@
 
 import collections
 
+from distance.base import Transform, TransformError
 from distance.level import Level
 from distance.levelobjects import Group
 
@@ -76,53 +77,16 @@ class DoNotApply(Exception):
 
 class ObjectMapper(object):
 
-    def __init__(self, offset=None, rotate=None, size_factor=1,
-                 locked_scale_axes=()):
-        if not callable(size_factor):
-            if isinstance(size_factor, collections.Sequence):
-                def size_factor(scale, factor=size_factor):
-                    return tuple(s * f for s, f in zip(scale, factor))
-            else:
-                def size_factor(scale, factor=size_factor):
-                    return tuple(s * factor for s in scale)
-        self.offset = offset
-        self.rotate = rotate
-        self.size_factor = size_factor
-        self.locked_scale_axes = locked_scale_axes
+    def __init__(self, offset=(0, 0, 0), rotate=(0, 0, 0, 1), size_factor=1):
+        if not isinstance(size_factor, collections.Sequence):
+            size_factor = (size_factor,) * 3
+        self.transform = Transform(offset, rotate, size_factor)
 
     def _apply_transform(self, transform, scaled_group=False):
-        pos, rot, scale = transform or ((), (), ())
-
-        if self.locked_scale_axes:
-            if scaled_group:
-                raise DoNotApply('locked_scale_group')
-            from math import isclose
-            v1 = scale[self.locked_scale_axes[0]]
-            for i in self.locked_scale_axes[1:]:
-                if not isclose(scale[i], v1):
-                    # Rotated object cannot scale these axes independently.
-                    raise DoNotApply('locked_scale')
-
-        if self.offset or self.rotate:
-            import numpy as np, quaternion
-            quaternion # suppress warning
-            qrot = np.quaternion(rot[3], *rot[0:3])
-
-        if self.offset:
-            from distance.transform import rotpoint
-            if not pos:
-                pos = (0, 0, 0)
-            soffset = tuple(o * s for o, s in zip(self.offset, scale))
-            rsoffset = rotpoint(qrot, soffset)
-            pos = tuple(p + o for p, o in zip(pos, rsoffset))
-
-        if self.rotate:
-            qrot *= np.quaternion(*self.rotate)
-            rot = (*qrot.imag, qrot.real)
-
-        scale = self.size_factor(scale)
-
-        return pos, rot, scale
+        try:
+            return transform.apply(*self.transform)
+        except TransformError:
+            raise DoNotApply('locked_scale')
 
     def apply(self, obj, scaled_group=False, **kw):
         transform = self._apply_transform(obj.transform,
