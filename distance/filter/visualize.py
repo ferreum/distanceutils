@@ -525,6 +525,28 @@ class CooldownTriggerMapper(VisualizeMapper):
 VIS_MAPPERS.append(CooldownTriggerMapper)
 
 
+class PlanetWithSphericalGravityMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x5f, 0),
+        Section(MAGIC_2, 0x5f, 1),
+    )
+
+    vis = SphereVisualizer(
+        color = (.341, 0, .694),
+        default_radius = 200,
+        scale_factor = 1/32,
+    )
+
+    def apply(self, main, matches):
+        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is None:
+            raise DoNotApply
+        return self.vis.visualize(main, coll)
+
+VIS_MAPPERS.append(PlanetWithSphericalGravityMapper)
+
+
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):

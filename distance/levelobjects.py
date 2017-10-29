@@ -332,6 +332,12 @@ class VirusMazeBuilding(LevelObject):
     default_transform = Transform.fill()
 
 
+@PROBER.for_type('PlanetWithSphericalGravity')
+class PlanetWithSphericalGravity(LevelObject):
+
+    default_transform = Transform.fill(scale=2.5)
+
+
 BASIC_GOLDEN_SIMPLES_NAMES = (
     'AppleGS',
     'ArchGS',
