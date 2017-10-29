@@ -157,6 +157,7 @@ class VisualizeMapper(object):
 
     match_sections = ()
     match_types = ()
+    match_subtypes = ()
 
     def prepare(self, main, matches):
         """First pass, for gathering information"""
@@ -502,10 +503,11 @@ class CheckpointMapper(VisualizeMapper):
 VIS_MAPPERS.append(CheckpointMapper)
 
 
-class CooldownTriggerNoVisualMapper(VisualizeMapper):
+class CooldownTriggerMapper(VisualizeMapper):
 
     match_sections = ()
     match_types = ('CooldownTriggerNoVisual',)
+    match_subtypes = ('CooldownLogic', 'FlyingRingLogic',)
 
     vis = BoxVisualizer(
         color = (.15, .45, .45),
@@ -514,12 +516,13 @@ class CooldownTriggerNoVisualMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        obj = matches[0][0][-1]
+        coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
             raise DoNotApply
         return self.vis.visualize(main, coll)
 
-VIS_MAPPERS.append(CooldownTriggerNoVisualMapper)
+VIS_MAPPERS.append(CooldownTriggerMapper)
 
 
 class VisualizeFilter(ObjectFilter):
@@ -529,14 +532,18 @@ class VisualizeFilter(ObjectFilter):
         mappers = [cls() for cls in VIS_MAPPERS]
         bysection = defaultdict(list)
         bytype = defaultdict(list)
+        bysubtype = defaultdict(list)
         for mapper in mappers:
             for sec in mapper.match_sections:
                 bysection[sec.to_key()].append(mapper)
             for type in mapper.match_types:
                 bytype[type].append(mapper)
+            for subtype in mapper.match_subtypes:
+                bysubtype[subtype].append(mapper)
         self._mappers = mappers
         self._mappers_by_sec = dict(bysection)
         self._mappers_by_type = dict(bytype)
+        self._mappers_by_subtype = dict(bysubtype)
         self._mappers_by_id = {id(m): m for m in mappers}
         self.num_visualized = 0
 
@@ -558,9 +565,11 @@ class VisualizeFilter(ObjectFilter):
             return sec.to_key() in self._mappers_by_sec
         mappers = defaultdict(list)
         if len(objpath) == 1:
-            bytype = self._mappers_by_type.get(objpath[0].type, ())
-            for mapper in bytype:
-                mappers[id(mapper)].append((objpath, None))
+            bytype = self._mappers_by_type
+        else:
+            bytype = self._mappers_by_subtype
+        for mapper in bytype.get(objpath[-1].type, ()):
+            mappers[id(mapper)].append((objpath, None))
         obj = objpath[-1]
         for frag in obj.filtered_fragments(filter_frags):
             for mapper in self._mappers_by_sec[frag.container.to_key()]:

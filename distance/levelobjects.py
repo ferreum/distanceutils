@@ -305,6 +305,18 @@ class NitronicCheckpoint(LevelObject):
     default_transform = Transform.fill(scale=1.097)
 
 
+@PROBER.for_type('EmpirePowerFlyingRing')
+class EmpirePowerFlyingRing(LevelObject):
+
+    default_transform = Transform.fill(scale=1.5)
+
+
+@PROBER.for_type('EmpirePowerRoadRing')
+class EmpirePowerRoadRing(LevelObject):
+
+    default_transform = Transform.fill()
+
+
 @PROBER.for_type('CooldownTriggerNoVisual')
 class CooldownTriggerNoVisual(LevelObject):
 
