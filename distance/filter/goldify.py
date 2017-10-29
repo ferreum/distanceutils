@@ -105,9 +105,7 @@ def create_simples_mappers():
         'Cone': OldToGsMapper('ConeGS',
                               offset=(0, 0, 1.409),
                               rotate=mkrotx(90),
-                              size_factor=factor_cone,
-                              default_rotation=mkrotx(270),
-                              default_scale=(.5, .5, .5)),
+                              size_factor=factor_cone),
         'Cylinder': OldToGsMapper('CylinderGS',
                                   size_factor=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
@@ -115,9 +113,7 @@ def create_simples_mappers():
                                size_factor=factor_wedge),
         'TrueCone': OldToGsMapper('ConeGS',
                                   rotate=mkrotx(90),
-                                  size_factor=factor_truecone,
-                                  default_rotation=mkrotx(270),
-                                  default_scale=(.5, .5, .5)),
+                                  size_factor=factor_truecone),
         'Plane': OldToGsMapper('PlaneGS', size_factor=1/6.4),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)

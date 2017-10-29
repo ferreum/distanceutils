@@ -280,6 +280,18 @@ class VirusSpiritSpawner(LevelObject):
     default_transform = Transform.fill()
 
 
+@PROBER.for_type('KillGridBox')
+class KillGridBox(LevelObject):
+
+    default_transform = Transform.fill(scale=(50, 50, 50))
+
+
+@PROBER.for_type('KillGridCylinder')
+class KillGridCylinder(LevelObject):
+
+    default_transform = Transform.fill(scale=(50, 50, 50))
+
+
 @PROBER.for_type('VirusMazeTowerFat')
 @PROBER.for_type('VirusMazeCeiling001')
 @PROBER.for_type('VirusMazeTowerFat002')

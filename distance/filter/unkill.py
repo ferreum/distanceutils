@@ -45,12 +45,10 @@ def create_mappers():
         return (scale[0] * s, scale[2] * s, scale[1] * s)
 
     return {
-        'KillGridBox': KillgridMapper('CubeGS', size_factor=1/64,
-                                      default_scale=(50, 50, 50)),
+        'KillGridBox': KillgridMapper('CubeGS', size_factor=1/64),
         'KillGridCylinder': KillgridMapper('CylinderGS',
                                            size_factor=scale_cylinder,
-                                           rotate=mkrotx(90),
-                                           default_scale=(50, 50, 50)),
+                                           rotate=mkrotx(90)),
     }
 
 KILLGRID_MAPPERS = create_mappers()

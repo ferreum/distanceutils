@@ -77,9 +77,7 @@ class DoNotApply(Exception):
 class ObjectMapper(object):
 
     def __init__(self, offset=None, rotate=None, size_factor=1,
-                 locked_scale_axes=(),
-                 default_rotation=(1, 0, 0, 0),
-                 default_scale=(1, 1, 1)):
+                 locked_scale_axes=()):
         if not callable(size_factor):
             if isinstance(size_factor, collections.Sequence):
                 def size_factor(scale, factor=size_factor):
@@ -91,14 +89,9 @@ class ObjectMapper(object):
         self.rotate = rotate
         self.size_factor = size_factor
         self.locked_scale_axes = locked_scale_axes
-        self.default_rotation = default_rotation
-        self.default_scale = default_scale
 
     def _apply_transform(self, transform, scaled_group=False):
         pos, rot, scale = transform or ((), (), ())
-
-        if not scale:
-            scale = self.default_scale
 
         if self.locked_scale_axes:
             if scaled_group:
@@ -113,10 +106,7 @@ class ObjectMapper(object):
         if self.offset or self.rotate:
             import numpy as np, quaternion
             quaternion # suppress warning
-            if not rot:
-                qrot = np.quaternion(*self.default_rotation)
-            else:
-                qrot = np.quaternion(rot[3], *rot[0:3])
+            qrot = np.quaternion(rot[3], *rot[0:3])
 
         if self.offset:
             from distance.transform import rotpoint
