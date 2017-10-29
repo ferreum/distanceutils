@@ -13,6 +13,9 @@ For example, using pip::
 
   $ pip install --user distanceutils
 
+Many operations also require the packages ``numpy`` and ``numpy-quaternion`` to
+be installed.
+
 
 Scripts
 =======
@@ -79,9 +82,6 @@ dst-objtobytes
 
 Take a wavefront .obj file and generate a .bytes CustomObject made from
 simples.
-
-For this script, the additional modules ``numpy`` and ``numpy-quaternion`` need
-to be installed.
 
 * The resulting object is a Group containing WedgeGS objects.
 
