@@ -181,6 +181,8 @@ class GravityTriggerMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is None:
+            raise DoNotReplace
         return self.vis.visualize(main, coll)
 
 VIS_MAPPERS.append(GravityTriggerMapper)
