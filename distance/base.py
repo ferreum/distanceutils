@@ -1,6 +1,8 @@
 """Provides BaseObject."""
 
 
+from operator import itemgetter
+
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT3, S_FLOAT4)
 from .printing import format_transform
@@ -17,49 +19,132 @@ EMPTY_PROBER = BytesProber()
 TRANSFORM_MIN_SIZE = 12
 
 
-def read_transform(dbytes):
-    data = dbytes.read_bytes(12)
-    if data.startswith(SKIP_BYTES):
-        pos = ()
-        data = data[4:]
-    else:
-        pos = S_FLOAT3.unpack(data)
-        data = dbytes.read_bytes(8)
-    # len(data) == 8
-    if data.startswith(SKIP_BYTES):
-        rot = ()
-        data = data[4:]
-    else:
-        ndata = dbytes.read_bytes(12)
-        rot = S_FLOAT4.unpack(data + ndata[:8])
-        data = ndata[8:]
-    # len(data) == 4
-    if data == SKIP_BYTES:
-        scale = ()
-    else:
-        data = data + dbytes.read_bytes(8)
-        scale = S_FLOAT3.unpack(data)
-    return pos, rot, scale
+class Transform(tuple):
 
+    __slots__ = ()
 
-def write_transform(dbytes, trans):
-    if trans is None:
-        trans = ()
-    if len(trans) > 0 and len(trans[0]):
-        pos = trans[0]
-        dbytes.write_bytes(S_FLOAT3.pack(*pos))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 1 and len(trans[1]):
-        rot = trans[1]
-        dbytes.write_bytes(S_FLOAT4.pack(*rot))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
-    if len(trans) > 2 and len(trans[2]):
-        scale = trans[2]
-        dbytes.write_bytes(S_FLOAT3.pack(*scale))
-    else:
-        dbytes.write_bytes(SKIP_BYTES)
+    @classmethod
+    def fill(cls, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        if len(pos) != 3:
+            raise TypeError("Invalid pos")
+        if len(rot) != 4:
+            raise TypeError("Invalid rot")
+        if len(scale) != 3:
+            raise TypeError("Invalid scale")
+        return cls(pos, rot, scale)
+
+    def __new__(cls, *args):
+        if len(args) not in (0, 3):
+            raise TypeError('Invalid number of arguments')
+        return tuple.__new__(cls, map(tuple, args))
+
+    pos = property(itemgetter(0))
+    rot = property(itemgetter(1))
+    scale = property(itemgetter(2))
+
+    def effective(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        tpos, trot, tscale = self or ((), (), ())
+        return type(self)(tpos or pos, trot or rot, tscale or scale)
+
+    @property
+    def is_effective(self):
+        if not self:
+            return False
+        pos, rot, scale = self
+        return len(pos) == 3 and len(rot) == 4 and len(scale) == 3
+
+    def set(self, pos=None, rot=None, scale=None):
+        opos, orot, oscale = self or ((), (), ())
+        if pos is not None:
+            opos = pos
+        if rot is not None:
+            orot = rot
+        if scale is not None:
+            oscale = scale
+        return type(self)(opos, orot, oscale)
+
+    def apply(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        """Calculate the resulting global Transform when applying the
+        given transformation inside this Transform's point of reference."""
+
+        if not self.is_effective or not Transform(pos, rot, scale).is_effective:
+            raise TypeError('need effective transform')
+
+        import numpy as np, quaternion
+        from .transform import rotpoint
+        quaternion
+
+        def isclose(a, b):
+            return -0.00001 < abs(a - b) < 0.00001
+
+        mpos, mrot, mscale = self
+
+        qmrot = np.quaternion(mrot[3], *mrot[:3])
+        qrot = np.quaternion(rot[3], *rot[:3])
+
+        ascale = np.array(scale)
+        amscale = np.array(mscale)
+
+        rotmat = quaternion.as_rotation_matrix(qrot)
+        scaleaxes = [None, None, None]
+        for i, row in enumerate(rotmat):
+            for j, v in enumerate(row):
+                if isclose(1, abs(v)):
+                    scaleaxes[i] = j
+                elif not isclose(0, v):
+                    si, sj = mscale[i], mscale[j]
+                    if not isclose(si, sj):
+                        raise ValueError('Incompatible rotation and scale')
+                    scaleaxes[i] = j
+
+        rpos = tuple(mpos + rotpoint(qmrot, pos * amscale))
+        qrrot = qmrot * qrot
+        rrot = (*qrrot.imag, qrrot.real)
+
+        rot_amscale = tuple(amscale[i] for i in scaleaxes)
+        rscale = tuple(rot_amscale * ascale)
+
+        return type(self)(rpos, rrot, rscale)
+
+    @classmethod
+    def read_from(cls, dbytes):
+        data = dbytes.read_bytes(12)
+        if data.startswith(SKIP_BYTES):
+            pos = ()
+            data = data[4:]
+        else:
+            pos = S_FLOAT3.unpack(data)
+            data = dbytes.read_bytes(8)
+        # len(data) == 8
+        if data.startswith(SKIP_BYTES):
+            rot = ()
+            data = data[4:]
+        else:
+            ndata = dbytes.read_bytes(12)
+            rot = S_FLOAT4.unpack(data + ndata[:8])
+            data = ndata[8:]
+        # len(data) == 4
+        if data == SKIP_BYTES:
+            scale = ()
+        else:
+            data = data + dbytes.read_bytes(8)
+            scale = S_FLOAT3.unpack(data)
+        return cls(pos, rot, scale)
+
+    def write_to(self, dbytes):
+        pos, rot, scale = self or ((), (), ())
+        if len(pos):
+            dbytes.write_bytes(S_FLOAT3.pack(*pos))
+        else:
+            dbytes.write_bytes(SKIP_BYTES)
+        if len(rot):
+            dbytes.write_bytes(S_FLOAT4.pack(*rot))
+        else:
+            dbytes.write_bytes(SKIP_BYTES)
+        if len(scale):
+            dbytes.write_bytes(S_FLOAT3.pack(*scale))
+        else:
+            dbytes.write_bytes(SKIP_BYTES)
 
 
 def filter_interesting(sec, prober):
@@ -102,6 +187,16 @@ class Fragment(BytesModel):
     def raw_data(self, value):
         self._raw_data = value
 
+    def clone(self):
+        new = type(self)()
+        if self.container:
+            new.container = Section(self.container)
+        self._clone_data(new)
+        return new
+
+    def _clone_data(self, new):
+        new.raw_data = self.raw_data
+
     def _init_section(self):
         return self.default_section
 
@@ -124,9 +219,23 @@ class Fragment(BytesModel):
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
-    transform = None
+    _transform = None
     has_children = False
     children = ()
+
+    @property
+    def transform(self):
+        t = self._transform
+        if t is None:
+            return Transform()
+        return t
+
+    @transform.setter
+    def transform(self, value):
+        if value is not None:
+            if not isinstance(value, Transform):
+                value = Transform(*value)
+        self._transform = value
 
     def _read(self, *args, **kw):
         self.child_prober = kw.get('child_prober', EMPTY_PROBER)
@@ -144,7 +253,7 @@ class ObjectFragment(Fragment):
         """
 
         if sec.content_size >= TRANSFORM_MIN_SIZE:
-            self.transform = read_transform(dbytes)
+            self.transform = Transform.read_from(dbytes)
             if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
                 s5 = Section(dbytes, seek_end=False)
                 self.has_children = True
@@ -169,7 +278,7 @@ class ObjectFragment(Fragment):
         children = self.children
         has_children = self.has_children or children
         if self.transform or has_children:
-            write_transform(dbytes, self.transform)
+            self.transform.write_to(dbytes)
         if self.has_children or self.children:
             with dbytes.write_section(MAGIC_5):
                 for obj in self.children:
@@ -219,6 +328,15 @@ class BaseObject(BytesModel):
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
     )
+    default_transform = None
+
+    @property
+    def effective_transform(self):
+        t = self.transform
+        defs = self.default_transform
+        if defs is None:
+            raise TypeError(f"default transform unknown for {self.type!r}")
+        return t.effective(*defs)
 
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:

@@ -9,7 +9,12 @@ from distance.level import Level
 from distance.levelobjects import Group
 from distance.base import BaseObject
 from distance.bytes import MAGIC_9
-from distance.filter import GoldifyFilter, RemoveFilter, UnkillFilter
+from distance.filter import (
+    GoldifyFilter,
+    RemoveFilter,
+    UnkillFilter,
+    VisualizeFilter,
+)
 from distance.printing import PrintContext
 from distance.prober import BytesProber
 
@@ -29,6 +34,7 @@ FILTERS = {}
 FILTERS['goldify'] = GoldifyFilter
 FILTERS['rm'] = RemoveFilter
 FILTERS['unkill'] = UnkillFilter
+FILTERS['vis'] = VisualizeFilter
 
 
 def make_arglist(s):

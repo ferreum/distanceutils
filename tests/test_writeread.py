@@ -234,7 +234,7 @@ class UnknownSection32Test(common.WriteReadTest):
 
     def verify_obj(self, obj):
         check_exceptions(obj)
-        self.assertAlmostEqual(50, obj.trigger_radius)
+        self.assertIsNone(obj.trigger_radius)
 
 
 class TracknodeFragmentTest(common.WriteReadTest):

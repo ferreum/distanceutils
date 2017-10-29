@@ -5,7 +5,7 @@ from .bytes import (
     Section,
     MAGIC_2, MAGIC_3, MAGIC_6
 )
-from .base import BaseObject, Fragment, ForwardFragmentAttrs
+from .base import Transform, BaseObject, Fragment, ForwardFragmentAttrs
 from .levelfragments import (
     PROBER as FRAG_PROBER,
     ForwardMaterialColors,
@@ -107,6 +107,7 @@ class Group(LevelObject):
         Section(MAGIC_2, 0x1d, version=1),
         Section(MAGIC_2, 0x63, version=0),
     )
+    default_transform = Transform.fill()
 
     def _handle_opts(self, opts):
         LevelObject._handle_opts(self, opts)
@@ -135,6 +136,34 @@ class Group(LevelObject):
             pos, rot, scale = obj.transform or ((0, 0, 0), (), ())
             pos = tuple(o + d for o, d in zip(pos, diff))
             obj.transform = pos, rot, scale
+
+    def rerotate(self, rot):
+        import numpy as np, quaternion
+        from distance.transform import rotpoint
+        quaternion # suppress warning
+        qrot = np.quaternion(rot[3], *rot[:3])
+        pos, orot, scale = self.transform or ((), (), ())
+        if not orot:
+            orot = (0, 0, 0, 1)
+        qorot = np.quaternion(orot[3], *orot[:3])
+        self.transform = pos, rot, scale
+        diff = qorot * qrot.conj()
+        for obj in self.children:
+            pos, orot, scale = obj.transform or ((), (), ())
+            if not orot:
+                orot = (0, 0, 0, 1)
+            qorot = diff * np.quaternion(orot[3], *orot[:3])
+            nrot = (*qorot.imag, qorot.real)
+            if pos:
+                pos = rotpoint(diff, pos)
+            obj.transform = pos, nrot, scale
+
+
+@PROBER.for_type('Teleporter', 'TeleporterVirus',
+                 'TeleporterAndAmbientChangeTrigger', 'TeleporterExit')
+class Teleporter(LevelObject):
+
+    default_transform = Transform.fill()
 
 
 @SUBOBJ_PROBER.for_type('Teleporter')
@@ -203,20 +232,61 @@ class CarScreenTextDecodeTrigger(LevelObject):
     disable_music_trigger = None,
 )
 class GravityTrigger(LevelObject):
-    pass
+    default_transform = Transform.fill()
 
 
 @PROBER.for_type('ForceZoneBox')
 @ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 @ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment.value_attrs)
 class ForceZoneBox(LevelObject):
-    pass
+
+    default_transform = Transform.fill(scale=(35, 35, 35))
 
 
 @PROBER.for_type('EnableAbilitiesBox')
 @ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None)
 class EnableAbilitiesBox(LevelObject):
-    pass
+
+    default_transform = Transform.fill(scale=(100, 100, 100))
+
+
+@PROBER.for_type('EventTriggerBox')
+class EvenTriggerBox(LevelObject):
+
+    default_transform = Transform.fill(scale=(35, 35, 35))
+
+
+@PROBER.for_type('EventTriggerSphere')
+class EvenTriggerSphere(LevelObject):
+
+    default_transform = Transform.fill(scale=(35, 35, 35))
+
+
+@PROBER.for_type('WingCorruptionZone')
+class WingCorruptionZone(LevelObject):
+
+    default_transform = Transform.fill(scale=(100, 100, 100))
+
+
+@PROBER.for_type('WingCorruptionZoneLarge')
+class WingCorruptionZoneLarge(LevelObject):
+
+    default_transform = Transform.fill(scale=(1000, 1000, 1000))
+
+
+@PROBER.for_type('VirusSpiritSpawner')
+class VirusSpiritSpawner(LevelObject):
+
+    default_transform = Transform.fill()
+
+
+@PROBER.for_type('VirusMazeTowerFat')
+@PROBER.for_type('VirusMazeCeiling001')
+@PROBER.for_type('VirusMazeTowerFat002')
+@PROBER.for_type('VirusMazeTowerFat003')
+class VirusMazeBuilding(LevelObject):
+
+    default_transform = Transform.fill()
 
 
 BASIC_GOLDEN_SIMPLES_NAMES = (
@@ -297,6 +367,7 @@ class GoldenSimple(LevelObject):
         Section(MAGIC_3, 3, 2),
         Section(MAGIC_2, 0x83, 3),
     )
+    default_transform = Transform.fill()
 
     def _init_defaults(self):
         super()._init_defaults()

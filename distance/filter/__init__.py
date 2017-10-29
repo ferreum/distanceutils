@@ -3,12 +3,14 @@
 from distance.filter.goldify import GoldifyFilter
 from distance.filter.remove import RemoveFilter
 from distance.filter.unkill import UnkillFilter
+from distance.filter.visualize import VisualizeFilter
 
 
 __all__ = [
     'GoldifyFilter',
     'RemoveFilter',
     'UnkillFilter',
+    'VisualizeFilter',
 ]
 
 
