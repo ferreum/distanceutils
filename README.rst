@@ -214,6 +214,31 @@ Color of the grid is copied to the simple by default. To use the default grid
 color specify ``unkill:nocolor``.
 
 
+filter: ``vis``
+'''''''''''''''
+
+Visualize colliders by adding simples in their position.
+
+Example::
+
+  $ dst-filterlevel my_level.bytes result.bytes -o vis
+
+Colliders of different objects are color-coded to indicate their effect.
+
+Teleporter colliders have additional indicators for their connection status:
+
+* Green: Bidirectional (destination teleporter leads back to this one)
+
+* Blue: Unidirectional, but at least one different teleporter leads to this
+  teleporter.
+
+* Yellow: Unidirectional (can enter, but nothing leads to this teleporter)
+
+* Pink: This teleporter leads nowhere, but at least one teleporter leads here.
+
+* Red: not connected, or leads to itself
+
+
 dst-teletodot
 -------------
 
