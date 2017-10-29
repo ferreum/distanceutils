@@ -292,6 +292,12 @@ class KillGridCylinder(LevelObject):
     default_transform = Transform.fill(scale=(50, 50, 50))
 
 
+@PROBER.for_type('CheckpointNoVisual')
+class CheckpointNoVisual(LevelObject):
+
+    default_transform = Transform.fill(rot=(0, 1, 0, 0), scale=14)
+
+
 @PROBER.for_type('VirusMazeTowerFat')
 @PROBER.for_type('VirusMazeCeiling001')
 @PROBER.for_type('VirusMazeTowerFat002')

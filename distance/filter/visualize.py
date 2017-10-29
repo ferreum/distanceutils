@@ -109,15 +109,16 @@ class Visualizer(object):
 
 class BoxVisualizer(Visualizer):
 
-    default_trigger_size = (1, 1, 1)
+    default_center = (0, 0, 0)
+    default_size = (1, 1, 1)
 
     def __init__(self, color, **kw):
         super().__init__(**kw)
         self.creator = HoloSimpleCreator('CubeGS', color)
 
     def transform(self, main, coll):
-        coll_center = coll.trigger_center or (0, 0, 0)
-        size = coll.trigger_size or self.default_trigger_size
+        coll_center = coll.trigger_center or self.default_center
+        size = coll.trigger_size or self.default_size
         return self._transform_collider(
             main,
             coll_center=coll_center,
@@ -456,6 +457,29 @@ class VirusMazeMapper(VisualizeMapper):
         raise DoNotApply
 
 VIS_MAPPERS.append(VirusMazeMapper)
+
+
+class CheckpointNoVisualMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x19, 1),
+    )
+
+    vis = BoxVisualizer(
+        color = (0, .733, .498),
+        default_center = (0, 1.25, 0),
+        default_size = (5, 3.5, .5),
+        scale_factor = 1/64,
+    )
+
+    def apply(self, main, matches):
+        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is None:
+            raise DoNotApply
+        return self.vis.visualize(main, coll)
+
+
+VIS_MAPPERS.append(CheckpointNoVisualMapper)
 
 
 class VisualizeFilter(ObjectFilter):
