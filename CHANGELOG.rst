@@ -15,10 +15,12 @@ Changelog
   * Added ``vis`` filter for visualizing colliders.
 
   * ``dst-filterlevel`` now utilizes these filters. Its old parameters have
-    been removed. The same functions are now available with the ``rm``
+    been removed. The same functionality is now available with the ``rm``
     filter.
 
   * ``write()`` methods now also accept a file name or a file object.
+
+  * Added proper ``Transform`` class.
 
 * version 0.3.4
 
