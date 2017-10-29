@@ -237,6 +237,7 @@ class TeleporterMapper(VisualizeMapper):
                     link_id = frag.link_id
                     self._exits[link_id].append(main)
         main.__dest_id = dest
+        main.__link_id = link_id
 
     def post_prepare(self):
         self._entrances = dict(self._entrances)
@@ -253,16 +254,7 @@ class TeleporterMapper(VisualizeMapper):
         return None
 
     def apply(self, main, matches):
-        link_id, dest_id = None, None
-        for objpath, frag in matches:
-            if isinstance(frag, levelfrags.TeleporterEntranceFragment):
-                tele = objpath[-1]
-                dest_id = frag.destination
-            elif isinstance(frag, levelfrags.TeleporterExitFragment):
-                tele = objpath[-1]
-                link_id = frag.link_id
-        if tele is None:
-            raise DoNotReplace
+        tele = matches[0][0][-1]
         coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             if main.type != 'TeleporterExit':
@@ -271,9 +263,8 @@ class TeleporterMapper(VisualizeMapper):
                 pos=self.vis.offset, scale=(.25, .25, .25))
         else:
             transform = self.vis.transform(main, coll)
-        creators = [self.vis.creator]
 
-        entrances = self._entrances.get(link_id, ())
+        entrances = self._entrances.get(main.__link_id, ())
         can_exit = any(1 for e in entrances if self._real_dest(e) is main)
         real_dest = self._real_dest(main)
         ddst = self._real_dest(real_dest)
