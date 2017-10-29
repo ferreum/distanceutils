@@ -2,6 +2,7 @@
 
 
 from operator import itemgetter
+import numbers
 
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT3, S_FLOAT4)
@@ -33,7 +34,9 @@ class Transform(tuple):
             raise TypeError("Invalid pos")
         if len(rot) != 4:
             raise TypeError("Invalid rot")
-        if len(scale) != 3:
+        if isinstance(scale, numbers.Real):
+            scale = (scale, scale, scale)
+        elif len(scale) != 3:
             raise TypeError("Invalid scale")
         return cls(pos, rot, scale)
 

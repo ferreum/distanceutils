@@ -28,6 +28,11 @@ class DstBytesTest(ExtraAssertMixin, unittest.TestCase):
 
         self.assertSeqAlmostEqual(((0, 0, 0), (0, 0, 0, 1), (1, 2, 3)), t)
 
+    def test_fill_scale_scalar(self):
+        t = Transform.fill(scale=4)
+
+        self.assertSeqAlmostEqual(((0, 0, 0), (0, 0, 0, 1), (4, 4, 4)), t)
+
     def test_fill_pos_err(self):
         self.assertRaises(TypeError, Transform.fill, pos=())
         self.assertRaises(TypeError, Transform.fill, pos=(1, 2))
@@ -44,7 +49,6 @@ class DstBytesTest(ExtraAssertMixin, unittest.TestCase):
         self.assertRaises(TypeError, Transform.fill, scale=())
         self.assertRaises(TypeError, Transform.fill, scale=(1, 2))
         self.assertRaises(TypeError, Transform.fill, scale=(1, 2, 3, 4))
-        self.assertRaises(TypeError, Transform.fill, scale=1)
 
     def test_empty(self):
         self.assertEqual((), tuple(Transform()))

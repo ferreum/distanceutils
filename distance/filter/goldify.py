@@ -47,37 +47,37 @@ def create_simples_mappers():
     rot_y90 = (0, sin(radians(90)/2), 0, cos(radians(90)/2))
 
     bugs = {
-        'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
+        'Cube': OldToGsMapper('CubeGS', scale=1/64),
     }
     safe = {
-        'Cube': OldToGsMapper('CubeGS', size_factor=1/64),
-        'Hexagon': OldToGsMapper('HexagonGS', size_factor=(1/32, .03, 1/32)),
-        'Octahedron': OldToGsMapper('OctahedronGS', size_factor=1/32),
+        'Cube': OldToGsMapper('CubeGS', scale=1/64),
+        'Hexagon': OldToGsMapper('HexagonGS', scale=(1/32, .03, 1/32)),
+        'Octahedron': OldToGsMapper('OctahedronGS', scale=1/32),
     }
     inexact = {
         **safe,
         'Pyramid': OldToGsMapper('PyramidGS',
-                                 offset=(0, 1.2391397, 0), # 1.2391395..1.2391398
+                                 pos=(0, 1.2391397, 0), # 1.2391395..1.2391398
                                  # x,z: 0.0258984..0.02589845
-                                 size_factor=(.02589842, 7/128/sqrt(2), .02589842)),
+                                 scale=(.02589842, 7/128/sqrt(2), .02589842)),
         'Dodecahedron': OldToGsMapper('DodecahedronGS',
-                                      rotate=mkrotx(301.7171), # 301.717..301.7172
-                                      size_factor=0.0317045), # 0.0317042..0.0317047
+                                      rot=mkrotx(301.7171), # 301.717..301.7172
+                                      scale=0.0317045), # 0.0317042..0.0317047
         'Icosahedron': OldToGsMapper('IcosahedronGS',
-                                     rotate=mkrotx(301.7171),
-                                     size_factor=.0312505), # 0.031250..0.031251
-        'Ring': OldToGsMapper('RingGS', size_factor=.018679666), # 0.01867966..0.01867967
+                                     rot=mkrotx(301.7171),
+                                     scale=.0312505), # 0.031250..0.031251
+        'Ring': OldToGsMapper('RingGS', scale=.018679666), # 0.01867966..0.01867967
         'RingHalf': OldToGsMapper('RingHalfGS',
-                                  offset=(0, 0.29891, 0),
-                                  rotate=rot_y90,
-                                  size_factor=.0161605),
+                                  pos=(0, 0.29891, 0),
+                                  rot=rot_y90,
+                                  scale=.0161605),
         'Teardrop': OldToGsMapper('TeardropGS',
-                                  size_factor=0.0140161),
-        'Tube': OldToGsMapper('TubeGS', size_factor=.02342865), # 0.0234286..0.0234287
+                                  scale=0.0140161),
+        'Tube': OldToGsMapper('TubeGS', scale=.02342865), # 0.0234286..0.0234287
         'IrregularCapsule001': OldToGsMapper('IrregularCapsule1GS',
-                                             size_factor=0.01410507), #0.01410506..0.01410508
+                                             scale=0.01410507), #0.01410506..0.01410508
         'IrregularCapsule002': OldToGsMapper('IrregularCapsule2GS',
-                                             size_factor=0.01410507), #0.01410506..0.01410508
+                                             scale=0.01410507), #0.01410506..0.01410508
     }
 
     pending = {
@@ -85,20 +85,20 @@ def create_simples_mappers():
     unsafe = {
         **inexact,
         **pending,
-        'Sphere': OldToGsMapper('SphereGS', size_factor=1/63.5),
+        'Sphere': OldToGsMapper('SphereGS', scale=1/63.5),
         'Cone': OldToGsMapper('ConeGS',
-                              offset=(0, 0, 1.409),
-                              rotate=mkrotx(90),
-                              size_factor=(1/32, 3/64, 1/32)),
+                              pos=(0, 0, 1.409),
+                              rot=mkrotx(90),
+                              scale=(1/32, 3/64, 1/32)),
         'Cylinder': OldToGsMapper('CylinderGS',
-                                  size_factor=(.014, 3/128, .014)),
+                                  scale=(.014, 3/128, .014)),
         'Wedge': OldToGsMapper('WedgeGS',
-                               rotate=rot_y90,
-                               size_factor=(3/160, .016141797, 3/160)), # 0.016141795..0.016141798
+                               rot=rot_y90,
+                               scale=(3/160, .016141797, 3/160)), # 0.016141795..0.016141798
         'TrueCone': OldToGsMapper('ConeGS',
-                                  rotate=mkrotx(90),
-                                  size_factor=.03125),
-        'Plane': OldToGsMapper('PlaneGS', size_factor=1/6.4),
+                                  rot=mkrotx(90),
+                                  scale=.03125),
+        'Plane': OldToGsMapper('PlaneGS', scale=1/6.4),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 

@@ -77,10 +77,8 @@ class DoNotApply(Exception):
 
 class ObjectMapper(object):
 
-    def __init__(self, offset=(0, 0, 0), rotate=(0, 0, 0, 1), size_factor=1):
-        if not isinstance(size_factor, collections.Sequence):
-            size_factor = (size_factor,) * 3
-        self.transform = Transform(offset, rotate, size_factor)
+    def __init__(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        self.transform = Transform.fill(pos=pos, rot=rot, scale=scale)
 
     def _apply_transform(self, transform, global_transform=Transform.fill()):
         try:
