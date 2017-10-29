@@ -550,7 +550,7 @@ VIS_MAPPERS.append(PlanetWithSphericalGravityMapper)
 class VisualizeFilter(ObjectFilter):
 
     def __init__(self, args):
-        super().__init__("vis", args)
+        super().__init__(args)
         mappers = [cls() for cls in VIS_MAPPERS]
         bysection = defaultdict(list)
         bytype = defaultdict(list)

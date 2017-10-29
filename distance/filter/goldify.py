@@ -132,7 +132,7 @@ class GoldifyFilter(ObjectFilter):
         grp.set_defaults(mode='safe')
 
     def __init__(self, args):
-        super().__init__("goldify", args)
+        super().__init__(args)
         self.mappers = OLD_TO_GOLD_SIMPLES_MAPPERS[args.mode]
         self.debug = args.debug
         self.num_replaced = 0

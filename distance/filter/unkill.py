@@ -70,7 +70,7 @@ class UnkillFilter(ObjectFilter):
                             help="Disable simples collision.")
 
     def __init__(self, args):
-        super().__init__("unkill", args)
+        super().__init__(args)
         self.collision = args.collision
         self.debug = args.debug
         self.color = args.color

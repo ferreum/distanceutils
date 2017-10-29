@@ -50,7 +50,7 @@ class RemoveFilter(ObjectFilter):
                             help="Select by candidate number.")
 
     def __init__(self, args):
-        super().__init__("rm", args)
+        super().__init__(args)
         self.all = args.all
         self.numbers = args.numbers
         self.type_patterns = [re.compile(r) for r in args.type]

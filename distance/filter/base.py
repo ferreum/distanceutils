@@ -15,8 +15,7 @@ class ObjectFilter(object):
         parser.add_argument("--maxrecurse", type=int, default=-1,
                             help="Maximum of recursions.")
 
-    def __init__(self, name, args):
-        self.name = name
+    def __init__(self, args):
         self.maxrecurse = args.maxrecurse
 
     def filter_object(self, obj):
