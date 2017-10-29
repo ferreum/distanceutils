@@ -1,6 +1,8 @@
 """Level and level object (CustomObject) support."""
 
 
+from collections import OrderedDict
+
 from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
 from .base import (
     BaseObject, Fragment,
@@ -74,13 +76,18 @@ class LevelSettings(object):
 @set_default_attrs(LevelSettings.value_attrs)
 class LevelSettingsFragment(Fragment):
 
+    _unk_0 = b''
+    _unk_1 = b''
+    _unk_2 = b''
+    _unk_3 = b''
+
     def _read_section_data(self, dbytes, sec):
         self.version = version = sec.version
 
-        dbytes.read_bytes(8)
+        self._unk_0 = dbytes.read_bytes(8)
         self.name = dbytes.read_str()
-        dbytes.read_bytes(4)
-        self.modes = modes = {}
+        self._unk_1 = dbytes.read_bytes(4)
+        self.modes = modes = OrderedDict()
         num_modes = dbytes.read_uint4()
         for i in range(num_modes):
             mode = dbytes.read_uint4()
@@ -88,14 +95,14 @@ class LevelSettingsFragment(Fragment):
         self.music_id = dbytes.read_uint4()
         if version <= 3:
             self.skybox_name = dbytes.read_str()
-            dbytes.read_bytes(57)
+            self._unk_2 = dbytes.read_bytes(57)
         elif version == 4:
-            dbytes.read_bytes(141)
+            self._unk_2 = dbytes.read_bytes(141)
         elif version == 5:
-            dbytes.read_bytes(172)
+            self._unk_2 = dbytes.read_bytes(172)
         elif 6 <= version:
             # confirmed only for v6..v9
-            dbytes.read_bytes(176)
+            self._unk_2 = dbytes.read_bytes(176)
         self.medal_times = times = []
         self.medal_scores = scores = []
         for i in range(4):
@@ -105,6 +112,28 @@ class LevelSettingsFragment(Fragment):
             self.abilities = tuple(dbytes.read_bytes(5))
         if version >= 2:
             self.difficulty = dbytes.read_uint4()
+        self._unk_3 = dbytes.read_bytes(sec.end_pos - dbytes.tell())
+
+    def _write_section_data(self, dbytes, sec):
+        dbytes.write_bytes(self._unk_0)
+        dbytes.write_str(self.name)
+        dbytes.write_bytes(self._unk_1)
+        dbytes.write_int(4, len(self.modes))
+        for mode, enabled in self.modes.items():
+            dbytes.write_int(4, mode)
+            dbytes.write_bytes(bytes([enabled]))
+        dbytes.write_int(4, self.music_id)
+        if sec.version <= 3:
+            dbytes.write_str(self.skybox_name)
+        dbytes.write_bytes(self._unk_2)
+        for time, score in zip(self.medal_times, self.medal_scores):
+            dbytes.write_bytes(S_FLOAT.pack(time))
+            dbytes.write_int(4, score, signed=True)
+        if sec.version >= 1:
+            dbytes.write_bytes(bytes(self.abilities))
+        if sec.version >= 2:
+            dbytes.write_int(4, self.difficulty)
+        dbytes.write_bytes(self._unk_3)
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
