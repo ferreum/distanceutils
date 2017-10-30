@@ -300,7 +300,7 @@ class ObjectFragment(Fragment):
 
 class ForwardFragmentAttrs(object):
 
-    """Decorator to forward attributes of a objects to their fragments."""
+    """Decorator to forward attributes of objects to their fragments."""
 
     def __init__(self, cls, **attrs):
         self.cls = cls
