@@ -129,13 +129,21 @@ class Group(LevelObject):
                 counters.print_data(p)
 
     def recenter(self, center):
-        pos, rot, scale = self.transform or ((0, 0, 0), (), ())
-        self.transform = center, rot, scale
+        import numpy as np, quaternion
+        from distance.transform import rotpointrev
+        quaternion # suppress warning
+
+        pos, rot, scale = self.transform
+        self.transform = self.transform.set(pos=center)
+
         diff = tuple(c - o for c, o in zip(pos, center))
+        qrot = np.quaternion(rot[3], *rot[:3])
+        diff = rotpointrev(qrot, diff)
+
         for obj in self.children:
-            pos, rot, scale = obj.transform or ((0, 0, 0), (), ())
+            pos = obj.transform.pos
             pos = tuple(o + d for o, d in zip(pos, diff))
-            obj.transform = pos, rot, scale
+            obj.transform = obj.transform.set(pos=pos)
 
     def rerotate(self, rot):
         import numpy as np, quaternion
