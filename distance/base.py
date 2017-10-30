@@ -213,9 +213,17 @@ class Fragment(BytesModel):
         return self.default_section
 
     def _read_section_data(self, dbytes, sec):
+        """Read data of the given section."""
         pass
 
     def _write_section_data(self, dbytes, sec):
+
+        """Write data of the given section.
+
+        The default implementation just writes this fragment's raw_data.
+
+        """
+
         dbytes.write_bytes(self.raw_data)
 
     def _print_type(self, p):
@@ -254,16 +262,6 @@ class ObjectFragment(Fragment):
         Fragment._read(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
-
-        """Read data of the given section.
-
-        Returns `True` if the raw section data is not needed.
-
-        Returns `False` to indicate that raw data of the section
-        shall be saved (e.g. for `_write_section_data()`).
-
-        """
-
         if sec.content_size >= TRANSFORM_MIN_SIZE:
             self.real_transform = Transform.read_from(dbytes)
             if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
@@ -272,21 +270,8 @@ class ObjectFragment(Fragment):
                 self.children = self.child_prober.lazy_n_maybe(
                     dbytes, s5.count, opts=self.opts,
                     start_pos=s5.content_start)
-        return True
 
     def _write_section_data(self, dbytes, sec):
-
-        """Write data of the given section.
-
-        Returns `True` if the section has been written.
-
-        Returns `False` if the raw section data shall be copied
-        from the source that this object has been read from. This
-        is an error if raw data has not been saved for the section
-        (e.g. by returning `False` from `_read_section_data`).
-
-        """
-
         children = self.children
         has_children = self.has_children or children
         if self.real_transform or has_children:
@@ -295,7 +280,6 @@ class ObjectFragment(Fragment):
             with dbytes.write_section(MAGIC_5):
                 for obj in self.children:
                     obj.write(dbytes)
-        return True
 
 
 class ForwardFragmentAttrs(object):
