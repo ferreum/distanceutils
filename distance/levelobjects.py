@@ -141,22 +141,21 @@ class Group(LevelObject):
         import numpy as np, quaternion
         from distance.transform import rotpoint
         quaternion # suppress warning
+
+        orot = self.transform.rot
+        self.transform = self.transform.set(rot=rot)
+
         qrot = np.quaternion(rot[3], *rot[:3])
-        pos, orot, scale = self.transform or ((), (), ())
-        if not orot:
-            orot = (0, 0, 0, 1)
         qorot = np.quaternion(orot[3], *orot[:3])
-        self.transform = pos, rot, scale
-        diff = qorot * qrot.conj()
+
+        diff = qorot / qrot
         for obj in self.children:
-            pos, orot, scale = obj.transform or ((), (), ())
-            if not orot:
-                orot = (0, 0, 0, 1)
+            pos, orot, scale = obj.transform
             qorot = diff * np.quaternion(orot[3], *orot[:3])
             nrot = (*qorot.imag, qorot.real)
             if pos:
                 pos = rotpoint(diff, pos)
-            obj.transform = pos, nrot, scale
+            obj.transform = Transform(pos, nrot, scale)
 
 
 @PROBER.for_type('Teleporter', 'TeleporterVirus',
