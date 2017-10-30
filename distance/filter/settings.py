@@ -52,6 +52,8 @@ def parse_modes(arg):
         a = a.lower()
         if a == 'all':
             return get_all_modes()
+        if a == 'none':
+            return {}
         mode = MODE_NAMES[a]
         result[mode] = 1
     return result
@@ -82,8 +84,10 @@ class SettingsFilter(ObjectFilter):
         parser.add_argument("--modes", type=parse_modes,
                             help="Set game modes.")
         parser.add_argument("--modes+", type=parse_modes, dest='modes_add',
+                            default=(),
                             help="Add game modes.")
         parser.add_argument("--modes-", type=parse_modes, dest='modes_remove',
+                            default=(),
                             help="Remove game modes.")
         parser.add_argument("--abilities", type=parse_abilities,
                             help="Set enabled abilities.")
@@ -108,7 +112,7 @@ class SettingsFilter(ObjectFilter):
         name = settings.name
         if self.name is not None:
             name = self.name
-        if self.name_append is not None:
+        if self.name_append:
             name += self.name_append
         settings.name = name
         content.name = name
@@ -116,12 +120,10 @@ class SettingsFilter(ObjectFilter):
         modes = OrderedDict(settings.modes)
         if self.modes is not None:
             modes = OrderedDict(self.modes)
-        if self.modes_add is not None:
-            for mode in self.modes_add:
-                modes[mode] = 1
-        if self.modes_add is not None:
-            for mode in self.modes_remove:
-                modes[mode] = 0
+        for mode in self.modes_add:
+            modes[mode] = 1
+        for mode in self.modes_remove:
+            modes[mode] = 0
         settings.modes = modes
 
         if self.abilities is not None:
