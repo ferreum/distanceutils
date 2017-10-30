@@ -78,6 +78,10 @@ def create_simples_mappers():
                                              scale=0.01410507), #0.01410506..0.01410508
         'IrregularCapsule002': OldToGsMapper('IrregularCapsule2GS',
                                              scale=0.01410507), #0.01410506..0.01410508
+        # In-game names of IrregularDodecahedron/IrregularFlatDrop GS are swapped
+        'IrregularFlatDrop': OldToGsMapper('IrregularDodecahedronGS',
+                                           rot=mkrotx(-90),
+                                           scale=.01840399)
     }
 
     pending = {
