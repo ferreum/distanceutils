@@ -239,22 +239,18 @@ class Fragment(BytesModel):
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
-    _real_transform = None
+    _real_transform = Transform()
     has_children = False
     children = ()
 
     @property
     def real_transform(self):
-        t = self._real_transform
-        if t is None:
-            return Transform()
-        return t
+        return self._real_transform
 
     @real_transform.setter
     def real_transform(self, value):
-        if value is not None:
-            if not isinstance(value, Transform):
-                value = Transform(*value)
+        if not isinstance(value, Transform):
+            value = Transform(*value)
         self._real_transform = value
 
     def _read(self, *args, **kw):
@@ -272,10 +268,11 @@ class ObjectFragment(Fragment):
                     start_pos=s5.content_start)
 
     def _write_section_data(self, dbytes, sec):
+        transform = self.real_transform
         children = self.children
         has_children = self.has_children or children
-        if self.real_transform or has_children:
-            self.real_transform.write_to(dbytes)
+        if transform or has_children:
+            transform.write_to(dbytes)
         if has_children:
             with dbytes.write_section(MAGIC_5):
                 for obj in children:
@@ -307,7 +304,7 @@ class ForwardFragmentAttrs(object):
         return target
 
 
-@ForwardFragmentAttrs(ObjectFragment, real_transform=None, children=())
+@ForwardFragmentAttrs(ObjectFragment, real_transform=Transform(), children=())
 class BaseObject(BytesModel):
 
     """Base class of objects represented by a MAGIC_6 section."""
