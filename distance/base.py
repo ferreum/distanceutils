@@ -87,7 +87,7 @@ class Transform(tuple):
         quaternion
 
         def isclose(a, b):
-            return -0.00001 < abs(a - b) < 0.00001
+            return -0.00001 < a - b < 0.00001
 
         mpos, mrot, mscale = self
 
