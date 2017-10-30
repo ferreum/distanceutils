@@ -43,20 +43,20 @@ class ObjectFilter(object):
             res.extend(self.filter_any_object(obj, levels, **kw))
         return res
 
-    def apply_level(self, level):
+    def apply_level(self, level, **kw):
         for layer in level.layers:
-            layer.objects = self.filter_objects(layer.objects, self.maxrecurse)
+            layer.objects = self.filter_objects(layer.objects, self.maxrecurse, **kw)
 
-    def apply_group(self, grp):
+    def apply_group(self, grp, **kw):
         # not using filter_group, because we never want to remove the root
         # group object
-        grp.children = self.filter_objects(grp.children, self.maxrecurse)
+        grp.children = self.filter_objects(grp.children, self.maxrecurse, **kw)
 
-    def apply(self, content):
+    def apply(self, content, **kw):
         if isinstance(content, Level):
-            self.apply_level(content)
+            self.apply_level(content, **kw)
         elif isinstance(content, Group):
-            self.apply_group(content)
+            self.apply_group(content, **kw)
         else:
             raise TypeError(f'Unknown object type: {type(content).__name__!r}')
 
