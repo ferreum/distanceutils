@@ -1,5 +1,5 @@
 import unittest
-from math import sqrt, sin, cos, pi
+from math import sin, cos, pi
 
 from distance.bytes import DstBytes, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from distance.base import Transform, TransformError

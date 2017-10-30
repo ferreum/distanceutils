@@ -1,8 +1,6 @@
 """Base classes for filters."""
 
 
-import collections
-
 from distance.base import Transform, TransformError
 from distance.level import Level
 from distance.levelobjects import Group
