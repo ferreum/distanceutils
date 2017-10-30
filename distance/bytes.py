@@ -411,6 +411,8 @@ class Section(BytesModel):
                 argstr += f", type=0x{self.type:x}, version={self.version}"
             elif magic == MAGIC_6:
                 argstr += f", {self.type!r}"
+            elif magic == MAGIC_9:
+                argstr += f", name={self.name!r}, count={self.count}, version={self.version}"
         return f"Section({argstr})"
 
     def to_key(self, any_version=False):
@@ -812,7 +814,7 @@ class DstBytes(object):
             else:
                 sec = Section(*args, **kw)
             with sec._write_header(self):
-                yield
+                yield sec
         finally:
             self.num_subsections = old_count
 

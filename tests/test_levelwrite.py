@@ -19,6 +19,22 @@ class StraightroadTest(Base.WriteReadTest):
         self.assertEqual(6, len([o for l in level.layers for o in l.objects]))
 
 
+class ChangeLevelnameTest(Base.WriteReadTest):
+
+    filename = "tests/in/level/test-straightroad.bytes"
+
+    cmp_bytes = False
+
+    def modify_obj(self, obj):
+        obj.name = "Changed Container Name"
+        obj.settings.name = "Changed Settings Name"
+        return obj
+
+    def verify_obj(self, level):
+        self.assertEqual(level.name, "Changed Container Name")
+        self.assertEqual(level.settings.name, "Changed Settings Name")
+
+
 class TheVirusBeginsS8Test(Base.WriteReadTest):
 
     filename = "tests/in/level-not-included/v1/the virus begins.bytes"

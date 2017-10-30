@@ -64,14 +64,21 @@ class WriteReadTest(unittest.TestCase):
         used instead of read_obj before writing,
         read_obj is used otherwise
 
+    modify_obj -
+        used to make a test modification to the object.
+
     """
 
+    cmp_bytes = True
     exact = True
 
     skip_if_missing = False
 
     def read_obj_pre(self, dbytes):
         return self.read_obj(dbytes)
+
+    def modify_obj(self, obj):
+        return obj
 
     @contextmanager
     def open(self, filename):
@@ -86,6 +93,7 @@ class WriteReadTest(unittest.TestCase):
     def test_read(self):
         with self.open(self.filename) as f:
             res = self.read_obj(DstBytes(f))
+            res = self.modify_obj(res)
 
             self.verify_obj(res)
 
@@ -98,13 +106,14 @@ class WriteReadTest(unittest.TestCase):
         orig = self.read_obj_pre(dbr)
         orig_len = len(orig_bytes)
 
-        res, buf = write_read(orig, read_func=self.read_obj)
+        modified = self.modify_obj(orig)
+        res, buf = write_read(modified, read_func=self.read_obj)
 
         self.verify_obj(res)
-        self.assertEqual(orig_len, len(buf.getbuffer()))
-
-        if self.exact:
-            self.assertEqual(orig_bytes, buf.getvalue())
+        if self.cmp_bytes:
+            self.assertEqual(orig_len, len(buf.getbuffer()))
+            if self.exact:
+                self.assertEqual(orig_bytes, buf.getvalue())
 
 
 class ExtraAssertMixin(object):

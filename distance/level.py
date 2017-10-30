@@ -251,11 +251,13 @@ class Level(Fragment):
     _settings = Ellipsis
     layers = ()
     name = None
+    version = 3
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
             raise ValueError(f"Unexpected section: {sec.magic}")
         self.name = sec.name
+        self.version = sec.version
 
         num_layers = sec.count
 
@@ -265,6 +267,12 @@ class Level(Fragment):
             self.layers = LazySequence(
                 (obj for obj in self.content if isinstance(obj, Layer)),
                 num_layers)
+
+    def _write(self, dbytes):
+        num_layers = len(self.layers)
+        with dbytes.write_section(MAGIC_9, self.name,
+                                  num_layers, self.version) as sec:
+            self._write_section_data(dbytes, sec)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_9:
