@@ -79,8 +79,8 @@ class SettingsFilter(ObjectFilter):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument("--name", help="Set the level name.")
-        parser.add_argument("--name+", dest='name_append',
-                            help="Append to level name.")
+        parser.add_argument("--namefmt", default='{name}',
+                            help="Specify level name by format.")
         parser.add_argument("--modes", type=parse_modes,
                             help="Set game modes.")
         parser.add_argument("--modes+", type=parse_modes, dest='modes_add',
@@ -96,7 +96,7 @@ class SettingsFilter(ObjectFilter):
         args.maxrecurse = 0
         super().__init__(args)
         self.name = args.name
-        self.name_append = args.name_append
+        self.namefmt = args.namefmt
         self.modes = args.modes
         self.modes_add = args.modes_add
         self.modes_remove = args.modes_remove
@@ -112,8 +112,11 @@ class SettingsFilter(ObjectFilter):
         name = settings.name
         if self.name is not None:
             name = self.name
-        if self.name_append:
-            name += self.name_append
+        name = self.namefmt.format(
+            name,
+            name = name,
+            version = settings.version,
+        )
         settings.name = name
         content.name = name
 
