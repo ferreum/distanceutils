@@ -26,10 +26,25 @@ class TransformError(ValueError):
 
 class Transform(tuple):
 
+    """Position, rotation and scale (immutable).
+
+    position, rotation and scale are represented as tuples of three, four
+    and three values, respectively.
+
+    Any of these elements can also be missing (represented as empty tuple "()")
+    meaning an object-dependent default is being used. A transform in which all
+    values are present is called an "effective" transform.
+
+    There is also the "empty" transform "Transform()", used for objects which
+    contain no transform value.
+
+    """
+
     __slots__ = ()
 
     @classmethod
     def fill(cls, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        """Create a new transform, completing missing with identity values."""
         if len(pos) != 3:
             raise TypeError("Invalid pos")
         if len(rot) != 4:
@@ -41,26 +56,39 @@ class Transform(tuple):
         return cls(pos, rot, scale)
 
     def __new__(cls, *args):
+
+        """Create a new transform.
+
+        Arguments
+        ---------
+        Either no arguments (for the empty Transform) or three values
+        (position, rotation, scale).
+
+        """
+
         if len(args) not in (0, 3):
             raise TypeError('Invalid number of arguments')
         return tuple.__new__(cls, map(tuple, args))
 
-    pos = property(itemgetter(0))
-    rot = property(itemgetter(1))
-    scale = property(itemgetter(2))
+    pos = property(itemgetter(0), doc="Position of the transform (read-only)")
+    rot = property(itemgetter(1), doc="Rotation of the transform (read-only)")
+    scale = property(itemgetter(2), doc="Scale of the transform (read-only)")
 
     def effective(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
+        """Create an effective copy given the specified default values."""
         tpos, trot, tscale = self or ((), (), ())
         return type(self)(tpos or pos, trot or rot, tscale or scale)
 
     @property
     def is_effective(self):
+        """Check whether this transform is effective."""
         if not self:
             return False
         pos, rot, scale = self
         return len(pos) == 3 and len(rot) == 4 and len(scale) == 3
 
     def set(self, pos=None, rot=None, scale=None):
+        """Create a copy with the given elements replaced."""
         opos, orot, oscale = self or ((), (), ())
         if pos is not None:
             opos = pos
@@ -71,11 +99,19 @@ class Transform(tuple):
         return type(self)(opos, orot, oscale)
 
     def apply(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
-        """Calculate the resulting global Transform when applying the
-        given transformation inside this Transform's point of reference.
+        """Apply the given transformation in this reference frame.
+
+        This can be thought of as the operation used by a `Group` to calculate
+        where its children end up on the level's global frame of reference.
+
+        Only works with "effective" transforms.
 
         Raises
-            TransformError - if rotation and scale are incompatible.
+        ------
+        TransformError
+            If the given rotation is incompatible with the reference scale.
+        TypeError
+            If this or the given transform is not effective.
 
         """
 
@@ -120,6 +156,7 @@ class Transform(tuple):
 
     @classmethod
     def read_from(cls, dbytes):
+        """Read a new transform from dbytes."""
         data = dbytes.read_bytes(12)
         if data.startswith(SKIP_BYTES):
             pos = ()
@@ -144,6 +181,7 @@ class Transform(tuple):
         return cls(pos, rot, scale)
 
     def write_to(self, dbytes):
+        """Write this transform to dbytes."""
         pos, rot, scale = self or ((), (), ())
         if len(pos):
             dbytes.write_bytes(S_FLOAT3.pack(*pos))
