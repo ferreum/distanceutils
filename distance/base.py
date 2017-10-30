@@ -450,7 +450,7 @@ class BaseObject(BytesModel):
 
     def _print_data(self, p):
         if 'transform' in p.flags:
-            p(f"Transform: {format_transform(self.transform)}")
+            p(f"Transform: {format_transform(self.real_transform)}")
         if 'fragments' in p.flags and self.fragments:
             if 'allprops' in p.flags:
                 p(f"Fragments: {len(self.fragments)}")

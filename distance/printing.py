@@ -20,7 +20,10 @@ class PrintContext(object):
     @classmethod
     def for_test(clazz, file=None, flags=None):
         if flags is None:
-            flags = ('groups', 'subobjects', 'fragments')
+            class ContainsEverything:
+                def __contains__(self, obj):
+                    return True
+            flags = ContainsEverything()
         p = PrintContext(file=file, flags=flags)
         def print_exc(e):
             raise e
