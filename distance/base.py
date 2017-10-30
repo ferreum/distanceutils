@@ -276,9 +276,9 @@ class ObjectFragment(Fragment):
         has_children = self.has_children or children
         if self.real_transform or has_children:
             self.real_transform.write_to(dbytes)
-        if self.has_children or self.children:
+        if has_children:
             with dbytes.write_section(MAGIC_5):
-                for obj in self.children:
+                for obj in children:
                     obj.write(dbytes)
 
 
