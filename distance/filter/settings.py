@@ -134,7 +134,7 @@ class SettingsFilter(ObjectFilter):
         return content
 
     def print_summary(self, p):
-        if self.applied_version:
+        if self.applied_version is not None:
             p(f"Settings applied (version {self.applied_version})")
 
 
