@@ -22,18 +22,17 @@ class OldToGsMapper(ObjectMapper):
         gs = GoldenSimple(type=self.type, transform=transform)
         if old.emissive:
             gs.mat_emit =  old.color_emit
-            gs.mat_reflect = (0, 0, 0, 0)
             gs.emit_index = 42
             gs.tex_scale = (-.175, .5, 1)
             gs.tex_offset = (0, .125, 0)
         else:
             gs.mat_color = old.color_fixed_diffuse
             gs.image_index = 17
-            gs.emit_index = 17
-            gs.disable_bump = True
-            gs.disable_diffuse = True
-            gs.disable_reflect = True
         gs.mat_spec = (0, 0, 0, 0)
+        gs.mat_reflect = (0, 0, 0, 0)
+        gs.disable_reflect = True
+        gs.disable_bump = True
+        gs.disable_diffuse = True
         gs.additive_transp = old.emissive
         gs.disable_collision = not old.with_collision
         return gs,
