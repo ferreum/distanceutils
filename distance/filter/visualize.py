@@ -1,4 +1,4 @@
-"""Filter for replacing old simples with golden simples"""
+"""Filter for visualizing invisible things"""
 
 
 from collections import defaultdict
