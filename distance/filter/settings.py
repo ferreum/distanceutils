@@ -1,4 +1,4 @@
-"""Filter for replacing old simples with golden simples"""
+"""Filter for modifying level settings"""
 
 
 from collections import OrderedDict
@@ -29,6 +29,7 @@ MODE_NAMES = {
 ABILITY_NAMES = {
     'heat': Ability.INF_COOLDOWN,
     'wings': Ability.NO_WINGS,
+    'fly': Ability.NO_WINGS,
     'jump': Ability.NO_JUMP,
     'boost': Ability.NO_BOOST,
     'jets': Ability.NO_JETS,
