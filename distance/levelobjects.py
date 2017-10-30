@@ -141,8 +141,7 @@ class Group(LevelObject):
         diff = rotpointrev(qrot, diff)
 
         for obj in self.children:
-            pos = obj.transform.pos
-            pos = tuple(o + d for o, d in zip(pos, diff))
+            pos = obj.transform.pos + diff
             obj.transform = obj.transform.set(pos=pos)
 
     def rerotate(self, rot):
