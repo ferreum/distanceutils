@@ -65,7 +65,7 @@ CATCH_EXCEPTIONS = (ValueError, EOFError)
 
 class BytesModel(object):
 
-    """Base object representing a set amount of data in .bytes files."""
+    """Represents a set amount of data in .bytes files."""
 
     __slots__ = ('exception', 'container',
                  'start_pos', 'end_pos', 'sane_end_pos',
