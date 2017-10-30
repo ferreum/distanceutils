@@ -18,6 +18,8 @@ class BaseLazySequence(Sequence):
 
     """
 
+    __slots__ = ()
+
     def __getitem__(self, index):
         len_ = len(self)
         if isinstance(index, slice):
