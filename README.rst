@@ -240,7 +240,7 @@ Teleporter colliders have additional indicators for their connection status:
 
 
 filter: ``settings``
---------------------
+''''''''''''''''''''
 
 Modify level settings.
 
