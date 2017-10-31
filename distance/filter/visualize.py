@@ -3,20 +3,14 @@
 
 from collections import defaultdict
 
-from distance.levelobjects import GoldenSimple, Group
+from distance.levelobjects import GoldenSimple
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
 from distance.base import Transform
-from .base import ObjectFilter, DoNotApply
+from .base import ObjectFilter, DoNotApply, create_group
 
 
 VIS_MAPPERS = []
-
-COPY_FRAG_TYPES = (
-    levelfrags.AnimatorFragment,
-    levelfrags.EventListenerFragment,
-    levelfrags.TrackAttachmentFragment,
-)
 
 
 class SimpleCreator(object):
@@ -569,19 +563,6 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_id = {id(m): m for m in mappers}
         self.num_visualized = 0
 
-    def _create_group(self, main, objs):
-        copied_frags = []
-        for ty in COPY_FRAG_TYPES:
-            copyfrag = main.fragment_by_type(ty)
-            if copyfrag is not None:
-                copied_frags.append(copyfrag.clone())
-        pos, rot, scale = main.transform
-        group = Group(children=objs)
-        group.recenter(pos)
-        group.rerotate(rot)
-        group.fragments = list(group.fragments) + copied_frags
-        return group
-
     def _match_object(self, objpath):
         def filter_frags(sec, prober):
             return sec.to_key() in self._mappers_by_sec
@@ -616,8 +597,8 @@ class VisualizeFilter(ObjectFilter):
                 except DoNotApply:
                     pass
             if result:
-                grp = self._create_group(obj, result)
-                return obj, grp
+                grp = create_group(obj, result)
+                return (obj, *grp)
             return obj,
 
     def apply(self, content):

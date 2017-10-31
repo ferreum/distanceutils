@@ -3,6 +3,7 @@ import unittest
 
 from distance import Level
 from distance.levelobjects import OldSimple
+from distance import levelfragments as levelfrags
 from distance.filter import GoldifyFilter
 from tests.common import ExtraAssertMixin
 
@@ -31,6 +32,29 @@ class GoldifyTest(ExtraAssertMixin, unittest.TestCase):
         self.assertSeqAlmostEqual((0.78125,)*3, cube.transform[2])
         self.assertEqual(oldnum, len(l.layers[0].objects))
         self.assertEqual(1, f.num_replaced)
+
+    def test_with_animator(self):
+        import numpy as np
+
+        l = Level("tests/in/level/old cone with anim.bytes")
+        old = l.layers[0].objects[0]
+
+        f = GoldifyFilter(Namespace(maxrecurse=-1, mode="unsafe", debug=False))
+        f.apply(l)
+
+        grp, = l.layers[0].objects
+        self.assertEqual('Group', grp.type)
+        self.assertSeqAlmostEqual(old.transform.pos, grp.transform.pos)
+        rotdiff = np.quaternion(2**.5/-2, 2**.5/2, 0, 0) / grp.transform.qrot
+        self.assertAlmostEqual(0, rotdiff.angle())
+
+        gs, = grp.children
+        self.assertSeqAlmostEqual((0, 0, 14.09), gs.transform.pos)
+        rotdiff = np.quaternion(2**.5/2, 2**.5/2, 0, 0) / gs.transform.qrot
+        self.assertAlmostEqual(0, rotdiff.angle())
+
+        self.assertTrue(any(f for f in grp.fragments
+                            if isinstance(f, levelfrags.AnimatorFragment)))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -4,6 +4,29 @@
 from distance.base import Transform, TransformError
 from distance.level import Level
 from distance.levelobjects import Group
+from distance import levelfragments as levelfrags
+
+
+ANIM_FRAG_TYPES = (
+    levelfrags.AnimatorFragment,
+    levelfrags.EventListenerFragment,
+    levelfrags.TrackAttachmentFragment,
+)
+
+def create_group(main, objs, animated_only=False):
+    copied_frags = []
+    for ty in ANIM_FRAG_TYPES:
+        copyfrag = main.fragment_by_type(ty)
+        if copyfrag is not None:
+            copied_frags.append(copyfrag.clone())
+    if animated_only and not copied_frags:
+        return objs
+    pos, rot, scale = main.transform
+    group = Group(children=objs)
+    group.recenter(pos)
+    group.rerotate(rot)
+    group.fragments = list(group.fragments) + copied_frags
+    return group,
 
 
 class ObjectFilter(object):
