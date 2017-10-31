@@ -119,6 +119,11 @@ class DstBytesTest(ExtraAssertMixin, unittest.TestCase):
     def test_apply_not_effective(self):
         self.assertRaises(TypeError, Transform.fill().apply, ())
 
+    def test_qrot(self):
+        t = Transform.fill(rot=(2**.5/2, 0, 0, 2**.5/2))
+        self.assertAlmostEqual(pi/2, t.qrot.angle())
+        self.assertSeqAlmostEqual([2**.5/2, 0, 0], t.qrot.vec)
+
 
 class ReadWriteTest(ExtraAssertMixin, unittest.TestCase):
 
