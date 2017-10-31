@@ -217,7 +217,7 @@ color specify ``unkill:nocolor``.
 filter: ``vis``
 '''''''''''''''
 
-Visualize colliders by adding simples in their position.
+Visualize various things by adding simples in their position.
 
 Example::
 
@@ -237,6 +237,16 @@ Teleporter colliders have additional indicators for their connection status:
 * Pink: This teleporter leads nowhere, but at least one teleporter leads here.
 
 * Red: not connected, or leads to itself
+
+
+filter: ``settings``
+--------------------
+
+Modify level settings.
+
+For example, to enable all modes and append "(filtered)" to the name::
+
+  $ dst-filterlevel my_level.bytes result.bytes -o settings:modes=all:namefmt='{} (filtered)'
 
 
 dst-teletodot
