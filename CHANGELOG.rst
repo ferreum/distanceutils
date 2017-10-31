@@ -12,7 +12,9 @@ Changelog
 
   * Added ``unkill`` filter for replacing kill grids with harmless simples.
 
-  * Added ``vis`` filter for visualizing colliders.
+  * Added ``vis`` filter for visualizing various things.
+
+  * Added ``settings`` filter for modifying level settings.
 
   * ``dst-filterlevel`` now utilizes these filters. Its old parameters have
     been removed. The same functionality is now available with the ``rm``
