@@ -74,6 +74,14 @@ class Transform(tuple):
     rot = property(itemgetter(1), doc="Rotation of the transform (read-only)")
     scale = property(itemgetter(2), doc="Scale of the transform (read-only)")
 
+    @property
+    def qrot(self):
+        import numpy as np, quaternion
+        quaternion # dontwarn
+
+        rot = self.rot
+        return np.quaternion(rot[3], *rot[:3])
+
     def effective(self, pos=(0, 0, 0), rot=(0, 0, 0, 1), scale=(1, 1, 1)):
         """Create an effective copy given the specified default values."""
         tpos, trot, tscale = self or ((), (), ())
