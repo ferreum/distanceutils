@@ -3,8 +3,6 @@ Changelog
 
 * version 0.4.0
 
-  * Added ``GoldenSimple`` object used for all non-spline golden simples.
-
   * Added ``rm`` filter for removing matching objects.
 
   * Added ``goldify`` filter for replacing most old simples with golden
@@ -21,6 +19,10 @@ Changelog
     filter.
 
   * ``write()`` methods now also accept a file name or a file object.
+
+  * New ``GoldenSimple`` object used for all non-spline golden simples.
+
+  * New ``OldSimple`` object.
 
   * Added proper ``Transform`` class.
 
