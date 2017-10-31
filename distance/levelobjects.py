@@ -305,6 +305,12 @@ class Checkpoint(LevelObject):
     default_transform = Transform.fill(rot=(0, 1, 0, 0), scale=14)
 
 
+@PROBER.for_type('AbilityCheckpoint')
+class AbilityCheckpoint(LevelObject):
+
+    default_transform = Transform.fill()
+
+
 @PROBER.for_type('NitronicCheckpoint')
 class NitronicCheckpoint(LevelObject):
 

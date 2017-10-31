@@ -479,6 +479,11 @@ class CheckpointMapper(VisualizeMapper):
             **_opts,
             default_size = (5, 6, .5),
         ),
+        'AbilityCheckpoint': BoxVisualizer(
+            **_opts,
+            default_center = (-2, 0, 3.6),
+            default_size = (90, 90, .5),
+        ),
         'NitronicCheckpoint': BoxVisualizer(
             **_opts,
             default_center = (0, 5.81, 0),
