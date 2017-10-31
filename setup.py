@@ -22,7 +22,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     keywords='distance game data utilities',
-    packages=['distance', 'distance_scripts'],
+    packages=['distance', 'distance.filter', 'distance_scripts'],
     entry_points={
         'console_scripts': [
             'dst-bytes = distance_scripts.bytes:main',
