@@ -28,6 +28,17 @@ class NoDefaultTransformError(TypeError):
     pass
 
 
+def _isclose(a, b):
+    return -0.00001 < a - b < 0.00001
+
+
+def _seq_isclose(sa, sb):
+    for a, b in zip(sa, sb):
+        if not _isclose(a, b):
+            return False
+    return True
+
+
 class Transform(tuple):
 
     """Position, rotation and scale (immutable).
@@ -134,9 +145,6 @@ class Transform(tuple):
         from .transform import rotpoint
         quaternion
 
-        def isclose(a, b):
-            return -0.00001 < a - b < 0.00001
-
         mpos, mrot, mscale = self
 
         qmrot = np.quaternion(mrot[3], *mrot[:3])
@@ -149,11 +157,11 @@ class Transform(tuple):
         scaleaxes = [None, None, None]
         for i, row in enumerate(rotmat):
             for j, v in enumerate(row):
-                if isclose(1, abs(v)):
+                if _isclose(1, abs(v)):
                     scaleaxes[i] = j
-                elif not isclose(0, v):
+                elif not _isclose(0, v):
                     si, sj = mscale[i], mscale[j]
-                    if not isclose(si, sj):
+                    if not _isclose(si, sj):
                         raise TransformError('Incompatible rotation and scale')
                     scaleaxes[i] = j
 
@@ -165,6 +173,24 @@ class Transform(tuple):
         rscale = tuple(rot_amscale * ascale)
 
         return type(self)(rpos, rrot, rscale)
+
+    def strip(self, pos=None, rot=None, scale=None):
+        import numpy as np, quaternion
+        quaternion
+
+        mpos, mrot, mscale = self or ((), (), ())
+
+        if mpos and pos and _seq_isclose(mpos, pos):
+            mpos = ()
+        if mrot and rot:
+            qmrot = np.quaternion(mrot[3], *mrot[:3])
+            qmrot /= np.quaternion(rot[3], *rot[:3])
+            if _isclose(qmrot.angle(), 0):
+                mrot = ()
+        if mscale and scale and _seq_isclose(mscale, scale):
+            mscale = ()
+
+        return type(self)(mpos, mrot, mscale)
 
     @classmethod
     def read_from(cls, dbytes):
@@ -289,19 +315,9 @@ class Fragment(BytesModel):
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
-    _real_transform = Transform()
+    real_transform = Transform()
     has_children = False
     children = ()
-
-    @property
-    def real_transform(self):
-        return self._real_transform
-
-    @real_transform.setter
-    def real_transform(self, value):
-        if not isinstance(value, Transform):
-            value = Transform(*value)
-        self._real_transform = value
 
     def _read(self, *args, **kw):
         self.child_prober = kw.get('child_prober', EMPTY_PROBER)
@@ -384,7 +400,10 @@ class BaseObject(BytesModel):
 
     @transform.setter
     def transform(self, value):
-        # TODO clear out default values
+        if value:
+            default = self.default_transform
+            if default:
+                value = value.strip(*default)
         self.real_transform = value
 
     def fragment_by_type(self, typ):

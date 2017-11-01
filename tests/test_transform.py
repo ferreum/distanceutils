@@ -124,6 +124,20 @@ class DstBytesTest(ExtraAssertMixin, unittest.TestCase):
         self.assertAlmostEqual(pi/2, t.qrot.angle())
         self.assertSeqAlmostEqual([2**.5/2, 0, 0], t.qrot.vec)
 
+    def test_strip(self):
+        t = Transform.fill((5, 6, 7), (2**.5/2, 0, 0, 2**.5/2), (5, 5, 5))
+
+        res = t.strip((5, 6, 7), (2**.5/2, 0, 0, 2**.5/2), (5, 5, 5))
+
+        self.assertEqual(Transform((), (), ()), res)
+
+    def test_strip_keep(self):
+        t = Transform.fill((0, 0, 0.01), (1, 0, 0, 0), (1, 1, 1.01))
+
+        res = t.strip((0, 0, 0), (0.9998766, 0.01570, 0, 0), (1, 1, 1))
+
+        self.assertSeqAlmostEqual(((0, 0, 0.01), (1, 0, 0, 0), (1, 1, 1.01)), res)
+
 
 class ReadWriteTest(ExtraAssertMixin, unittest.TestCase):
 
