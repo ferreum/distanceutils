@@ -111,7 +111,10 @@ class BoxVisualizer(Visualizer):
         super().__init__(**kw)
         self.creator = HoloSimpleCreator('CubeGS', color)
 
-    def transform(self, main, coll):
+    def transform(self, main, obj):
+        coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
+        if coll is None:
+            raise DoNotApply
         coll_center = coll.trigger_center or self.default_center
         size = coll.trigger_size or self.default_size
         return self._transform_collider(
@@ -119,8 +122,8 @@ class BoxVisualizer(Visualizer):
             coll_center=coll_center,
             size=size)
 
-    def visualize(self, main, coll):
-        transform = self.transform(main, coll)
+    def visualize(self, main, obj):
+        transform = self.transform(main, obj)
         gs = self.creator.create(transform)
         return gs,
 
@@ -134,7 +137,10 @@ class SphereVisualizer(Visualizer):
         super().__init__(**kw)
         self.creator = HoloSimpleCreator('SphereHDGS', color)
 
-    def transform(self, main, coll):
+    def transform(self, main, obj):
+        coll = obj.fragment_by_type(levelfrags.SphereColliderFragment)
+        if coll is None:
+            raise DoNotApply
         coll_center = coll.trigger_center or self.default_center
         radius = coll.trigger_radius or self.default_radius
         return self._transform_collider(
@@ -142,8 +148,8 @@ class SphereVisualizer(Visualizer):
             coll_center=coll_center,
             size=(radius, radius, radius))
 
-    def visualize(self, main, coll):
-        transform = self.transform(main, coll)
+    def visualize(self, main, obj):
+        transform = self.transform(main, obj)
         gs = self.creator.create(transform)
         return gs,
 
@@ -181,10 +187,7 @@ class GravityTriggerMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is None:
-            raise DoNotApply
-        return self.vis.visualize(main, coll)
+        return self.vis.visualize(main, main)
 
 VIS_MAPPERS.append(GravityTriggerMapper)
 
@@ -259,14 +262,11 @@ class TeleporterMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         tele = matches[0][0][-1]
-        coll = tele.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is None:
-            if main.type != 'TeleporterExit':
-                raise DoNotApply
+        if main.type == 'TeleporterExit':
             transform = main.transform.apply(
                 pos=self.vis.offset, scale=(.25, .25, .25))
         else:
-            transform = self.vis.transform(main, coll)
+            transform = self.vis.transform(main, tele)
 
         entrances = self._entrances.get(main.__link_id, ())
         can_exit = any(1 for e in entrances if self._real_dest(e) is main)
@@ -314,10 +314,7 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is None:
-            raise DoNotApply
-        return self.vis.visualize(main, coll)
+        return self.vis.visualize(main, main)
 
 VIS_MAPPERS.append(VirusSpiritSpawnerMapper)
 
@@ -334,13 +331,10 @@ class EventTriggerMapper(VisualizeMapper):
     vis_sphere = SphereVisualizer(color, scale_factor=1/32)
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is not None:
-            return self.vis_box.visualize(main, coll)
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is not None:
-            return self.vis_sphere.visualize(main, coll)
-        raise DoNotApply
+        try:
+            return self.vis_box.visualize(main, main)
+        except DoNotApply:
+            return self.vis_sphere.visualize(main, main)
 
 VIS_MAPPERS.append(EventTriggerMapper)
 
@@ -357,10 +351,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is None:
-            raise DoNotApply
-        return self.vis.visualize(main, coll)
+        return self.vis.visualize(main, main)
 
 VIS_MAPPERS.append(EnableAbilitiesTriggerMapper)
 
@@ -377,10 +368,7 @@ class ForceZoneMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is None:
-            raise DoNotApply
-        return self.vis.visualize(main, coll)
+        return self.vis.visualize(main, main)
 
 VIS_MAPPERS.append(ForceZoneMapper)
 
@@ -403,13 +391,10 @@ class WingCorruptionZoneMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is not None:
-            return self.vis_box.visualize(main, coll)
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is not None:
-            return self.vis_sphere.visualize(main, coll)
-        raise DoNotApply
+        try:
+            return self.vis_box.visualize(main, main)
+        except DoNotApply:
+            return self.vis_sphere.visualize(main, main)
 
 VIS_MAPPERS.append(WingCorruptionZoneMapper)
 
@@ -450,10 +435,7 @@ class VirusMazeMapper(VisualizeMapper):
         vis = self.visualizers.get(main.type, None)
         if vis is None:
             raise DoNotApply
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is not None:
-            return vis.visualize(main, coll)
-        raise DoNotApply
+        return vis.visualize(main, main)
 
 VIS_MAPPERS.append(VirusMazeMapper)
 
@@ -493,11 +475,8 @@ class CheckpointMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         obj = matches[0][0][-1]
-        coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is None:
-            raise DoNotApply
         vis = self.vis_for_type.get(main.type, self.vis)
-        return vis.visualize(main, coll)
+        return vis.visualize(main, obj)
 
 
 VIS_MAPPERS.append(CheckpointMapper)
@@ -516,10 +495,7 @@ class CooldownTriggerMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         obj = matches[0][0][-1]
-        coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
-        if coll is None:
-            raise DoNotApply
-        return self.vis.visualize(main, coll)
+        return self.vis.visualize(main, obj)
 
 VIS_MAPPERS.append(CooldownTriggerMapper)
 
@@ -538,10 +514,7 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
     )
 
     def apply(self, main, matches):
-        coll = main.fragment_by_type(levelfrags.SphereColliderFragment)
-        if coll is None:
-            raise DoNotApply
-        return self.vis.visualize(main, coll)
+        return self.vis.visualize(main, main)
 
 VIS_MAPPERS.append(PlanetWithSphericalGravityMapper)
 
