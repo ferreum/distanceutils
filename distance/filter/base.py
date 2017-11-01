@@ -13,15 +13,15 @@ ANIM_FRAG_TYPES = (
     levelfrags.TrackAttachmentFragment,
 )
 
-def create_group(main, objs, animated_only=False):
+def create_replacement_group(orig, objs, animated_only=False):
     copied_frags = []
     for ty in ANIM_FRAG_TYPES:
-        copyfrag = main.fragment_by_type(ty)
+        copyfrag = orig.fragment_by_type(ty)
         if copyfrag is not None:
             copied_frags.append(copyfrag.clone())
     if animated_only and not copied_frags:
         return objs
-    pos, rot, scale = main.transform
+    pos, rot, scale = orig.transform
     group = Group(children=objs)
     group.recenter(pos)
     group.rerotate(rot)

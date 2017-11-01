@@ -7,7 +7,7 @@ from distance.levelobjects import GoldenSimple
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
 from distance.base import Transform
-from .base import ObjectFilter, DoNotApply, create_group
+from .base import ObjectFilter, DoNotApply, create_replacement_group
 
 
 VIS_MAPPERS = []
@@ -602,7 +602,7 @@ class VisualizeFilter(ObjectFilter):
                 except DoNotApply:
                     pass
             if result:
-                grp = create_group(obj, result)
+                grp = create_replacement_group(obj, result)
                 return (obj, *grp)
             return obj,
 

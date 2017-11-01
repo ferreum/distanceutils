@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from distance.base import Transform
 from distance.levelobjects import GoldenSimple, OldSimple
-from .base import ObjectFilter, ObjectMapper, DoNotApply, create_group
+from .base import ObjectFilter, ObjectMapper, DoNotApply, create_replacement_group
 
 
 class OldToGsMapper(ObjectMapper):
@@ -35,7 +35,7 @@ class OldToGsMapper(ObjectMapper):
         gs.disable_diffuse = True
         gs.additive_transp = old.emissive
         gs.disable_collision = not old.with_collision
-        return create_group(old, [gs], animated_only=True)
+        return create_replacement_group(old, [gs], animated_only=True)
 
 
 def create_simples_mappers():
