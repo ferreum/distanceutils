@@ -24,6 +24,10 @@ class TransformError(ValueError):
     pass
 
 
+class NoDefaultTransformError(TypeError):
+    pass
+
+
 class Transform(tuple):
 
     """Position, rotation and scale (immutable).
@@ -374,7 +378,8 @@ class BaseObject(BytesModel):
         t = self.real_transform
         defs = self.default_transform
         if defs is None:
-            raise TypeError(f"default transform unknown for {self.type!r}")
+            raise NoDefaultTransformError(
+                f"default transform unknown for {self.type!r}")
         return t.effective(*defs)
 
     @transform.setter

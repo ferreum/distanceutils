@@ -6,13 +6,14 @@ from collections import defaultdict
 from distance.levelobjects import GoldenSimple
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
-from distance.base import Transform
+from distance.base import Transform, NoDefaultTransformError
 from .base import ObjectFilter, DoNotApply, create_replacement_group
 
 SKIP_REASON_LABELS = {
     'no_collider': "No collider found",
     'no_visualizer': "No visualizer for type",
     'disabled': "Trigger disabled",
+    'no_default_transform': "Unknown default transform",
 }
 
 VIS_MAPPERS = []
@@ -93,7 +94,10 @@ class Visualizer(object):
         quaternion # suppress warning
         from distance.transform import rotpoint
 
-        opos, orot, oscale = main.transform
+        try:
+            opos, orot, oscale = main.transform
+        except NoDefaultTransformError:
+            raise DoNotApply('no_default_transform')
 
         center = (np.array(coll_center) * self.center_factor + self.offset) * oscale
         qrot = np.quaternion(orot[3], *orot[:3])
