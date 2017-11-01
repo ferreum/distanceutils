@@ -9,6 +9,11 @@ from distance.bytes import Section, MAGIC_2
 from distance.base import Transform
 from .base import ObjectFilter, DoNotApply, create_replacement_group
 
+SKIP_REASON_LABELS = {
+    'no_collider': "No collider found",
+    'no_visualizer': "No visualizer for type",
+    'disabled': "Trigger disabled",
+}
 
 VIS_MAPPERS = []
 
@@ -114,7 +119,7 @@ class BoxVisualizer(Visualizer):
     def transform(self, main, obj):
         coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
-            raise DoNotApply
+            raise DoNotApply('no_collider')
         coll_center = coll.trigger_center or self.default_center
         size = coll.trigger_size or self.default_size
         return self._transform_collider(
@@ -140,7 +145,7 @@ class SphereVisualizer(Visualizer):
     def transform(self, main, obj):
         coll = obj.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
-            raise DoNotApply
+            raise DoNotApply('no_collider')
         coll_center = coll.trigger_center or self.default_center
         radius = coll.trigger_radius or self.default_radius
         return self._transform_collider(
@@ -431,10 +436,10 @@ class VirusMazeMapper(VisualizeMapper):
     def apply(self, main, matches):
         interp_frag = main.fragment_by_type(levelfrags.BaseInterpolateToPositiononTrigger)
         if interp_frag and not interp_frag.actually_interpolate:
-            raise DoNotApply
+            raise DoNotApply('disabled')
         vis = self.visualizers.get(main.type, None)
         if vis is None:
-            raise DoNotApply
+            raise DoNotApply('no_visualizer')
         return vis.visualize(main, main)
 
 VIS_MAPPERS.append(VirusMazeMapper)
@@ -521,8 +526,15 @@ VIS_MAPPERS.append(PlanetWithSphericalGravityMapper)
 
 class VisualizeFilter(ObjectFilter):
 
+    @classmethod
+    def add_args(cls, parser):
+        super().add_args(parser)
+        parser.add_argument('--verbose', action='store_true',
+                            help="Print list of skipped objects.")
+
     def __init__(self, args):
         super().__init__(args)
+        self.verbose = args.verbose
         mappers = [cls() for cls in VIS_MAPPERS]
         bysection = defaultdict(list)
         bytype = defaultdict(list)
@@ -540,6 +552,8 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_subtype = dict(bysubtype)
         self._mappers_by_id = {id(m): m for m in mappers}
         self.num_visualized = 0
+        self._num_skipped = 0
+        self._skipped_by_reason = defaultdict(list)
 
     def _match_object(self, objpath):
         def filter_frags(sec, prober):
@@ -572,8 +586,9 @@ class VisualizeFilter(ObjectFilter):
                 try:
                     result.extend(self._mappers_by_id[id_].apply(obj, matches))
                     self.num_visualized += 1
-                except DoNotApply:
-                    pass
+                except DoNotApply as e:
+                    self._num_skipped += 1
+                    self._skipped_by_reason[e.reason].append((obj, e))
             if result:
                 grp = create_replacement_group(obj, result)
                 return (obj, *grp)
@@ -587,8 +602,26 @@ class VisualizeFilter(ObjectFilter):
         self.passnum = 1
         return super().apply(content)
 
+    def _print_objects(self, p, objs):
+        with p.tree_children():
+            for obj, exc in objs:
+                p.tree_next_child()
+                p(f"Object: {obj.type!r} at 0x{obj.start_pos:08x}")
+
+    def _print_skipped(self, p):
+        p(f"Skipped objects: {self._num_skipped}")
+        with p.tree_children():
+            for reason, objs in sorted(self._skipped_by_reason.items()):
+                p.tree_next_child()
+                label = SKIP_REASON_LABELS.get(reason, reason)
+                p(f"{label}: {len(objs)}")
+                if self.verbose:
+                    self._print_objects(p, objs)
+
     def print_summary(self, p):
         p(f"Visualized objects: {self.num_visualized}")
+        if self._num_skipped:
+            self._print_skipped(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

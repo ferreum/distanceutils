@@ -6,7 +6,7 @@ from distance.filter import VisualizeFilter
 from tests.common import ExtraAssertMixin
 
 
-def mkargs(maxrecurse=-1):
+def mkargs(maxrecurse=-1, verbose=False):
     return Namespace(**locals())
 
 
@@ -24,7 +24,7 @@ def obj_by_type(objs, type):
 class VisualizeTest(ExtraAssertMixin, unittest.TestCase):
 
     def test_tele_exit(self):
-        l = do_apply("level/test single tele")
+        l = do_apply("level/test single tele", verbose=True)
 
         objs = l.layers[0].objects
         self.assertEqual(2, len(objs))
