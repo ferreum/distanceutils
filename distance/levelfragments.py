@@ -772,6 +772,8 @@ class AnimatorFragment(Fragment):
 
     have_content = False
 
+    default_section = Section(MAGIC_2, 0x9a, 7)
+
     def _init_defaults(self):
         super()._init_defaults()
         self.have_content = True
