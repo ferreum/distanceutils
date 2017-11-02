@@ -342,7 +342,9 @@ class EventTriggerMapper(VisualizeMapper):
     def apply(self, main, matches):
         try:
             return self.vis_box.visualize(main, main)
-        except DoNotApply:
+        except DoNotApply as e:
+            if e.reason != 'no_collider':
+                raise
             return self.vis_sphere.visualize(main, main)
 
 VIS_MAPPERS.append(EventTriggerMapper)
@@ -403,6 +405,8 @@ class WingCorruptionZoneMapper(VisualizeMapper):
         try:
             return self.vis_box.visualize(main, main)
         except DoNotApply:
+            if e.reason != 'no_collider':
+                raise
             return self.vis_sphere.visualize(main, main)
 
 VIS_MAPPERS.append(WingCorruptionZoneMapper)
