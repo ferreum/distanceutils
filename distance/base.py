@@ -253,7 +253,7 @@ class Fragment(BytesModel):
         self._read_section_data(dbytes, sec)
 
     def _write(self, dbytes):
-        sec = self.container
+        sec = getattr(self, 'container', None)
         if sec is None:
             self.container = sec = self._init_section()
         with dbytes.write_section(sec):
