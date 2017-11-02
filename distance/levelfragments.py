@@ -791,6 +791,33 @@ class InterpolateToPositionOnTriggerFragment(
                 self.local_movement = dbytes.read_byte()
 
 
+# TODO MAGIC_2 type 0x17 ver 0 NamedPropertiesFragment
+@PROBER.fragment(MAGIC_2, 0x17, 1)
+class RigidbodyAxisRotationLogicFragment(Fragment):
+
+    angular_speed = None
+    rotation_axis = None
+    limit_rotation = None
+    rotation_bounds = None
+    starting_angle_offset = None
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.content_size:
+            self.angular_speed = dbytes.read_struct(S_FLOAT)[0]
+            self.rotation_axis = dbytes.read_uint4()
+            self.limit_rotation = dbytes.read_byte()
+            self.rotation_bounds = dbytes.read_struct(S_FLOAT)[0]
+            self.starting_angle_offset = dbytes.read_struct(S_FLOAT)[0]
+
+    def _print_data(self, p):
+        if 'allprops' in p.flags:
+            p(f"Angular speed: {self.angular_speed}")
+            p(f"Rotation axis: {self.rotation_axis}")
+            p(f"Limit rotation: {self.limit_rotation}")
+            p(f"Rotation bounds: {self.rotation_bounds}")
+            p(f"Starting angle offset: {self.starting_angle_offset}")
+
+
 PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
     (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
