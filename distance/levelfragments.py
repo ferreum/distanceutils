@@ -730,9 +730,122 @@ class InfoDisplayLogicFragment(BaseInfoDisplayLogic, Fragment):
                 texts.append(dbytes.read_str())
 
 
+_animator_defaults = dict(
+    motion_mode = 2, # hinge
+    do_scale = 0,
+    scale_exponents = (0, 1, 0),
+    do_rotate = 1,
+    rotate_axis = (0, 1, 0),
+    rotate_global = 0,
+    rotate_magnitude = 90,
+    centerpoint = (0, 0, 0),
+    translate_type = 0, # none
+    translate_vector = (0, 10, 0),
+    follow_track_distance = 25,
+    projectile_gravity = (0, -25, 0),
+    delay = 1,
+    duration = 1,
+    time_offset = 0,
+    do_loop = 1,
+    extrapolation_type = 1, # pingpong
+    curve_type = 3, # ease in out
+    editor_anim_time = 0,
+    use_custom_pong_values = 0,
+    pong_delay = 1,
+    pong_duration = 1,
+    pong_curve_type = 2, # ease in out
+    anim_physics = 1,
+    always_animate = 0,
+    trigger_default_action = 1, # play
+    trigger_on_action = 1, # play
+    trigger_wait_for_anim_finish = 0,
+    trigger_on_reset = 0,
+    trigger_off_action = 2, # play reverse
+    trigger_off_wait_for_anim_finish = 0,
+    trigger_off_reset = 0,
+)
+
+
 @PROBER.fragment(MAGIC_2, 0x9a, 7)
+@set_default_attrs(_animator_defaults)
 class AnimatorFragment(Fragment):
-    pass
+
+    have_content = False
+
+    def _init_defaults(self):
+        super()._init_defaults()
+        self.have_content = True
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.content_size:
+            self.have_content = True
+            self.motion_mode = dbytes.read_uint4()
+            self.do_scale = dbytes.read_byte()
+            self.scale_exponents = dbytes.read_struct(S_FLOAT3)
+            self.do_rotate = dbytes.read_byte()
+            self.rotate_axis = dbytes.read_struct(S_FLOAT3)
+            self.rotate_global = dbytes.read_byte()
+            self.rotate_magnitude = dbytes.read_struct(S_FLOAT)[0]
+            self.centerpoint = dbytes.read_struct(S_FLOAT3)
+            self.translate_type = dbytes.read_uint4()
+            self.translate_vector = dbytes.read_struct(S_FLOAT3)
+            self.follow_track_distance = dbytes.read_struct(S_FLOAT)[0]
+            self.projectile_gravity = dbytes.read_struct(S_FLOAT3)
+            self.delay = dbytes.read_struct(S_FLOAT)[0]
+            self.duration = dbytes.read_struct(S_FLOAT)[0]
+            self.time_offset = dbytes.read_struct(S_FLOAT)[0]
+            self.do_loop = dbytes.read_byte()
+            self.extrapolation_type = dbytes.read_uint4()
+            self.curve_type = dbytes.read_uint4()
+            self.editor_anim_time = dbytes.read_struct(S_FLOAT)[0]
+            self.use_custom_pong_values = dbytes.read_byte()
+            self.pong_delay = dbytes.read_struct(S_FLOAT)[0]
+            self.pong_duration = dbytes.read_struct(S_FLOAT)[0]
+            self.pong_curve_type = dbytes.read_uint4()
+            self.anim_physics = dbytes.read_byte()
+            self.always_animate = dbytes.read_byte()
+            self.trigger_default_action = dbytes.read_uint4()
+            self.trigger_on_action = dbytes.read_uint4()
+            self.trigger_wait_for_anim_finish = dbytes.read_byte()
+            self.trigger_on_reset = dbytes.read_byte()
+            self.trigger_off_action = dbytes.read_uint4()
+            self.trigger_off_wait_for_anim_finish = dbytes.read_byte()
+            self.trigger_off_reset = dbytes.read_byte()
+
+    def _write_section_data(self, dbytes, sec):
+        if self.have_content:
+            dbytes.write_int(4, self.motion_mode)
+            dbytes.write_int(1, self.do_scale)
+            dbytes.write_bytes(S_FLOAT3.pack(*self.scale_exponents))
+            dbytes.write_int(1, self.do_rotate)
+            dbytes.write_bytes(S_FLOAT3.pack(*self.rotate_axis))
+            dbytes.write_int(1, self.rotate_global)
+            dbytes.write_bytes(S_FLOAT.pack(self.rotate_magnitude))
+            dbytes.write_bytes(S_FLOAT3.pack(*self.centerpoint))
+            dbytes.write_int(4, self.translate_type)
+            dbytes.write_bytes(S_FLOAT3.pack(*self.translate_vector))
+            dbytes.write_bytes(S_FLOAT.pack(self.follow_track_distance))
+            dbytes.write_bytes(S_FLOAT3.pack(*self.projectile_gravity))
+            dbytes.write_bytes(S_FLOAT.pack(self.delay))
+            dbytes.write_bytes(S_FLOAT.pack(self.duration))
+            dbytes.write_bytes(S_FLOAT.pack(self.time_offset))
+            dbytes.write_int(1, self.do_loop)
+            dbytes.write_int(4, self.extrapolation_type)
+            dbytes.write_int(4, self.curve_type)
+            dbytes.write_bytes(S_FLOAT.pack(self.editor_anim_time))
+            dbytes.write_int(1, self.use_custom_pong_values)
+            dbytes.write_bytes(S_FLOAT.pack(self.pong_delay))
+            dbytes.write_bytes(S_FLOAT.pack(self.pong_duration))
+            dbytes.write_int(4, self.pong_curve_type)
+            dbytes.write_int(1, self.anim_physics)
+            dbytes.write_int(1, self.always_animate)
+            dbytes.write_int(4, self.trigger_default_action)
+            dbytes.write_int(4, self.trigger_on_action)
+            dbytes.write_int(1, self.trigger_wait_for_anim_finish)
+            dbytes.write_int(1, self.trigger_on_reset)
+            dbytes.write_int(4, self.trigger_off_action)
+            dbytes.write_int(1, self.trigger_off_wait_for_anim_finish)
+            dbytes.write_int(1, self.trigger_off_reset)
 
 
 @PROBER.fragment(MAGIC_2, 0x8a, 0)
