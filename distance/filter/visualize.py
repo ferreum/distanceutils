@@ -2,8 +2,9 @@
 
 
 from collections import defaultdict
+import math
 
-from distance.levelobjects import GoldenSimple
+from distance.levelobjects import GoldenSimple, Group
 from distance import levelfragments as levelfrags
 from distance.bytes import Section, MAGIC_2
 from distance.base import Transform, NoDefaultTransformError
@@ -508,7 +509,49 @@ class CooldownTriggerMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         obj = matches[0][0][-1]
-        return self.vis.visualize(main, obj)
+        res = self.vis.visualize(main, obj)
+        rotLogic = main.fragment_by_type(levelfrags.RigidbodyAxisRotationLogicFragment)
+        if rotLogic is not None:
+            grp = Group(children=res)
+            grp.recenter(main.transform.pos)
+            grp.rerotate(main.transform.rot)
+            anim = levelfrags.AnimatorFragment()
+            spd = rotLogic.angular_speed or 30
+            axis = rotLogic.rotation_axis or 2
+            anim.motion_mode = 5 # advanced
+            if rotLogic.limit_rotation:
+                bounds = rotLogic.rotation_bounds
+                bounds_rad = math.radians(bounds)
+
+                if spd < 0:
+                    bounds = -bounds
+                    bounds_rad = -bounds_rad
+
+                rot = [0, 0, 0, -math.cos(bounds_rad / 2)]
+                rot[axis % 3] = math.sin(bounds_rad / 2)
+                grp.transform = grp.transform.apply(rot=rot)
+
+                # the game calculates the duration without bounds
+                anim.duration = 180 / abs(spd)
+                anim.time_offset = 90 / abs(spd)
+                anim.extrapolation_type = 1 # pingpong
+                anim.rotate_magnitude = bounds * 2
+                anim.curve_type = 6 # sin wave
+            else:
+                start_offset = rotLogic.starting_angle_offset
+                anim.rotate_magnitude = 360 if spd > 0 else -360
+                anim.time_offset = 0
+                anim.duration = 360 / abs(spd)
+                anim.extrapolation_type = 2 # extend
+                anim.curve_type = 0 # linear
+            anim.do_loop = 1
+            anim.delay = 0
+            axis_vec = [0, 0, 0]
+            axis_vec[axis % 3] = 1
+            anim.rotate_axis = axis_vec
+            grp.fragments = list(grp.fragments) + [anim]
+            res = (grp,)
+        return res
 
 VIS_MAPPERS.append(CooldownTriggerMapper)
 
