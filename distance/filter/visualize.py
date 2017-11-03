@@ -538,9 +538,9 @@ class CooldownTriggerMapper(VisualizeMapper):
                 anim.rotate_magnitude = bounds * 2
                 anim.curve_type = 6 # sin wave
             else:
-                start_offset = rotLogic.starting_angle_offset
+                start_offset = rotLogic.starting_angle_offset or 0
+                anim.time_offset = start_offset / spd
                 anim.rotate_magnitude = 360 if spd > 0 else -360
-                anim.time_offset = 0
                 anim.duration = 360 / abs(spd)
                 anim.extrapolation_type = 2 # extend
                 anim.curve_type = 0 # linear
