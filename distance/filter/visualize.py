@@ -515,10 +515,17 @@ class CooldownTriggerMapper(VisualizeMapper):
             grp = Group(children=res)
             grp.recenter(main.transform.pos)
             grp.rerotate(main.transform.rot)
+
             anim = levelfrags.AnimatorFragment()
-            spd = rotLogic.angular_speed or 30
-            axis = rotLogic.rotation_axis or 2
             anim.motion_mode = 5 # advanced
+
+            spd = rotLogic.angular_speed
+            if spd is None:
+                spd = 30
+            axis = rotLogic.rotation_axis
+            if axis is None:
+                axis = 2
+
             if rotLogic.limit_rotation:
                 bounds = rotLogic.rotation_bounds
                 bounds_rad = math.radians(bounds)
