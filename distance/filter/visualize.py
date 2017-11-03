@@ -511,7 +511,7 @@ class CooldownTriggerMapper(VisualizeMapper):
         obj = matches[0][0][-1]
         res = self.vis.visualize(main, obj)
         rotLogic = main.fragment_by_type(levelfrags.RigidbodyAxisRotationLogicFragment)
-        if rotLogic is not None:
+        if rotLogic is not None and rotLogic.angular_speed != 0:
             grp = Group(children=res)
             grp.recenter(main.transform.pos)
             grp.rerotate(main.transform.rot)
