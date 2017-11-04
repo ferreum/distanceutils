@@ -164,6 +164,17 @@ class Group(LevelObject):
                 pos = rotpoint(diff, pos)
             obj.transform = Transform(pos, nrot, scale)
 
+    def rescale(self, scale):
+        import numpy as np
+
+        old = self.transform
+        self.transform = old.set(scale=scale)
+
+        inverse = np.array(old.scale) / scale
+        invtr = Transform.fill(scale=inverse)
+        for obj in self.children:
+            obj.transform = invtr.apply(*obj.transform)
+
 
 @PROBER.for_type('Teleporter', 'TeleporterVirus',
                  'TeleporterAndAmbientChangeTrigger', 'TeleporterExit')
