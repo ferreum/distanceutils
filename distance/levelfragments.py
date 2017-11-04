@@ -778,6 +778,11 @@ class AnimatorFragment(Fragment):
         super()._init_defaults()
         self.have_content = True
 
+    def _clone_data(self, new):
+        new.have_content = self.have_content
+        for name in _animator_defaults:
+            setattr(new, name, getattr(self, name))
+
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
             self.have_content = True
