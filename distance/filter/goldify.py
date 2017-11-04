@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from distance.base import Transform
 from distance.levelobjects import GoldenSimple, OldSimple
-from .base import ObjectFilter, ObjectMapper, DoNotApply, create_replacement_group
+from .base import ObjectFilter, ObjectMapper, DoNotApply, create_replacement_group, TransformError
 
 
 class OldToGsMapper(ObjectMapper):
@@ -169,7 +169,14 @@ class GoldifyFilter(ObjectFilter):
         return obj,
 
     def filter_group(self, grp, level, global_transform=Transform.fill(), **kw):
-        global_transform = global_transform.apply(*grp.transform)
+        try:
+            global_transform = global_transform.apply(*grp.transform)
+        except TransformError:
+            # Existing group has incompatible rotation - contained objects have
+            # different shape in game than how they look in the editor.
+            # Start over with transform calculation, so we can replace objects
+            # that are compatible from this point on.
+            global_transform = grp.transform
         return super().filter_group(grp, level,
                                     global_transform=global_transform, **kw)
 
