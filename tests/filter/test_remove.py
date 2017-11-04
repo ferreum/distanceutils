@@ -5,8 +5,8 @@ from distance import Level
 from distance.filter import RemoveFilter
 
 
-def mkargs(maxrecurse=-1, type=[], all=False, numbers=[], section=[]):
-    return Namespace(maxrecurse=maxrecurse, type=type, all=all, numbers=numbers, section=section)
+def mkargs(maxrecurse=-1, type=[], all=False, numbers=[], section=[], invert=False):
+    return Namespace(**locals())
 
 
 class RemoveTest(unittest.TestCase):
@@ -44,6 +44,15 @@ class RemoveTest(unittest.TestCase):
         self.assertEqual(['DirectionalLight', 'EmpireStartZone', 'EmpireEndZone'],
                          [o.type for o in f.removed])
         self.assertEqual(3, f.num_matches)
+
+    def test_invert(self):
+        l = Level("tests/in/level/test-straightroad.bytes")
+
+        f = RemoveFilter(mkargs(type=['Road'], invert=True, all=True))
+        f.apply(l)
+
+        self.assertEqual(1, len(l.layers[0].objects))
+        self.assertEqual('EmpireSplineRoadStraight', l.layers[0].objects[0].type)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

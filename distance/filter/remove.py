@@ -48,6 +48,8 @@ class RemoveFilter(ObjectFilter):
         parser.add_argument("--number", dest='numbers', action='append',
                             type=int, default=[],
                             help="Select by candidate number.")
+        parser.add_argument("--invert", action='store_true',
+                            help="Remove unmatched objects.")
 
     def __init__(self, args):
         super().__init__(args)
@@ -55,6 +57,7 @@ class RemoveFilter(ObjectFilter):
         self.numbers = args.numbers
         self.type_patterns = [re.compile(r) for r in args.type]
         self.sections = {parse_section(arg).to_key() for arg in args.section}
+        self.invert = args.invert
         self.num_matches = 0
         self.matches = []
         self.removed = []
@@ -93,6 +96,8 @@ class RemoveFilter(ObjectFilter):
 
     def filter_any_object(self, obj, levels):
         remove = self.match(obj)
+        if self.invert:
+            remove = not remove
         res = super().filter_any_object(obj, levels)
         if remove:
             self.removed.append(obj)
