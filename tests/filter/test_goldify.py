@@ -47,9 +47,10 @@ class GoldifyTest(ExtraAssertMixin, unittest.TestCase):
         self.assertSeqAlmostEqual(old.transform.pos, grp.transform.pos)
         rotdiff = np.quaternion(2**.5/-2, 2**.5/2, 0, 0) / grp.transform.qrot
         self.assertAlmostEqual(0, rotdiff.angle())
+        self.assertSeqAlmostEqual((10, 10, 10), grp.transform.scale)
 
         gs, = grp.children
-        self.assertSeqAlmostEqual((0, 0, 14.09), gs.transform.pos)
+        self.assertSeqAlmostEqual((0, 0, 1.409), gs.transform.pos)
         rotdiff = np.quaternion(2**.5/2, 2**.5/2, 0, 0) / gs.transform.qrot
         self.assertAlmostEqual(0, rotdiff.angle())
 
