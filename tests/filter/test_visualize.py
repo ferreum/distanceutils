@@ -45,5 +45,9 @@ class VisualizeTest(ExtraAssertMixin, unittest.TestCase):
         self.assertSeqAlmostEqual([0, 0, 0], sphere.transform.qrot.vec)
         self.assertSeqAlmostEqual([.25, .25, .25], sphere.transform.scale)
 
+    def test_many_colliders(self):
+        # just check for obvious crashes
+        do_apply("level/many colliders", verbose=True)
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
