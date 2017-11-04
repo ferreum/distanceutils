@@ -507,57 +507,68 @@ class CooldownTriggerMapper(VisualizeMapper):
         scale_factor = 1/64,
     )
 
+    def _apply_ring_anim(self, main, objs):
+        rotLogic = main.fragment_by_type(levelfrags.RigidbodyAxisRotationLogicFragment)
+        if rotLogic is None:
+            # object is not a rotating ring
+            return objs
+
+        spd = rotLogic.angular_speed
+        if spd is None:
+            spd = 30
+
+        axis = rotLogic.rotation_axis
+        if axis is None:
+            axis = 2
+
+        if -0.0001 < spd < 0.0001:
+            # static ring
+            return objs
+
+        grp = Group(children=objs)
+        grp.recenter(main.transform.pos)
+        grp.rerotate(main.transform.rot)
+
+        anim = levelfrags.AnimatorFragment()
+        anim.motion_mode = 5 # advanced
+
+        if rotLogic.limit_rotation:
+            bounds = rotLogic.rotation_bounds
+            bounds_rad = math.radians(bounds)
+
+            if spd < 0:
+                bounds = -bounds
+                bounds_rad = -bounds_rad
+
+            rot = [0, 0, 0, -math.cos(bounds_rad / 2)]
+            rot[axis % 3] = math.sin(bounds_rad / 2)
+            grp.transform = grp.transform.apply(rot=rot)
+
+            # the game calculates the duration without bounds
+            anim.duration = 180 / abs(spd)
+            anim.time_offset = 90 / abs(spd)
+            anim.extrapolation_type = 1 # pingpong
+            anim.rotate_magnitude = bounds * 2
+            anim.curve_type = 6 # sin wave
+        else:
+            start_offset = rotLogic.starting_angle_offset or 0
+            anim.time_offset = start_offset / spd
+            anim.rotate_magnitude = 360 if spd > 0 else -360
+            anim.duration = 360 / abs(spd)
+            anim.extrapolation_type = 2 # extend
+            anim.curve_type = 0 # linear
+        anim.do_loop = 1
+        anim.delay = 0
+        axis_vec = [0, 0, 0]
+        axis_vec[axis % 3] = 1
+        anim.rotate_axis = axis_vec
+        grp.fragments = list(grp.fragments) + [anim]
+        return grp,
+
     def apply(self, main, matches):
         obj = matches[0][0][-1]
         res = self.vis.visualize(main, obj)
-        rotLogic = main.fragment_by_type(levelfrags.RigidbodyAxisRotationLogicFragment)
-        if rotLogic is not None and rotLogic.angular_speed != 0:
-            grp = Group(children=res)
-            grp.recenter(main.transform.pos)
-            grp.rerotate(main.transform.rot)
-
-            anim = levelfrags.AnimatorFragment()
-            anim.motion_mode = 5 # advanced
-
-            spd = rotLogic.angular_speed
-            if spd is None:
-                spd = 30
-            axis = rotLogic.rotation_axis
-            if axis is None:
-                axis = 2
-
-            if rotLogic.limit_rotation:
-                bounds = rotLogic.rotation_bounds
-                bounds_rad = math.radians(bounds)
-
-                if spd < 0:
-                    bounds = -bounds
-                    bounds_rad = -bounds_rad
-
-                rot = [0, 0, 0, -math.cos(bounds_rad / 2)]
-                rot[axis % 3] = math.sin(bounds_rad / 2)
-                grp.transform = grp.transform.apply(rot=rot)
-
-                # the game calculates the duration without bounds
-                anim.duration = 180 / abs(spd)
-                anim.time_offset = 90 / abs(spd)
-                anim.extrapolation_type = 1 # pingpong
-                anim.rotate_magnitude = bounds * 2
-                anim.curve_type = 6 # sin wave
-            else:
-                start_offset = rotLogic.starting_angle_offset or 0
-                anim.time_offset = start_offset / spd
-                anim.rotate_magnitude = 360 if spd > 0 else -360
-                anim.duration = 360 / abs(spd)
-                anim.extrapolation_type = 2 # extend
-                anim.curve_type = 0 # linear
-            anim.do_loop = 1
-            anim.delay = 0
-            axis_vec = [0, 0, 0]
-            axis_vec[axis % 3] = 1
-            anim.rotate_axis = axis_vec
-            grp.fragments = list(grp.fragments) + [anim]
-            res = (grp,)
+        res = self._apply_ring_anim(main, res)
         return res
 
 VIS_MAPPERS.append(CooldownTriggerMapper)
