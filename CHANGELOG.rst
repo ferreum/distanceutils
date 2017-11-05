@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+* version 0.4.1
+
+  * Added ``invert`` option to ``rm`` filter.
+
+  * ``vis`` filter now replicates cooldown ring rotation with animators. (not
+    needed for checkpoints, because checkpoint hitboxes are static)
+
+  * Improved ``vis`` filter error handling.
+
+  * Fixed animations copied from scaled objects.
+
+  * Object transform values that are equal to the object's default are now
+    omitted on assignment.
+
 * version 0.4.0
 
   * Added ``rm`` filter for removing matching objects.
