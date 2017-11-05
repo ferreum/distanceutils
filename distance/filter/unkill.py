@@ -3,7 +3,8 @@
 
 from distance.levelfragments import MaterialFragment
 from distance.levelobjects import GoldenSimple
-from .base import ObjectFilter, ObjectMapper, DoNotApply
+from .base import (ObjectFilter, ObjectMapper, DoNotApply,
+                   create_replacement_group)
 
 
 class KillgridMapper(ObjectMapper):
@@ -31,7 +32,7 @@ class KillgridMapper(ObjectMapper):
         gs.additive_transp = True
         gs.disable_reflect = True
         gs.disable_collision = not collision
-        return gs,
+        return create_replacement_group(old, [gs], animated_only=True)
 
 
 def create_mappers():
