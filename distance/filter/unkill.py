@@ -89,7 +89,7 @@ class UnkillFilter(ObjectFilter):
             return obj,
         self.num_replaced += 1
         if self.debug:
-            return result + (obj,)
+            return tuple(result) + (obj,)
         return result
 
     def print_summary(self, p):
