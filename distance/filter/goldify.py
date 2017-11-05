@@ -164,7 +164,7 @@ class GoldifyFilter(ObjectFilter):
                         res.mat_emit = (1, .3, .3, .4)
                     else:
                         res.mat_color = (1, .3, .3, 1)
-                return result + (obj,)
+                return tuple(result) + (obj,)
             return result
         return obj,
 
