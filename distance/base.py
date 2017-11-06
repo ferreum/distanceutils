@@ -470,8 +470,6 @@ class BaseObject(BytesModel):
             cid = self.container.id
         except AttributeError:
             cid = None
-        if self.sections is ():
-            self._init_defaults()
         with dbytes.write_section(MAGIC_6, self.type, id=cid):
             for frag in self.fragments:
                 frag.write(dbytes)
