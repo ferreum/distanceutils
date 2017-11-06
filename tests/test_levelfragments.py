@@ -9,17 +9,25 @@ from distance.levelfragments import (
 )
 from distance.bytes import SKIP_BYTES
 from tests import common
-from tests.common import ExtraAssertMixin
+from tests.common import ExtraAssertMixin, write_read
 
 
 class Base(object):
 
     class WriteReadTest(common.WriteReadTest):
 
-        exact = True
+        def test_clone(self):
+            obj = self.read_obj_pre(self.filename)
+            modified = self.modify_obj(obj)
+
+            cloned = modified.clone()
+            res, buf = write_read(cloned, read_func=self.read_obj)
+
+            self.verify_obj(res)
 
         def test_probe(self):
             res = PROBER.read(self.filename)
+            res = self.modify_obj(res)
 
             self.assertEqual(self.read_obj, type(res))
             self.verify_obj(res)

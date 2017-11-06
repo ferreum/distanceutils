@@ -46,6 +46,9 @@ class NamedPropertiesFragment(Fragment):
         self.props = NamedPropertyList()
         Fragment.__init__(self, *args, **kw)
 
+    def _clone_data(self, new):
+        new.props.update(self.props)
+
     def _read_section_data(self, dbytes, sec):
         if sec.content_size >= 4:
             self.props.read(dbytes, max_pos=sec.end_pos,
@@ -457,6 +460,12 @@ class TrackNodeFragment(Fragment):
     conn_id = 0
     primary = 0
 
+    def _clone_data(self, new):
+        new.parent_id = self.parent_id
+        new.snap_id = self.snap_id
+        new.conn_id = self.conn_id
+        new.primary = self.primary
+
     def _read_section_data(self, dbytes, sec):
         self.parent_id = dbytes.read_uint4()
         self.snap_id = dbytes.read_uint4()
@@ -488,6 +497,13 @@ class MaterialFragment(Fragment):
     def __init__(self, *args, **kw):
         self.materials = MaterialSet()
         Fragment.__init__(self, *args, **kw)
+
+    def _clone_data(self, new):
+        dest = new.materials
+        for matname, mat in self.materials.items():
+            destmat = dest.get_or_add(matname)
+            for colname, col in mat.items():
+                destmat[colname] = col
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size >= 4:
