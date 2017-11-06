@@ -37,7 +37,7 @@ The PROBER is also used to open CustomObject files.
 Passing str or bytes to the classes reads the whole file into memory first.
 This is required because no context manager can be used and the file has to be
 closed immediately. If this is undesired, open the file manually (Note: this
-direct I/O may be slower):
+direct I/O may be slower if a lot of data is accessed):
 
 >>> from distance import Level
 >>> with open("tests/in/level/test-straightroad.bytes", 'rb') as f:
