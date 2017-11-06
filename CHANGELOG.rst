@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+* version 0.4.2
+
+  * Allow assigning any sequence to transform attribute again (fixes
+    ``dst-objtobytes``).
+
 * version 0.4.1
 
   * Added ``invert`` option to ``rm`` filter.
