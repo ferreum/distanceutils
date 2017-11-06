@@ -400,6 +400,8 @@ class BaseObject(BytesModel):
 
     @transform.setter
     def transform(self, value):
+        if not isinstance(value, Transform):
+            value = Transform(*value)
         if value:
             default = self.default_transform
             if default:
