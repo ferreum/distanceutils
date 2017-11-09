@@ -521,7 +521,7 @@ class CooldownTriggerMapper(VisualizeMapper):
         if axis is None:
             axis = 2
 
-        if -0.0001 < spd < 0.0001:
+        if spd == 0:
             # static ring
             return objs
 
