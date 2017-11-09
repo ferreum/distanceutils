@@ -347,8 +347,7 @@ class ObjectFragment(Fragment):
                 s5 = Section(dbytes, seek_end=False)
                 self.has_children = True
                 self.children = self.child_prober.lazy_n_maybe(
-                    dbytes, s5.count, opts=self.opts,
-                    start_pos=s5.content_start)
+                    dbytes, s5.count, start_pos=s5.content_start)
 
     def _write_section_data(self, dbytes, sec):
         transform = self.real_transform

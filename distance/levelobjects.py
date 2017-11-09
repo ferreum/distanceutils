@@ -65,16 +65,6 @@ class LevelObject(BaseObject):
     child_prober = SUBOBJ_PROBER
     fragment_prober = FRAG_PROBER
 
-    def _handle_opts(self, opts):
-        try:
-            self.fragment_prober = opts['level_frag_prober']
-        except KeyError:
-            pass
-        try:
-            self.children_prober = opts['level_subobj_prober']
-        except KeyError:
-            pass
-
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.children:
             num = len(self.children)
@@ -112,13 +102,6 @@ class Group(LevelObject):
         Section(MAGIC_2, 0x63, version=0),
     )
     default_transform = Transform.fill()
-
-    def _handle_opts(self, opts):
-        LevelObject._handle_opts(self, opts)
-        try:
-            self.child_prober = opts['level_obj_prober']
-        except KeyError:
-            pass
 
     def _print_children(self, p):
         with need_counters(p) as counters:

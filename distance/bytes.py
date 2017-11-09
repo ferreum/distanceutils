@@ -67,7 +67,7 @@ class BytesModel(object):
 
     """Represents a set amount of data in .bytes files."""
 
-    __slots__ = ('exception', 'start_pos', 'end_pos', 'sane_end_pos', 'opts')
+    __slots__ = ('exception', 'start_pos', 'end_pos', 'sane_end_pos')
 
     @classmethod
     def maybe(clazz, dbytes, **kw):
@@ -174,10 +174,7 @@ class BytesModel(object):
             if not plain:
                 self._after_init()
 
-    def _handle_opts(self, opts):
-        pass
-
-    def read(self, dbytes, seek_end=True, opts=None, **kw):
+    def read(self, dbytes, seek_end=True, **kw):
 
         """Read data of this object from `dbytes`.
 
@@ -205,7 +202,6 @@ class BytesModel(object):
                      reading. Mainly useful for reading `Section`, which
                      positions it at the start of its content if False.
                      Default: True.
-        `opts` - dict containing optional parameters used by subclasses.
 
         """
 
@@ -216,11 +212,6 @@ class BytesModel(object):
         else:
             start_pos = dbytes.tell()
         self.start_pos = start_pos
-        if opts:
-            self.opts = opts
-            self._handle_opts(opts)
-        else:
-            self.opts = None
         self.end_pos = None
         self.sane_end_pos = False
         try:

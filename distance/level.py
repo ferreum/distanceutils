@@ -174,13 +174,6 @@ class Layer(Fragment):
     unknown_flag = 0
     obj_prober = LEVELOBJ_PROBER
 
-    def _handle_opts(self, opts):
-        BytesModel._handle_opts(self, opts)
-        try:
-            self.obj_prober = opts['level_obj_prober']
-        except KeyError:
-            pass
-
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
             raise ValueError(f"Invalid layer section: {sec.magic}")
@@ -206,7 +199,7 @@ class Layer(Fragment):
             self.has_layer_flags = False
             obj_start = sec.content_start
         self.objects = self.obj_prober.lazy_n_maybe(
-            dbytes, sec.count, opts=self.opts, start_pos=obj_start)
+            dbytes, sec.count, start_pos=obj_start)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
@@ -262,7 +255,7 @@ class Level(Fragment):
         num_layers = sec.count
 
         self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
-            dbytes, num_layers + 1, opts=self.opts)
+            dbytes, num_layers + 1)
         if num_layers:
             self.layers = LazySequence(
                 (obj for obj in self.content if isinstance(obj, Layer)),
