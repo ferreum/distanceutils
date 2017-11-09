@@ -392,14 +392,12 @@ class BaseObject(Fragment):
 
     """Represents data within a MAGIC_6 Section."""
 
+    __slots__ = ('type', 'sections', 'fragments',
+                 '_fragment_types', '_fragments_by_type')
+
     child_prober = BASE_PROBER
     fragment_prober = BASE_FRAG_PROBER
     is_object_group = False
-
-    sections = ()
-    fragments = ()
-    _fragment_types = None
-    _fragments_by_type = None
 
     default_sections = (
         Section(MAGIC_3, 0x01, 0),
@@ -432,8 +430,9 @@ class BaseObject(Fragment):
             if type(frag) is ObjectFragment:
                 return frag
             # not first - fall through to regular method
-        types = self._fragment_types
-        if types is None:
+        try:
+            types = self._fragment_types
+        except AttributeError:
             probe = self.fragment_prober.probe_section
             secs = self.sections
             types = LazySequence(map(probe, secs), len(secs))

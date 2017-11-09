@@ -60,6 +60,8 @@ def _fallback_subobject(section):
 
 class LevelObject(BaseObject):
 
+    __slots__ = ()
+
     child_prober = SUBOBJ_PROBER
     fragment_prober = FRAG_PROBER
 
@@ -84,6 +86,8 @@ class LevelObject(BaseObject):
 
 
 class SubObject(LevelObject):
+
+    __slots__ = ()
 
     def _print_type(self, p):
         container = self.container
