@@ -6,6 +6,7 @@ from .base import (
     BaseObject, Fragment,
     BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
+    require_type,
 )
 from .printing import format_duration
 from .constants import Mode
@@ -75,13 +76,10 @@ class LevelInfosFragment(Fragment):
 
 
 @ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
+@require_type(FTYPE_LEVELINFOS)
 class LevelInfos(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    def _read(self, dbytes):
-        self._require_type(FTYPE_LEVELINFOS)
-        BaseObject._read(self, dbytes)
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

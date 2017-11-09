@@ -67,8 +67,7 @@ class BytesModel(object):
 
     """Represents a set amount of data in .bytes files."""
 
-    __slots__ = ('exception', 'container',
-                 'start_pos', 'end_pos', 'sane_end_pos',
+    __slots__ = ('exception', 'start_pos', 'end_pos', 'sane_end_pos',
                  'opts', 'dbytes')
 
     @classmethod
@@ -179,7 +178,7 @@ class BytesModel(object):
     def _handle_opts(self, opts):
         pass
 
-    def read(self, dbytes, container=None, seek_end=True, opts=None, **kw):
+    def read(self, dbytes, seek_end=True, opts=None, **kw):
 
         """Read data of this object from `dbytes`.
 
@@ -211,8 +210,8 @@ class BytesModel(object):
         """
 
         dbytes = DstBytes.from_arg(dbytes)
+        container = kw.get('container', None)
         if container:
-            self.container = container
             start_pos = container.start_pos
         else:
             start_pos = dbytes.tell()
@@ -286,15 +285,6 @@ class BytesModel(object):
         self._print_type(p)
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
-        if 'sections' in p.flags:
-            try:
-                container = self.container
-            except AttributeError:
-                pass
-            else:
-                p(f"Container:")
-                with p.tree_children():
-                    p.print_data_of(container)
         self._print_data(p)
         self._print_children(p)
         if self.exception:
@@ -321,25 +311,6 @@ class BytesModel(object):
 
     def _print_children(self, p):
         pass
-
-    def _get_container(self):
-        try:
-            return self.container
-        except AttributeError:
-            self.container = sec = Section(self.dbytes, seek_end=False)
-            return sec
-
-    def _require_type(self, expect):
-        ts = self._get_container()
-        if not ts:
-            raise ValueError("Missing type information")
-        if isinstance(expect, str):
-            if ts.type != expect:
-                raise ValueError(f"Invalid object type: {ts.type}")
-        else:
-            if not expect(ts.type):
-                raise ValueError(f"Invalid object type: {ts.type}")
-        return ts
 
 
 # section magic (I) + size (Q)

@@ -9,6 +9,7 @@ from .base import (
     BaseObject, Fragment,
     BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
+    require_type,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -430,13 +431,10 @@ class ProfileProgressFragment(Fragment):
 
 
 @ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
+@require_type(FTYPE_PROFILEPROGRESS)
 class ProfileProgress(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    def _read(self, dbytes):
-        self._require_type(FTYPE_PROFILEPROGRESS)
-        BaseObject._read(self, dbytes)
 
     @property
     def stats(self):

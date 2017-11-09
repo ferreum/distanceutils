@@ -6,6 +6,7 @@ from .base import (
     BaseObject, Fragment,
     BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
+    require_type,
 )
 from .prober import BytesProber
 from .printing import format_duration, format_color
@@ -85,13 +86,10 @@ class ReplayFragment(Fragment):
 
 
 @ForwardFragmentAttrs(ReplayFragment, **ReplayFragment.value_attrs)
+@require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
 class Replay(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    def _read(self, dbytes):
-        self._require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
-        BaseObject._read(self, dbytes)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

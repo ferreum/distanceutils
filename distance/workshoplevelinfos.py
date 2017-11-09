@@ -6,6 +6,7 @@ from .base import (
     BaseObject, Fragment,
     BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
+    require_type,
 )
 from .prober import BytesProber
 from .constants import Rating
@@ -71,13 +72,10 @@ class WorkshopLevelInfosFragment(Fragment):
 
 
 @ForwardFragmentAttrs(WorkshopLevelInfosFragment, levels=())
+@require_type(FTYPE_WSLEVELINFOS)
 class WorkshopLevelInfos(BaseObject):
 
     fragment_prober = FRAG_PROBER
-
-    def _read(self, dbytes):
-        self._require_type(FTYPE_WSLEVELINFOS)
-        BaseObject._read(self, dbytes)
 
     def _print_data(self, p):
         p(f"Levelinfos: {len(self.levels)}")

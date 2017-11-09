@@ -241,23 +241,29 @@ def filter_interesting(sec, prober):
 
 class Fragment(BytesModel):
 
-    __slots__ = ('_raw_data',)
+    """Represents data within a Section."""
+
+    __slots__ = ('_raw_data', 'container')
 
     default_section = None
 
     is_interesting = False
 
-    def _read(self, dbytes, **kw):
-        sec = self._get_container()
-        self.end_pos = sec.end_pos
-        self._read_section_data(dbytes, sec)
+    def _read(self, dbytes, container=None, **kw):
+        if container is None:
+            container = Section(dbytes, seek_end=False)
+        self.container = container
+        self.end_pos = container.end_pos
+        self._read_section_data(dbytes, container)
 
     def _write(self, dbytes):
-        sec = getattr(self, 'container', None)
-        if sec is None:
-            self.container = sec = self._init_section()
+        con = getattr(self, 'container', None)
+        sec = self._get_write_section(con)
         with dbytes.write_section(sec):
             self._write_section_data(dbytes, sec)
+
+    def _get_write_section(self, sec):
+        return sec or self.default_section
 
     @property
     def raw_data(self):
@@ -287,9 +293,6 @@ class Fragment(BytesModel):
     def _clone_data(self, new):
         new.raw_data = self.raw_data
 
-    def _init_section(self):
-        return self.default_section
-
     def _read_section_data(self, dbytes, sec):
         """Read data of the given section."""
         pass
@@ -298,7 +301,7 @@ class Fragment(BytesModel):
 
         """Write data of the given section.
 
-        The default implementation just writes this fragment's raw_data.
+        The default implementation just writes this object's raw_data.
 
         """
 
@@ -312,6 +315,17 @@ class Fragment(BytesModel):
                 p(f"Fragment: Unknown")
             else:
                 p(f"Fragment: {name}")
+
+    def _print_data(self, p):
+        if 'sections' in p.flags:
+            try:
+                container = self.container
+            except AttributeError:
+                pass
+            else:
+                p(f"Container:")
+                with p.tree_children():
+                    p.print_data_of(container)
 
 
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
@@ -373,9 +387,9 @@ class ForwardFragmentAttrs(object):
 
 
 @ForwardFragmentAttrs(ObjectFragment, real_transform=Transform(), children=())
-class BaseObject(BytesModel):
+class BaseObject(Fragment):
 
-    """Base class of objects represented by a MAGIC_6 section."""
+    """Represents data within a MAGIC_6 Section."""
 
     child_prober = BASE_PROBER
     fragment_prober = BASE_FRAG_PROBER
@@ -449,10 +463,8 @@ class BaseObject(BytesModel):
                 yield fragments[i]
             i += 1
 
-    def _read(self, dbytes):
-        sec = self._get_container()
+    def _read_section_data(self, dbytes, sec):
         self.type = sec.type
-        self.end_pos = sec.end_pos
         self.sections = Section.lazy_n_maybe(dbytes, sec.count)
         self.fragments = LazyMappedSequence(
             self.sections, self._read_fragment)
@@ -467,14 +479,16 @@ class BaseObject(BytesModel):
             dbytes, probe_section=sec,
             child_prober=self.child_prober)
 
-    def _write(self, dbytes):
+    def _get_write_section(self, sec):
         try:
-            cid = self.container.id
+            cid = sec.id
         except AttributeError:
             cid = None
-        with dbytes.write_section(MAGIC_6, self.type, id=cid):
-            for frag in self.fragments:
-                frag.write(dbytes)
+        return Section(MAGIC_6, self.type, id=cid)
+
+    def _write_section_data(self, dbytes, sec):
+        for frag in self.fragments:
+            frag.write(dbytes)
 
     def _init_defaults(self):
         sections = list(Section(s) for s in self.default_sections)
@@ -502,6 +516,7 @@ class BaseObject(BytesModel):
         p(f"Object type: {self.type!r}")
 
     def _print_data(self, p):
+        Fragment._print_data(self, p)
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.real_transform)}")
         if 'fragments' in p.flags and self.fragments:
@@ -533,6 +548,25 @@ class BaseObject(BytesModel):
                 for obj in self.children:
                     p.tree_next_child()
                     p.print_data_of(obj)
+
+
+def require_type(typ):
+    def check(sec):
+        if callable(typ):
+            if not typ(sec.type):
+                raise ValueError(f"Invalid object type: {sec.type!r}")
+        else:
+            if sec.type != typ:
+                raise ValueError(f"Invalid object type: {sec.type!r}"
+                                 f" (expected {typ})")
+    def decorate(cls):
+        superfunc = cls._read_section_data
+        def checking_read_data(self, dbytes, sec):
+            check(sec)
+            superfunc(self, dbytes, sec)
+        cls._read_section_data = checking_read_data
+        return cls
+    return decorate
 
 
 @BASE_PROBER.func
