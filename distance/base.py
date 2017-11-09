@@ -241,11 +241,11 @@ def filter_interesting(sec, prober):
 
 class Fragment(BytesModel):
 
+    __slots__ = ('_raw_data',)
+
     default_section = None
 
     is_interesting = False
-
-    _raw_data = None
 
     def _read(self, dbytes, **kw):
         sec = self._get_container()
@@ -261,14 +261,16 @@ class Fragment(BytesModel):
 
     @property
     def raw_data(self):
-        data = self._raw_data
-        if data is None:
-            dbytes = self.dbytes
-            sec = self.container
-            with dbytes:
-                dbytes.seek(sec.content_start)
-                data = dbytes.read_bytes(sec.content_size)
-                self._raw_data = data
+        try:
+            return self._raw_data
+        except AttributeError:
+            pass
+        dbytes = self.dbytes
+        sec = self.container
+        with dbytes:
+            dbytes.seek(sec.content_start)
+            data = dbytes.read_bytes(sec.content_size)
+            self._raw_data = data
         return data
 
     @raw_data.setter
