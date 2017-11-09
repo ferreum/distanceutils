@@ -199,8 +199,9 @@ class BytesModel(object):
         Arguments:
         `dbytes` - Anything accepted by `DstBytes.from_arg()`.
         `container` - The already read container section. `dbytes` needs to
-                      be positioned at the start of this section's
-                      content if set.
+                      be positioned at the start of this section's content if
+                      set. (this argument needs to be supported by the
+                      `_read()` implementation)
         `seek_end` - Whether to seek to the end of the object after
                      reading. Mainly useful for reading `Section`, which
                      positions it at the start of its content if False.
