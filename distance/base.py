@@ -243,13 +243,14 @@ class Fragment(BytesModel):
 
     """Represents data within a Section."""
 
-    __slots__ = ('_raw_data', 'container')
+    __slots__ = ('_raw_data', 'container', 'dbytes')
 
     default_section = None
 
     is_interesting = False
 
     def _read(self, dbytes, container=None, **kw):
+        self.dbytes = dbytes
         if container is None:
             container = Section(dbytes, seek_end=False)
         self.container = container

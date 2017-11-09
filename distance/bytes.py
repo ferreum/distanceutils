@@ -67,8 +67,7 @@ class BytesModel(object):
 
     """Represents a set amount of data in .bytes files."""
 
-    __slots__ = ('exception', 'start_pos', 'end_pos', 'sane_end_pos',
-                 'opts', 'dbytes')
+    __slots__ = ('exception', 'start_pos', 'end_pos', 'sane_end_pos', 'opts')
 
     @classmethod
     def maybe(clazz, dbytes, **kw):
@@ -217,7 +216,6 @@ class BytesModel(object):
         else:
             start_pos = dbytes.tell()
         self.start_pos = start_pos
-        self.dbytes = dbytes
         if opts:
             self.opts = opts
             self._handle_opts(opts)
