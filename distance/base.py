@@ -463,9 +463,7 @@ class BaseObject(Fragment):
                 value = value.strip(*default)
         self.real_transform = value
 
-    @property
-    def fragments(self):
-        return self._fragments
+    fragments = property(attrgetter('_fragments'))
 
     @fragments.setter
     def fragments(self, value):
