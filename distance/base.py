@@ -432,7 +432,7 @@ class BaseObject(Fragment):
 
     """Represents data within a MAGIC_6 Section."""
 
-    __slots__ = ('type', 'sections', '_fragments',
+    __slots__ = ('type', '_sections', '_fragments',
                  '_fragment_types', '_fragments_by_type')
 
     child_prober = BASE_PROBER
@@ -467,8 +467,12 @@ class BaseObject(Fragment):
 
     @fragments.setter
     def fragments(self, value):
-        self.sections = FragmentsContainerView(value)
+        self._sections = FragmentsContainerView(value)
         self._fragments = value
+
+    sections = property(attrgetter('_sections'),
+                        doc=("Sections of this object."
+                             " (read-only view of fragments*.containers)"))
 
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:
@@ -481,7 +485,7 @@ class BaseObject(Fragment):
             types = self._fragment_types
         except AttributeError:
             probe = self.fragment_prober.probe_section
-            secs = self.sections
+            secs = self._sections
             types = LazySequence(map(probe, secs), len(secs))
             bytype = {}
             self._fragments_by_type = bytype
@@ -505,16 +509,16 @@ class BaseObject(Fragment):
         fragments = self._fragments
         prober = self.fragment_prober
         i = 0
-        for sec in self.sections:
+        for sec in self._sections:
             if type_filter(sec, prober):
                 yield fragments[i]
             i += 1
 
     def _read_section_data(self, dbytes, sec):
         self.type = sec.type
-        self.sections = Section.lazy_n_maybe(dbytes, sec.count)
+        self._sections = Section.lazy_n_maybe(dbytes, sec.count)
         self._fragments = LazyMappedSequence(
-            self.sections, self._read_fragment)
+            self._sections, self._read_fragment)
 
     def _read_fragment(self, sec):
         if sec.exception:
@@ -550,7 +554,7 @@ class BaseObject(Fragment):
                 if cls is ObjectFragment:
                     frag.has_children = self.has_children
                 fragments.append(frag)
-        self.sections = FragmentsContainerView(fragments)
+        self._sections = FragmentsContainerView(fragments)
         self._fragments = fragments
 
     def iter_children(self, ty=None, name=None):
