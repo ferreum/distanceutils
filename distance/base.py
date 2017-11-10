@@ -1,8 +1,9 @@
 """Provides BaseObject."""
 
 
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 import numbers
+import collections
 
 from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
                     SKIP_BYTES, S_FLOAT3, S_FLOAT4)
@@ -401,12 +402,37 @@ class ForwardFragmentAttrs(object):
         return target
 
 
+class MappedSequenceView(collections.Sequence):
+
+    __slots__ = ('_source', '_func')
+
+    def __init__(self, source, func):
+        self._source = source
+        self._func = func
+
+    def __len__(self):
+        return len(self._source)
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return list(map(self._func, self._source[index]))
+        else:
+            return self._func(self._source[index])
+
+    def __iter__(self):
+        return map(self._func, self._source)
+
+
+def FragmentsContainerView(frags):
+    return MappedSequenceView(frags, attrgetter('container'))
+
+
 @ForwardFragmentAttrs(ObjectFragment, real_transform=Transform(), children=())
 class BaseObject(Fragment):
 
     """Represents data within a MAGIC_6 Section."""
 
-    __slots__ = ('type', 'sections', 'fragments',
+    __slots__ = ('type', 'sections', '_fragments',
                  '_fragment_types', '_fragments_by_type')
 
     child_prober = BASE_PROBER
@@ -437,10 +463,19 @@ class BaseObject(Fragment):
                 value = value.strip(*default)
         self.real_transform = value
 
+    @property
+    def fragments(self):
+        return self._fragments
+
+    @fragments.setter
+    def fragments(self, value):
+        self.sections = FragmentsContainerView(value)
+        self._fragments = value
+
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:
             # Optimized ObjectFragment access: it is virtually always first.
-            frag = self.fragments[0]
+            frag = self._fragments[0]
             if type(frag) is ObjectFragment:
                 return frag
             # not first - fall through to regular method
@@ -461,7 +496,7 @@ class BaseObject(Fragment):
         i = 0
         for sectype in types:
             if issubclass(sectype, typ):
-                frag = self.fragments[i]
+                frag = self._fragments[i]
                 bytype[typ] = frag
                 return frag
             i += 1
@@ -469,7 +504,7 @@ class BaseObject(Fragment):
         return None
 
     def filtered_fragments(self, type_filter):
-        fragments = self.fragments
+        fragments = self._fragments
         prober = self.fragment_prober
         i = 0
         for sec in self.sections:
@@ -480,7 +515,7 @@ class BaseObject(Fragment):
     def _read_section_data(self, dbytes, sec):
         self.type = sec.type
         self.sections = Section.lazy_n_maybe(dbytes, sec.count)
-        self.fragments = LazyMappedSequence(
+        self._fragments = LazyMappedSequence(
             self.sections, self._read_fragment)
 
     def _read_fragment(self, sec):
@@ -501,14 +536,12 @@ class BaseObject(Fragment):
         return Section(MAGIC_6, self.type, id=cid)
 
     def _write_section_data(self, dbytes, sec):
-        for frag in self.fragments:
+        for frag in self._fragments:
             frag.write(dbytes)
 
     def _init_defaults(self):
         sections = list(Section(s) for s in self.default_sections)
         fragments = []
-        self.sections = sections
-        self.fragments = fragments
         for sec in sections:
             try:
                 cls = self.fragment_prober.probe_section(sec)
@@ -519,6 +552,8 @@ class BaseObject(Fragment):
                 if cls is ObjectFragment:
                     frag.has_children = self.has_children
                 fragments.append(frag)
+        self.sections = FragmentsContainerView(fragments)
+        self._fragments = fragments
 
     def iter_children(self, ty=None, name=None):
         for obj in self.children:
@@ -533,18 +568,18 @@ class BaseObject(Fragment):
         Fragment._print_data(self, p)
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.real_transform)}")
-        if 'fragments' in p.flags and self.fragments:
+        if 'fragments' in p.flags and self._fragments:
             if 'allprops' in p.flags:
-                p(f"Fragments: {len(self.fragments)}")
+                p(f"Fragments: {len(self._fragments)}")
                 with p.tree_children():
-                    for frag in self.fragments:
+                    for frag in self._fragments:
                         p.tree_next_child()
                         p.print_data_of(frag)
             else:
                 frags = self.filtered_fragments(filter_interesting)
                 try:
                     frag = next(frags)
-                    p(f"Fragments: {len(self.fragments)} <filtered>")
+                    p(f"Fragments: {len(self._fragments)} <filtered>")
                     with p.tree_children():
                         p.tree_next_child()
                         p.print_data_of(frag)

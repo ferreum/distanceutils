@@ -479,7 +479,6 @@ class OldSimple(LevelObject):
             frag = Fragment(container=sec)
             # box collider fragment seems to be empty for simples
             frag.raw_data = b''
-            self.sections.append(sec)
             self.fragments.append(frag)
 
     def _init_defaults(self):
