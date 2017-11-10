@@ -286,7 +286,11 @@ class Fragment(BytesModel):
 
     def clone(self):
         new = type(self)()
-        if self.container:
+        try:
+            con = self.container
+        except AttributeError:
+            pass
+        else:
             new.container = Section(self.container)
         self._clone_data(new)
         return new

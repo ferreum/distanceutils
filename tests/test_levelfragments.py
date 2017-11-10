@@ -1,4 +1,6 @@
-from distance.base import Fragment
+import unittest
+
+from distance.base import Fragment, ObjectFragment
 from distance.levelfragments import (
     PROBER,
     MaterialFragment,
@@ -7,7 +9,7 @@ from distance.levelfragments import (
     ObjectSpawnCircleFragment,
     AnimatorFragment
 )
-from distance.bytes import SKIP_BYTES
+from distance.bytes import SKIP_BYTES, DstBytes, Section, MAGIC_3
 from tests import common
 from tests.common import ExtraAssertMixin, write_read
 
@@ -43,6 +45,24 @@ class UnknownTest(Base.WriteReadTest):
 
     def verify_obj(self, frag):
         MaterialTest.verify_obj(self, frag)
+
+
+class CreateTest(unittest.TestCase):
+
+    def test_write_cloned_created(self):
+        frag = Fragment(raw_data=b'')
+
+        clone = frag.clone()
+
+        clone.container = Section(MAGIC_3, 1, 0)
+
+        db = DstBytes.in_memory()
+        clone.write(db)
+        db.seek(0)
+        res = Section(db)
+
+        self.assertEqual(Section(MAGIC_3, 1, 0).to_key(), res.to_key())
+        self.assertEqual(0, res.content_size)
 
 
 class TracknodeTest(Base.WriteReadTest):
