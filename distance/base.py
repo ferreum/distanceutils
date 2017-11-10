@@ -463,7 +463,8 @@ class BaseObject(Fragment):
                 value = value.strip(*default)
         self.real_transform = value
 
-    fragments = property(attrgetter('_fragments'))
+    fragments = property(attrgetter('_fragments'),
+                         doc="Fragments of this object.")
 
     @fragments.setter
     def fragments(self, value):
@@ -471,8 +472,8 @@ class BaseObject(Fragment):
         self._fragments = value
 
     sections = property(attrgetter('_sections'),
-                        doc=("Sections of this object."
-                             " (read-only view of fragments*.containers)"))
+                        doc=("Containers of the fragments of this object."
+                             " (read-only view of fragments*.container)"))
 
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:
