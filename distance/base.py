@@ -332,22 +332,33 @@ class Fragment(BytesModel):
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
-    real_transform = Transform()
-    has_children = False
-    children = ()
+    __slots__ = ('real_transform', 'has_children', 'children',
+                 '_child_prober')
+
+    def _init_defaults(self):
+        self.real_transform = Transform()
+        self.has_children = False
+        self.children = ()
 
     def _read(self, *args, **kw):
-        self.child_prober = kw.get('child_prober', EMPTY_PROBER)
+        self._child_prober = kw.get('child_prober', EMPTY_PROBER)
         Fragment._read(self, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
+        has_children = False
+        children = ()
         if sec.content_size >= TRANSFORM_MIN_SIZE:
-            self.real_transform = Transform.read_from(dbytes)
+            transform = Transform.read_from(dbytes)
             if dbytes.tell() + Section.MIN_SIZE < sec.end_pos:
                 s5 = Section(dbytes, seek_end=False)
-                self.has_children = True
-                self.children = self.child_prober.lazy_n_maybe(
+                has_children = True
+                children = self._child_prober.lazy_n_maybe(
                     dbytes, s5.count, start_pos=s5.content_start)
+        else:
+            transform = Transform()
+        self.real_transform = transform
+        self.has_children = has_children
+        self.children = children
 
     def _write_section_data(self, dbytes, sec):
         transform = self.real_transform
