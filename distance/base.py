@@ -489,6 +489,7 @@ class BaseObject(Fragment):
             secs = self._sections
             types = LazySequence(map(probe, secs), len(secs))
             bytype = {}
+            self._fragment_types = types
             self._fragments_by_type = bytype
         else:
             bytype = self._fragments_by_type
