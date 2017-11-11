@@ -483,7 +483,7 @@ class BaseObject(Fragment):
                 return frag
             # not first - fall through to regular method
         try:
-            types = self._fragment_types
+            bytype = self._fragments_by_type
         except AttributeError:
             probe = self.fragment_prober.probe_section
             secs = self._sections
@@ -492,11 +492,11 @@ class BaseObject(Fragment):
             self._fragment_types = types
             self._fragments_by_type = bytype
         else:
-            bytype = self._fragments_by_type
             try:
                 return bytype[typ]
             except KeyError:
-                pass # not cached, fall through
+                types = self._fragment_types
+                # not cached, fall through
         i = 0
         for sectype in types:
             if issubclass(sectype, typ):
