@@ -17,8 +17,6 @@ SKIP_REASON_LABELS = {
     'no_default_transform': "Unknown default transform",
 }
 
-VIS_MAPPERS = []
-
 
 class SimpleCreator(object):
 
@@ -199,8 +197,6 @@ class GravityTriggerMapper(VisualizeMapper):
     def apply(self, main, matches):
         return self.vis.visualize(main, main)
 
-VIS_MAPPERS.append(GravityTriggerMapper)
-
 
 class TeleporterMapper(VisualizeMapper):
 
@@ -308,8 +304,6 @@ class TeleporterMapper(VisualizeMapper):
                                    mat_emit=status_emit))
         return res
 
-VIS_MAPPERS.append(TeleporterMapper)
-
 
 class VirusSpiritSpawnerMapper(VisualizeMapper):
 
@@ -325,8 +319,6 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         return self.vis.visualize(main, main)
-
-VIS_MAPPERS.append(VirusSpiritSpawnerMapper)
 
 
 class EventTriggerMapper(VisualizeMapper):
@@ -348,8 +340,6 @@ class EventTriggerMapper(VisualizeMapper):
                 raise
             return self.vis_sphere.visualize(main, main)
 
-VIS_MAPPERS.append(EventTriggerMapper)
-
 
 class EnableAbilitiesTriggerMapper(VisualizeMapper):
 
@@ -365,8 +355,6 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
     def apply(self, main, matches):
         return self.vis.visualize(main, main)
 
-VIS_MAPPERS.append(EnableAbilitiesTriggerMapper)
-
 
 class ForceZoneMapper(VisualizeMapper):
 
@@ -381,8 +369,6 @@ class ForceZoneMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         return self.vis.visualize(main, main)
-
-VIS_MAPPERS.append(ForceZoneMapper)
 
 
 class WingCorruptionZoneMapper(VisualizeMapper):
@@ -409,8 +395,6 @@ class WingCorruptionZoneMapper(VisualizeMapper):
             if e.reason != 'no_collider':
                 raise
             return self.vis_sphere.visualize(main, main)
-
-VIS_MAPPERS.append(WingCorruptionZoneMapper)
 
 
 class VirusMazeMapper(VisualizeMapper):
@@ -451,8 +435,6 @@ class VirusMazeMapper(VisualizeMapper):
             raise DoNotApply('no_visualizer')
         return vis.visualize(main, main)
 
-VIS_MAPPERS.append(VirusMazeMapper)
-
 
 class CheckpointMapper(VisualizeMapper):
 
@@ -492,8 +474,6 @@ class CheckpointMapper(VisualizeMapper):
         vis = self.vis_for_type.get(main.type, self.vis)
         return vis.visualize(main, obj)
 
-
-VIS_MAPPERS.append(CheckpointMapper)
 
 
 class CooldownTriggerMapper(VisualizeMapper):
@@ -571,8 +551,6 @@ class CooldownTriggerMapper(VisualizeMapper):
         res = self._apply_ring_anim(main, res)
         return res
 
-VIS_MAPPERS.append(CooldownTriggerMapper)
-
 
 class PlanetWithSphericalGravityMapper(VisualizeMapper):
 
@@ -590,7 +568,9 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
     def apply(self, main, matches):
         return self.vis.visualize(main, main)
 
-VIS_MAPPERS.append(PlanetWithSphericalGravityMapper)
+
+VIS_MAPPERS = [v for v in globals().values()
+               if isinstance(v, type) and issubclass(v, VisualizeMapper)]
 
 
 class VisualizeFilter(ObjectFilter):
