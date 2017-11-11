@@ -466,7 +466,12 @@ class CheckpointMapper(VisualizeMapper):
             **_opts,
             default_center = (0, 5.81, 0),
             default_size = (38.36, 21.0, 6.746),
-        )
+        ),
+        'AbilityCheckpointOLD': BoxVisualizer(
+            **_opts,
+            default_center = (-2, 0, -25),
+            default_size = (90, 90, .5),
+        ),
     }
 
     def apply(self, main, matches):
