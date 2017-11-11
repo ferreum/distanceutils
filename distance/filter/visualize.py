@@ -734,7 +734,11 @@ class VisualizeFilter(ObjectFilter):
         with p.tree_children():
             for obj, exc in objs:
                 p.tree_next_child()
-                p(f"Object: {obj.type!r} at 0x{obj.start_pos:08x}")
+                try:
+                    objdetail = f" at 0x{obj.start_pos:08x}"
+                except AttributeError:
+                    objdetail = " (generated)"
+                p(f"Object: {obj.type!r}{objdetail}")
 
     def _print_skipped(self, p):
         p(f"Skipped objects: {self._num_skipped}")
