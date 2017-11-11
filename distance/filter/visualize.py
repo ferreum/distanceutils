@@ -597,29 +597,32 @@ class GoldenSimplesMapper(VisualizeMapper):
         additive_transp = False,
     )
 
-    def _calc_additive_visibility(self, color, frag):
+    def _calc_additive_visibility(self, main, frag, color):
         def color_brightness(color):
             lum = (.2126 * color[0] + .7152 * color[1] + .0722 * color[2])
             return lum * color[3]
         tex_brightness = 1
-        if not frag.invert_emit:
+        # TurnLightOnNearCar feature overrides invert_emit
+        light_on_frag = main.fragment_by_type(
+            levelfrags.TurnLightOnNearCarFragment)
+        if light_on_frag or not frag.invert_emit:
             if frag.emit_index in self._dark_textures:
                 tex_brightness = 0.1
         return color_brightness(color) * tex_brightness
 
-    def _calc_multip_visibility(self, color, frag):
+    def _calc_multip_visibility(self, frag, color):
         if frag.disable_diffuse:
             return max(abs(.25 - c) * 4 for c in color[:3])
         return .1
 
-    def _calc_visibility(self, obj, frag):
+    def _calc_visibility(self, main, obj, frag):
         visibility = 0
         if frag.additive_transp:
             color = GoldenSimple.mat_emit.__get__(obj)
-            visibility += self._calc_additive_visibility(color, frag)
+            visibility += self._calc_additive_visibility(main, frag, color)
         if frag.multip_transp:
             color = GoldenSimple.mat_color.__get__(obj)
-            visibility += self._calc_multip_visibility(color, frag)
+            visibility += self._calc_multip_visibility(frag, color)
         elif not frag.additive_transp:
             visibility = 1
         return visibility
@@ -630,10 +633,12 @@ class GoldenSimplesMapper(VisualizeMapper):
         obj = matches[0][0][-1]
         res = []
         if not frag.disable_collision:
-            if self._calc_visibility(obj, frag) < 0.1:
+            if self._calc_visibility(main, obj, frag) < 0.1:
                 GoldenSimple.mat_emit.__set__(obj, (1, 0, 0, .02))
                 for k, v in self._coll_opts.items():
                     setattr(frag, k, v)
+                main.fragments = [f for f in main.fragments
+                                  if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
                 visualized = True
             elif main.type == 'PlaneOneSidedGS':
                 # make other side visible

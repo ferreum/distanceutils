@@ -882,6 +882,13 @@ class TrackAttachmentFragment(Fragment):
     pass
 
 
+@PROBER.fragment(MAGIC_2, 0x70, 1)
+@PROBER.fragment(MAGIC_2, 0x70, 2)
+@PROBER.fragment(MAGIC_2, 0x70, 3)
+class TurnLightOnNearCarFragment(Fragment):
+    pass
+
+
 class BaseInterpolateToPositiononTrigger(object):
     pass
 
