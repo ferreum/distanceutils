@@ -661,7 +661,12 @@ class VisualizeFilter(ObjectFilter):
     def __init__(self, args):
         super().__init__(args)
         self.verbose = args.verbose
-        mappers = [cls() for cls in VIS_MAPPERS]
+        self._create_maps([cls() for cls in VIS_MAPPERS])
+        self.num_visualized = 0
+        self._num_skipped = 0
+        self._skipped_by_reason = defaultdict(list)
+
+    def _create_maps(self, mappers):
         bysection = defaultdict(list)
         bytype = defaultdict(list)
         bysubtype = defaultdict(list)
@@ -677,9 +682,6 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_type = dict(bytype)
         self._mappers_by_subtype = dict(bysubtype)
         self._mappers_by_id = {id(m): m for m in mappers}
-        self.num_visualized = 0
-        self._num_skipped = 0
-        self._skipped_by_reason = defaultdict(list)
 
     def _match_object(self, objpath):
         def filter_frags(sec, prober):
