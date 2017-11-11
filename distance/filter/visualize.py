@@ -569,6 +569,83 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
         return self.vis.visualize(main, main)
 
 
+class GoldenSimplesMapper(VisualizeMapper):
+
+    match_sections = (
+        Section(MAGIC_2, 0x83, 3),
+    )
+
+    _coll_opts = dict(
+        emit_index = 7,
+        tex_scale = (12, 12, 12),
+        tex_offset = (0.003, -0.003, 0),
+        invert_emit = True,
+        disable_reflect = True,
+        additive_transp = True,
+        multip_transp = False,
+    )
+
+    _dark_textures = {0, 1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16, 17,
+                      18, 19, 20, 21, 22, 23, 25, 27, 29, 30, 31, 32, 33,
+                      40, 44, 46, 47, 52, 56, 59, 63, 70}
+
+    _plane_creator = HoloSimpleCreator(
+        color = (1, 0, 0),
+        type = 'PlaneOneSidedGS',
+        # Additive is visible from both sides - this prevents z-fighting.
+        mat_spec = (0, 0, 0, 0),
+        additive_transp = False,
+    )
+
+    def _calc_additive_visibility(self, color, frag):
+        def color_brightness(color):
+            lum = (.2126 * color[0] + .7152 * color[1] + .0722 * color[2])
+            return lum * color[3]
+        tex_brightness = 1
+        if not frag.invert_emit:
+            if frag.emit_index in self._dark_textures:
+                tex_brightness = 0.1
+        return color_brightness(color) * tex_brightness
+
+    def _calc_multip_visibility(self, color, frag):
+        if frag.disable_diffuse:
+            return max(abs(.25 - c) * 4 for c in color[:3])
+        return .1
+
+    def _calc_visibility(self, obj, frag):
+        visibility = 0
+        if frag.additive_transp:
+            color = GoldenSimple.mat_emit.__get__(obj)
+            visibility += self._calc_additive_visibility(color, frag)
+        if frag.multip_transp:
+            color = GoldenSimple.mat_color.__get__(obj)
+            visibility += self._calc_multip_visibility(color, frag)
+        elif not frag.additive_transp:
+            visibility = 1
+        return visibility
+
+    def apply(self, main, matches):
+        visualized = False
+        frag = matches[0][1]
+        obj = matches[0][0][-1]
+        res = []
+        if not frag.disable_collision:
+            if self._calc_visibility(obj, frag) < 0.1:
+                GoldenSimple.mat_emit.__set__(obj, (1, 0, 0, .02))
+                for k, v in self._coll_opts.items():
+                    setattr(frag, k, v)
+                visualized = True
+            elif main.type == 'PlaneOneSidedGS':
+                # make other side visible
+                transform = main.transform.apply(rot=(1, 0, 0, 0))
+                gs = self._plane_creator.create(transform)
+                res.append(gs)
+                visualized = True
+        if not visualized:
+            raise DoNotApply('is_visible')
+        return res
+
+
 VIS_MAPPERS = [v for v in globals().values()
                if isinstance(v, type) and issubclass(v, VisualizeMapper)]
 
