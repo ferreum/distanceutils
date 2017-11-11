@@ -43,8 +43,10 @@ class RemoveFilter(ObjectFilter):
                             help="Match object type (regex).")
         parser.add_argument("--section", action='append', default=[],
                             help="Match sections.")
+        parser.add_argument("--print", action='store_true', dest='print_',
+                            help="Print matching candidates and abort filter.")
         parser.add_argument("--all", action='store_true',
-                            help="Filter out all matching objects.")
+                            help="This is now the default and has been removed.")
         parser.add_argument("--number", dest='numbers', action='append',
                             type=int, default=[],
                             help="Select by candidate number.")
@@ -53,7 +55,7 @@ class RemoveFilter(ObjectFilter):
 
     def __init__(self, args):
         super().__init__(args)
-        self.all = args.all
+        self.print_ = args.print_
         self.numbers = args.numbers
         self.type_patterns = [re.compile(r) for r in args.type]
         self.sections = {parse_section(arg).to_key() for arg in args.section}
@@ -88,9 +90,7 @@ class RemoveFilter(ObjectFilter):
             num = self.num_matches
             self.num_matches = num + 1
             self.matches.append(obj)
-            if self.all:
-                return True
-            if num in self.numbers:
+            if not self.numbers or num in self.numbers:
                 return True
         return False
 
@@ -105,10 +105,10 @@ class RemoveFilter(ObjectFilter):
         return res
 
     def post_filter(self, content):
-        if self.all or (self.numbers and self.matches):
-            return True
-        print_candidates(self.matches)
-        return False
+        if self.print_:
+            print_candidates(self.matches)
+            return False
+        return True
 
     def print_summary(self, p):
         p(f"Removed matches: {len(self.removed)}")

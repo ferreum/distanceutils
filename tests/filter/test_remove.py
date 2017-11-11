@@ -5,7 +5,8 @@ from distance import Level
 from distance.filter import RemoveFilter
 
 
-def mkargs(maxrecurse=-1, type=[], all=False, numbers=[], section=[], invert=False):
+def mkargs(maxrecurse=-1, type=[], numbers=[], section=[],
+           print_=False, invert=False):
     return Namespace(**locals())
 
 
@@ -14,7 +15,7 @@ class RemoveTest(unittest.TestCase):
     def test_by_type(self):
         l = Level("tests/in/level/test-straightroad.bytes")
 
-        f = RemoveFilter(mkargs(type=["Empire(Start|End)Zone"], all=True))
+        f = RemoveFilter(mkargs(type=["Empire(Start|End)Zone"]))
         f.apply(l)
 
         for obj in l.layers[0].objects:
@@ -37,7 +38,7 @@ class RemoveTest(unittest.TestCase):
     def test_by_section(self):
         l = Level("tests/in/level/test-straightroad.bytes")
 
-        f = RemoveFilter(mkargs(section=["3,9,1"], all=True))
+        f = RemoveFilter(mkargs(section=["3,9,1"]))
         f.apply(l)
 
         self.assertEqual(3, len(l.layers[0].objects))
@@ -48,7 +49,7 @@ class RemoveTest(unittest.TestCase):
     def test_invert(self):
         l = Level("tests/in/level/test-straightroad.bytes")
 
-        f = RemoveFilter(mkargs(type=['Road'], invert=True, all=True))
+        f = RemoveFilter(mkargs(type=['Road'], invert=True))
         f.apply(l)
 
         self.assertEqual(1, len(l.layers[0].objects))
