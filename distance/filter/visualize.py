@@ -643,8 +643,8 @@ class GoldenSimplesMapper(VisualizeMapper):
 
     def apply(self, main, matches):
         visualized = False
-        frag = matches[0][1]
-        obj = matches[0][0][-1]
+        objpath, frag = matches[0]
+        obj = objpath[-1]
         res = []
         visibility = self._calc_visibility(main, obj, frag)
         if not frag.disable_collision:
