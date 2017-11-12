@@ -225,8 +225,6 @@ class TeleporterMapper(VisualizeMapper):
         default_radius = .5,
     )
 
-    from math import sin, cos, pi
-
     deco_status = (
         DecoSimpleCreator(
             'TubeGS', (0, 1, .482),
