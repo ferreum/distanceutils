@@ -337,6 +337,7 @@ class CooldownTriggerNoVisual(LevelObject):
 @PROBER.for_type('VirusMazeCeiling001')
 @PROBER.for_type('VirusMazeTowerFat002')
 @PROBER.for_type('VirusMazeTowerFat003')
+@PROBER.for_type('EmpireMovingPillar')
 class VirusMazeBuilding(LevelObject):
 
     default_transform = Transform.fill()

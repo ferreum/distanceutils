@@ -418,12 +418,18 @@ class VirusMazeMapper(VisualizeMapper):
         default_radius = 176.755,
         **_opts,
     )
+    _vis_pillar = SphereVisualizer(
+        default_center = (.5, .5, .5),
+        default_radius = 10,
+        **_opts,
+    )
 
     visualizers = {
         'VirusMazeCeiling001': _vis_ceiling,
         'VirusMazeTowerFat': _vis_tower,
         'VirusMazeTowerFat002': _vis_tower,
         'VirusMazeTowerFat003': _vis_tower,
+        'EmpireMovingPillar': _vis_pillar,
     }
 
     def apply(self, main, matches):
