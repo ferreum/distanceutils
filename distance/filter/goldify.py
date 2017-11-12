@@ -102,6 +102,7 @@ def create_simples_mappers():
                                   rot=mkrotx(90),
                                   scale=.03125),
         'Plane': OldToGsMapper('PlaneGS', scale=1/6.4),
+        'Capsule': OldToGsMapper('CapsuleGS', scale=(.0388, 1/32, .0388)),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 

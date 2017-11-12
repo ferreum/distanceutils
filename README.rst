@@ -168,8 +168,8 @@ reason the replacements are put into categories:
   replacement if this is the case, retaining the old object.
 
 * ``unsafe``; objects that don't have the correct shape:
-  ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone``, ``Plane`` and
-  all ``inexact`` replacements.
+  ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone``, ``Plane``,
+  ``Capsule`` and all ``inexact`` replacements.
 
   The shape differences may be noticeable depending on the scale:
 
@@ -181,6 +181,8 @@ reason the replacements are put into categories:
   ``[Emissive]PlaneWithCollision`` can be passed through in one direction, but
   has collision in the other. The replacement ``PlaneGS`` has collision in both
   directions.
+
+  ``CapsuleGS`` has different proportions and different number of triangles.
 
 * ``bugs``; just fix collisions with ``Cube`` objects.
 
