@@ -1068,6 +1068,30 @@ _create_property_fragment_classes()
 add_property_fragments_to_prober(PROBER)
 
 
+def material_property(matname, colname):
+    doc = f"property forwarded to material color {matname!r}/{colname!r}"
+    def fget(self):
+        frag = self.fragment_by_type(MaterialFragment)
+        try:
+            return frag.materials[matname][colname]
+        except KeyError as e:
+            raise AttributeError(f"color {matname!r}/{colname!r}") from e
+    def fset(self, value):
+        frag = self.fragment_by_type(MaterialFragment)
+        frag.materials.get_or_add(matname)[colname] = value
+    def fdel(self):
+        frag = self.fragment_by_type(MaterialFragment)
+        mats = frag.materials
+        try:
+            mat = mats[matname]
+            del mat[colname]
+        except KeyError as e:
+            raise AttributeError(f"color {matname!r}/{colname!r}") from e
+        if not mat:
+            del mats[matname]
+    return property(fget, fset, fdel, doc=doc)
+
+
 class ForwardMaterialColors(object):
 
     """Decorator to forward attributes to colors of MaterialFragment."""
@@ -1076,31 +1100,8 @@ class ForwardMaterialColors(object):
         self.colors = colors
 
     def __call__(self, target):
-        doc = f"property forwarded to material color"
         for attrname, (matname, colname, default) in self.colors.items():
-            # These keyword args are here to capture the values of every
-            # iteration. Otherwise they would all refer to the same variable
-            # which is set to the value of the last iteration.
-            def fget(self, matname=matname, colname=colname):
-                frag = self.fragment_by_type(MaterialFragment)
-                try:
-                    return frag.materials[matname][colname]
-                except KeyError as e:
-                    raise AttributeError(f"color {matname!r}.{colname!r}") from e
-            def fset(self, value, matname=matname, colname=colname):
-                frag = self.fragment_by_type(MaterialFragment)
-                frag.materials.get_or_add(matname)[colname] = value
-            def fdel(self, matname=matname, colname=colname):
-                frag = self.fragment_by_type(MaterialFragment)
-                mats = frag.materials
-                try:
-                    mat = mats[matname]
-                    del mat[colname]
-                except KeyError as e:
-                    raise AttributeError(f"color {matname!r}.{colname!r}") from e
-                if not mat:
-                    del mats[matname]
-            setattr(target, attrname, property(fget, fset, fdel, doc=doc))
+            setattr(target, attrname, material_property(matname, colname))
 
         try:
             clsdefaults = target.__default_colors
