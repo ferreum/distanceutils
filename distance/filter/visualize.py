@@ -18,6 +18,16 @@ SKIP_REASONS = {
     'is_visible': ("Already visible", 2),
 }
 
+HOLO_VISUAL_DEFAULT = dict(
+    emit_index = 7,
+    tex_scale = (12, 12, 12),
+    invert_emit = True,
+    tex_offset = (0.003, -0.003, 0),
+    additive_transp = True,
+    disable_reflect = True,
+    multip_transp = False,
+)
+
 
 class SimpleCreator(object):
 
@@ -43,12 +53,7 @@ class SimpleCreator(object):
 class HoloSimpleCreator(SimpleCreator):
 
     defaults = dict(
-        emit_index = 7,
-        tex_scale = (12, 12, 12),
-        invert_emit = True,
-        tex_offset = (0.003, -0.003, 0),
-        additive_transp = True,
-        disable_reflect = True,
+        **HOLO_VISUAL_DEFAULT,
         disable_collision = True,
     )
 
@@ -587,16 +592,6 @@ class GoldenSimplesMapper(VisualizeMapper):
         Section(MAGIC_2, 0x83, 3),
     )
 
-    _coll_opts = dict(
-        emit_index = 7,
-        tex_scale = (12, 12, 12),
-        tex_offset = (0.003, -0.003, 0),
-        invert_emit = True,
-        disable_reflect = True,
-        additive_transp = True,
-        multip_transp = False,
-    )
-
     _dark_textures = {0, 1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16, 17,
                       18, 19, 20, 21, 22, 23, 25, 27, 29, 30, 31, 32, 33,
                       40, 44, 46, 47, 52, 56, 59, 63, 70}
@@ -641,7 +636,7 @@ class GoldenSimplesMapper(VisualizeMapper):
 
     def _convert_to_holo(self, main, obj, frag, color):
         GoldenSimple.mat_emit.__set__(obj, color)
-        for k, v in self._coll_opts.items():
+        for k, v in HOLO_VISUAL_DEFAULT.items():
             setattr(frag, k, v)
         main.fragments = [f for f in main.fragments
                             if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
