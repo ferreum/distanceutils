@@ -3,7 +3,7 @@
 
 from collections import OrderedDict
 
-from .bytes import BytesModel, S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
+from .bytes import S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
 from .base import (
     BaseObject, Fragment,
     BASE_FRAG_PROBER,

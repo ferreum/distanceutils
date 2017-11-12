@@ -292,7 +292,7 @@ class Fragment(BytesModel):
         except AttributeError:
             pass
         else:
-            new.container = Section(self.container)
+            new.container = Section(con)
         self._clone_data(new)
         return new
 

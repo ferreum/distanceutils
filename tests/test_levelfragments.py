@@ -1,6 +1,6 @@
 import unittest
 
-from distance.base import Fragment, ObjectFragment
+from distance.base import Fragment
 from distance.levelfragments import (
     PROBER,
     MaterialFragment,
