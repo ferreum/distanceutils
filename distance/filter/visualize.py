@@ -639,6 +639,13 @@ class GoldenSimplesMapper(VisualizeMapper):
             visibility = 1
         return visibility
 
+    def _convert_to_holo(self, main, obj, frag, color):
+        GoldenSimple.mat_emit.__set__(obj, color)
+        for k, v in self._coll_opts.items():
+            setattr(frag, k, v)
+        main.fragments = [f for f in main.fragments
+                            if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
+
     def apply(self, main, matches):
         visualized = False
         frag = matches[0][1]
@@ -647,11 +654,7 @@ class GoldenSimplesMapper(VisualizeMapper):
         visibility = self._calc_visibility(main, obj, frag)
         if not frag.disable_collision:
             if visibility < 0.1:
-                GoldenSimple.mat_emit.__set__(obj, (1, 0, 0, .02))
-                for k, v in self._coll_opts.items():
-                    setattr(frag, k, v)
-                main.fragments = [f for f in main.fragments
-                                  if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
+                self._convert_to_holo(main, obj, frag, (1, 0, 0, .02))
                 visualized = True
             elif main.type == 'PlaneOneSidedGS' and not main.additive_transp:
                 # make other side visible
@@ -661,11 +664,7 @@ class GoldenSimplesMapper(VisualizeMapper):
                 visualized = True
         else:
             if visibility > 0.3:
-                GoldenSimple.mat_emit.__set__(obj, (0, 0, 1, .02))
-                for k, v in self._coll_opts.items():
-                    setattr(frag, k, v)
-                main.fragments = [f for f in main.fragments
-                                  if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
+                self._convert_to_holo(main, obj, frag, (0, 0, 1, .02))
                 visualized = True
         if not visualized:
             raise DoNotApply('is_visible')
