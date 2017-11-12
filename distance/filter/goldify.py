@@ -104,6 +104,9 @@ def create_simples_mappers():
                                   scale=.03125),
         'Plane': OldToGsMapper('PlaneGS', scale=1/6.4),
         'Capsule': OldToGsMapper('CapsuleGS', scale=(.0388, 1/32, .0388)),
+        'FlatDrop': OldToGsMapper('CheeseGS',
+                                  rot=rot_y90,
+                                  scale=(.0248, .0150335, 1/50)),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 
