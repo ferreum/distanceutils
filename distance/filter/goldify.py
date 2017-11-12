@@ -21,12 +21,12 @@ class OldToGsMapper(ObjectMapper):
 
         gs = GoldenSimple(type=self.type, transform=transform)
         if old.emissive:
-            gs.mat_emit =  old.color_emit
+            gs.mat_emit = getattr(old, 'color_emit', (1, 0.74, 0.216, 1))
             gs.emit_index = 42
             gs.tex_scale = (-.175, .5, 1)
             gs.tex_offset = (0, .125, 0)
         else:
-            gs.mat_color = old.color_fixed_diffuse
+            gs.mat_color = getattr(old, 'color_fixed_diffuse', (1, 1, 1, .5))
             gs.image_index = 17
         gs.mat_spec = (0, 0, 0, 0)
         gs.mat_reflect = (0, 0, 0, 0)
