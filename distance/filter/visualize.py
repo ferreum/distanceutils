@@ -10,11 +10,12 @@ from distance.bytes import Section, MAGIC_2
 from distance.base import Transform, NoDefaultTransformError
 from .base import ObjectFilter, DoNotApply, create_replacement_group
 
-SKIP_REASON_LABELS = {
-    'no_collider': "No collider found",
-    'no_visualizer': "No visualizer for type",
-    'disabled': "Trigger disabled",
-    'no_default_transform': "Unknown default transform",
+SKIP_REASONS = {
+    'no_collider': ("No collider found", 1),
+    'no_visualizer': ("No visualizer for type", 1),
+    'disabled': ("Trigger disabled", 2),
+    'no_default_transform': ("Unknown default transform", 1),
+    'is_visible': ("Already visible", 2),
 }
 
 
@@ -680,7 +681,7 @@ class VisualizeFilter(ObjectFilter):
     @classmethod
     def add_args(cls, parser):
         super().add_args(parser)
-        parser.add_argument('--verbose', action='store_true',
+        parser.add_argument('--verbose', action='count', default=0,
                             help="Print list of skipped objects.")
 
     def __init__(self, args):
@@ -770,9 +771,9 @@ class VisualizeFilter(ObjectFilter):
         with p.tree_children():
             for reason, objs in sorted(self._skipped_by_reason.items()):
                 p.tree_next_child()
-                label = SKIP_REASON_LABELS.get(reason, reason)
+                label, verbosity = SKIP_REASONS.get(reason, (reason, 1))
                 p(f"{label}: {len(objs)}")
-                if self.verbose:
+                if self.verbose >= verbosity:
                     self._print_objects(p, objs)
 
     def print_summary(self, p):
