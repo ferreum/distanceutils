@@ -46,7 +46,8 @@ def create_simples_mappers():
     rot_y90 = (0, sin(radians(90)/2), 0, cos(radians(90)/2))
 
     bugs = {
-        'Cube': OldToGsMapper('CubeGS', scale=1/64),
+        'Cube': OldToGsMapper('CubeGS', scale=1/64,
+                              collision_only=True),
     }
     safe = {
         'Cube': OldToGsMapper('CubeGS', scale=1/64),
