@@ -107,6 +107,9 @@ def create_simples_mappers():
         'FlatDrop': OldToGsMapper('CheeseGS',
                                   rot=rot_y90,
                                   scale=(.0248, .0150335, 1/50)),
+        'CylinderTapered': OldToGsMapper('CircleFrustumGS',
+                                         pos=(0, .75, 0),
+                                         scale=(.019, 3/64, .019)),
     }
     return dict(bugs=bugs, safe=safe, pending=pending, inexact=inexact, unsafe=unsafe)
 

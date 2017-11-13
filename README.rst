@@ -169,7 +169,8 @@ reason the replacements are put into categories:
 
 * ``unsafe``; objects that don't have the correct shape:
   ``Sphere``, ``Cone``, ``Cylinder``, ``Wedge``, ``TrueCone``, ``Plane``,
-  ``Capsule``, ``FlatDrop`` and all ``inexact`` replacements.
+  ``Capsule``, ``FlatDrop``, ``CylinderTapered`` and all ``inexact``
+  replacements.
 
   The shape differences may be noticeable depending on the scale:
 
@@ -186,6 +187,9 @@ reason the replacements are put into categories:
 
   ``FlatDrop`` is replaced with ``CheeseGS``, which is not even close to the
   correct shape, but it's the best fit available.
+
+  ``CylinderTapered`` is replaced with ``CircleFrustumGS``, which has a
+  different angle and number of triangles.
 
 * ``bugs``; just fix collisions with ``Cube`` objects.
 
