@@ -174,17 +174,31 @@ class VisualizeMapper(object):
     match_types = ()
     match_subtypes = ()
 
+    def _prepare_match(self, main, objpath, frags):
+        pass
+
     def prepare(self, main, matches):
         """First pass, for gathering information"""
-        pass
+        for objpath, frags in matches:
+            self._prepare_match(main, objpath, frags)
 
     def post_prepare(self):
         """Called after first pass and before second pass."""
         pass
 
+    def _apply_match(self, main, objpath, frags):
+        return ()
+
     def apply(self, main, matches):
         """Second pass, apply filter."""
-        return ()
+        res = []
+        reasons = []
+        for objpath, frags in matches:
+            try:
+                res.extend(self._apply_match(main, objpath, frags))
+            except DoNotApply as e:
+                reasons.append((e, objpath))
+        return res, reasons
 
 
 class GravityTriggerMapper(VisualizeMapper):
@@ -200,8 +214,8 @@ class GravityTriggerMapper(VisualizeMapper):
         scale_factor = 1/32,
     )
 
-    def apply(self, main, matches):
-        return self.vis.visualize(main, main)
+    def _apply_match(self, main, objpath, frags):
+        return self.vis.visualize(main, objpath[-1])
 
 
 class TeleporterMapper(VisualizeMapper):
@@ -242,45 +256,46 @@ class TeleporterMapper(VisualizeMapper):
         self._entrances = defaultdict(list)
         self._exits = defaultdict(list)
 
-    def prepare(self, main, matches):
+    def _prepare_match(self, main, objpath, frags):
         dest, link_id = None, None
-        for objpath, frag in matches:
+        obj = objpath[-1]
+        for frag in frags:
             if isinstance(frag, levelfrags.TeleporterEntranceFragment):
                 if frag.destination is not None:
                     dest = frag.destination
-                    self._entrances[dest].append(main)
+                    self._entrances[dest].append(obj)
             elif isinstance(frag, levelfrags.TeleporterExitFragment):
                 if frag.link_id is not None:
                     link_id = frag.link_id
-                    self._exits[link_id].append(main)
-        main.__dest_id = dest
-        main.__link_id = link_id
+                    self._exits[link_id].append(obj)
+        obj.__dest_id = dest
+        obj.__link_id = link_id
 
     def post_prepare(self):
         self._entrances = dict(self._entrances)
         self._exits = dict(self._exits)
 
-    def _real_dest(self, main):
-        if main is None:
+    def _real_dest(self, obj):
+        if obj is None:
             return None
-        dests = self._exits.get(main.__dest_id, ())
+        dests = self._exits.get(obj.__dest_id, ())
         for dest in dests:
-            if dest is not main:
+            if dest is not obj:
                 return dest
         # not connected, or teleports to self
         return None
 
-    def apply(self, main, matches):
-        tele = matches[0][0][-1]
+    def _apply_match(self, main, objpath, frags):
+        obj = objpath[-1]
         if main.type == 'TeleporterExit':
             transform = main.transform.apply(
                 pos=self.vis.offset, scale=(.25, .25, .25))
         else:
-            transform = self.vis.transform(main, tele)
+            transform = self.vis.transform(main, obj)
 
-        entrances = self._entrances.get(main.__link_id, ())
+        entrances = self._entrances.get(obj.__link_id, ())
         can_exit = any(1 for e in entrances if self._real_dest(e) is main)
-        real_dest = self._real_dest(main)
+        real_dest = self._real_dest(obj)
         ddst = self._real_dest(real_dest)
         is_bidi = real_dest is not None and ddst is main
 
@@ -321,8 +336,8 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
         default_radius = 100,
     )
 
-    def apply(self, main, matches):
-        return self.vis.visualize(main, main)
+    def _apply_match(self, main, objpath, frags):
+        return self.vis.visualize(main, objpath[-1])
 
 
 class EventTriggerMapper(VisualizeMapper):
@@ -336,13 +351,14 @@ class EventTriggerMapper(VisualizeMapper):
     vis_box = BoxVisualizer(color, scale_factor=1/64)
     vis_sphere = SphereVisualizer(color, scale_factor=1/32)
 
-    def apply(self, main, matches):
+    def _apply_match(self, main, objpath, frags):
+        obj = objpath[-1]
         try:
-            return self.vis_box.visualize(main, main)
+            return self.vis_box.visualize(main, obj)
         except DoNotApply as e:
             if e.reason != 'no_collider':
                 raise
-            return self.vis_sphere.visualize(main, main)
+            return self.vis_sphere.visualize(main, obj)
 
 
 class EnableAbilitiesTriggerMapper(VisualizeMapper):
@@ -356,8 +372,8 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
         scale_factor = 1/64,
     )
 
-    def apply(self, main, matches):
-        return self.vis.visualize(main, main)
+    def _apply_match(self, main, objpath, frags):
+        return self.vis.visualize(main, objpath[-1])
 
 
 class ForceZoneMapper(VisualizeMapper):
@@ -371,8 +387,8 @@ class ForceZoneMapper(VisualizeMapper):
         scale_factor = 1/64,
     )
 
-    def apply(self, main, matches):
-        return self.vis.visualize(main, main)
+    def _apply_match(self, main, objpath, frags):
+        return self.vis.visualize(main, objpath[-1])
 
 
 class WingCorruptionZoneMapper(VisualizeMapper):
@@ -392,13 +408,13 @@ class WingCorruptionZoneMapper(VisualizeMapper):
         default_radius = .5,
     )
 
-    def apply(self, main, matches):
+    def _apply_match(self, main, objpath, frags):
         try:
-            return self.vis_box.visualize(main, main)
+            return self.vis_box.visualize(main, objpath[-1])
         except DoNotApply as e:
             if e.reason != 'no_collider':
                 raise
-            return self.vis_sphere.visualize(main, main)
+            return self.vis_sphere.visualize(main, objpath[-1])
 
 
 class VirusMazeMapper(VisualizeMapper):
@@ -436,14 +452,14 @@ class VirusMazeMapper(VisualizeMapper):
         'EmpireMovingPillar': _vis_pillar,
     }
 
-    def apply(self, main, matches):
+    def _apply_match(self, main, objpath, frags):
         interp_frag = main.fragment_by_type(levelfrags.BaseInterpolateToPositiononTrigger)
         if interp_frag and not interp_frag.actually_interpolate:
             raise DoNotApply('disabled')
         vis = self.visualizers.get(main.type, None)
         if vis is None:
             raise DoNotApply('no_visualizer')
-        return vis.visualize(main, main)
+        return vis.visualize(main, objpath[-1])
 
 
 class CheckpointMapper(VisualizeMapper):
@@ -484,11 +500,9 @@ class CheckpointMapper(VisualizeMapper):
         ),
     }
 
-    def apply(self, main, matches):
-        obj = matches[0][0][-1]
+    def _apply_match(self, main, objpath, frags):
         vis = self.vis_for_type.get(main.type, self.vis)
-        return vis.visualize(main, obj)
-
+        return vis.visualize(main, objpath[-1])
 
 
 class CooldownTriggerMapper(VisualizeMapper):
@@ -560,9 +574,8 @@ class CooldownTriggerMapper(VisualizeMapper):
         grp.fragments = list(grp.fragments) + [anim]
         return grp,
 
-    def apply(self, main, matches):
-        obj = matches[0][0][-1]
-        res = self.vis.visualize(main, obj)
+    def _apply_match(self, main, objpath, frags):
+        res = self.vis.visualize(main, objpath[-1])
         res = self._apply_ring_anim(main, res)
         return res
 
@@ -580,8 +593,8 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
         scale_factor = 1/32,
     )
 
-    def apply(self, main, matches):
-        return self.vis.visualize(main, main)
+    def _apply_match(self, main, objpath, frags):
+        return self.vis.visualize(main, objpath[-1])
 
 
 class GoldenSimplesMapper(VisualizeMapper):
@@ -637,13 +650,13 @@ class GoldenSimplesMapper(VisualizeMapper):
         for k, v in HOLO_VISUAL_DEFAULT.items():
             setattr(frag, k, v)
         main.fragments = [f for f in main.fragments
-                            if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
+                          if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
 
-    def apply(self, main, matches):
+    def _apply_match(self, main, objpath, frags):
         visualized = False
-        objpath, frag = matches[0]
-        obj = objpath[-1]
         res = []
+        frag = frags[0]
+        obj = objpath[-1]
         visibility = self._calc_visibility(main, obj, frag)
         if not frag.disable_collision:
             if visibility < 0.1:
@@ -701,27 +714,43 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_subtype = dict(bysubtype)
         self._mappers_by_id = {id(m): m for m in mappers}
 
-    def _match_object(self, objpath):
+    def _add_matches(self, obj, objpath, dest):
         def filter_frags(sec, prober):
             return sec.to_key() in self._mappers_by_sec
-        mappers = defaultdict(list)
+
+        matches = defaultdict(list)
+
+        # match type
         if len(objpath) == 1:
             bytype = self._mappers_by_type
         else:
             bytype = self._mappers_by_subtype
         for mapper in bytype.get(objpath[-1].type, ()):
-            mappers[id(mapper)].append((objpath, None))
+            # create if not exists
+            matches[id(mapper)]
+
+        # match fragments
         obj = objpath[-1]
         for frag in obj.filtered_fragments(filter_frags):
             for mapper in self._mappers_by_sec[frag.container.to_key()]:
-                mappers[id(mapper)].append((objpath, frag))
+                matches[id(mapper)].append(frag)
+
+        for id_, frags in matches.items():
+            dest[id_].append((objpath, frags))
+
+    def _add_recursive_matches(self, obj, objpath, dest):
+        self._add_matches(obj, objpath, dest)
         if not obj.is_object_group:
-            for c in obj.children:
-                mappers.update(self._match_object(objpath + (c,)))
-        return mappers
+            for sub in obj.children:
+                self._add_recursive_matches(sub, objpath + (sub,), dest)
+
+    def _match_object(self, obj):
+        res = defaultdict(list)
+        self._add_recursive_matches(obj, (obj,), res)
+        return res
 
     def filter_object(self, obj):
-        mappers = self._match_object((obj,))
+        mappers = self._match_object(obj)
         if self.passnum == 0:
             for id_, matches in mappers.items():
                 self._mappers_by_id[id_].prepare(obj, matches)
@@ -730,11 +759,16 @@ class VisualizeFilter(ObjectFilter):
             result = []
             for id_, matches in mappers.items():
                 try:
-                    result.extend(self._mappers_by_id[id_].apply(obj, matches))
-                    self.num_visualized += 1
+                    objs, skipped = self._mappers_by_id[id_].apply(obj, matches)
                 except DoNotApply as e:
                     self._num_skipped += 1
-                    self._skipped_by_reason[e.reason].append((obj, e))
+                    self._skipped_by_reason[e.reason].append(((obj,), e))
+                else:
+                    result.extend(objs)
+                    self.num_visualized += 1
+                    self._num_skipped += len(skipped)
+                    for e, objpath in skipped:
+                        self._skipped_by_reason[e.reason].append((objpath, e))
             if result:
                 grp = create_replacement_group(obj, result)
                 return (obj, *grp)
@@ -750,13 +784,15 @@ class VisualizeFilter(ObjectFilter):
 
     def _print_objects(self, p, objs):
         with p.tree_children():
-            for obj, exc in objs:
+            for objpath, exc in objs:
                 p.tree_next_child()
+                main = objpath[0]
                 try:
-                    objdetail = f" at 0x{obj.start_pos:08x}"
+                    objdetail = f"at 0x{main.start_pos:08x}"
                 except AttributeError:
-                    objdetail = " (generated)"
-                p(f"Object: {obj.type!r}{objdetail}")
+                    objdetail = "(generated)"
+                objstr = '/'.join(repr(o.type) for o in objpath)
+                p(f"Object: {objstr} {objdetail}")
 
     def _print_skipped(self, p):
         p(f"Skipped objects: {self._num_skipped}")
