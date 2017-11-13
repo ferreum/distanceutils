@@ -749,13 +749,13 @@ class VisualizeFilter(ObjectFilter):
         self._add_recursive_matches(obj, (obj,), res)
         return res
 
-    def filter_object(self, obj):
+    def filter_object(self, obj, passnum=None):
         mappers = self._match_object(obj)
-        if self.passnum == 0:
+        if passnum == 0:
             for id_, matches in mappers.items():
                 self._mappers_by_id[id_].prepare(obj, matches)
             return obj,
-        elif self.passnum == 1:
+        elif passnum == 1:
             result = []
             for id_, matches in mappers.items():
                 try:
@@ -773,14 +773,13 @@ class VisualizeFilter(ObjectFilter):
                 grp = create_replacement_group(obj, result)
                 return (obj, *grp)
             return obj,
+        assert False
 
     def apply(self, content):
-        self.passnum = 0
-        super().apply(content)
+        super().apply(content, passnum=0)
         for m in self._mappers:
             m.post_prepare()
-        self.passnum = 1
-        return super().apply(content)
+        return super().apply(content, passnum=1)
 
     def _print_objects(self, p, objs):
         with p.tree_children():
