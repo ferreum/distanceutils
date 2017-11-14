@@ -300,11 +300,16 @@ distance_scripts_ module.
 
 For a complete list, see the modules levelobjects_ and levelfragments_.
 
+
 Writing
 -------
 
 Any object can be written as-is back into a new file. There is limited support
-for modifications of object's attributes.
+for modifications of object's attributes. This includes removing children,
+moving (translating) level objects, removing level objects, changing object's
+types, and adding newly generated objects.
+
+For a complete list, see the modules levelobjects_ and levelfragments_.
 
 For a (now incomplete) list of supported objects, see `Object support`_.
 

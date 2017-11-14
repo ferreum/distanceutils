@@ -3,10 +3,12 @@ Object support
 **************
 
 *Note: This list is incomplete. For a complete list, see the modules*
-levelobjects_ *and* levelfragments_
+levelobjects_ *and* levelfragments_ *and the objects listed in the* `distance
+module`_
 
 .. _levelobjects: ./../distance/levelobjects.py
 .. _levelfragments: ./../distance/levelfragments.py
+.. _`distance module`: ./../distance/__init__.py
 
 Top-level objects
 -----------------
