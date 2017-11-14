@@ -17,6 +17,39 @@ Many operations also require the packages ``numpy`` and ``numpy-quaternion`` to
 be installed.
 
 
+_`Module usage`
+===============
+
+The functionality of this project can be imported with the ``distance`` module.
+The module's `doc string`_ has a short introduction for reading files.
+
+For example usages, see the scripts provided with the distance_scripts_ module.
+
+For a complete list of supported level objects, see the
+distance.levelobjects_ and distance.levelfragments_ modules.
+
+
+Writing
+-------
+
+Any object can be written as-is back into a new file. There is limited support
+for modifications of object's attributes. This includes removing children,
+moving (translating) level objects, removing level objects, changing object's
+types, and adding newly generated objects.
+
+For a complete list, see the objects defined in the modules
+distance.levelobjects_ and distance.levelfragments_.
+
+For a (now incomplete) list of supported objects, see `Object support`_.
+
+
+.. _`doc string`: ./distance/__init__.py
+.. _`Object support`: ./doc/OBJECT_SUPPORT.rst
+.. _distance.levelobjects: ./distance/levelobjects.py
+.. _distance.levelfragments: ./distance/levelfragments.py
+.. _distance_scripts: ./distance_scripts/
+
+
 Scripts
 =======
 
@@ -105,6 +138,8 @@ dst-filterlevel
 
 Apply filters to a level or CustomObject.
 
+For a list of filters, see filters_.
+
 Takes an input and an output filename. Any amount of filters can be specified,
 which are applied in the given order.
 
@@ -124,7 +159,6 @@ aborts the program without executing any filters.
 *Note: due to an implementation detail, the help lists arguments with a* ``--``
 *prefix that needs to be ignored for now.*
 
-For a list of filters, see filters_.
 
 .. _filters: ./doc/FILTERS.rst
 
@@ -159,34 +193,4 @@ dst-querymaps
 
 Query the cache database. See --help for options.
 
-
-_`Module usage`
-===============
-
-The functionality of this project can be imported using the ``distance`` module.
-The module's `doc string`_ has a short introduction for reading files.
-
-For example usages, see the scripts provided by this package, in the
-distance_scripts_ module.
-
-For a complete list, see the modules levelobjects_ and levelfragments_.
-
-
-Writing
--------
-
-Any object can be written as-is back into a new file. There is limited support
-for modifications of object's attributes. This includes removing children,
-moving (translating) level objects, removing level objects, changing object's
-types, and adding newly generated objects.
-
-For a complete list, see the modules levelobjects_ and levelfragments_.
-
-For a (now incomplete) list of supported objects, see `Object support`_.
-
-.. _`doc string`: ./distance/__init__.py
-.. _`Object support`: ./doc/OBJECT_SUPPORT.rst
-.. _levelobjects: ./distance/levelobjects.py
-.. _levelfragments: ./distance/levelfragments.py
-.. _distance_scripts: ./distance_scripts/
 
