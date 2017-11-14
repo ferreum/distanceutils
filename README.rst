@@ -21,9 +21,21 @@ _`Module usage`
 ===============
 
 The functionality of this project can be imported with the ``distance`` module.
-The module's `doc string`_ has a short introduction for reading files.
 
-For example usages, see the scripts provided with the distance_scripts_ module.
+Reading a file is as easy as importing the module and passing a file name to
+the right object or the ``PROBER``::
+
+  >>> from distance import Level
+  >>> level = Level("my_level.bytes")
+  >>> level.settings.name
+  'My Level'
+  >>> level.layers[0].objects[-1].type
+  'EmpireEndZone'
+
+The module's `doc string`_ provides further introduction for reading files.
+
+For more example usages, see the scripts provided with the distance_scripts_
+module.
 
 For a complete list of supported level objects, see the
 distance.levelobjects_ and distance.levelfragments_ modules.
@@ -36,6 +48,13 @@ Any object can be written as-is back into a new file. There is limited support
 for modifications of object's attributes. This includes removing children,
 moving (translating) level objects, removing level objects, changing object's
 types, and adding newly generated objects.
+
+For example, a level's name can be changed::
+
+  >>> from distance import Level
+  >>> level = Level("my_level.bytes")
+  >>> level.settings.name = 'My Changed Level'
+  >>> level.write("my_changed_level.bytes")
 
 For a complete list, see the objects defined in the modules
 distance.levelobjects_ and distance.levelfragments_.
