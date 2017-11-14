@@ -25,7 +25,7 @@ The functionality of this project can be imported with the ``distance`` module.
 Reading a file is as easy as importing the module and passing a file name to
 the right object or the ``PROBER``:
 
-.. code:: python
+.. code:: pycon
 
   >>> from distance import Level
   >>> level = Level("my_level.bytes")
@@ -53,7 +53,7 @@ types, and adding newly generated objects.
 
 For example, a level's name can be changed:
 
-.. code:: python
+.. code:: pycon
 
   >>> from distance import Level
   >>> level = Level("my_level.bytes")
