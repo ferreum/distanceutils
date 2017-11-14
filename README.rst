@@ -23,7 +23,9 @@ _`Module usage`
 The functionality of this project can be imported with the ``distance`` module.
 
 Reading a file is as easy as importing the module and passing a file name to
-the right object or the ``PROBER``::
+the right object or the ``PROBER``:
+
+.. code:: python
 
   >>> from distance import Level
   >>> level = Level("my_level.bytes")
@@ -49,7 +51,9 @@ for modifications of object's attributes. This includes removing children,
 moving (translating) level objects, removing level objects, changing object's
 types, and adding newly generated objects.
 
-For example, a level's name can be changed::
+For example, a level's name can be changed:
+
+.. code:: python
 
   >>> from distance import Level
   >>> level = Level("my_level.bytes")
