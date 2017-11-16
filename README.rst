@@ -76,7 +76,7 @@ For a (now incomplete) list of supported objects, see `Object support`_.
 Scripts
 =======
 
-The following executable scripts are provided:
+The following executable scripts are included with this package:
 
 `dst-bytes`_ - Dump various data from .bytes files.
 
@@ -90,7 +90,7 @@ The following executable scripts are provided:
 
 `dst-mklevelinfos`_ - Generate the cache database from WorkshopLevelInfos.bytes.
 
-`dst-querymaps`_ - Query the cache database. See --help for options.
+`dst-querymaps`_ - Query the cache database.
 
 
 .. _filters: ./doc/FILTERS.rst
