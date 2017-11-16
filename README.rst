@@ -179,9 +179,6 @@ Examples::
 Filters provide a ``help`` argument, which just prints the filter's help, and
 aborts the program without executing any filters.
 
-*Note: due to an implementation detail, the help lists arguments with a* ``--``
-*prefix that needs to be ignored for now.*
-
 
 .. _filters: ./doc/FILTERS.rst
 

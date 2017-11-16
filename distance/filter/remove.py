@@ -39,18 +39,18 @@ class RemoveFilter(ObjectFilter):
     @classmethod
     def add_args(cls, parser):
         super().add_args(parser)
-        parser.add_argument("--type", action='append', default=[],
+        parser.add_argument(":type", action='append', default=[],
                             help="Match object type (regex).")
-        parser.add_argument("--section", action='append', default=[],
+        parser.add_argument(":section", action='append', default=[],
                             help="Match sections.")
-        parser.add_argument("--print", action='store_true', dest='print_',
+        parser.add_argument(":print", action='store_true', dest='print_',
                             help="Print matching candidates and abort filter.")
-        parser.add_argument("--all", action='store_true',
+        parser.add_argument(":all", action='store_true',
                             help="This is now the default and has been removed.")
-        parser.add_argument("--number", dest='numbers', action='append',
+        parser.add_argument(":number", dest='numbers', action='append',
                             type=int, default=[],
                             help="Select by candidate number.")
-        parser.add_argument("--invert", action='store_true',
+        parser.add_argument(":invert", action='store_true',
                             help="Remove unmatched objects.")
 
     def __init__(self, args):

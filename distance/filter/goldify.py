@@ -128,17 +128,17 @@ class GoldifyFilter(ObjectFilter):
     @classmethod
     def add_args(cls, parser):
         super().add_args(parser)
-        parser.add_argument("--debug", action='store_true')
+        parser.add_argument(":debug", action='store_true')
         grp = parser.add_mutually_exclusive_group()
-        grp.add_argument("--bugs", action='store_const', const="bugs", dest='mode',
+        grp.add_argument(":bugs", action='store_const', const="bugs", dest='mode',
                          help="Replace glitched simples (CubeWithCollision).")
-        grp.add_argument("--safe", action='store_const', const="safe", dest='mode',
+        grp.add_argument(":safe", action='store_const', const="safe", dest='mode',
                          help="Do all safe (exact) replacements (default).")
-        grp.add_argument("--inexact", action='store_const', const="inexact", dest='mode',
+        grp.add_argument(":inexact", action='store_const', const="inexact", dest='mode',
                          help="Include replacements with imperfect precision.")
-        grp.add_argument("--pending", action='store_const', const="pending", dest='mode',
+        grp.add_argument(":pending", action='store_const', const="pending", dest='mode',
                          help="Only use unfinished implementations (debug).")
-        grp.add_argument("--unsafe", action='store_const', const="unsafe", dest='mode',
+        grp.add_argument(":unsafe", action='store_const', const="unsafe", dest='mode',
                          help="Do all replacements.")
         grp.set_defaults(mode='safe')
 

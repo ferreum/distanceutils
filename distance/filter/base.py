@@ -34,7 +34,7 @@ class ObjectFilter(object):
 
     @classmethod
     def add_args(cls, parser):
-        parser.add_argument("--maxrecurse", type=int, default=-1,
+        parser.add_argument(":maxrecurse", type=int, default=-1,
                             help="Set recursion limit, -1 for infinite (the default).")
 
     def __init__(self, args):

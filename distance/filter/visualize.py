@@ -686,7 +686,7 @@ class VisualizeFilter(ObjectFilter):
     @classmethod
     def add_args(cls, parser):
         super().add_args(parser)
-        parser.add_argument('--verbose', action='count', default=0,
+        parser.add_argument(':verbose', action='count', default=0,
                             help="Print list of skipped objects.")
 
     def __init__(self, args):

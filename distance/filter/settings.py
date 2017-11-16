@@ -79,18 +79,18 @@ class SettingsFilter(ObjectFilter):
 
     @classmethod
     def add_args(cls, parser):
-        parser.add_argument("--name", help="Set the level name.")
-        parser.add_argument("--namefmt", default='{name}',
+        parser.add_argument(":name", help="Set the level name.")
+        parser.add_argument(":namefmt", default='{name}',
                             help="Specify level name by format.")
-        parser.add_argument("--modes", type=parse_modes,
+        parser.add_argument(":modes", type=parse_modes,
                             help="Set game modes.")
-        parser.add_argument("--modes+", type=parse_modes, dest='modes_add',
+        parser.add_argument(":modes+", type=parse_modes, dest='modes_add',
                             default=(),
                             help="Add game modes.")
-        parser.add_argument("--modes-", type=parse_modes, dest='modes_remove',
+        parser.add_argument(":modes-", type=parse_modes, dest='modes_remove',
                             default=(),
                             help="Remove game modes.")
-        parser.add_argument("--abilities", type=parse_abilities,
+        parser.add_argument(":abilities", type=parse_abilities,
                             help="Set enabled abilities.")
 
     def __init__(self, args):

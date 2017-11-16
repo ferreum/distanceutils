@@ -56,17 +56,17 @@ class UnkillFilter(ObjectFilter):
     @classmethod
     def add_args(cls, parser):
         super().add_args(parser)
-        parser.add_argument("--debug", action='store_true')
-        parser.add_argument("--nocolor", dest='color',
+        parser.add_argument(":debug", action='store_true')
+        parser.add_argument(":nocolor", dest='color',
                             action='store_false',
                             help="Use default kill grid color.")
-        parser.add_argument("--color", dest='color',
+        parser.add_argument(":color", dest='color',
                             action='store_true',
                             help="Copy kill grid color (default).")
-        parser.add_argument("--collision", dest='collision',
+        parser.add_argument(":collision", dest='collision',
                             action='store_true', default=True,
                             help="Enable simples collision (default).")
-        parser.add_argument("--nocollision", dest='collision',
+        parser.add_argument(":nocollision", dest='collision',
                             action='store_false',
                             help="Disable simples collision.")
 

@@ -59,14 +59,14 @@ def make_arglist(s):
                 token.append(char)
         yield token
 
-    return ["--" + ''.join(token) for token in iter_tokens(s)]
+    return [":" + ''.join(token) for token in iter_tokens(s)]
 
 
 def create_filter(option, defaults):
     name, sep, argstr = option.partition(':')
     cls = FILTERS[name]
 
-    parser = argparse.ArgumentParser(prog=name)
+    parser = argparse.ArgumentParser(prog=name, prefix_chars=':')
     parser.set_defaults(**defaults)
     cls.add_args(parser)
     args = parser.parse_args(make_arglist(argstr))
