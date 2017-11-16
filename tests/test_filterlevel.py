@@ -9,16 +9,16 @@ class SplitArgsTest(unittest.TestCase):
         self.assertEqual([], make_arglist(""))
 
     def test_single(self):
-        self.assertEqual(["--all"], make_arglist("all"))
+        self.assertEqual([":all"], make_arglist("all"))
 
     def test_value(self):
-        self.assertEqual(["--num=2"], make_arglist("num=2"))
+        self.assertEqual([":num=2"], make_arglist("num=2"))
 
     def test_multiple(self):
-        self.assertEqual(["--all", "--num=2"], make_arglist("all:num=2"))
+        self.assertEqual([":all", ":num=2"], make_arglist("all:num=2"))
 
     def test_escape(self):
-        self.assertEqual(["--type=te:st"], make_arglist("type=te\\:st"))
+        self.assertEqual([":type=te:st"], make_arglist("type=te\\:st"))
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
