@@ -100,6 +100,6 @@ The following executable scripts are provided:
 .. _`dst-objtobytes`: ./doc/SCRIPTS.rst#dst-objtobytes
 .. _`dst-filterlevel`: ./doc/SCRIPTS.rst#dst-filterlevel
 .. _`dst-teletodot`: ./doc/SCRIPTS.rst#dst-teletodot
-.. _`dst-mklevelinfos`: ./doc/SCRIPTS.rst#WorkshopLevelInfos%20database
-.. _`dst-querymaps`: ./doc/SCRIPTS.rst#WorkshopLevelInfos%20database
+.. _`dst-mklevelinfos`: ./doc/SCRIPTS.rst#workshoplevelinfos-database
+.. _`dst-querymaps`: ./doc/SCRIPTS.rst#workshoplevelinfos-database
 
