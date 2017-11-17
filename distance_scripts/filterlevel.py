@@ -83,11 +83,11 @@ def main():
     defaults = dict(maxrecurse=args.maxrecurse)
     filters = [create_filter(f, defaults) for f in args.objfilters]
 
-    if args.IN is not None:
+    if args.IN is None:
         print(f"{parser.prog}: No input file specified.", file=sys.stderr)
         return 1
 
-    if args.OUT is not None:
+    if args.OUT is None:
         print(f"{parser.prog}: No output file specified.", file=sys.stderr)
         return 1
 
