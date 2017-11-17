@@ -9,34 +9,18 @@ from distance.level import Level
 from distance.levelobjects import Group
 from distance.base import BaseObject
 from distance.bytes import MAGIC_9
-from distance.filter import (
-    GoldifyFilter,
-    RemoveFilter,
-    UnkillFilter,
-    VisualizeFilter,
-    SettingsFilter,
-)
+from distance.filter import getfilter
 from distance.printing import PrintContext
 from distance.prober import BytesProber
 
 
 PROBER = BytesProber()
-
-
 PROBER.add_type('Group', Group)
 PROBER.add_fragment(Level, MAGIC_9)
 
 @PROBER.func
 def _detect_other(section):
     return BaseObject
-
-
-FILTERS = {}
-FILTERS['goldify'] = GoldifyFilter
-FILTERS['rm'] = RemoveFilter
-FILTERS['unkill'] = UnkillFilter
-FILTERS['vis'] = VisualizeFilter
-FILTERS['settings'] = SettingsFilter
 
 
 def make_arglist(s):
@@ -64,7 +48,7 @@ def make_arglist(s):
 
 def create_filter(option, defaults):
     name, sep, argstr = option.partition(':')
-    cls = FILTERS[name]
+    cls = getfilter(name)
 
     parser = argparse.ArgumentParser(prog=name, prefix_chars=':')
     parser.set_defaults(**defaults)

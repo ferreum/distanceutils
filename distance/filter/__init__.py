@@ -16,4 +16,17 @@ __all__ = [
 ]
 
 
+_filters = {
+    'goldify' : GoldifyFilter,
+    'rm' : RemoveFilter,
+    'unkill' : UnkillFilter,
+    'vis' : VisualizeFilter,
+    'settings' : SettingsFilter,
+}
+
+
+def getfilter(name):
+    return _filters[name]
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
