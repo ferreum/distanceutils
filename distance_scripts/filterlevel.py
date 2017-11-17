@@ -50,7 +50,10 @@ def create_filter(option, defaults):
     name, sep, argstr = option.partition(':')
     cls = getfilter(name)
 
-    parser = argparse.ArgumentParser(prog=name, prefix_chars=':')
+    parser = argparse.ArgumentParser(prog=name, prefix_chars=':',
+                                     add_help=False)
+    parser.add_argument(':help', action='help', default=argparse.SUPPRESS,
+                        help='show this help message and exit')
     parser.set_defaults(**defaults)
     cls.add_args(parser)
     args = parser.parse_args(make_arglist(argstr))
