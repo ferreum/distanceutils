@@ -18,6 +18,7 @@ PROBER = BytesProber()
 PROBER.add_type('Group', Group)
 PROBER.add_fragment(Level, MAGIC_9)
 
+
 @PROBER.func
 def _detect_other(section):
     return BaseObject
@@ -67,7 +68,7 @@ def main():
     parser.add_argument("-f", "--force", action='store_true',
                         help="Allow overwriting OUT file.")
     parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
-                        help="Maximum of recursions. 0 only lists layer objects.")
+                        help="Maximum recursion depth.")
     parser.add_argument("-o", "--of", "--objfilter", dest='objfilters',
                         action='append', default=[],
                         help="Specify a filter option.")
