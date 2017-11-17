@@ -8,11 +8,7 @@ from distance.filter.settings import SettingsFilter
 
 
 __all__ = [
-    'GoldifyFilter',
-    'RemoveFilter',
-    'UnkillFilter',
-    'VisualizeFilter',
-    'SettingsFilter',
+    'getfilter',
 ]
 
 
