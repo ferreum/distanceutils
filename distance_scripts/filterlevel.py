@@ -73,20 +73,29 @@ def main():
                         help="Specify a filter option.")
     parser.add_argument("--list", action='store_true',
                         help="Dump result listing.")
-    parser.add_argument("IN",
+    parser.add_argument("IN", nargs='?',
                         help="Level .bytes filename.")
-    parser.add_argument("OUT",
+    parser.add_argument("OUT", nargs='?',
                         help="output .bytes filename.")
     args = parser.parse_args()
 
     defaults = dict(maxrecurse=args.maxrecurse)
     filters = [create_filter(f, defaults) for f in args.objfilters]
 
+    if args.IN is not None:
+        print(f"{parser.prog}: No input file specified.", file=sys.stderr)
+        return 1
+
+    if args.OUT is not None:
+        print(f"{parser.prog}: No output file specified.", file=sys.stderr)
+        return 1
+
     write_mode = 'xb'
     if args.force:
         write_mode = 'wb'
     elif os.path.exists(args.OUT):
-        print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
+        print(f"{parser.prog}: file {args.OUT} exists."
+              " pass -f to force.", file=sys.stderr)
         return 1
 
     content = PROBER.read(args.IN)
