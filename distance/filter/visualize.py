@@ -125,7 +125,10 @@ class BoxVisualizer(Visualizer):
         super().__init__(**kw)
         self.creator = HoloSimpleCreator('CubeGS', color)
 
-    def transform(self, main, obj):
+    def transform(self, objpath):
+        main = objpath[0]
+        obj = objpath[-1]
+
         coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
         if coll is None:
             raise DoNotApply('no_collider')
@@ -136,8 +139,8 @@ class BoxVisualizer(Visualizer):
             coll_center=coll_center,
             size=size)
 
-    def visualize(self, main, obj):
-        transform = self.transform(main, obj)
+    def visualize(self, objpath):
+        transform = self.transform(objpath)
         gs = self.creator.create(transform)
         return gs,
 
@@ -151,7 +154,10 @@ class SphereVisualizer(Visualizer):
         super().__init__(**kw)
         self.creator = HoloSimpleCreator('SphereHDGS', color)
 
-    def transform(self, main, obj):
+    def transform(self, objpath):
+        main = objpath[0]
+        obj = objpath[-1]
+
         coll = obj.fragment_by_type(levelfrags.SphereColliderFragment)
         if coll is None:
             raise DoNotApply('no_collider')
@@ -162,8 +168,8 @@ class SphereVisualizer(Visualizer):
             coll_center=coll_center,
             size=(radius, radius, radius))
 
-    def visualize(self, main, obj):
-        transform = self.transform(main, obj)
+    def visualize(self, objpath):
+        transform = self.transform(objpath)
         gs = self.creator.create(transform)
         return gs,
 
@@ -215,7 +221,7 @@ class GravityTriggerMapper(VisualizeMapper):
     )
 
     def _apply_match(self, main, objpath, frags):
-        return self.vis.visualize(main, objpath[-1])
+        return self.vis.visualize(objpath)
 
 
 class TeleporterMapper(VisualizeMapper):
@@ -291,7 +297,7 @@ class TeleporterMapper(VisualizeMapper):
             transform = main.transform.apply(
                 pos=self.vis.offset, scale=(.25, .25, .25))
         else:
-            transform = self.vis.transform(main, obj)
+            transform = self.vis.transform(objpath)
 
         entrances = self._entrances.get(obj.__link_id, ())
         can_exit = any(1 for e in entrances if self._real_dest(e) is obj)
@@ -337,7 +343,7 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
     )
 
     def _apply_match(self, main, objpath, frags):
-        return self.vis.visualize(main, objpath[-1])
+        return self.vis.visualize(objpath)
 
 
 class EventTriggerMapper(VisualizeMapper):
@@ -352,13 +358,12 @@ class EventTriggerMapper(VisualizeMapper):
     vis_sphere = SphereVisualizer(color, scale_factor=1/32)
 
     def _apply_match(self, main, objpath, frags):
-        obj = objpath[-1]
         try:
-            return self.vis_box.visualize(main, obj)
+            return self.vis_box.visualize(objpath)
         except DoNotApply as e:
             if e.reason != 'no_collider':
                 raise
-            return self.vis_sphere.visualize(main, obj)
+            return self.vis_sphere.visualize(objpath)
 
 
 class EnableAbilitiesTriggerMapper(VisualizeMapper):
@@ -373,7 +378,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
     )
 
     def _apply_match(self, main, objpath, frags):
-        return self.vis.visualize(main, objpath[-1])
+        return self.vis.visualize(objpath)
 
 
 class ForceZoneMapper(VisualizeMapper):
@@ -388,7 +393,7 @@ class ForceZoneMapper(VisualizeMapper):
     )
 
     def _apply_match(self, main, objpath, frags):
-        return self.vis.visualize(main, objpath[-1])
+        return self.vis.visualize(objpath)
 
 
 class WingCorruptionZoneMapper(VisualizeMapper):
@@ -410,11 +415,11 @@ class WingCorruptionZoneMapper(VisualizeMapper):
 
     def _apply_match(self, main, objpath, frags):
         try:
-            return self.vis_box.visualize(main, objpath[-1])
+            return self.vis_box.visualize(objpath)
         except DoNotApply as e:
             if e.reason != 'no_collider':
                 raise
-            return self.vis_sphere.visualize(main, objpath[-1])
+            return self.vis_sphere.visualize(objpath)
 
 
 class VirusMazeMapper(VisualizeMapper):
@@ -459,7 +464,7 @@ class VirusMazeMapper(VisualizeMapper):
         vis = self.visualizers.get(main.type, None)
         if vis is None:
             raise DoNotApply('no_visualizer')
-        return vis.visualize(main, objpath[-1])
+        return vis.visualize(objpath)
 
 
 class CheckpointMapper(VisualizeMapper):
@@ -502,7 +507,7 @@ class CheckpointMapper(VisualizeMapper):
 
     def _apply_match(self, main, objpath, frags):
         vis = self.vis_for_type.get(main.type, self.vis)
-        return vis.visualize(main, objpath[-1])
+        return vis.visualize(objpath)
 
 
 class CooldownTriggerMapper(VisualizeMapper):
@@ -575,7 +580,7 @@ class CooldownTriggerMapper(VisualizeMapper):
         return grp,
 
     def _apply_match(self, main, objpath, frags):
-        res = self.vis.visualize(main, objpath[-1])
+        res = self.vis.visualize(objpath)
         res = self._apply_ring_anim(main, res)
         return res
 
@@ -594,7 +599,7 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
     )
 
     def _apply_match(self, main, objpath, frags):
-        return self.vis.visualize(main, objpath[-1])
+        return self.vis.visualize(objpath)
 
 
 class GoldenSimplesMapper(VisualizeMapper):
