@@ -1,11 +1,21 @@
 import unittest
 
-from distance.levelobjects import PROBER, SubTeleporter, WinLogic, GoldenSimple
+from distance.base import (
+    ObjectFragment,
+)
+from distance.levelobjects import (
+    PROBER,
+    Group,
+    SubTeleporter,
+    WinLogic,
+    GoldenSimple,
+)
 from distance.levelfragments import (
     TrackNodeFragment,
     BaseCarScreenTextDecodeTrigger,
     CarScreenTextDecodeTriggerFragment,
     OldCarScreenTextDecodeTriggerFragment,
+    AnimatorFragment,
 )
 from distance.printing import PrintContext
 from distance.constants import ForceType
@@ -305,6 +315,21 @@ class CubeGsTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/2cubes.bytes")
         self.assertEqual(GoldenSimple, type(obj.children[0]))
         self.assertEqual(GoldenSimple, type(obj.children[1]))
+
+
+class TestFragments(unittest.TestCase):
+
+    def test_getbytype_after_assign(self):
+        old_anim = AnimatorFragment()
+        obj = Group()
+        obj.fragments = [ObjectFragment(), old_anim]
+        obj.fragment_by_type(AnimatorFragment)
+
+        new_anim = AnimatorFragment()
+        obj.fragments = [ObjectFragment(), new_anim]
+
+        res = obj.fragment_by_type(AnimatorFragment)
+        self.assertIs(new_anim, res)
 
 
 if __name__ == '__main__':

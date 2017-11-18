@@ -432,7 +432,7 @@ class MappedSequenceView(collections.Sequence):
         return map(self._func, self._source)
 
 
-def FragmentsContainerView(frags):
+def _FragmentsContainerView(frags):
     return MappedSequenceView(frags, attrgetter('container'))
 
 
@@ -477,8 +477,10 @@ class BaseObject(Fragment):
 
     @fragments.setter
     def fragments(self, value):
-        self._sections = FragmentsContainerView(value)
+        self._sections = _FragmentsContainerView(value)
         self._fragments = value
+        self._fragment_types = MappedSequenceView(value, type)
+        self._fragments_by_type = {}
 
     sections = property(attrgetter('_sections'),
                         doc=("Containers of the fragments of this object."
@@ -566,8 +568,7 @@ class BaseObject(Fragment):
                 if cls is ObjectFragment:
                     frag.has_children = self.has_children
                 fragments.append(frag)
-        self._sections = FragmentsContainerView(fragments)
-        self._fragments = fragments
+        self.fragments = fragments
 
     def iter_children(self, ty=None, name=None):
         for obj in self.children:
