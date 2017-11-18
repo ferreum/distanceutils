@@ -92,7 +92,7 @@ class GroupFragment(Fragment):
     _has_more_data = False
 
     def _init_defaults(self):
-        Fragment._init_defaults(self)
+        super()._init_defaults()
         for name, value in self.value_attrs.items():
             setattr(self, name, value)
 
@@ -163,7 +163,7 @@ class GoldenSimplesFragment(Fragment):
     )
 
     def _init_defaults(self):
-        Fragment._init_defaults(self)
+        super()._init_defaults()
         for name, value in self.value_attrs.items():
             setattr(self, name, value)
 

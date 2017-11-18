@@ -250,6 +250,12 @@ class Fragment(BytesModel):
 
     is_interesting = False
 
+    def _init_defaults(self):
+        super()._init_defaults()
+        con = self.default_section
+        if con is not None:
+            self.container = con
+
     def _read(self, dbytes, container=None, **kw):
         self.dbytes = dbytes
         if container is None:
@@ -340,7 +346,10 @@ class ObjectFragment(Fragment):
     __slots__ = ('real_transform', 'has_children', 'children',
                  '_child_prober')
 
+    default_section = Section(MAGIC_3, 1, 0)
+
     def _init_defaults(self):
+        super()._init_defaults()
         self.real_transform = Transform()
         self.has_children = False
         self.children = ()
@@ -544,6 +553,7 @@ class BaseObject(Fragment):
             frag.write(dbytes)
 
     def _init_defaults(self):
+        super()._init_defaults()
         sections = list(Section(s) for s in self.default_sections)
         fragments = []
         for sec in sections:
