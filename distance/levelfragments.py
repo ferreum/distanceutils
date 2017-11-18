@@ -421,33 +421,59 @@ class TextMeshFragment(Fragment):
 
     is_interesting = True
 
+    have_content = False
+
     text = None
-    is_skip = False
+    font_style = None
+    font = None
+    _unknown = b''
+
+    def _init_defaults(self):
+        super()._init_defaults()
+        self.have_content = True
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
-            if sec.content_size > 4:
+
+            def skip_or(func, *args):
                 with dbytes:
-                    # found on v8,v9 endzone
-                    if dbytes.read_bytes(4) == SKIP_BYTES:
-                        self.is_skip = True
-                        # "00"
-                        self.text = None
-                        return
-            self.text = dbytes.read_str()
-        else:
-            # "Hello World"
-            self.text = None
+                    try:
+                        skip = dbytes.read_bytes(4) == SKIP_BYTES
+                    except EOFError:
+                        pass
+                if skip:
+                    return None
+                return func(*args)
+
+            self.have_content = True
+            self.text = skip_or(dbytes.read_str)
+            if sec.version >= 2:
+                self.font_style = skip_or(dbytes.read_uint4)
+                self.font = skip_or(dbytes.read_uint4)
+            rem = sec.end_pos - dbytes.tell()
+            if rem:
+                self._unknown = dbytes.read_bytes(rem)
+
+    def _write_section_data(self, dbytes, sec):
+        if self.have_content:
+            if self.text is None:
+                dbytes.write_bytes(SKIP_BYTES)
+            else:
+                dbytes.write_str(self.text)
+            if self.font_style is None:
+                dbytes.write_bytes(SKIP_BYTES)
+            else:
+                dbytes.write_int(4, self.font_style)
+            if sec.version >= 2:
+                if self.font is None:
+                    dbytes.write_bytes(SKIP_BYTES)
+                else:
+                    dbytes.write_int(4, self.font)
+            dbytes.write_bytes(self._unknown)
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
-        text = self.text
-        if self.text is None:
-            if self.is_skip:
-                text = "00"
-            else:
-                text = "Hello World"
-        p(f"World text: {text!r}")
+        p(f"World text: {self.text!r}")
 
 
 @PROBER.fragment(MAGIC_2, 0x16, 2)
