@@ -294,10 +294,10 @@ class TeleporterMapper(VisualizeMapper):
             transform = self.vis.transform(main, obj)
 
         entrances = self._entrances.get(obj.__link_id, ())
-        can_exit = any(1 for e in entrances if self._real_dest(e) is main)
+        can_exit = any(1 for e in entrances if self._real_dest(e) is obj)
         real_dest = self._real_dest(obj)
         ddst = self._real_dest(real_dest)
-        is_bidi = real_dest is not None and ddst is main
+        is_bidi = real_dest is not None and ddst is obj
 
         if real_dest:
             if can_exit:
