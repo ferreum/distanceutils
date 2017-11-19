@@ -1,6 +1,35 @@
 Changelog
 ---------
 
+* version 0.4.3
+
+  * ``vis`` filter now modifies golden simples according to whether their
+    collision is enabled.
+
+  * ``vis`` now shows colliders of ``AbilityCheckpointOLD`` and
+    ``EmpireMovingPillar``.
+
+  * ``vis`` can now apply to multiple components of the same type for the same
+    level object (which doesn't yet exist in game).
+
+  * ``rm`` filter now applies to ``:all`` by default, added ``:print`` for
+    listing matches and aborting instead.
+
+  * ``goldify`` can now replace all old simples (with ``unsafe`` category).
+
+  * ``goldify`` filter can now handle simples with omitted colors (which
+    happened in old versions with default colors).
+
+  * Internal changes
+
+    * Made ``BaseObject.sections`` a read-only view of its fragments'
+      containers.
+
+    * Fixed some caching issues with ``fragment_by_type()``.
+
+    * Filter's ``add_args`` argparser now uses ``:`` as prefix instead of
+      ``--``.
+
 * version 0.4.2
 
   * Allow assigning any sequence to transform attribute again (fixes
