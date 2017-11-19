@@ -447,6 +447,7 @@ class BaseObject(Fragment):
     child_prober = BASE_PROBER
     fragment_prober = BASE_FRAG_PROBER
     is_object_group = False
+    has_children = False
 
     default_sections = (
         Section(MAGIC_3, 0x01, 0),

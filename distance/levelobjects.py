@@ -65,6 +65,8 @@ class LevelObject(BaseObject):
     child_prober = SUBOBJ_PROBER
     fragment_prober = FRAG_PROBER
 
+    has_children = True
+
     def _print_children(self, p):
         if 'subobjects' in p.flags and self.children:
             num = len(self.children)
@@ -93,7 +95,6 @@ class Group(LevelObject):
 
     child_prober = PROBER
     is_object_group = True
-    has_children = True
     type = 'Group'
 
     default_sections = (
@@ -420,8 +421,6 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 class GoldenSimple(LevelObject):
 
-    has_children = True
-
     default_sections = (
         *LevelObject.default_sections,
         Section(MAGIC_3, 3, 2),
@@ -449,8 +448,6 @@ class WedgeGS(GoldenSimple):
     color_emit = ('EmitDetail__ArchGrid', '_EmitColor', (0.2, 0.2, 0.2, 0.5))
 )
 class OldSimple(LevelObject):
-
-    has_children = True
 
     default_sections = (
         *LevelObject.default_sections,
