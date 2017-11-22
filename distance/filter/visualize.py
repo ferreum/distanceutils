@@ -26,6 +26,7 @@ HOLO_VISUAL_DEFAULT = dict(
     additive_transp = True,
     disable_reflect = True,
     multip_transp = False,
+    world_mapped = False,
 )
 
 
