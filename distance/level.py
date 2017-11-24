@@ -37,6 +37,7 @@ class LevelSettings(object):
     value_attrs = dict(
         version = None,
         name = None,
+        description = None,
         skybox_name = None,
         modes = (),
         medal_times = (),
@@ -92,7 +93,8 @@ class LevelSettingsFragment(Fragment):
         self._unk_0 = dbytes.read_bytes(8)
         self.name = dbytes.read_str()
         if version >= 25:
-            self._unk_1 = dbytes.read_bytes(6)
+            self.description = dbytes.read_str()
+            self._unk_1 = dbytes.read_bytes(5)
         else:
             self._unk_1 = dbytes.read_bytes(4)
         self.modes = modes = OrderedDict()
@@ -129,6 +131,8 @@ class LevelSettingsFragment(Fragment):
     def _write_section_data(self, dbytes, sec):
         dbytes.write_bytes(self._unk_0)
         dbytes.write_str(self.name)
+        if sec.version >= 25:
+            dbytes.write_str(self.description)
         dbytes.write_bytes(self._unk_1)
         dbytes.write_int(4, len(self.modes))
         for mode, enabled in self.modes.items():
