@@ -56,6 +56,18 @@ class LevelTest(unittest.TestCase):
             else:
                 check_exceptions(obj)
 
+    def test_settings_version_25(self):
+        level = Level("tests/in/level/test straightroad v25.bytes")
+        self.assertEqual(level.name, "Test-straightroad v25")
+
+        self.assertEqual("Default", level.layers[0].layer_name)
+        self.assertEqual(5, len(level.layers[0].objects))
+        self.assertEqual("Background", level.layers[1].layer_name)
+        self.assertEqual(1, len(level.layers[1].objects))
+        self.assertEqual("UltraPlanet", level.layers[1].objects[0].type)
+
+        check_exceptions(level)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -81,13 +81,17 @@ class LevelSettingsFragment(Fragment):
     _unk_1 = b''
     _unk_2 = b''
     _unk_3 = b''
+    _unk_4 = b''
 
     def _read_section_data(self, dbytes, sec):
         self.version = version = sec.version
 
         self._unk_0 = dbytes.read_bytes(8)
         self.name = dbytes.read_str()
-        self._unk_1 = dbytes.read_bytes(4)
+        if version >= 25:
+            self._unk_1 = dbytes.read_bytes(6)
+        else:
+            self._unk_1 = dbytes.read_bytes(4)
         self.modes = modes = OrderedDict()
         num_modes = dbytes.read_uint4()
         for i in range(num_modes):
@@ -101,9 +105,13 @@ class LevelSettingsFragment(Fragment):
             self._unk_2 = dbytes.read_bytes(141)
         elif version == 5:
             self._unk_2 = dbytes.read_bytes(172)
-        elif 6 <= version:
+        elif 6 <= version < 25:
             # confirmed only for v6..v9
             self._unk_2 = dbytes.read_bytes(176)
+        else:
+            self._unk_2 = dbytes.read_bytes(231)
+            self.background_layer = dbytes.read_str()
+            self._unk_3 = dbytes.read_bytes(61)
         self.medal_times = times = []
         self.medal_scores = scores = []
         for i in range(4):
@@ -113,7 +121,7 @@ class LevelSettingsFragment(Fragment):
             self.abilities = tuple(dbytes.read_bytes(5))
         if version >= 2:
             self.difficulty = dbytes.read_uint4()
-        self._unk_3 = dbytes.read_bytes(sec.end_pos - dbytes.tell())
+        self._unk_4 = dbytes.read_bytes(sec.end_pos - dbytes.tell())
 
     def _write_section_data(self, dbytes, sec):
         dbytes.write_bytes(self._unk_0)
@@ -134,7 +142,7 @@ class LevelSettingsFragment(Fragment):
             dbytes.write_bytes(bytes(self.abilities))
         if sec.version >= 2:
             dbytes.write_int(4, self.difficulty)
-        dbytes.write_bytes(self._unk_3)
+        dbytes.write_bytes(self._unk_4)
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')
