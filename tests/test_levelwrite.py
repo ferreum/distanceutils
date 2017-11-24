@@ -19,6 +19,17 @@ class StraightroadTest(Base.WriteReadTest):
         self.assertEqual(6, len([o for l in level.layers for o in l.objects]))
 
 
+class StraightroadV25Test(Base.WriteReadTest):
+
+    filename = "tests/in/level/test straightroad v25.bytes"
+
+    def verify_obj(self, level):
+        self.assertEqual("Test-straightroad v25", level.name)
+        self.assertEqual(2, len(level.layers))
+        self.assertEqual(5, len(level.layers[0].objects))
+        self.assertEqual(1, len(level.layers[1].objects))
+
+
 class ChangeLevelnameTest(Base.WriteReadTest):
 
     filename = "tests/in/level/test-straightroad.bytes"

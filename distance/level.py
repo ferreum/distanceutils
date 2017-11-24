@@ -138,6 +138,9 @@ class LevelSettingsFragment(Fragment):
         if sec.version <= 3:
             dbytes.write_str(self.skybox_name)
         dbytes.write_bytes(self._unk_2)
+        if self.version >= 25:
+            dbytes.write_str(self.background_layer)
+        dbytes.write_bytes(self._unk_3)
         for time, score in zip(self.medal_times, self.medal_scores):
             dbytes.write_bytes(S_FLOAT.pack(time))
             dbytes.write_int(4, score, signed=True)
