@@ -41,6 +41,7 @@ class LevelSettings(object):
         modes = (),
         medal_times = (),
         medal_scores = (),
+        background_layer = None,
         abilities = (),
         difficulty = None,
     )
@@ -51,6 +52,8 @@ class LevelSettings(object):
             p(f"Level name: {self.name!r}")
         if self.skybox_name is not None:
             p(f"Skybox name: {self.skybox_name!r}")
+        if self.background_layer is not None:
+            p(f"Background layer: {self.background_layer!r}")
         if self.medal_times:
             medal_str = ', '.join(format_duration(t) for t in self.medal_times)
             p(f"Medal times: {medal_str}")
