@@ -386,6 +386,18 @@ class ObjectFragment(Fragment):
                     obj.write(dbytes)
 
 
+def fragment_property(cls, name, default=None, doc=None):
+    if doc is None:
+        doc = f"property forwarded to {cls.__name__!r}"
+    def fget(self):
+        frag = self.fragment_by_type(cls)
+        return getattr(frag, name, default)
+    def fset(self, value):
+        frag = self.fragment_by_type(cls)
+        setattr(frag, name, value)
+    return property(fget, fset, None, doc=doc)
+
+
 class ForwardFragmentAttrs(object):
 
     """Decorator to forward attributes of objects to their fragments."""
@@ -396,18 +408,8 @@ class ForwardFragmentAttrs(object):
 
     def __call__(self, target):
         cls = self.cls
-        doc = f"property forwarded to {cls.__name__!r}"
         for name, default in self.attrs.items():
-            # These keyword args are here to capture the values of every
-            # iteration. Otherwise they would all refer to the same variable
-            # which is set to the value of the last iteration.
-            def fget(self, name=name, default=default):
-                frag = self.fragment_by_type(cls)
-                return getattr(frag, name, default)
-            def fset(self, value, name=name):
-                frag = self.fragment_by_type(cls)
-                setattr(frag, name, value)
-            setattr(target, name, property(fget, fset, None, doc=doc))
+            setattr(target, name, fragment_property(cls, name, default))
         return target
 
 
