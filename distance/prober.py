@@ -9,6 +9,10 @@ class ProbeError(Exception):
     pass
 
 
+class RegisterError(ValueError):
+    pass
+
+
 class BytesProber(object):
 
     def __init__(self, types=None, sections=None, funcs=None,
@@ -35,8 +39,14 @@ class BytesProber(object):
         else:
             sec = Section(*args, any_version=any_version, **kw)
         key = sec.to_key(any_version=any_version)
-        if key in self._sections:
-            raise ValueError(f"{sec} is already registered")
+        try:
+            registered = self._sections[key]
+        except KeyError:
+            pass
+        else:
+            e = RegisterError(f"{sec} is already registered")
+            e.registered = registered
+            raise e
         self._sections[key] = cls
 
     def func(self, *args, high_prio=False):

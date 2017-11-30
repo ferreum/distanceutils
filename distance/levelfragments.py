@@ -11,7 +11,7 @@ from .bytes import (
     DstBytes,
 )
 from .base import Fragment, ObjectFragment
-from .prober import BytesProber
+from .prober import BytesProber, ProbeError, RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._common import set_default_attrs
@@ -39,8 +39,6 @@ def read_n_floats(dbytes, n, default=None):
 
 
 class NamedPropertiesFragment(Fragment):
-
-    _frag_name = "NamedProperties"
 
     def __init__(self, *args, **kw):
         self.props = NamedPropertyList()
@@ -997,62 +995,69 @@ PROPERTY_FRAGS = (
     (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
     (Section(MAGIC_2, 0x50, 0), "Pulse"),
     # found on Damnation
-    (Section(22222222, 0x59, 0), None),
-    (Section(22222222, 0x4b, 0), None),
-    (Section(22222222, 0x4e, 0), None),
-    (Section(22222222, 0x3a, 0), None),
-    (Section(22222222, 0x58, 0), None),
-    (Section(22222222, 0x2c, 0), None),
+    (Section(MAGIC_2, 0x59, 0), None),
+    (Section(MAGIC_2, 0x4b, 0), None),
+    (Section(MAGIC_2, 0x4e, 0), None),
+    (Section(MAGIC_2, 0x3a, 0), None),
+    (Section(MAGIC_2, 0x58, 0), None),
+    (Section(MAGIC_2, 0x2c, 0), None),
     # found on Hextreme
-    (Section(22222222, 0x1b, 0), None),
+    (Section(MAGIC_2, 0x1b, 0), None),
     # found on "Brief Chaos" object EmpireBrokenBuilding006_PiecesSeparated
-    (Section(22222222, 0x44, 0), None),
+    (Section(MAGIC_2, 0x44, 0), None),
     # from v5 AudioEventTrigger
-    (Section(22222222, 0x74, 0), None),
+    (Section(MAGIC_2, 0x74, 0), None),
     # from v5 CubeMIDI
-    (Section(22222222, 0x3d, 0), None),
+    (Section(MAGIC_2, 0x3d, 0), None),
     # from v9 RumbleZone
-    (Section(22222222, 0x66, 0), None),
+    (Section(MAGIC_2, 0x66, 0), None),
     # from v8 PulseCore
-    (Section(22222222, 0x4f, 0), None),
+    (Section(MAGIC_2, 0x4f, 0), None),
     # from v8 KillGridBox
-    (Section(22222222, 0x82, 0), None),
+    (Section(MAGIC_2, 0x82, 0), None),
     # from v5 WarpAnchor
-    (Section(22222222, 0x6e, 0), None),
+    (Section(MAGIC_2, 0x6e, 0), None),
     # from v7 PlanetWithSphericalGravity
-    (Section(22222222, 0x5f, 0), None),
+    (Section(MAGIC_2, 0x5f, 0), None),
     # from v5 VirusSpiritShard
-    (Section(22222222, 0x67, 0), None),
+    (Section(MAGIC_2, 0x67, 0), None),
     # from v9 WingCorruptionZone
-    (Section(22222222, 0x53, 0), None),
+    (Section(MAGIC_2, 0x53, 0), None),
     # from v8 IntroCutsceneLight
-    (Section(22222222, 0x55, 0), None),
+    (Section(MAGIC_2, 0x55, 0), None),
     # from v9 CutsceneLightning
-    (Section(22222222, 0x6f, 0), None),
+    (Section(MAGIC_2, 0x6f, 0), None),
     # from s8 (map "The Matrix Arena")
-    (Section(22222222, 0x17, 0), None), # from EmpireCircle
-    (Section(22222222, 0x1f, 0), None), # from Teleporter
+    (Section(MAGIC_2, 0x17, 0), None), # from EmpireCircle
+    (Section(MAGIC_2, 0x1f, 0), None), # from Teleporter
     # from v3 WarningPulseLight
-    (Section(22222222, 0x65, 0), None),
+    (Section(MAGIC_2, 0x65, 0), None),
     # from v1 LaserMid (sub of VirusLaserTriCircleRotating)
-    (Section(22222222, 0x1a, 0), None),
+    (Section(MAGIC_2, 0x1a, 0), None),
     # from v5 EmpireProximityDoor
-    (Section(22222222, 0x76, 0), None),
+    (Section(MAGIC_2, 0x76, 0), None),
     # from v5 VirusSpiritWarpTeaser
-    (Section(22222222, 0x7e, 0), None),
+    (Section(MAGIC_2, 0x7e, 0), None),
     # from v1 GlobalFog
-    (Section(22222222, 0x60, 0), None),
+    (Section(MAGIC_2, 0x60, 0), None),
     # from v8 DisableLocalCarWarnings
-    (Section(22222222, 0x62, 0), None),
+    (Section(MAGIC_2, 0x62, 0), None),
     # from v7 AdventureAbilitySettings
-    (Section(22222222, 0x4d, 0), None),
+    (Section(MAGIC_2, 0x4d, 0), None),
     # from v3 VirusBase
     # very old versions (map "birthday bash court") don't use offsets
-    (Section(22222222, 0x27, 0), None),
+    (Section(MAGIC_2, 0x27, 0), None),
     # from s8 (map "The Pumpkin Patch")
-    (Section(22222222, 0x38, 0), None),
+    (Section(MAGIC_2, 0x38, 0), None),
     # from SoccerGoalLogic
-    (Section(22222222, 0x29, 0), None),
+    (Section(MAGIC_2, 0x29, 0), None),
+    (Section(MAGIC_2, 0x3e, 0), "OldTeleporterEntrance"),
+    (Section(MAGIC_2, 0x3f, 0), "OldTeleporterExit"),
+    (Section(MAGIC_2, 0x5d, 0), "RaceEndLogic"),
+    (Section(MAGIC_2, 0x5e, 0), "EnableAbilitiesTrigger"),
+    (Section(MAGIC_2, 0x57, 0), "OldCarScreenTextDecodeTrigger"),
+    (Section(MAGIC_2, 0x4a, 0), "OldInfoDisplayLogic"),
+    (Section(MAGIC_2, 0x43, 0), "OldInterpolateToPositionOnTrigger"),
 )
 
 
@@ -1060,23 +1065,23 @@ def _create_property_fragment_classes():
     globs = globals()
     created = set()
     sections = set()
-    fragments_created = globs.get('_property_fragments_created', False)
     for sec, name in PROPERTY_FRAGS:
         key = sec.to_key()
         if key in sections:
             raise ValueError(f"Duplicate section: {sec}")
         sections.add(key)
-        if name and name not in created:
+        if name:
+            if name in created:
+                raise ValueError(f"Duplicate fragment name: {name}")
             typename = name + "Fragment"
-            if not fragments_created:
-                if typename in globs:
-                    raise ValueError(f"Fragment is already defined: {typename}")
-            cls = type(typename, (NamedPropertiesFragment,), {
-                '_frag_name': name,
-            })
+            defined = globs.get(typename, None)
+            if defined is not None:
+                if not issubclass(defined, NamedPropertiesFragment):
+                    raise ValueError(f"Fragment defined with incompatible"
+                                     f" type: {typename}")
+            else:
+                globs[typename] = type(typename, (NamedPropertiesFragment,), {})
             created.add(name)
-            globs[typename] = cls
-    globs['_property_fragments_created'] = True
 
 
 def add_property_fragments_to_prober(prober):
@@ -1087,7 +1092,12 @@ def add_property_fragments_to_prober(prober):
         else:
             typename = "NamedPropertiesFragment"
         cls = globs[typename]
-        prober.add_fragment(cls, sec)
+        try:
+            prober.add_fragment(cls, sec)
+        except RegisterError as e:
+            if not issubclass(e.registered, NamedPropertiesFragment):
+                raise ValueError(f"Fragment registered for section {sec} has"
+                                 f" incompatible type: {e.registered}")
 
 
 _create_property_fragment_classes()
