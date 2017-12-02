@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+* version 0.4.4
+
+  * Added compatibility for level settings of Distance build 5795 up to at
+    least 5814.
+
 * version 0.4.3
 
   * ``vis`` filter now modifies golden simples according to whether their
