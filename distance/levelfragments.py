@@ -11,7 +11,7 @@ from .bytes import (
     DstBytes,
 )
 from .base import Fragment, ObjectFragment
-from .prober import BytesProber, ProbeError, RegisterError
+from .prober import BytesProber, RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._common import set_default_attrs
