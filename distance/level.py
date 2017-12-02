@@ -238,6 +238,10 @@ class Layer(Fragment):
         for obj in self.objects:
             obj.write(dbytes)
 
+    def _repr_detail(self):
+        supstr = super()._repr_detail()
+        return f" {self.layer_name!r}{supstr}"
+
     def _print_type(self, p):
         p(f"Layer: {self.layer_name!r}")
 
@@ -315,6 +319,10 @@ class Level(Fragment):
                 yield layer
             if with_objects:
                 yield from layer.objects
+
+    def _repr_detail(self):
+        if self.name:
+            return f" {self.name!r}"
 
     def _print_data(self, p):
         p(f"Level name: {self.name!r}")

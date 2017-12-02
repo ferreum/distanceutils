@@ -319,6 +319,14 @@ class Fragment(BytesModel):
 
         dbytes.write_bytes(self.raw_data)
 
+    def __str__(self):
+        from io import StringIO
+        sio = StringIO()
+        flags = ('allprops', 'sections', 'transform', 'offset',
+                 'objects', 'subobjects', 'groups', 'fragments')
+        self.print_data(file=sio, flags=flags)
+        return sio.getvalue()
+
     def _print_type(self, p):
         name = type(self).__name__
         if name.endswith('Fragment'):
@@ -578,6 +586,10 @@ class BaseObject(Fragment):
             if ty is None or isinstance(obj, ty):
                 if name is None or obj.type == name:
                     yield obj
+
+    def _repr_detail(self):
+        supstr = super()._repr_detail()
+        return f" type={self.type!r}{supstr}"
 
     def _print_type(self, p):
         p(f"Object type: {self.type!r}")

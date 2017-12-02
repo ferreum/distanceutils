@@ -265,6 +265,15 @@ class BytesModel(object):
         raise NotImplementedError(
             "Subclass needs to override write(self, dbytes)")
 
+    def __repr__(self):
+        return f"<{type(self).__name__}{self._repr_detail()}>"
+
+    def _repr_detail(self):
+        try:
+            return f" at 0x{self.start_pos:x}"
+        except AttributeError:
+            return ""
+
     def print_data(self, file=None, flags=(), p=None):
         if p is None:
             p = PrintContext(file, flags)
