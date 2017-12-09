@@ -2,6 +2,7 @@ import unittest
 
 from distance.base import (
     ObjectFragment,
+    BaseObject,
 )
 from distance.levelobjects import (
     PROBER,
@@ -315,6 +316,17 @@ class CubeGsTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/2cubes.bytes")
         self.assertEqual(GoldenSimple, type(obj.children[0]))
         self.assertEqual(GoldenSimple, type(obj.children[1]))
+
+
+class BaseObjectTest(unittest.TestCase):
+
+    def test_empty_fragments(self):
+        obj = BaseObject()
+        obj.fragments = []
+
+        result = obj.fragment_by_type(ObjectFragment)
+
+        self.assertIsNone(result)
 
 
 class TestFragments(unittest.TestCase):

@@ -500,9 +500,13 @@ class BaseObject(Fragment):
     def fragment_by_type(self, typ):
         if typ is ObjectFragment:
             # Optimized ObjectFragment access: it is virtually always first.
-            frag = self._fragments[0]
-            if type(frag) is ObjectFragment:
-                return frag
+            try:
+                frag = self._fragments[0]
+            except IndexError:
+                pass # empty fragments
+            else:
+                if type(frag) is ObjectFragment:
+                    return frag
             # not first - fall through to regular method
         try:
             bytype = self._fragments_by_type
