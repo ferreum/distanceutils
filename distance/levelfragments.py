@@ -440,6 +440,7 @@ class TextMeshFragment(Fragment):
                     except EOFError:
                         pass
                 if skip:
+                    dbytes.read_bytes(4)
                     return None
                 return func(*args)
 

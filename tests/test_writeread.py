@@ -2,7 +2,7 @@ import unittest
 
 from distance.levelobjects import (
     LevelObject, GoldenSimple, Group, InfoDisplayBox, WinLogic,
-    OldSimple,
+    OldSimple, WorldText,
 )
 from distance.levelfragments import (
     MaterialFragment,
@@ -148,6 +148,16 @@ class GroupWriteReadTest(common.WriteReadTest):
         check_exceptions(obj)
         self.assertEqual(3, len(obj.sections))
         self.assertEqual("2cubes", obj.custom_name)
+
+
+class WorldTextTest(common.WriteReadTest):
+
+    read_obj = WorldText
+
+    filename = "tests/in/customobject/worldtext 1.bytes"
+
+    def verify_obj(self, obj):
+        self.assertEqual("Test text", obj.text)
 
 
 class ChangeTypeTest(unittest.TestCase):
