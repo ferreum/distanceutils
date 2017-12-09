@@ -522,6 +522,18 @@ class DstBytes(object):
         self.seek = file.seek
         self._pos_stack = []
 
+    def __repr__(self):
+        from io import BytesIO
+        pos = self.tell()
+        if isinstance(self.file, BytesIO):
+            fstr = f"<memory size 0x{len(self.file.getbuffer()):x}> "
+        else:
+            try:
+                fstr = f"{self.file.name} "
+            except AttributeError:
+                fstr = ''
+        return f"<{type(self).__name__} {fstr}at 0x{pos:x}>"
+
     @classmethod
     def in_memory(cls):
         """Create an empty in-memory instance."""
