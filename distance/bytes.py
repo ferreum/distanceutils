@@ -529,7 +529,7 @@ class DstBytes(object):
             fstr = f"<memory size 0x{len(self.file.getbuffer()):x}> "
         else:
             try:
-                fstr = f"{self.file.name} "
+                fstr = f"{self.file.name!r} "
             except AttributeError:
                 fstr = ''
         return f"<{type(self).__name__} {fstr}at 0x{pos:x}>"
