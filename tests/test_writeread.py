@@ -160,6 +160,16 @@ class WorldTextTest(common.WriteReadTest):
         self.assertEqual("Test text", obj.text)
 
 
+class WorldTextV2Test(common.WriteReadTest):
+
+    read_obj = WorldText
+
+    filename = "tests/in/customobject/worldtext weird.bytes"
+
+    def verify_obj(self, obj):
+        self.assertEqual("Zero-G", obj.text)
+
+
 class ChangeTypeTest(unittest.TestCase):
 
     def test_writeread(self):

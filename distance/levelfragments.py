@@ -446,8 +446,8 @@ class TextMeshFragment(Fragment):
 
             self.have_content = True
             self.text = skip_or(dbytes.read_str)
+            self.font_style = skip_or(dbytes.read_uint4)
             if sec.version >= 2:
-                self.font_style = skip_or(dbytes.read_uint4)
                 self.font = skip_or(dbytes.read_uint4)
             rem = sec.end_pos - dbytes.tell()
             if rem:
