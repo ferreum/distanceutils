@@ -519,6 +519,8 @@ class TrackNodeFragment(Fragment):
 @PROBER.fragment(MAGIC_3, 0x3, 2)
 class MaterialFragment(Fragment):
 
+    have_content = False
+
     def __init__(self, *args, **kw):
         self.materials = MaterialSet()
         Fragment.__init__(self, *args, **kw)
@@ -532,10 +534,11 @@ class MaterialFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size >= 4:
+            self.have_content = True
             self.materials.read(dbytes)
 
     def _write_section_data(self, dbytes, sec):
-        if self.materials:
+        if self.materials or self.have_content:
             self.materials.write(dbytes)
 
     def _print_type(self, p):

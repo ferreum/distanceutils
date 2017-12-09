@@ -288,6 +288,16 @@ class MaterialFragmentTest(common.WriteReadTest):
         self.assertEqual([2, 3, 3, 3], [len(cols) for cols in mats.values()])
 
 
+class MaterialFragmentNoEntriesTest(common.WriteReadTest):
+
+    filename = "tests/in/fragment/material no entries.frag"
+
+    read_obj = MaterialFragment
+
+    def verify_obj(self, obj):
+        self.assertEqual({}, dict(obj.materials))
+
+
 class LevelTest(common.WriteReadTest):
 
     filename = "tests/in/level/test-straightroad.bytes"
