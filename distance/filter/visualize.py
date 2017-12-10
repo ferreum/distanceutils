@@ -472,6 +472,7 @@ class CheckpointMapper(VisualizeMapper):
 
     match_sections = (
         Section(MAGIC_2, 0x19, 1),
+        Section(MAGIC_2, 0x19, 2),
     )
 
     _opts = dict(
