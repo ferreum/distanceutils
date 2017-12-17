@@ -13,11 +13,19 @@ ANIM_FRAG_TYPES = (
     levelfrags.TrackAttachmentFragment,
 )
 
+ANIM_FRAG_SECTIONS = {cls.base_section.to_key(any_version=True)
+                      for cls in ANIM_FRAG_TYPES}
+
 def create_replacement_group(orig, objs, animated_only=False):
     copied_frags = []
-    for ty in ANIM_FRAG_TYPES:
-        copyfrag = orig.fragment_by_type(ty)
-        if copyfrag is not None:
+    org_secs = [s.to_key(any_version=True) for s in orig.sections]
+    for sec in ANIM_FRAG_SECTIONS:
+        try:
+            idx = org_secs.index(sec)
+        except ValueError:
+            pass
+        else:
+            copyfrag = orig.fragments[idx]
             copied_frags.append(copyfrag.clone())
     if animated_only and not copied_frags:
         return objs
