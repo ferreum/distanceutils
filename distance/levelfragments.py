@@ -810,13 +810,14 @@ _animator_defaults = dict(
 )
 
 
-@PROBER.fragment(MAGIC_2, 0x9a, 7)
+@PROBER.fragment(versions=7)
 @set_default_attrs(_animator_defaults)
 class AnimatorFragment(Fragment):
 
     have_content = False
 
-    default_section = Section(MAGIC_2, 0x9a, 7)
+    base_section = Section.base(MAGIC_2, 0x9a)
+    default_section = Section(base_section, version=7)
 
     def _init_defaults(self):
         super()._init_defaults()
@@ -899,22 +900,22 @@ class AnimatorFragment(Fragment):
             dbytes.write_int(1, self.trigger_off_reset)
 
 
-@PROBER.fragment(MAGIC_2, 0x8a, 0)
-@PROBER.fragment(MAGIC_2, 0x8a, 1)
+@PROBER.fragment(versions=(0, 1))
 class EventListenerFragment(Fragment):
-    pass
+
+    base_section = Section.base(MAGIC_2, 0x8a)
 
 
-@PROBER.fragment(MAGIC_2, 0x68, 0)
+@PROBER.fragment(versions=0)
 class TrackAttachmentFragment(Fragment):
-    pass
+
+    base_section = Section.base(MAGIC_2, 0x68)
 
 
-@PROBER.fragment(MAGIC_2, 0x70, 1)
-@PROBER.fragment(MAGIC_2, 0x70, 2)
-@PROBER.fragment(MAGIC_2, 0x70, 3)
+@PROBER.fragment(versions=(1, 2, 3))
 class TurnLightOnNearCarFragment(Fragment):
-    pass
+
+    base_section = Section.base(MAGIC_2, 0x70)
 
 
 class BaseInterpolateToPositiononTrigger(object):

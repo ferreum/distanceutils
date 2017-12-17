@@ -1,6 +1,8 @@
 """Probe DstBytes for objects based on .bytes sections."""
 
 
+import numbers
+
 from .bytes import DstBytes, BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
 from .lazy import LazySequence
 
@@ -33,11 +35,7 @@ class BytesProber(object):
         else:
             self._funcs.append(func)
 
-    def add_fragment(self, cls, *args, any_version=False, **kw):
-        if not kw and len(args) == 1 and isinstance(args[0], Section):
-            sec = args[0]
-        else:
-            sec = Section(*args, any_version=any_version, **kw)
+    def _add_fragment_for_section(self, cls, sec, any_version):
         key = sec.to_key(any_version=any_version)
         try:
             registered = self._sections[key]
@@ -48,6 +46,21 @@ class BytesProber(object):
             e.registered = registered
             raise e
         self._sections[key] = cls
+
+    def add_fragment(self, cls, *args,
+                     any_version=False, versions=None, **kw):
+        if not args and {'versions'}.issuperset(kw):
+            sec = cls.base_section
+        else:
+            sec = Section(*args, any_version=any_version, **kw)
+        if versions is not None:
+            if isinstance(versions, numbers.Integral):
+                versions = [versions]
+            for version in versions:
+                s = Section(sec, version=version)
+                self._add_fragment_for_section(cls, s, any_version)
+        else:
+            self._add_fragment_for_section(cls, sec, any_version)
 
     def func(self, *args, high_prio=False):
 

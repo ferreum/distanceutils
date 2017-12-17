@@ -324,6 +324,10 @@ class Section(BytesModel):
 
     MIN_SIZE = 12 # 4b (magic) + 8b (data_size)
 
+    @classmethod
+    def base(cls, *args, **kw):
+        return cls(*args, any_version=True, **kw)
+
     def __init__(self, *args, **kw):
         self.exception = None
         if args:
@@ -335,22 +339,24 @@ class Section(BytesModel):
         elif kw or args:
             raise TypeError(f"Invalid arguments: {args!r}, {kw!r}")
 
-    def _init_from_args(self, *args, any_version=False, **kw):
-        if not kw and len(args) == 1 and isinstance(args[0], Section):
-            other = args[0]
-            if other.magic not in (MAGIC_2, MAGIC_3, MAGIC_32):
-                raise TypeError(f"Cannot copy {other}")
-            self.magic = other.magic
-            self.type = other.type
-            self.version = other.version
-            return
+    def _init_from_args(self, *args, any_version=False, base=None, **kw):
+        if args and isinstance(args[0], Section):
+            if base is not None:
+                raise TypeError("base cannot be set if first arg is Section")
+            base = args[0]
+            args = args[1:]
         arg = ArgTaker(*args, **kw)
+
+        if base is not None:
+            arg.fallback_object(base)
 
         self.magic = magic = arg(0, 'magic')
         if magic in (MAGIC_2, MAGIC_3):
             self.type = arg(1, 'type')
             if not any_version:
                 self.version = arg(2, 'version')
+            else:
+                self.version = None
             self.id = arg(3, 'id', default=None)
         elif magic == MAGIC_5:
             pass # no data

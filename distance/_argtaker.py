@@ -7,30 +7,37 @@ DO_THROW = object()
 class ArgTaker(object):
 
     def __init__(self, *args, **kw):
-        self.args = args
-        self.kwargs = kw
-        self.maxarg = 0
+        self._args = args
+        self._kwargs = kw
+        self._maxarg = 0
+        self._fallback_obj = None
 
     def __call__(self, index, kwname, default=DO_THROW):
-        maxarg = self.maxarg
+        maxarg = self._maxarg
         if index is not None and index > maxarg:
-            self.maxarg = index
-        args = self.args
+            self._maxarg = index
+        args = self._args
         if index is not None and index < len(args):
             return args[index]
         else:
             try:
-                return self.kwargs.pop(kwname)
+                return self._kwargs.pop(kwname)
             except KeyError:
-                if default == DO_THROW:
-                    raise TypeError(f"missing argument: {kwname!r}")
-                else:
-                    return default
+                try:
+                    return getattr(self._fallback_obj, kwname)
+                except AttributeError:
+                    if default == DO_THROW:
+                        raise TypeError(f"missing argument: {kwname!r}")
+                    else:
+                        return default
+
+    def fallback_object(self, obj):
+        self._fallback_obj = obj
 
     def verify(self):
-        if len(self.args) > self.maxarg + 1:
+        if len(self._args) > self._maxarg + 1:
             raise TypeError(f"too many arguments (expected {self.maxarg})")
-        if self.kwargs:
+        if self._kwargs:
             raise TypeError(f"invalid kwargs: {self.kwargs}")
 
 
