@@ -211,8 +211,7 @@ class VisualizeMapper(object):
 class GravityTriggerMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x45, 0),
-        Section(MAGIC_2, 0x45, 1),
+        Section.base(MAGIC_2, 0x45),
     )
 
     vis = SphereVisualizer(
@@ -229,13 +228,9 @@ class TeleporterMapper(VisualizeMapper):
 
     match_sections = (
         # tele entrance
-        Section(MAGIC_2, 0x3e, 0),
-        Section(MAGIC_2, 0x3e, 1),
-        Section(MAGIC_2, 0x3e, 2),
-        Section(MAGIC_2, 0x3e, 3),
+        Section.base(MAGIC_2, 0x3e),
         # tele exit
-        Section(MAGIC_2, 0x3f, 0),
-        Section(MAGIC_2, 0x3f, 1),
+        Section.base(MAGIC_2, 0x3f),
     )
 
     vis = SphereVisualizer(
@@ -334,7 +329,7 @@ class TeleporterMapper(VisualizeMapper):
 class VirusSpiritSpawnerMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x3a, 0),
+        Section.base(MAGIC_2, 0x3a),
     )
 
     vis = SphereVisualizer(
@@ -350,7 +345,7 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
 class EventTriggerMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x89, 2),
+        Section.base(MAGIC_2, 0x89),
     )
 
     color = (0, .4, 0)
@@ -370,7 +365,7 @@ class EventTriggerMapper(VisualizeMapper):
 class EnableAbilitiesTriggerMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x5e, 0),
+        Section.base(MAGIC_2, 0x5e),
     )
 
     vis = BoxVisualizer(
@@ -385,7 +380,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
 class ForceZoneMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0xa0, 0),
+        Section.base(MAGIC_2, 0xa0),
     )
 
     vis = BoxVisualizer(
@@ -400,7 +395,7 @@ class ForceZoneMapper(VisualizeMapper):
 class WingCorruptionZoneMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x53, 0),
+        Section.base(MAGIC_2, 0x53),
     )
 
     vis_box = BoxVisualizer(
@@ -426,9 +421,7 @@ class WingCorruptionZoneMapper(VisualizeMapper):
 class VirusMazeMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x43, 0),
-        Section(MAGIC_2, 0x43, 1),
-        Section(MAGIC_2, 0x43, 2),
+        Section.base(MAGIC_2, 0x43),
     )
 
     _opts = dict(
@@ -471,8 +464,7 @@ class VirusMazeMapper(VisualizeMapper):
 class CheckpointMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x19, 1),
-        Section(MAGIC_2, 0x19, 2),
+        Section.base(MAGIC_2, 0x19),
     )
 
     _opts = dict(
@@ -590,8 +582,7 @@ class CooldownTriggerMapper(VisualizeMapper):
 class PlanetWithSphericalGravityMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x5f, 0),
-        Section(MAGIC_2, 0x5f, 1),
+        Section.base(MAGIC_2, 0x5f),
     )
 
     vis = SphereVisualizer(
@@ -721,10 +712,13 @@ class VisualizeFilter(ObjectFilter):
         self._mappers_by_subtype = dict(bysubtype)
         self._mappers_by_id = {id(m): m for m in mappers}
 
-    def _add_matches(self, obj, objpath, dest):
-        def filter_frags(sec, prober):
-            return sec.to_key() in self._mappers_by_sec
+    def _get_sec_mappers(self, sec):
+        res = []
+        res.extend(self._mappers_by_sec.get(sec.to_key(), ()))
+        res.extend(self._mappers_by_sec.get(sec.to_key(any_version=True), ()))
+        return res
 
+    def _add_matches(self, obj, objpath, dest):
         matches = defaultdict(list)
 
         # match type
@@ -738,9 +732,12 @@ class VisualizeFilter(ObjectFilter):
 
         # match fragments
         obj = objpath[-1]
-        for frag in obj.filtered_fragments(filter_frags):
-            for mapper in self._mappers_by_sec[frag.container.to_key()]:
-                matches[id(mapper)].append(frag)
+        for i, sec in enumerate(obj.sections):
+            mappers = self._get_sec_mappers(sec)
+            if mappers:
+                frag = obj.fragments[i]
+                for mapper in mappers:
+                    matches[id(mapper)].append(frag)
 
         for id_, frags in matches.items():
             dest[id_].append((objpath, frags))
