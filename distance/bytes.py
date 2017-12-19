@@ -396,7 +396,7 @@ class Section(BytesModel):
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
             if any_version:
-                return (magic, self.type)
+                return (magic, self.type, None)
             else:
                 return (magic, self.type, self.version)
         elif magic == MAGIC_6:
