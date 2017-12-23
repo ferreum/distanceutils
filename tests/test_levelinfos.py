@@ -46,4 +46,23 @@ class Version0LevelsTest(unittest.TestCase):
         p.print_data_of(self.infos)
 
 
+class Version0EntryVersion2Test(unittest.TestCase):
+
+    def setUp(self):
+        self.infos = LevelInfos("tests/in/levelinfos/LevelInfos v2.bytes")
+        self.levels = self.infos.levels
+
+    def test_length(self):
+        self.assertEqual(len(self.levels), 2)
+
+    def test_description(self):
+        desc0 = self.levels[0].description
+        self.assertEqual(158, len(desc0))
+        self.assertTrue("6th day" in desc0)
+
+        desc1 = self.levels[1].description
+        self.assertEqual(56, len(desc1))
+        self.assertTrue("real thing" in desc1)
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

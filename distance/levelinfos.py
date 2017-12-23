@@ -29,8 +29,9 @@ class Entry(BytesModel):
     modes = ()
     medal_times = ()
     medal_scores = ()
+    description = None
 
-    def _read(self, dbytes):
+    def _read(self, dbytes, version=0):
         self.level_name = dbytes.read_str()
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
@@ -47,6 +48,9 @@ class Entry(BytesModel):
             times.append(dbytes.read_struct(S_FLOAT)[0])
             scores.append(dbytes.read_int4())
         dbytes.read_bytes(25)
+        if version >= 2:
+            self.description = dbytes.read_str()
+            dbytes.read_byte()
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
@@ -61,6 +65,8 @@ class Entry(BytesModel):
         if self.medal_scores:
             scores_str = ', '.join(str(s) for s in reversed(self.medal_scores))
             p(f"Medal scores: {scores_str}")
+        if self.description and 'description' in p.flags:
+            p(f"Description: {self.description}")
 
 
 @FRAG_PROBER.fragment(MAGIC_2, 0x97, 0)
@@ -71,8 +77,10 @@ class LevelInfosFragment(Fragment):
 
     def _read_section_data(self, dbytes, sec):
         self.version = sec.version
-        num_entries = dbytes.read_uint8()
-        self.levels = Entry.lazy_n_maybe(dbytes, num_entries)
+        num_entries = dbytes.read_uint4()
+        entry_version = dbytes.read_uint4()
+        self.levels = Entry.lazy_n_maybe(
+            dbytes, num_entries, version=entry_version)
 
 
 @ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
