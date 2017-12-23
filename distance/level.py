@@ -75,6 +75,8 @@ class LevelSettings(object):
             p(f"Abilities: {ab_str}")
         if self.difficulty is not None:
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
+        if self.description and 'description' in p.flags:
+            p(f"Description: {self.description}")
 
 
 @SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
