@@ -68,6 +68,14 @@ class LevelTest(unittest.TestCase):
 
         check_exceptions(level)
 
+    def test_settings_version_26_author(self):
+        level = Level("tests/in/level/test straightroad v26 author.bytes")
+        self.assertEqual(level.name, "Test-straightroad v26")
+
+        self.assertEqual("Ferreus", level.settings.author_name)
+
+        check_exceptions(level)
+
 
 if __name__ == '__main__':
     unittest.main()

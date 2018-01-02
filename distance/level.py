@@ -38,6 +38,7 @@ class LevelSettings(object):
         version = None,
         name = None,
         description = None,
+        author_name = None,
         skybox_name = None,
         modes = (),
         medal_times = (),
@@ -75,6 +76,8 @@ class LevelSettings(object):
             p(f"Abilities: {ab_str}")
         if self.difficulty is not None:
             p(f"Difficulty: {Difficulty.to_name(self.difficulty)}")
+        if self.author_name:
+            p(f"Author: {self.author_name!r}")
         if self.description and 'description' in p.flags:
             p(f"Description: {self.description}")
 
@@ -96,9 +99,8 @@ class LevelSettingsFragment(Fragment):
         self.name = dbytes.read_str()
         if version >= 25:
             self.description = dbytes.read_str()
-            self._unk_1 = dbytes.read_bytes(5)
-        else:
-            self._unk_1 = dbytes.read_bytes(4)
+            self.author_name = dbytes.read_str()
+        self._unk_1 = dbytes.read_bytes(4)
         self.modes = modes = OrderedDict()
         num_modes = dbytes.read_uint4()
         for i in range(num_modes):
@@ -135,6 +137,7 @@ class LevelSettingsFragment(Fragment):
         dbytes.write_str(self.name)
         if sec.version >= 25:
             dbytes.write_str(self.description)
+            dbytes.write_str(self.author_name)
         dbytes.write_bytes(self._unk_1)
         dbytes.write_int(4, len(self.modes))
         for mode, enabled in self.modes.items():

@@ -30,6 +30,15 @@ class StraightroadV25Test(Base.WriteReadTest):
         self.assertEqual(1, len(level.layers[1].objects))
 
 
+class StraightroadV26AuthorTest(Base.WriteReadTest):
+
+    filename = "tests/in/level/test straightroad v26 author.bytes"
+
+    def verify_obj(self, level):
+        self.assertEqual("Test-straightroad v26", level.name)
+        self.assertEqual("Ferreus", level.settings.author_name)
+
+
 class V25LevelDescriptionTest(Base.WriteReadTest):
 
     filename = "tests/in/level/level with description.bytes"
