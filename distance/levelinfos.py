@@ -30,6 +30,7 @@ class Entry(BytesModel):
     medal_times = ()
     medal_scores = ()
     description = None
+    author_name = None
 
     def _read(self, dbytes, version=0):
         self.level_name = dbytes.read_str()
@@ -50,7 +51,7 @@ class Entry(BytesModel):
         dbytes.read_bytes(25)
         if version >= 2:
             self.description = dbytes.read_str()
-            dbytes.read_byte()
+            self.author_name = dbytes.read_str()
 
     def _print_data(self, p):
         p(f"Level name: {self.level_name!r}")
@@ -65,6 +66,8 @@ class Entry(BytesModel):
         if self.medal_scores:
             scores_str = ', '.join(str(s) for s in reversed(self.medal_scores))
             p(f"Medal scores: {scores_str}")
+        if self.author_name:
+            p(f"Author: {self.author_name!r}")
         if self.description and 'description' in p.flags:
             p(f"Description: {self.description}")
 

@@ -65,4 +65,20 @@ class Version0EntryVersion2Test(unittest.TestCase):
         self.assertTrue("real thing" in desc1)
 
 
+class Version0EntryVersion2AuthorTest(unittest.TestCase):
+
+    def setUp(self):
+        self.infos = LevelInfos(
+            "tests/in/levelinfos/LevelInfos v2 author.bytes")
+        self.levels = self.infos.levels
+
+    def test_length(self):
+        self.assertEqual(len(self.levels), 2)
+
+    def test_autho_name(self):
+        self.assertEqual("Pinapl", self.levels[0].author_name)
+
+        self.assertEqual("Rekall", self.levels[1].level_name)
+
+
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
