@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+* version 0.4.5
+
+  * Added compatibility for new LevelInfos entry version.
+
+  * ``vis`` filter now visualizes objects regardless of fragment version
+    where possible.
+
+  * Bugfixes
+
+    * Fixed reading level settings that contain the author's name.
+
+    * Fixed WorldText not read/written correctly.
+
+    * Perserve non-empty MaterialFragment that has no entries correctly.
+
 * version 0.4.4
 
   * Added compatibility for level settings of Distance build 5795 up to at
