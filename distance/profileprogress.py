@@ -482,6 +482,20 @@ class ProfileProgress(BaseObject):
                     for somelevel in somelevels:
                         p.tree_next_child()
                         p(f"Level: {somelevel.value!r}")
+            if levels:
+                comps = [0] * 4
+                total = 0
+                for level in levels:
+                    for score, comp in zip(level.scores, level.completion):
+                        comp -= Completion.BRONZE
+                        if comp >= 0:
+                            total += comp + 1
+                            comps[comp] += 1
+                p(f"Medal points: {total}")
+                with p.tree_children():
+                    for comp, num in enumerate(comps, Completion.BRONZE):
+                        p.tree_next_child()
+                        p(f"{Completion.to_name(comp)} medals: {num}")
         else:
             p("No level progress")
         if self.stats:
