@@ -1,6 +1,7 @@
 """.bytes file reading and writing primitives."""
 
 
+import sys
 from struct import Struct
 from contextlib import contextmanager
 
@@ -276,6 +277,8 @@ class BytesModel(object):
 
     def print_data(self, file=None, flags=(), p=None):
         if p is None:
+            if file is None:
+                file = sys.stdout
             p = PrintContext(file, flags)
         else:
             if file or flags:
