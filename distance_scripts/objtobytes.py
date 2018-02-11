@@ -147,7 +147,7 @@ def read_mtllib(file, mtls, base=None):
     return mtls
 
 
-def obj_to_simples(obj, scale=1):
+def obj_to_simples(obj, scale=1, inspect_children=None):
     from distance.transform import create_triangle_simples
     import numpy as np, quaternion
     quaternion # suppress warning
@@ -167,7 +167,8 @@ def obj_to_simples(obj, scale=1):
         center = tuple((min(verts[:,i]) + max(verts[:,i])) / 2
                        for i in range(3))
         group = Group(custom_name=group_name,
-                      children=objs)
+                      children=objs,
+                      inspect_children=inspect_children)
         group.recenter(center)
         root_objs.append(group)
 
@@ -212,10 +213,14 @@ def main():
         description=__doc__)
     parser.add_argument("--name", help="Custom object name")
     parser.add_argument("--scale", type=int, help="Set object scale")
+    parser.add_argument("--no-inspect", action='store_true',
+                        help='Set group\'s inspect children option to "None"')
     parser.add_argument("OBJIN", help=".obj filename to read")
     parser.add_argument("BYTESOUT", help=".bytes filename to write")
     parser.set_defaults(scale=16)
     args = parser.parse_args()
+
+    inspect = None if args.no_inspect else 1
 
     def_mat = Material(
         ambient=(1, 1, 1),
@@ -234,12 +239,13 @@ def main():
     with open(args.OBJIN) as f:
         obj = ObjReader(f, options=options, default_material=def_mat)
 
-        objs = obj_to_simples(obj, scale=args.scale)
+        objs = obj_to_simples(obj, scale=args.scale, inspect_children=inspect)
 
         print(f"converted {len(obj.vertices)} vertices and "
               f"{obj.num_faces} faces")
 
-    group = Group(children=objs, custom_name=args.name)
+    group = Group(children=objs, custom_name=args.name,
+                  inspect_children=inspect)
 
     print(f"writing...")
     n = group.write(args.BYTESOUT)
