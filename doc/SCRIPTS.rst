@@ -44,7 +44,7 @@ Example::
 Prints all objects in "my_level.bytes" including their position.
 
 
-.. _`Object support`: ./doc/OBJECT_SUPPORT.rst
+.. _`Object support`: ./OBJECT_SUPPORT.rst
 
 
 _`dst-mkcustomobject`
@@ -109,7 +109,7 @@ Filters provide a ``help`` argument, which just prints the filter's help, and
 aborts the program without executing any filters.
 
 
-.. _filters: ./doc/FILTERS.rst
+.. _filters: ./FILTERS.rst
 
 
 _`dst-teletodot`
