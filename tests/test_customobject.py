@@ -208,6 +208,10 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/enableabilitiesbox default.bytes")
         self.assertEqual(obj.abilities.get('EnableFlying', 0), 0)
+        self.assertEqual(obj.enable_boosting, 0)
+        self.assertEqual(obj.enable_jumping, 0)
+        self.assertEqual(obj.enable_jets, 0)
+        self.assertEqual(obj.enable_flying, 0)
         self.assertEqual(obj.bloom_out, 1)
         p.print_data_of(obj)
 
@@ -216,6 +220,10 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/enableabilitiesbox flyboost.bytes")
         self.assertEqual(obj.abilities['EnableFlying'], 1)
         self.assertEqual(obj.abilities['EnableBoosting'], 1)
+        self.assertEqual(obj.enable_boosting, 1)
+        self.assertEqual(obj.enable_jumping, 0)
+        self.assertEqual(obj.enable_jets, 0)
+        self.assertEqual(obj.enable_flying, 1)
         self.assertEqual(obj.bloom_out, 1)
         p.print_data_of(obj)
 
@@ -224,6 +232,10 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/enableabilitiesbox all off.bytes")
         self.assertEqual(obj.abilities['EnableFlying'], 0)
         self.assertEqual(obj.abilities['EnableBoosting'], 0)
+        self.assertEqual(obj.enable_boosting, 0)
+        self.assertEqual(obj.enable_jumping, 0)
+        self.assertEqual(obj.enable_jets, 0)
+        self.assertEqual(obj.enable_flying, 0)
         self.assertEqual(obj.bloom_out, 0)
         p.print_data_of(obj)
 

@@ -5,7 +5,7 @@ import math
 
 from .bytes import (
     Section,
-    S_FLOAT, S_FLOAT3,
+    S_FLOAT, S_FLOAT3, S_BYTE,
     MAGIC_1, MAGIC_2, MAGIC_3,
     SKIP_BYTES,
     DstBytes,
@@ -110,6 +110,10 @@ class TypedNamedProperty(property):
 
     def __delete__(self, inst):
         del inst.props[self.propname]
+
+
+def ByteNamedProperty(propname, default=None):
+    return TypedNamedProperty(propname, S_BYTE, default=default)
 
 
 @PROBER.fragment(MAGIC_2, 0x1d, 1)
@@ -620,6 +624,11 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
                 value = 0
             abilities[k] = value
         return abilities
+
+    enable_boosting = ByteNamedProperty('EnableBoosting', 0)
+    enable_jumping = ByteNamedProperty('EnableJumping', 0)
+    enable_jets = ByteNamedProperty('EnableJetRotating', 0)
+    enable_flying = ByteNamedProperty('EnableFlying', 0)
 
     @named_property_getter('BloomOut', default=1)
     def bloom_out(self, db):

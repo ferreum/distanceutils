@@ -22,6 +22,7 @@ S_DOUBLE = Struct("<d")
 S_FLOAT3 = Struct("<fff")
 S_FLOAT4 = Struct("<ffff")
 
+S_BYTE = Struct('b')
 S_INT = Struct('<i')
 S_LONG = Struct('<q')
 S_UINT = Struct('<I')

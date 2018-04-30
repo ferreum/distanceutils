@@ -249,7 +249,8 @@ class ForceZoneBox(LevelObject):
 
 
 @PROBER.for_type('EnableAbilitiesBox')
-@ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None)
+@ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None,
+                      enable_boosting=0, enable_jumping=0, enable_jets=0, enable_flying=0)
 class EnableAbilitiesBox(LevelObject):
 
     default_transform = Transform.fill(scale=(100, 100, 100))
