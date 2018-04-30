@@ -7,9 +7,11 @@ from distance.levelfragments import (
     TrackNodeFragment,
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
-    AnimatorFragment
+    AnimatorFragment,
+    TypedNamedProperty,
+    NamedPropertiesFragment,
 )
-from distance.bytes import SKIP_BYTES, DstBytes, Section, MAGIC_3
+from distance.bytes import SKIP_BYTES, DstBytes, Section, MAGIC_3, S_UINT
 from tests import common
 from tests.common import ExtraAssertMixin, write_read
 
@@ -172,6 +174,36 @@ class AnimatorFragmentTest(ExtraAssertMixin, Base.WriteReadTest):
         self.assertEqual(3, frag.trigger_off_action)
         self.assertEqual(1, frag.trigger_off_wait_for_anim_finish)
         self.assertEqual(1, frag.trigger_off_reset)
+
+
+class TypedNamedPropertyTest(unittest.TestCase):
+
+    def setUp(self):
+
+        class TestFragment(NamedPropertiesFragment):
+            uint_prop = TypedNamedProperty('a_uint', S_UINT, default="default")
+
+        self.frag = TestFragment()
+
+    def test_get(self):
+        self.frag.props['a_uint'] = b'\x06\x01\x00\x00'
+        self.assertEqual(self.frag.uint_prop, 262)
+
+    def test_get_default(self):
+        self.assertEqual(self.frag.uint_prop, "default")
+
+    def test_get_skip(self):
+        self.frag.props['a_uint'] = SKIP_BYTES
+        self.assertEqual(self.frag.uint_prop, "default")
+
+    def test_set(self):
+        self.frag.uint_prop = 4
+        self.assertEqual(self.frag.props['a_uint'], b'\x04\x00\x00\x00')
+
+    def test_del(self):
+        self.frag.props['a_uint'] = b'\x04\x00\x00\x00'
+        del self.frag.uint_prop
+        self.assertTrue('a_uint' not in self.frag.props)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

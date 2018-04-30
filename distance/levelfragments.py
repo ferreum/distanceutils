@@ -65,6 +65,7 @@ class NamedPropertiesFragment(Fragment):
 
 
 def named_property_getter(propname, default=None):
+
     """Decorate properties to create a getter for a named property."""
 
     def decorate(func):
@@ -78,6 +79,37 @@ def named_property_getter(propname, default=None):
         return property(fget, None, None, doc=func.__doc__)
 
     return decorate
+
+
+class TypedNamedProperty(property):
+
+    """Create a property that translates the named property using `struct1`.
+
+    `propname` - Name of the property.
+    `struct1` - A `struct.Struct` object with a single field.
+
+    """
+
+    def __init__(self, propname, struct, default=None):
+        self.__doc__ = f"Named property {propname!r} type {struct}"
+        self.propname = propname
+        self.struct = struct
+        self.default = default
+
+    def __get__(self, inst, objtype=None):
+        data = inst.props.get(self.propname, None)
+        if not data or data == SKIP_BYTES:
+            return self.default
+        if len(data) < self.struct.size:
+            return self.default
+        return self.struct.unpack(data)[0]
+
+    def __set__(self, inst, value):
+        data = self.struct.pack(value)
+        inst.props[self.propname] = data
+
+    def __delete__(self, inst):
+        del inst.props[self.propname]
 
 
 @PROBER.fragment(MAGIC_2, 0x1d, 1)
