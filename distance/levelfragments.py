@@ -713,33 +713,19 @@ class BaseCarScreenTextDecodeTrigger(object):
 @PROBER.fragment(MAGIC_2, 0x57, 0)
 class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, NamedPropertiesFragment):
 
-    @named_property_getter('Text')
-    def text(self, db):
-        return db.read_str()
+    text = StringNamedProperty('Text')
 
-    @named_property_getter('PerCharSpeed')
-    def per_char_speed(self, db):
-        return db.read_struct(S_FLOAT)[0]
+    per_char_speed = TypedNamedProperty('PerCharSpeed', S_FLOAT)
 
-    @named_property_getter('ClearOnFinish')
-    def clear_on_finish(self, db):
-        return db.read_byte()
+    clear_on_finish = ByteNamedProperty('ClearOnFinish')
 
-    @named_property_getter('ClearOnTriggerExit')
-    def clear_on_trigger_exit(self, db):
-        return db.read_byte()
+    clear_on_trigger_exit = ByteNamedProperty('ClearOnTriggerExit')
 
-    @named_property_getter('DestroyOnTriggerExit')
-    def destroy_on_trigger_exit(self, db):
-        return db.read_byte()
+    destroy_on_trigger_exit = ByteNamedProperty('DestroyOnTriggerExit')
 
-    @named_property_getter('TimeText')
-    def time_text(self, db):
-        return db.read_str()
+    time_text = StringNamedProperty('TimeText')
 
-    @named_property_getter('StaticTimeText')
-    def static_time_text(self, db):
-        return db.read_byte()
+    static_time_text = ByteNamedProperty('StaticTimeText')
 
     @named_property_getter('AnnouncerAction')
     def announcer_action(self, db):
