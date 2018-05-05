@@ -91,7 +91,7 @@ class TypedNamedProperty(property):
     """
 
     def __init__(self, propname, struct, default=None):
-        self.__doc__ = f"Named property {propname!r} type {struct}"
+        self.__doc__ = f"Named property {propname!r} of type {struct.format}"
         self.propname = propname
         self.struct = struct
         self.default = default
@@ -112,8 +112,33 @@ class TypedNamedProperty(property):
         del inst.props[self.propname]
 
 
-def ByteNamedProperty(propname, default=None):
-    return TypedNamedProperty(propname, S_BYTE, default=default)
+class ByteNamedProperty(TypedNamedProperty):
+
+    def __init__(self, propname, default=None):
+        super().__init__(propname, S_BYTE, default=default)
+
+
+class StringNamedProperty(property):
+
+    def __init__(self, propname, default=None):
+        self.__doc__ = f"Named property {propname!r} of type string"
+        self.propname = propname
+        self.default = default
+
+    def __get__(self, inst, objtype=None):
+        data = inst.props.get(self.propname, None)
+        if not data or data == SKIP_BYTES:
+            return self.default
+        db = DstBytes.from_data(data)
+        return db.read_str()
+
+    def __set__(self, inst, value):
+        db = DstBytes.in_memory()
+        db.write_str(value)
+        inst.props[self.propname] = db.file.getvalue()
+
+    def __delete__(self, inst):
+        del inst.props[self.propname]
 
 
 @PROBER.fragment(MAGIC_2, 0x1d, 1)
