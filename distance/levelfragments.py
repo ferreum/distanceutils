@@ -5,7 +5,7 @@ import math
 
 from .bytes import (
     Section,
-    S_FLOAT, S_FLOAT3, S_BYTE,
+    S_FLOAT, S_FLOAT3, S_BYTE, S_UINT,
     MAGIC_1, MAGIC_2, MAGIC_3,
     SKIP_BYTES,
     DstBytes,
@@ -277,10 +277,8 @@ class BaseTeleporterEntrance(object):
 @PROBER.fragment(MAGIC_2, 0x3e, 0)
 class OldTeleporterEntranceFragment(BaseTeleporterEntrance, NamedPropertiesFragment):
 
-    @named_property_getter('LinkID', default=0)
-    def destination(self, db):
-        # type guessed - no example available
-        return db.read_uint4()
+    # type guessed - no example available
+    destination = TypedNamedProperty('LinkID', S_UINT, default=0)
 
 
 @PROBER.fragment(MAGIC_2, 0x3e, 1)
@@ -321,10 +319,8 @@ class TeleporterExitFragment(BaseTeleporterExit, Fragment):
 @PROBER.fragment(MAGIC_2, 0x3f, 0)
 class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
 
-    @named_property_getter('LinkID', default=0)
-    def link_id(self, db):
-        # type guessed - no example available
-        return db.read_uint4()
+    # type guessed - no example available
+    link_id = TypedNamedProperty('LinkID', S_UINT, default=0)
 
 
 @PROBER.fragment(MAGIC_2, 0x51, 0)
@@ -616,9 +612,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
 
     is_interesting = True
 
-    @named_property_getter('DelayBeforeBroadcast')
-    def delay_before_broadcast(self, db):
-        return db.read_struct(S_FLOAT)[0]
+    delay_before_broadcast = TypedNamedProperty('DelayBeforeBroadcast', S_FLOAT)
 
     def _print_data(self, p):
         NamedPropertiesFragment._print_data(self, p)
@@ -650,14 +644,15 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
             abilities[k] = value
         return abilities
 
-    enable_boosting = ByteNamedProperty('EnableBoosting', 0)
-    enable_jumping = ByteNamedProperty('EnableJumping', 0)
-    enable_jets = ByteNamedProperty('EnableJetRotating', 0)
-    enable_flying = ByteNamedProperty('EnableFlying', 0)
+    enable_boosting = ByteNamedProperty('EnableBoosting', default=0)
 
-    @named_property_getter('BloomOut', default=1)
-    def bloom_out(self, db):
-        return db.read_byte()
+    enable_jumping = ByteNamedProperty('EnableJumping', default=0)
+
+    enable_jets = ByteNamedProperty('EnableJetRotating', default=0)
+
+    enable_flying = ByteNamedProperty('EnableFlying', default=0)
+
+    bloom_out = ByteNamedProperty('BloomOut', default=1)
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
@@ -727,9 +722,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
 
     static_time_text = ByteNamedProperty('StaticTimeText')
 
-    @named_property_getter('AnnouncerAction')
-    def announcer_action(self, db):
-        return db.read_uint4()
+    announcer_action = TypedNamedProperty('AnnouncerAction', S_UINT)
 
     @named_property_getter('AnnouncerPhrases', default=())
     def announcer_phrases(self, db):
@@ -796,21 +789,13 @@ class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment)
                 texts[i] = DstBytes.from_data(data).read_str()
         return texts
 
-    @named_property_getter('FadeOutTime')
-    def fadeout_time(self, db):
-        return db.read_struct(S_FLOAT)[0]
+    fadeout_time = TypedNamedProperty('FadeOutTime', S_FLOAT)
 
-    @named_property_getter('PerCharSpeed')
-    def per_char_speed(self, db):
-        return db.read_struct(S_FLOAT)[0]
+    per_char_speed = TypedNamedProperty('PerCharSpeed', S_FLOAT)
 
-    @named_property_getter('RandomCharCount')
-    def clear_on_trigger_exit(self, db):
-        return db.read_uint4()
+    clear_on_trigger_exit = TypedNamedProperty('RandomCharCount', S_UINT)
 
-    @named_property_getter('DestroyOnTriggerExit')
-    def destroy_on_trigger_exit(self, db):
-        return db.read_byte()
+    destroy_on_trigger_exit = ByteNamedProperty('DestroyOnTriggerExit')
 
 
 @PROBER.fragment(MAGIC_2, 0x4a, 2)
@@ -981,17 +966,13 @@ class OldInterpolateToPositionOnTriggerFragment(
     relative = 1
     local_movement = 0
 
-    @named_property_getter('ActuallyInterpolate')
-    def actually_interpolate(self, dbytes):
-        return dbytes.read_byte()
+    actually_interpolate = ByteNamedProperty('ActuallyInterpolate')
 
     @named_property_getter('EndPos')
     def interp_end_pos(self, dbytes):
         return read_n_floats(dbytes, 3)
 
-    @named_property_getter('MoveTime')
-    def interp_time(self, dbytes):
-        return dbytes.read_struct(S_FLOAT)[0]
+    interp_time = TypedNamedProperty('MoveTime', S_FLOAT)
 
 
 @PROBER.fragment(MAGIC_2, 0x43, 1)
