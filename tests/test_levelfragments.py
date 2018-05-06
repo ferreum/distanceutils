@@ -8,7 +8,7 @@ from distance.levelfragments import (
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
     AnimatorFragment,
-    TypedNamedProperty,
+    StructNamedProperty,
     NamedPropertiesFragment,
 )
 from distance.bytes import SKIP_BYTES, DstBytes, Section, MAGIC_3, S_UINT
@@ -181,7 +181,7 @@ class TypedNamedPropertyTest(unittest.TestCase):
     def setUp(self):
 
         class TestFragment(NamedPropertiesFragment):
-            uint_prop = TypedNamedProperty('a_uint', S_UINT, default="default")
+            uint_prop = StructNamedProperty('a_uint', S_UINT, default="default")
 
         self.frag = TestFragment()
 

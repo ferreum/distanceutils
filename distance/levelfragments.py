@@ -81,7 +81,7 @@ def named_property_getter(propname, default=None):
     return decorate
 
 
-class TypedNamedProperty(property):
+class BaseNamedProperty(property):
 
     """Create a property that translates the named property using `struct1`.
 
@@ -90,52 +90,70 @@ class TypedNamedProperty(property):
 
     """
 
-    def __init__(self, propname, struct, default=None):
-        self.__doc__ = f"Named property {propname!r} of type {struct.format}"
+    def __init__(self, propname, default=None):
+        self.__doc__ = f"Named property {propname!r}"
         self.propname = propname
-        self.struct = struct
         self.default = default
 
     def __get__(self, inst, objtype=None):
         data = inst.props.get(self.propname, None)
         if not data or data == SKIP_BYTES:
             return self.default
-        if len(data) < self.struct.size:
-            return self.default
-        return self.struct.unpack(data)[0]
+        return self._from_bytes(data)
 
     def __set__(self, inst, value):
-        data = self.struct.pack(value)
-        inst.props[self.propname] = data
+        inst.props[self.propname] = self._to_bytes(value)
 
     def __delete__(self, inst):
         del inst.props[self.propname]
 
 
-class ByteNamedProperty(TypedNamedProperty):
+class TupleStructNamedProperty(BaseNamedProperty):
+
+    def __init__(self, propname, struct, default=None):
+        super().__init__(propname, default=default)
+        self.__doc__ = f"Named property {propname!r} of type {struct.format}"
+        self.struct = struct
+
+    def _from_bytes(self, data):
+        if len(data) < self.struct.size:
+            return self.default
+        return self.struct.unpack(data)
+
+    def _to_bytes(self, value):
+        return self.struct.pack(*value)
+
+
+class StructNamedProperty(TupleStructNamedProperty):
+
+    def _from_bytes(self, data):
+        if len(data) < self.struct.size:
+            return self.default
+        return self.struct.unpack(data)[0]
+
+    def _to_bytes(self, value):
+        return self.struct.pack(value)
+
+
+class ByteNamedProperty(StructNamedProperty):
 
     def __init__(self, propname, default=None):
         super().__init__(propname, S_BYTE, default=default)
 
 
-class StringNamedProperty(property):
+class StringNamedProperty(BaseNamedProperty):
 
     def __init__(self, propname, default=None):
+        super().__init__(propname, default=default)
         self.__doc__ = f"Named property {propname!r} of type string"
-        self.propname = propname
-        self.default = default
 
-    def __get__(self, inst, objtype=None):
-        data = inst.props.get(self.propname, None)
-        if not data or data == SKIP_BYTES:
-            return self.default
-        db = DstBytes.from_data(data)
-        return db.read_str()
+    def _from_bytes(self, data):
+        return DstBytes.from_data(data).read_str()
 
-    def __set__(self, inst, value):
+    def _to_bytes(self, inst, value):
         db = DstBytes.in_memory()
         db.write_str(value)
-        inst.props[self.propname] = db.file.getvalue()
+        return db.file.getvalue()
 
     def __delete__(self, inst):
         del inst.props[self.propname]
@@ -278,7 +296,7 @@ class BaseTeleporterEntrance(object):
 class OldTeleporterEntranceFragment(BaseTeleporterEntrance, NamedPropertiesFragment):
 
     # type guessed - no example available
-    destination = TypedNamedProperty('LinkID', S_UINT, default=0)
+    destination = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
 @PROBER.fragment(MAGIC_2, 0x3e, 1)
@@ -320,7 +338,7 @@ class TeleporterExitFragment(BaseTeleporterExit, Fragment):
 class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
 
     # type guessed - no example available
-    link_id = TypedNamedProperty('LinkID', S_UINT, default=0)
+    link_id = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
 @PROBER.fragment(MAGIC_2, 0x51, 0)
@@ -612,7 +630,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
 
     is_interesting = True
 
-    delay_before_broadcast = TypedNamedProperty('DelayBeforeBroadcast', S_FLOAT)
+    delay_before_broadcast = StructNamedProperty('DelayBeforeBroadcast', S_FLOAT)
 
     def _print_data(self, p):
         NamedPropertiesFragment._print_data(self, p)
@@ -710,7 +728,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
 
     text = StringNamedProperty('Text')
 
-    per_char_speed = TypedNamedProperty('PerCharSpeed', S_FLOAT)
+    per_char_speed = StructNamedProperty('PerCharSpeed', S_FLOAT)
 
     clear_on_finish = ByteNamedProperty('ClearOnFinish')
 
@@ -722,7 +740,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
 
     static_time_text = ByteNamedProperty('StaticTimeText')
 
-    announcer_action = TypedNamedProperty('AnnouncerAction', S_UINT)
+    announcer_action = StructNamedProperty('AnnouncerAction', S_UINT)
 
     @named_property_getter('AnnouncerPhrases', default=())
     def announcer_phrases(self, db):
@@ -789,11 +807,11 @@ class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment)
                 texts[i] = DstBytes.from_data(data).read_str()
         return texts
 
-    fadeout_time = TypedNamedProperty('FadeOutTime', S_FLOAT)
+    fadeout_time = StructNamedProperty('FadeOutTime', S_FLOAT)
 
-    per_char_speed = TypedNamedProperty('PerCharSpeed', S_FLOAT)
+    per_char_speed = StructNamedProperty('PerCharSpeed', S_FLOAT)
 
-    clear_on_trigger_exit = TypedNamedProperty('RandomCharCount', S_UINT)
+    clear_on_trigger_exit = StructNamedProperty('RandomCharCount', S_UINT)
 
     destroy_on_trigger_exit = ByteNamedProperty('DestroyOnTriggerExit')
 
@@ -968,11 +986,9 @@ class OldInterpolateToPositionOnTriggerFragment(
 
     actually_interpolate = ByteNamedProperty('ActuallyInterpolate')
 
-    @named_property_getter('EndPos')
-    def interp_end_pos(self, dbytes):
-        return read_n_floats(dbytes, 3)
+    interp_end_pos = TupleStructNamedProperty('EndPos', S_FLOAT3)
 
-    interp_time = TypedNamedProperty('MoveTime', S_FLOAT)
+    interp_time = StructNamedProperty('MoveTime', S_FLOAT)
 
 
 @PROBER.fragment(MAGIC_2, 0x43, 1)
