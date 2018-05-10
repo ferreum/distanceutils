@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+* version 0.4.6
+
+  * Added setters and deleters for most named property attributes.
+
+  * Added ability propertes to ability triggers.
+
+  * Calculate medal points of ProfileProgress files.
+
 * version 0.4.5
 
   * Added compatibility for new LevelInfos entry version.
