@@ -430,6 +430,17 @@ class ProfileProgressFragment(Fragment):
         return levels
 
 
+def _print_stringentries(p, title, prefix, entries, num_per_row=1):
+    if entries:
+        p(f"{title}: {len(entries)}")
+        with p.tree_children():
+            it = iter(entries)
+            for _ in range(0, len(entries), num_per_row):
+                p.tree_next_child()
+                t_str = ', '.join(repr(t.value) for t in islice(it, num_per_row))
+                p(f"{prefix}: {t_str}")
+
+
 @ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
 @require_type(FTYPE_PROFILEPROGRESS)
 class ProfileProgress(BaseObject):
@@ -450,38 +461,10 @@ class ProfileProgress(BaseObject):
                 for level in levels:
                     p.tree_next_child()
                     p.print_data_of(level)
-            officials = self.officials
-            if officials:
-                p(f"Unlocked levels: {len(officials)}")
-                with p.tree_children():
-                    it = iter(officials)
-                    for _ in range(0, len(officials), 5):
-                        p.tree_next_child()
-                        l_str = ', '.join(repr(n.value) for n in islice(it, 5))
-                        p(f"Levels: {l_str}")
-            tricks = self.tricks
-            if tricks:
-                p(f"Found tricks: {len(tricks)}")
-                with p.tree_children():
-                    it = iter(tricks)
-                    for _ in range(0, len(tricks), 5):
-                        p.tree_next_child()
-                        t_str = ', '.join(repr(t.value) for t in islice(it, 5))
-                        p(f"Tricks: {t_str}")
-            adventures = self.unlocked_adventures
-            if adventures:
-                p(f"Unlocked adventure stages: {len(adventures)}")
-                with p.tree_children():
-                    for advlevel in adventures:
-                        p.tree_next_child()
-                        p(f"Level: {advlevel.value!r}")
-            somelevels = self.somelevels
-            if somelevels:
-                p(f"Some levels: {len(somelevels)}")
-                with p.tree_children():
-                    for somelevel in somelevels:
-                        p.tree_next_child()
-                        p(f"Level: {somelevel.value!r}")
+            _print_stringentries(p, "Unlocked Levels", "Levels", self.officials, num_per_row=5)
+            _print_stringentries(p, "Found tricks", "Tricks", self.tricks, num_per_row=5)
+            _print_stringentries(p, "Unlocked adventure stages", "Level", self.unlocked_adventures)
+            _print_stringentries(p, "Some levels", "Level", self.somelevels)
             if levels:
                 comps = [0] * 4
                 total = 0
