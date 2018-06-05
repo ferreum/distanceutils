@@ -11,7 +11,7 @@ setup(
     description='Utilities for the Refract Studios game Distance',
     license='MIT',
     author_email='code.danielk@gmail.com',
-    url='https://github.com/ferreum/distanceutils',
+    url='https://gitlab.com/ferreum/distanceutils',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
