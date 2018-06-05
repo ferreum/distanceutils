@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+* version 0.4.7
+
+  * Linked to the correct repository in the package info.
+
 * version 0.4.6
 
   * Added setters and deleters for most named property attributes.
