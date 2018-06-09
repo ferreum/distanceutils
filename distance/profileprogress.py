@@ -20,7 +20,7 @@ FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
 FRAG_PROBER = BytesProber()
 
-FRAG_PROBER.extend(BASE_FRAG_PROBER)
+FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
 
 
 def format_score(mode, score, comp):

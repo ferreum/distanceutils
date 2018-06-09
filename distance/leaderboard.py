@@ -4,7 +4,11 @@
 from operator import attrgetter
 
 from .bytes import BytesModel, MAGIC_2
-from .base import BaseObject, Fragment, ForwardFragmentAttrs
+from .base import (
+    BaseObject, Fragment,
+    ForwardFragmentAttrs,
+    BASE_FRAG_PROBER,
+)
 from .prober import BytesProber
 from .printing import format_duration
 
@@ -15,7 +19,7 @@ FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
 FRAG_PROBER = BytesProber()
-FRAG_PROBER.extend(BaseObject.fragment_prober)
+FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
 
 
 class Entry(BytesModel):

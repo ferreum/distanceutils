@@ -19,7 +19,7 @@ FTYPE_REPLAY_PREFIX = "Replay: "
 FRAG_PROBER = BytesProber()
 
 
-FRAG_PROBER.extend(BASE_FRAG_PROBER)
+FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
 
 
 _value_attrs = dict(

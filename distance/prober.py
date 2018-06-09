@@ -96,10 +96,15 @@ class BytesProber(object):
 
         return decorate
 
-    def extend(self, other):
+    def extendFrom(self, other):
         self._sections.update(((k, v) for k, v in other._sections.items()
                                 if k not in self._sections))
         self._funcs.extend(other._funcs)
+
+
+    # support old method name
+    extend = extendFrom
+
 
     def _probe_sections(self, sec):
         cls = self._sections.get(sec.to_key(), None)

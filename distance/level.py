@@ -22,7 +22,7 @@ LEVEL_CONTENT_PROBER = BytesProber()
 SETTINGS_FRAG_PROBER = BytesProber()
 
 
-SETTINGS_FRAG_PROBER.extend(BASE_FRAG_PROBER)
+SETTINGS_FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
 
 
 def format_layer_flags(gen):

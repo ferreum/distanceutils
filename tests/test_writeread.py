@@ -17,7 +17,7 @@ from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 
 UNK_FRAG_PROBER = BytesProber()
-UNK_FRAG_PROBER.extend(BASE_FRAG_PROBER)
+UNK_FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
 
 UNK_PROBER = BytesProber()
 
