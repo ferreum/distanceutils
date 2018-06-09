@@ -1,6 +1,9 @@
 """A hack for our modules to register their objects on shared probers."""
 
 
+from .prober import BytesProber
+
+
 class DefaultProbers(object):
 
     """Provides all probers that objects need internally.
@@ -9,7 +12,7 @@ class DefaultProbers(object):
 
     """
 
-    # prober_class injected by prober module
+    prober_class = BytesProber
 
     def __setattr__(self, name, value):
 
