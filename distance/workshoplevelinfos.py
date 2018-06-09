@@ -4,19 +4,16 @@
 from .bytes import BytesModel, MAGIC_2
 from .base import (
     BaseObject, Fragment,
-    BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
     require_type,
 )
-from .prober import BytesProber
 from .constants import Rating
+from ._shared_probers import SharedProbers
 
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
-FRAG_PROBER = BytesProber()
-
-FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
+FRAG_PROBER = SharedProbers.fragments
 
 
 def format_date(date):
@@ -74,8 +71,6 @@ class WorkshopLevelInfosFragment(Fragment):
 @ForwardFragmentAttrs(WorkshopLevelInfosFragment, levels=())
 @require_type(FTYPE_WSLEVELINFOS)
 class WorkshopLevelInfos(BaseObject):
-
-    fragment_prober = FRAG_PROBER
 
     def _print_data(self, p):
         p(f"Levelinfos: {len(self.levels)}")

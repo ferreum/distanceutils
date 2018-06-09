@@ -7,10 +7,9 @@ from .bytes import BytesModel, MAGIC_2
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
-    BASE_FRAG_PROBER,
 )
-from .prober import BytesProber
 from .printing import format_duration
+from ._shared_probers import SharedProbers
 
 
 NO_REPLAY = 0xffffffffffffffff
@@ -18,8 +17,7 @@ NO_REPLAY = 0xffffffffffffffff
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
-FRAG_PROBER = BytesProber()
-FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
+FRAG_PROBER = SharedProbers.fragments
 
 
 class Entry(BytesModel):

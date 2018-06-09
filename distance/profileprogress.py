@@ -7,20 +7,17 @@ from itertools import islice
 from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
 from .base import (
     BaseObject, Fragment,
-    BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
     require_type,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
-from .prober import BytesProber
+from ._shared_probers import SharedProbers
 
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
-FRAG_PROBER = BytesProber()
-
-FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
+FRAG_PROBER = SharedProbers.fragments
 
 
 def format_score(mode, score, comp):

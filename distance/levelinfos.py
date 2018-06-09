@@ -4,21 +4,18 @@
 from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
 from .base import (
     BaseObject, Fragment,
-    BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
     require_type,
 )
 from .printing import format_duration
 from .constants import Mode
-from .prober import BytesProber
+from ._shared_probers import SharedProbers
 
 
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
-FRAG_PROBER = BytesProber()
-
-FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
+FRAG_PROBER = SharedProbers.fragments
 
 
 class Entry(BytesModel):
@@ -89,8 +86,6 @@ class LevelInfosFragment(Fragment):
 @ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
 @require_type(FTYPE_LEVELINFOS)
 class LevelInfos(BaseObject):
-
-    fragment_prober = FRAG_PROBER
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

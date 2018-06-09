@@ -10,11 +10,14 @@ from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
 from .lazy import LazySequence, LazyMappedSequence
+from ._shared_probers import SharedProbers
 
 
-BASE_PROBER = BytesProber()
+BASE_PROBER = SharedProbers.get_or_create('base_objects')
+BASE_FRAG_PROBER = SharedProbers.get_or_create('base_fragments')
 
-BASE_FRAG_PROBER = BytesProber()
+SharedProbers.get_or_create('objects')
+SharedProbers.get_or_create('fragments')
 
 EMPTY_PROBER = BytesProber()
 
@@ -244,11 +247,18 @@ class Fragment(BytesModel):
 
     """Represents data within a Section."""
 
-    __slots__ = ('_raw_data', 'container', 'dbytes')
+    __slots__ = ('_raw_data', 'container', 'dbytes', 'probers')
 
     default_section = None
 
     is_interesting = False
+
+    def __init__(self, dbytes=None, **kw):
+        try:
+            self.probers = kw.pop('probers')
+        except KeyError:
+            self.probers = SharedProbers
+        super().__init__(dbytes=dbytes, **kw)
 
     def _init_defaults(self):
         super()._init_defaults()
@@ -349,6 +359,7 @@ class Fragment(BytesModel):
 
 
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
+@SharedProbers.fragments.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',
@@ -362,9 +373,12 @@ class ObjectFragment(Fragment):
         self.has_children = False
         self.children = ()
 
-    def _read(self, *args, **kw):
-        self._child_prober = kw.get('child_prober', EMPTY_PROBER)
-        Fragment._read(self, *args, **kw)
+    def _read(self, dbytes, *args, **kw):
+        try:
+            self._child_prober = getattr(self.probers, kw['child_prober'])
+        except AttributeError:
+            self._child_prober = EMPTY_PROBER
+        Fragment._read(self, dbytes, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
         has_children = False
@@ -454,8 +468,7 @@ class BaseObject(Fragment):
     __slots__ = ('type', '_sections', '_fragments',
                  '_fragment_types', '_fragments_by_type')
 
-    child_prober = BASE_PROBER
-    fragment_prober = BASE_FRAG_PROBER
+    child_prober_name = 'objects'
     is_object_group = False
     has_children = False
 
@@ -482,6 +495,7 @@ class BaseObject(Fragment):
             if default:
                 value = value.strip(*default)
         self.real_transform = value
+
 
     fragments = property(attrgetter('_fragments'),
                          doc="Fragments of this object.")
@@ -511,7 +525,7 @@ class BaseObject(Fragment):
         try:
             bytype = self._fragments_by_type
         except AttributeError:
-            probe = self.fragment_prober.probe_section
+            probe = self.probers.fragments.probe_section
             secs = self._sections
             types = LazySequence(map(probe, secs), len(secs))
             bytype = {}
@@ -535,7 +549,7 @@ class BaseObject(Fragment):
 
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
-        prober = self.fragment_prober
+        prober = self.probers.fragments
         i = 0
         for sec in self._sections:
             if type_filter(sec, prober):
@@ -554,9 +568,11 @@ class BaseObject(Fragment):
             return Fragment(exception=sec.exception)
         dbytes = self.dbytes
         dbytes.seek(sec.content_start)
-        return self.fragment_prober.maybe(
+        probers = self.probers
+        return probers.fragments.maybe(
             dbytes, probe_section=sec,
-            child_prober=self.child_prober)
+            child_prober=self.child_prober_name,
+            probers=probers)
 
     def _get_write_section(self, sec):
         try:
@@ -575,7 +591,7 @@ class BaseObject(Fragment):
         fragments = []
         for sec in sections:
             try:
-                cls = self.fragment_prober.probe_section(sec)
+                cls = self.probers.fragments.probe_section(sec)
             except ProbeError:
                 pass # subclass has to write this section
             else:
@@ -657,6 +673,10 @@ def _probe_fallback(sec):
     if sec.magic == MAGIC_6:
         return BaseObject
     return None
+
+
+SharedProbers.fragments.baseclass = Fragment
+SharedProbers.objects.baseclass = BaseObject
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

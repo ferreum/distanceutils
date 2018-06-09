@@ -6,23 +6,19 @@ from collections import OrderedDict
 from .bytes import S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
 from .base import (
     BaseObject, Fragment,
-    BASE_FRAG_PROBER,
     ForwardFragmentAttrs
 )
 from .lazy import LazySequence
-from .prober import BytesProber
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
-from .levelobjects import PROBER as LEVELOBJ_PROBER, print_objects
+from .levelobjects import print_objects
 from ._common import set_default_attrs
+from ._shared_probers import SharedProbers
 
 
-LEVEL_CONTENT_PROBER = BytesProber()
+LEVEL_CONTENT_PROBER = SharedProbers.get_or_create('level_content')
 
-SETTINGS_FRAG_PROBER = BytesProber()
-
-
-SETTINGS_FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
+FRAG_PROBER = SharedProbers.fragments
 
 
 def format_layer_flags(gen):
@@ -82,7 +78,7 @@ class LevelSettings(object):
             p(f"Description: {self.description}")
 
 
-@SETTINGS_FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
+@FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
 @set_default_attrs(LevelSettings.value_attrs)
 class LevelSettingsFragment(Fragment):
 
@@ -164,8 +160,6 @@ class LevelSettingsFragment(Fragment):
 @ForwardFragmentAttrs(LevelSettingsFragment, **LevelSettings.value_attrs)
 class NewLevelSettings(LevelSettings, BaseObject):
 
-    fragment_prober = SETTINGS_FRAG_PROBER
-
     def _print_type(self, p):
         BaseObject._print_type(self, p)
         if self.version is not None:
@@ -196,7 +190,6 @@ class Layer(Fragment):
     has_layer_flags = True
     flags_version = 1
     unknown_flag = 0
-    obj_prober = LEVELOBJ_PROBER
 
     def _read_section_data(self, dbytes, sec):
         if sec.magic != MAGIC_7:
@@ -222,7 +215,7 @@ class Layer(Fragment):
         else:
             self.has_layer_flags = False
             obj_start = sec.content_start
-        self.objects = self.obj_prober.lazy_n_maybe(
+        self.objects = self.probers.level_objects.lazy_n_maybe(
             dbytes, sec.count, start_pos=obj_start)
 
     def _write_section_data(self, dbytes, sec):
@@ -282,7 +275,7 @@ class Level(Fragment):
 
         num_layers = sec.count
 
-        self.content = LEVEL_CONTENT_PROBER.lazy_n_maybe(
+        self.content = self.probers.level_content.lazy_n_maybe(
             dbytes, num_layers + 1)
         if num_layers:
             self.layers = LazySequence(

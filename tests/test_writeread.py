@@ -10,7 +10,7 @@ from distance.levelfragments import (
 )
 from distance.level import Level
 from distance.levelobjects import PROBER as LEVEL_PROBER
-from distance.base import BaseObject, Fragment, BASE_FRAG_PROBER
+from distance.base import Fragment, BASE_FRAG_PROBER
 from distance.prober import BytesProber
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
@@ -31,15 +31,19 @@ def _fallback_unknown_frag(sec):
     return UnknownFragment
 
 
-class UnknownObject(BaseObject):
-
-    child_prober = UNK_PROBER
-    fragment_prober = UNK_FRAG_PROBER
+class UnknownObject(LevelObject):
+    pass
 
 
 @UNK_PROBER.func
 def _fallback_unknown(sec):
     return UnknownObject
+
+
+class UnknownProbers(object):
+    level_objects = UNK_PROBER
+    level_subobjects = UNK_PROBER
+    fragments = UNK_FRAG_PROBER
 
 
 class WedgeGSTest(ExtraAssertMixin, unittest.TestCase):
@@ -228,7 +232,8 @@ class OldSimpleTest(ExtraAssertMixin, unittest.TestCase):
 class UnknownTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/infodisplaybox 1.bytes"
-    read_obj_pre = UnknownObject
+    def read_obj_pre(self, db, **kw):
+        return LEVEL_PROBER.read(db, probers=UnknownProbers(), **kw)
     read_obj = InfoDisplayBox
 
     def verify_obj(self, obj):
@@ -238,7 +243,8 @@ class UnknownTest(common.WriteReadTest):
 class UnknownSubobjectsTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/endzone delay.bytes"
-    read_obj_pre = UnknownObject
+    def read_obj_pre(self, db, **kw):
+        return LEVEL_PROBER.read(db, probers=UnknownProbers(), **kw)
     read_obj = LEVEL_PROBER.read
 
     def verify_obj(self, obj):
@@ -249,7 +255,8 @@ class UnknownSubobjectsTest(common.WriteReadTest):
 class UnknownSection32Test(common.WriteReadTest):
 
     filename = "tests/in/customobject/gravtrigger old.bytes"
-    read_obj_pre = UnknownObject
+    def read_obj_pre(self, db, **kw):
+        return LEVEL_PROBER.read(db, probers=UnknownProbers(), **kw)
     read_obj = LEVEL_PROBER.read
 
     def verify_obj(self, obj):

@@ -4,23 +4,17 @@
 from .bytes import S_COLOR_RGBA, MAGIC_1, MAGIC_2
 from .base import (
     BaseObject, Fragment,
-    BASE_FRAG_PROBER,
     ForwardFragmentAttrs,
     require_type,
 )
-from .prober import BytesProber
 from .printing import format_duration, format_color
 from ._common import set_default_attrs
+from ._shared_probers import SharedProbers
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
-
-FRAG_PROBER = BytesProber()
-
-
-FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
-
+FRAG_PROBER = SharedProbers.fragments
 
 _value_attrs = dict(
     version = None,

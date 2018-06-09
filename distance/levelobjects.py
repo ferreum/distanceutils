@@ -7,7 +7,6 @@ from .bytes import (
 )
 from .base import Transform, BaseObject, Fragment, ForwardFragmentAttrs
 from .levelfragments import (
-    PROBER as FRAG_PROBER,
     ForwardMaterialColors,
     GoldenSimplesFragment,
     GroupFragment,
@@ -25,8 +24,8 @@ from .levelfragments import (
     BaseCarScreenTextDecodeTrigger,
     BaseInfoDisplayLogic,
 )
-from .prober import BytesProber
 from .printing import need_counters
+from ._shared_probers import SharedProbers
 
 
 def print_objects(p, gen):
@@ -39,9 +38,8 @@ def print_objects(p, gen):
         p.print_data_of(obj)
 
 
-PROBER = BytesProber()
-
-SUBOBJ_PROBER = BytesProber()
+PROBER = SharedProbers.get_or_create('level_objects')
+SUBOBJ_PROBER = SharedProbers.get_or_create('level_subobjects')
 
 
 @PROBER.func
@@ -62,8 +60,7 @@ class LevelObject(BaseObject):
 
     __slots__ = ()
 
-    child_prober = SUBOBJ_PROBER
-    fragment_prober = FRAG_PROBER
+    child_prober_name = 'level_subobjects'
 
     has_children = True
 
@@ -88,12 +85,16 @@ class SubObject(LevelObject):
             p(f"Subobject type: {type_str!r}")
 
 
+PROBER.baseclass = LevelObject
+SUBOBJ_PROBER.baseclass = SubObject
+
+
 @PROBER.for_type('Group')
 @ForwardFragmentAttrs(GroupFragment, **GroupFragment.value_attrs)
 @ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 class Group(LevelObject):
 
-    child_prober = PROBER
+    child_prober_name = 'level_objects'
     is_object_group = True
     type = 'Group'
 

@@ -5,6 +5,7 @@ import numbers
 
 from .bytes import DstBytes, BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
 from .lazy import LazySequence
+from ._shared_probers import SharedProbers
 
 
 class ProbeError(Exception):
@@ -194,6 +195,9 @@ class BytesProber(object):
         dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
+
+
+type(SharedProbers).prober_class = BytesProber
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

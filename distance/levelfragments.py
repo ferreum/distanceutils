@@ -10,16 +10,15 @@ from .bytes import (
     SKIP_BYTES,
     DstBytes,
 )
-from .base import Fragment, ObjectFragment
-from .prober import BytesProber, RegisterError
+from .base import Fragment
+from .prober import RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._common import set_default_attrs
+from ._shared_probers import SharedProbers
 
 
-PROBER = BytesProber(baseclass=Fragment)
-
-PROBER.add_fragment(ObjectFragment, MAGIC_3, type=1, version=0)
+PROBER = SharedProbers.fragments
 
 
 @PROBER.func
