@@ -13,12 +13,12 @@ from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import print_objects
 from ._common import set_default_attrs
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
-LEVEL_CONTENT_PROBER = SharedProbers.get_or_create('level_content')
+LEVEL_CONTENT_PROBER = DefaultProbers.get_or_create('level_content')
 
-FRAG_PROBER = SharedProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments
 
 
 def format_layer_flags(gen):

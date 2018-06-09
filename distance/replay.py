@@ -9,12 +9,12 @@ from .base import (
 )
 from .printing import format_duration, format_color
 from ._common import set_default_attrs
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
-FRAG_PROBER = SharedProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments
 
 _value_attrs = dict(
     version = None,

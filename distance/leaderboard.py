@@ -9,7 +9,7 @@ from .base import (
     ForwardFragmentAttrs,
 )
 from .printing import format_duration
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
 NO_REPLAY = 0xffffffffffffffff
@@ -17,7 +17,7 @@ NO_REPLAY = 0xffffffffffffffff
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
-FRAG_PROBER = SharedProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments
 
 
 class Entry(BytesModel):

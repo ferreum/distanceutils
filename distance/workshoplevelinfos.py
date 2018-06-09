@@ -8,12 +8,12 @@ from .base import (
     require_type,
 )
 from .constants import Rating
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
-FRAG_PROBER = SharedProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments
 
 
 def format_date(date):

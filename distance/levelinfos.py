@@ -9,13 +9,13 @@ from .base import (
 )
 from .printing import format_duration
 from .constants import Mode
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
-FRAG_PROBER = SharedProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments
 
 
 class Entry(BytesModel):

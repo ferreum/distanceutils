@@ -15,10 +15,10 @@ from .prober import RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._common import set_default_attrs
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
-PROBER = SharedProbers.fragments
+PROBER = DefaultProbers.fragments
 
 
 @PROBER.func

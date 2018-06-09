@@ -1,7 +1,7 @@
 """A hack for our modules to register their objects on shared probers."""
 
 
-class SharedProbers(object):
+class DefaultProbers(object):
 
     """Provides all probers that objects need internally.
 
@@ -22,7 +22,7 @@ class SharedProbers(object):
 
         if hasattr(self, name):
             raise AttributeError(
-                "SharedProbers attributes cannot be overwritten."
+                "DefaultProbers attributes cannot be overwritten."
                 " Use copy() to create a modified instance.")
 
         super().__setattr__(name, value)
@@ -44,7 +44,7 @@ class SharedProbers(object):
         return new
 
 
-SharedProbers = SharedProbers()
+DefaultProbers = DefaultProbers()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

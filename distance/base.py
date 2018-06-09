@@ -10,14 +10,14 @@ from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
 from .lazy import LazySequence, LazyMappedSequence
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
-BASE_PROBER = SharedProbers.get_or_create('base_objects')
-BASE_FRAG_PROBER = SharedProbers.get_or_create('base_fragments')
+BASE_PROBER = DefaultProbers.get_or_create('base_objects')
+BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments')
 
-SharedProbers.get_or_create('objects')
-SharedProbers.get_or_create('fragments')
+DefaultProbers.get_or_create('objects')
+DefaultProbers.get_or_create('fragments')
 
 EMPTY_PROBER = BytesProber()
 
@@ -257,7 +257,7 @@ class Fragment(BytesModel):
         try:
             self.probers = kw.pop('probers')
         except KeyError:
-            self.probers = SharedProbers
+            self.probers = DefaultProbers
         super().__init__(dbytes=dbytes, **kw)
 
     def _init_defaults(self):
@@ -359,7 +359,7 @@ class Fragment(BytesModel):
 
 
 @BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
-@SharedProbers.fragments.fragment(MAGIC_3, 1, 0)
+@DefaultProbers.fragments.fragment(MAGIC_3, 1, 0)
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',
@@ -675,8 +675,8 @@ def _probe_fallback(sec):
     return None
 
 
-SharedProbers.fragments.baseclass = Fragment
-SharedProbers.objects.baseclass = BaseObject
+DefaultProbers.fragments.baseclass = Fragment
+DefaultProbers.objects.baseclass = BaseObject
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

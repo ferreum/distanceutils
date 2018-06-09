@@ -25,7 +25,7 @@ from .levelfragments import (
     BaseInfoDisplayLogic,
 )
 from .printing import need_counters
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
 def print_objects(p, gen):
@@ -38,8 +38,8 @@ def print_objects(p, gen):
         p.print_data_of(obj)
 
 
-PROBER = SharedProbers.get_or_create('level_objects')
-SUBOBJ_PROBER = SharedProbers.get_or_create('level_subobjects')
+PROBER = DefaultProbers.get_or_create('level_objects')
+SUBOBJ_PROBER = DefaultProbers.get_or_create('level_subobjects')
 
 
 @PROBER.func

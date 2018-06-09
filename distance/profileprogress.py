@@ -12,12 +12,12 @@ from .base import (
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
-from ._shared_probers import SharedProbers
+from ._default_probers import DefaultProbers
 
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
-FRAG_PROBER = SharedProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments
 
 
 def format_score(mode, score, comp):
