@@ -49,7 +49,7 @@ class BytesProber(object):
 
     def add_fragment(self, cls, *args,
                      any_version=False, versions=None, **kw):
-        if not args and {'versions'}.issuperset(kw):
+        if not args and not kw:
             sec = cls.base_section
         else:
             sec = Section(*args, any_version=any_version, **kw)
