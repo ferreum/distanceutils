@@ -266,8 +266,10 @@ class Fragment(BytesModel):
         if con is not None:
             self.container = con
 
-    def _read(self, dbytes, container=None, **kw):
+    def _read(self, dbytes, container=None, probers=None, **kw):
         self.dbytes = dbytes
+        if probers is not None:
+            self.probers = probers
         if container is None:
             container = Section(dbytes, seek_end=False)
         self.container = container
