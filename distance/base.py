@@ -358,12 +358,15 @@ class Fragment(BytesModel):
                     p.print_data_of(container)
 
 
-@BASE_FRAG_PROBER.fragment(MAGIC_3, 1, 0)
-@DefaultProbers.fragments.fragment(MAGIC_3, 1, 0)
+@BASE_FRAG_PROBER.fragment
+@DefaultProbers.fragments.fragment
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',
                  '_child_prober')
+
+    base_section = Section.base(MAGIC_3, 1)
+    section_versions = 0
 
     default_section = Section(MAGIC_3, 1, 0)
 

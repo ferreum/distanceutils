@@ -51,6 +51,8 @@ class BytesProber(object):
                      any_version=False, versions=None, **kw):
         if not args and not kw:
             sec = cls.base_section
+            if versions is None:
+                versions = cls.section_versions
         else:
             sec = Section(*args, any_version=any_version, **kw)
         if versions is not None:
@@ -89,6 +91,12 @@ class BytesProber(object):
     def fragment(self, *args, **kw):
 
         """Decorator for matching a section."""
+
+        # Handle being used as decorator without "()": check that we
+        # only have one argument, and that it's callable (the class).
+        if len(args) == 1 and not kw and callable(args[0]):
+            self.add_fragment(args[0])
+            return args[0]
 
         def decorate(cls):
             self.add_fragment(cls, *args, **kw)
