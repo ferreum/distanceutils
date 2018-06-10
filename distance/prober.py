@@ -49,6 +49,20 @@ class BytesProber(object):
 
     def add_fragment(self, cls, *args,
                      any_version=False, versions=None, **kw):
+
+        """Register a fragment.
+
+        If additional arguments are specified, `cls` is registered for the
+        `Section` specified by these arguments and the `any_version` argument.
+
+        If there are no additional arguments and `versions` is specified,
+        `cls` is registered for the given versions of the section specified
+        by the `base_section` attribute of `cls`. If `versions` is not
+        specified, the versions are instead taken from the `section_versions`
+        attribute of `cls`.
+
+        """
+
         if not args and not kw:
             sec = cls.base_section
             if versions is None:
@@ -90,7 +104,16 @@ class BytesProber(object):
 
     def fragment(self, *args, **kw):
 
-        """Decorator for matching a section."""
+        """Decorator style method for `add_fragment`.
+
+        The decorated class is passed to `add_fragment` in addition to
+        the parameters passed to this method.
+
+        If no parameters are needed (except for the class), the class can
+        be passsed directly to this method, meaning the "()" can be omitted
+        from the decorator expression.
+
+        """
 
         # Handle being used as decorator without "()": check that we
         # only have one argument, and that it's callable (the class).
