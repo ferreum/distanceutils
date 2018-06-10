@@ -14,14 +14,9 @@ from distance.printing import PrintContext
 from distance.prober import BytesProber
 
 
-PROBER = BytesProber()
+PROBER = BytesProber(baseclass=BaseObject)
 PROBER.add_type('Group', Group)
 PROBER.add_fragment(Level, MAGIC_9)
-
-
-@PROBER.func
-def _detect_other(section):
-    return BaseObject
 
 
 def make_arglist(s):

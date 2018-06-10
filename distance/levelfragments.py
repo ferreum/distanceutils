@@ -21,11 +21,6 @@ from ._default_probers import DefaultProbers
 PROBER = DefaultProbers.fragments
 
 
-@PROBER.func
-def _fallback_fragment(sec):
-    return Fragment
-
-
 def read_n_floats(dbytes, n, default=None):
     def read_float():
         return dbytes.read_struct(S_FLOAT)[0]

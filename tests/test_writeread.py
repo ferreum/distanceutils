@@ -16,28 +16,21 @@ from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 
+UNK_PROBER = BytesProber()
 UNK_FRAG_PROBER = BytesProber()
 UNK_FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
-
-UNK_PROBER = BytesProber()
-
-
-class UnknownFragment(Fragment):
-    pass
-
-
-@UNK_FRAG_PROBER.func
-def _fallback_unknown_frag(sec):
-    return UnknownFragment
 
 
 class UnknownObject(LevelObject):
     pass
 
 
-@UNK_PROBER.func
-def _fallback_unknown(sec):
-    return UnknownObject
+class UnknownFragment(Fragment):
+    pass
+
+
+UNK_FRAG_PROBER.baseclass = UnknownFragment
+UNK_PROBER.baseclass = UnknownObject
 
 
 class UnknownProbers(object):
