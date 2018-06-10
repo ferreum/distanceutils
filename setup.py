@@ -21,6 +21,9 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
+    install_requires=[
+        'construct'
+    ],
     keywords='distance game data utilities',
     packages=['distance', 'distance.filter', 'distance_scripts'],
     entry_points={

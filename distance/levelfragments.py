@@ -16,6 +16,7 @@ from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._common import set_default_attrs
 from ._default_probers import DefaultProbers
+from .construct import BaseConstructFragment, ExposeConstructFields, C
 
 
 PROBER = DefaultProbers.fragments
@@ -746,20 +747,24 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
         return phrases
 
 
-@PROBER.fragment(Magic[2], 0x57, 1)
-class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Fragment):
+@PROBER.fragment
+@ExposeConstructFields
+class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, BaseConstructFragment):
 
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.text = dbytes.read_str()
-            self.per_char_speed = dbytes.read_struct(S_FLOAT)[0]
-            self.clear_on_finish = dbytes.read_byte()
-            self.clear_on_trigger_exit = dbytes.read_byte()
-            self.destroy_on_trigger_exit = dbytes.read_byte()
-            self.time_text = dbytes.read_str()
-            self.static_time_text = dbytes.read_byte()
-            self.delay = dbytes.read_struct(S_FLOAT)[0]
-            self.announcer_action = dbytes.read_uint4()
+    base_section = Section.base(Magic[2], 0x57)
+    section_versions = 1
+
+    _format = C.struct(
+        text = C.default(C.str, ""),
+        per_char_speed = C.default(C.float, 0),
+        clear_on_finish = C.default(C.byte, 0),
+        clear_on_trigger_exit = C.default(C.byte, 0),
+        destroy_on_trigger_exit = C.default(C.byte, 0),
+        time_text = C.default(C.str, ""),
+        static_time_text = C.default(C.byte, 1),
+        delay = C.default(C.float, 0),
+        announcer_action = C.default(C.uint, 0),
+    )
 
 
 class BaseInfoDisplayLogic(object):
