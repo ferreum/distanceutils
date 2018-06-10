@@ -67,6 +67,7 @@ from distance.profileprogress import ProfileProgress
 from distance.workshoplevelinfos import WorkshopLevelInfos
 
 from distance.knowntypes import PROBER
+from distance._default_probers import DefaultProbers
 
 from distance.constants import (
     AbilityToggle, Completion, Difficulty,
@@ -85,6 +86,8 @@ __all__ = [
 
     'AbilityToggle', 'Completion', 'Difficulty',
     'ForceType', 'Mode', 'Rating',
+
+    'DefaultProbers',
 ]
 
 __version__ = '0.4.7'
