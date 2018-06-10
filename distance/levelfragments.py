@@ -6,7 +6,7 @@ import math
 from .bytes import (
     Section,
     S_FLOAT, S_FLOAT3, S_BYTE, S_UINT,
-    MAGIC_1, MAGIC_2, MAGIC_3,
+    Magic,
     SKIP_BYTES,
     DstBytes,
 )
@@ -153,7 +153,7 @@ class StringNamedProperty(BaseNamedProperty):
         del inst.props[self.propname]
 
 
-@PROBER.fragment(MAGIC_2, 0x1d, 1)
+@PROBER.fragment(Magic[2], 0x1d, 1)
 class GroupFragment(Fragment):
 
     value_attrs = dict(
@@ -171,7 +171,7 @@ class GroupFragment(Fragment):
         if sec.content_size < 12:
             self.inspect_children = None
         else:
-            dbytes.require_equal_uint4(MAGIC_1)
+            dbytes.require_equal_uint4(Magic[1])
             num_values = dbytes.read_uint4()
             self.inspect_children = dbytes.read_uint4()
             # do save raw_data if there are unexpected values following
@@ -180,14 +180,14 @@ class GroupFragment(Fragment):
     def _write_section_data(self, dbytes, sec):
         if not self._has_more_data:
             if self.inspect_children is not None:
-                dbytes.write_int(4, MAGIC_1)
+                dbytes.write_int(4, Magic[1])
                 dbytes.write_int(4, 0) # num values
                 dbytes.write_int(4, self.inspect_children)
         else:
             dbytes.write_bytes(self.raw_data)
 
 
-@PROBER.fragment(MAGIC_2, 0x63, 0)
+@PROBER.fragment(Magic[2], 0x63, 0)
 class CustomNameFragment(Fragment):
 
     value_attrs = dict(custom_name=None)
@@ -213,7 +213,7 @@ class CustomNameFragment(Fragment):
             p(f"Custom name: {self.custom_name!r}")
 
 
-@PROBER.fragment(MAGIC_2, 0x83, 3)
+@PROBER.fragment(Magic[2], 0x83, 3)
 class GoldenSimplesFragment(Fragment):
 
     value_attrs = dict(
@@ -286,16 +286,16 @@ class BaseTeleporterEntrance(object):
             p(f"Teleports to: {self.destination}")
 
 
-@PROBER.fragment(MAGIC_2, 0x3e, 0)
+@PROBER.fragment(Magic[2], 0x3e, 0)
 class OldTeleporterEntranceFragment(BaseTeleporterEntrance, NamedPropertiesFragment):
 
     # type guessed - no example available
     destination = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
-@PROBER.fragment(MAGIC_2, 0x3e, 1)
-@PROBER.fragment(MAGIC_2, 0x3e, 2)
-@PROBER.fragment(MAGIC_2, 0x3e, 3)
+@PROBER.fragment(Magic[2], 0x3e, 1)
+@PROBER.fragment(Magic[2], 0x3e, 2)
+@PROBER.fragment(Magic[2], 0x3e, 3)
 class TeleporterEntranceFragment(BaseTeleporterEntrance, Fragment):
 
     destination = None
@@ -319,7 +319,7 @@ class BaseTeleporterExit(object):
             p(f"Link ID: {self.link_id}")
 
 
-@PROBER.fragment(MAGIC_2, 0x3f, 1)
+@PROBER.fragment(Magic[2], 0x3f, 1)
 class TeleporterExitFragment(BaseTeleporterExit, Fragment):
 
     link_id = None
@@ -328,14 +328,14 @@ class TeleporterExitFragment(BaseTeleporterExit, Fragment):
         self.link_id = dbytes.read_uint4()
 
 
-@PROBER.fragment(MAGIC_2, 0x3f, 0)
+@PROBER.fragment(Magic[2], 0x3f, 0)
 class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
 
     # type guessed - no example available
     link_id = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
-@PROBER.fragment(MAGIC_2, 0x51, 0)
+@PROBER.fragment(Magic[2], 0x51, 0)
 class TeleporterExitCheckpointFragment(Fragment):
 
     trigger_checkpoint = 1
@@ -353,7 +353,7 @@ class TeleporterExitCheckpointFragment(Fragment):
             p(f"Trigger checkpoint: {self.trigger_checkpoint}")
 
 
-@PROBER.fragment(MAGIC_3, 0x0e, 1)
+@PROBER.fragment(Magic[3], 0x0e, 1)
 class SphereColliderFragment(Fragment):
 
     trigger_center = None
@@ -368,7 +368,7 @@ class SphereColliderFragment(Fragment):
             self.trigger_radius = radius
 
 
-@PROBER.fragment(MAGIC_3, 0xf, 2)
+@PROBER.fragment(Magic[3], 0xf, 2)
 class BoxColliderFragment(Fragment):
 
     trigger_center = None
@@ -380,7 +380,7 @@ class BoxColliderFragment(Fragment):
             self.trigger_size = read_n_floats(dbytes, 3)
 
 
-@PROBER.fragment(MAGIC_2, 0x45, 1)
+@PROBER.fragment(Magic[2], 0x45, 1)
 class GravityToggleFragment(Fragment):
 
     is_interesting = True
@@ -405,7 +405,7 @@ class GravityToggleFragment(Fragment):
             p(f"Angular drag scale: {self.drag_scale_angular}")
 
 
-@PROBER.fragment(MAGIC_2, 0x4b, 1)
+@PROBER.fragment(Magic[2], 0x4b, 1)
 class MusicTriggerFragment(Fragment):
 
     is_interesting = True
@@ -445,7 +445,7 @@ _forcezone_value_attrs = dict(
 )
 
 
-@PROBER.fragment(MAGIC_2, 0xa0, 0)
+@PROBER.fragment(Magic[2], 0xa0, 0)
 @set_default_attrs(_forcezone_value_attrs)
 class ForceZoneFragment(Fragment):
 
@@ -482,8 +482,8 @@ class ForceZoneFragment(Fragment):
             p(f"Drag multiplier: {self.drag_multiplier}")
 
 
-@PROBER.fragment(MAGIC_3, 0x7, 1)
-@PROBER.fragment(MAGIC_3, 0x7, 2)
+@PROBER.fragment(Magic[3], 0x7, 1)
+@PROBER.fragment(Magic[3], 0x7, 2)
 class TextMeshFragment(Fragment):
 
     is_interesting = True
@@ -544,10 +544,10 @@ class TextMeshFragment(Fragment):
         p(f"World text: {self.text!r}")
 
 
-@PROBER.fragment(MAGIC_2, 0x16, 2)
+@PROBER.fragment(Magic[2], 0x16, 2)
 class TrackNodeFragment(Fragment):
 
-    default_section = Section(MAGIC_2, 0x16, 2)
+    default_section = Section(Magic[2], 0x16, 2)
 
     parent_id = 0
     snap_id = 0
@@ -584,8 +584,8 @@ class TrackNodeFragment(Fragment):
             p(f"Primary: {self.primary and 'yes' or 'no'}")
 
 
-@PROBER.fragment(MAGIC_3, 0x3, 1)
-@PROBER.fragment(MAGIC_3, 0x3, 2)
+@PROBER.fragment(Magic[3], 0x3, 1)
+@PROBER.fragment(Magic[3], 0x3, 2)
 class MaterialFragment(Fragment):
 
     have_content = False
@@ -619,7 +619,7 @@ class MaterialFragment(Fragment):
             self.materials.print_data(p)
 
 
-@PROBER.fragment(MAGIC_2, 0x5d, 0)
+@PROBER.fragment(Magic[2], 0x5d, 0)
 class RaceEndLogicFragment(NamedPropertiesFragment):
 
     is_interesting = True
@@ -633,7 +633,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
             p(f"Delay before broadcast: {delay}")
 
 
-@PROBER.fragment(MAGIC_2, 0x5e, 0)
+@PROBER.fragment(Magic[2], 0x5e, 0)
 class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
 
     is_interesting = True
@@ -717,7 +717,7 @@ class BaseCarScreenTextDecodeTrigger(object):
                     p(f"Phrase: {phrase!r}")
 
 
-@PROBER.fragment(MAGIC_2, 0x57, 0)
+@PROBER.fragment(Magic[2], 0x57, 0)
 class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, NamedPropertiesFragment):
 
     text = StringNamedProperty('Text')
@@ -738,7 +738,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
 
     @named_property_getter('AnnouncerPhrases', default=())
     def announcer_phrases(self, db):
-        db.require_equal_uint4(MAGIC_1)
+        db.require_equal_uint4(Magic[1])
         num_phrases = db.read_uint4()
         phrases = []
         for _ in range(num_phrases):
@@ -746,7 +746,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
         return phrases
 
 
-@PROBER.fragment(MAGIC_2, 0x57, 1)
+@PROBER.fragment(Magic[2], 0x57, 1)
 class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Fragment):
 
     def _read_section_data(self, dbytes, sec):
@@ -787,7 +787,7 @@ class BaseInfoDisplayLogic(object):
             p(f"Random char count: {self.random_char_count}")
 
 
-@PROBER.fragment(MAGIC_2, 0x4a, 0)
+@PROBER.fragment(Magic[2], 0x4a, 0)
 class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment):
 
     @property
@@ -810,7 +810,7 @@ class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment)
     destroy_on_trigger_exit = ByteNamedProperty('DestroyOnTriggerExit')
 
 
-@PROBER.fragment(MAGIC_2, 0x4a, 2)
+@PROBER.fragment(Magic[2], 0x4a, 2)
 class InfoDisplayLogicFragment(BaseInfoDisplayLogic, Fragment):
 
     def _read_section_data(self, dbytes, sec):
@@ -865,7 +865,7 @@ class AnimatorFragment(Fragment):
 
     have_content = False
 
-    base_section = Section.base(MAGIC_2, 0x9a)
+    base_section = Section.base(Magic[2], 0x9a)
     default_section = Section(base_section, version=7)
 
     def _init_defaults(self):
@@ -952,26 +952,26 @@ class AnimatorFragment(Fragment):
 @PROBER.fragment(versions=(0, 1))
 class EventListenerFragment(Fragment):
 
-    base_section = Section.base(MAGIC_2, 0x8a)
+    base_section = Section.base(Magic[2], 0x8a)
 
 
 @PROBER.fragment(versions=0)
 class TrackAttachmentFragment(Fragment):
 
-    base_section = Section.base(MAGIC_2, 0x68)
+    base_section = Section.base(Magic[2], 0x68)
 
 
 @PROBER.fragment(versions=(1, 2, 3))
 class TurnLightOnNearCarFragment(Fragment):
 
-    base_section = Section.base(MAGIC_2, 0x70)
+    base_section = Section.base(Magic[2], 0x70)
 
 
 class BaseInterpolateToPositiononTrigger(object):
     pass
 
 
-@PROBER.fragment(MAGIC_2, 0x43, 0)
+@PROBER.fragment(Magic[2], 0x43, 0)
 class OldInterpolateToPositionOnTriggerFragment(
         BaseInterpolateToPositiononTrigger, NamedPropertiesFragment):
 
@@ -985,8 +985,8 @@ class OldInterpolateToPositionOnTriggerFragment(
     interp_time = StructNamedProperty('MoveTime', S_FLOAT)
 
 
-@PROBER.fragment(MAGIC_2, 0x43, 1)
-@PROBER.fragment(MAGIC_2, 0x43, 2)
+@PROBER.fragment(Magic[2], 0x43, 1)
+@PROBER.fragment(Magic[2], 0x43, 2)
 class InterpolateToPositionOnTriggerFragment(
         BaseInterpolateToPositiononTrigger, Fragment):
 
@@ -1006,8 +1006,8 @@ class InterpolateToPositionOnTriggerFragment(
                 self.local_movement = dbytes.read_byte()
 
 
-# TODO MAGIC_2 type 0x17 ver 0 NamedPropertiesFragment
-@PROBER.fragment(MAGIC_2, 0x17, 1)
+# TODO Magic[2] type 0x17 ver 0 NamedPropertiesFragment
+@PROBER.fragment(Magic[2], 0x17, 1)
 class RigidbodyAxisRotationLogicFragment(Fragment):
 
     angular_speed = None
@@ -1034,78 +1034,78 @@ class RigidbodyAxisRotationLogicFragment(Fragment):
 
 
 PROPERTY_FRAGS = (
-    (Section(MAGIC_2, 0x25, 0), "PopupBlockerLogic"),
-    (Section(MAGIC_2, 0x42, 0), "ObjectSpawnCircle"),
-    (Section(MAGIC_2, 0x39, 0), "ParticleEmitLogic"),
-    (Section(MAGIC_2, 0x26, 0), "Light"),
-    (Section(MAGIC_2, 0x28, 0), "SmoothRandomPosition"),
-    (Section(MAGIC_2, 0x45, 0), None),
-    (Section(MAGIC_2, 0x24, 0), "OldFlyingRingLogic"),
-    (Section(MAGIC_2, 0x50, 0), "Pulse"),
+    (Section(Magic[2], 0x25, 0), "PopupBlockerLogic"),
+    (Section(Magic[2], 0x42, 0), "ObjectSpawnCircle"),
+    (Section(Magic[2], 0x39, 0), "ParticleEmitLogic"),
+    (Section(Magic[2], 0x26, 0), "Light"),
+    (Section(Magic[2], 0x28, 0), "SmoothRandomPosition"),
+    (Section(Magic[2], 0x45, 0), None),
+    (Section(Magic[2], 0x24, 0), "OldFlyingRingLogic"),
+    (Section(Magic[2], 0x50, 0), "Pulse"),
     # found on Damnation
-    (Section(MAGIC_2, 0x59, 0), None),
-    (Section(MAGIC_2, 0x4b, 0), None),
-    (Section(MAGIC_2, 0x4e, 0), None),
-    (Section(MAGIC_2, 0x3a, 0), None),
-    (Section(MAGIC_2, 0x58, 0), None),
-    (Section(MAGIC_2, 0x2c, 0), None),
+    (Section(Magic[2], 0x59, 0), None),
+    (Section(Magic[2], 0x4b, 0), None),
+    (Section(Magic[2], 0x4e, 0), None),
+    (Section(Magic[2], 0x3a, 0), None),
+    (Section(Magic[2], 0x58, 0), None),
+    (Section(Magic[2], 0x2c, 0), None),
     # found on Hextreme
-    (Section(MAGIC_2, 0x1b, 0), None),
+    (Section(Magic[2], 0x1b, 0), None),
     # found on "Brief Chaos" object EmpireBrokenBuilding006_PiecesSeparated
-    (Section(MAGIC_2, 0x44, 0), None),
+    (Section(Magic[2], 0x44, 0), None),
     # from v5 AudioEventTrigger
-    (Section(MAGIC_2, 0x74, 0), None),
+    (Section(Magic[2], 0x74, 0), None),
     # from v5 CubeMIDI
-    (Section(MAGIC_2, 0x3d, 0), None),
+    (Section(Magic[2], 0x3d, 0), None),
     # from v9 RumbleZone
-    (Section(MAGIC_2, 0x66, 0), None),
+    (Section(Magic[2], 0x66, 0), None),
     # from v8 PulseCore
-    (Section(MAGIC_2, 0x4f, 0), None),
+    (Section(Magic[2], 0x4f, 0), None),
     # from v8 KillGridBox
-    (Section(MAGIC_2, 0x82, 0), None),
+    (Section(Magic[2], 0x82, 0), None),
     # from v5 WarpAnchor
-    (Section(MAGIC_2, 0x6e, 0), None),
+    (Section(Magic[2], 0x6e, 0), None),
     # from v7 PlanetWithSphericalGravity
-    (Section(MAGIC_2, 0x5f, 0), None),
+    (Section(Magic[2], 0x5f, 0), None),
     # from v5 VirusSpiritShard
-    (Section(MAGIC_2, 0x67, 0), None),
+    (Section(Magic[2], 0x67, 0), None),
     # from v9 WingCorruptionZone
-    (Section(MAGIC_2, 0x53, 0), None),
+    (Section(Magic[2], 0x53, 0), None),
     # from v8 IntroCutsceneLight
-    (Section(MAGIC_2, 0x55, 0), None),
+    (Section(Magic[2], 0x55, 0), None),
     # from v9 CutsceneLightning
-    (Section(MAGIC_2, 0x6f, 0), None),
+    (Section(Magic[2], 0x6f, 0), None),
     # from s8 (map "The Matrix Arena")
-    (Section(MAGIC_2, 0x17, 0), None), # from EmpireCircle
-    (Section(MAGIC_2, 0x1f, 0), None), # from Teleporter
+    (Section(Magic[2], 0x17, 0), None), # from EmpireCircle
+    (Section(Magic[2], 0x1f, 0), None), # from Teleporter
     # from v3 WarningPulseLight
-    (Section(MAGIC_2, 0x65, 0), None),
+    (Section(Magic[2], 0x65, 0), None),
     # from v1 LaserMid (sub of VirusLaserTriCircleRotating)
-    (Section(MAGIC_2, 0x1a, 0), None),
+    (Section(Magic[2], 0x1a, 0), None),
     # from v5 EmpireProximityDoor
-    (Section(MAGIC_2, 0x76, 0), None),
+    (Section(Magic[2], 0x76, 0), None),
     # from v5 VirusSpiritWarpTeaser
-    (Section(MAGIC_2, 0x7e, 0), None),
+    (Section(Magic[2], 0x7e, 0), None),
     # from v1 GlobalFog
-    (Section(MAGIC_2, 0x60, 0), None),
+    (Section(Magic[2], 0x60, 0), None),
     # from v8 DisableLocalCarWarnings
-    (Section(MAGIC_2, 0x62, 0), None),
+    (Section(Magic[2], 0x62, 0), None),
     # from v7 AdventureAbilitySettings
-    (Section(MAGIC_2, 0x4d, 0), None),
+    (Section(Magic[2], 0x4d, 0), None),
     # from v3 VirusBase
     # very old versions (map "birthday bash court") don't use offsets
-    (Section(MAGIC_2, 0x27, 0), None),
+    (Section(Magic[2], 0x27, 0), None),
     # from s8 (map "The Pumpkin Patch")
-    (Section(MAGIC_2, 0x38, 0), None),
+    (Section(Magic[2], 0x38, 0), None),
     # from SoccerGoalLogic
-    (Section(MAGIC_2, 0x29, 0), None),
-    (Section(MAGIC_2, 0x3e, 0), "OldTeleporterEntrance"),
-    (Section(MAGIC_2, 0x3f, 0), "OldTeleporterExit"),
-    (Section(MAGIC_2, 0x5d, 0), "RaceEndLogic"),
-    (Section(MAGIC_2, 0x5e, 0), "EnableAbilitiesTrigger"),
-    (Section(MAGIC_2, 0x57, 0), "OldCarScreenTextDecodeTrigger"),
-    (Section(MAGIC_2, 0x4a, 0), "OldInfoDisplayLogic"),
-    (Section(MAGIC_2, 0x43, 0), "OldInterpolateToPositionOnTrigger"),
+    (Section(Magic[2], 0x29, 0), None),
+    (Section(Magic[2], 0x3e, 0), "OldTeleporterEntrance"),
+    (Section(Magic[2], 0x3f, 0), "OldTeleporterExit"),
+    (Section(Magic[2], 0x5d, 0), "RaceEndLogic"),
+    (Section(Magic[2], 0x5e, 0), "EnableAbilitiesTrigger"),
+    (Section(Magic[2], 0x57, 0), "OldCarScreenTextDecodeTrigger"),
+    (Section(Magic[2], 0x4a, 0), "OldInfoDisplayLogic"),
+    (Section(Magic[2], 0x43, 0), "OldInterpolateToPositionOnTrigger"),
 )
 
 

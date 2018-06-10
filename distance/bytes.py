@@ -62,6 +62,21 @@ MAGIC_12 = 12121212
 MAGIC_32 = 32323232
 
 
+"""Dict containing all the magics. Easier than importing single magics."""
+Magic = {
+    1: MAGIC_1,
+    2: MAGIC_2,
+    3: MAGIC_3,
+    5: MAGIC_5,
+    6: MAGIC_6,
+    7: MAGIC_7,
+    8: MAGIC_8,
+    9: MAGIC_9,
+    12: MAGIC_12,
+    32: MAGIC_32,
+}
+
+
 CATCH_EXCEPTIONS = (ValueError, EOFError)
 
 
