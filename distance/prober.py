@@ -61,11 +61,14 @@ class BytesProber(object):
         specified, the versions are instead taken from the `section_versions`
         attribute of `cls`.
 
+        If `any_version` is specified, `cls` is registered to match any
+        version of the specified section.
+
         """
 
         if not args and not kw:
             sec = cls.base_section
-            if versions is None:
+            if not any_version and versions is None:
                 versions = cls.section_versions
         else:
             sec = Section(*args, any_version=any_version, **kw)
