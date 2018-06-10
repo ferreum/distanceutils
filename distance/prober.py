@@ -162,9 +162,7 @@ class BytesProber(object):
         cls = self._get_from_funcs(sec)
         if cls is not None:
             return cls
-        if sec.magic == MAGIC_6:
-            raise ProbeError(f"Unknown object type: {sec.type!r}")
-        raise ProbeError(f"Unknown object section: {sec}")
+        return self.baseclass
 
     def probe(self, dbytes, probe_section=None):
         if probe_section is None:

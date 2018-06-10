@@ -13,6 +13,7 @@ from .lazy import LazySequence, LazyMappedSequence
 from ._default_probers import DefaultProbers
 
 
+# these probers may be used outside
 BASE_PROBER = DefaultProbers.get_or_create('base_objects')
 BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments')
 
@@ -360,7 +361,7 @@ class Fragment(BytesModel):
                     p.print_data_of(container)
 
 
-@BASE_FRAG_PROBER.fragment
+@DefaultProbers.base_fragments.fragment
 @DefaultProbers.fragments.fragment
 class ObjectFragment(Fragment):
 
@@ -673,13 +674,8 @@ def require_type(typ):
     return decorate
 
 
-@BASE_PROBER.func
-def _probe_fallback(sec):
-    if sec.magic == MAGIC_6:
-        return BaseObject
-    return None
-
-
+DefaultProbers.base_objects.baseclass = BaseObject
+DefaultProbers.base_fragments.baseclass = Fragment
 DefaultProbers.fragments.baseclass = Fragment
 DefaultProbers.objects.baseclass = BaseObject
 

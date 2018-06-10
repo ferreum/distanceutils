@@ -28,32 +28,8 @@ from .printing import need_counters
 from ._default_probers import DefaultProbers
 
 
-def print_objects(p, gen):
-    counters = p.counters
-    for obj in gen:
-        p.tree_next_child()
-        counters.num_objects += 1
-        if 'numbers' in p.flags:
-            p(f"Level object: {counters.num_objects}")
-        p.print_data_of(obj)
-
-
 PROBER = DefaultProbers.get_or_create('level_objects')
 SUBOBJ_PROBER = DefaultProbers.get_or_create('level_subobjects')
-
-
-@PROBER.func
-def _fallback_object(section):
-    if section.magic == MAGIC_6:
-        return LevelObject
-    return None
-
-
-@SUBOBJ_PROBER.func
-def _fallback_subobject(section):
-    if section.magic == MAGIC_6:
-        return SubObject
-    return None
 
 
 class LevelObject(BaseObject):
@@ -87,6 +63,16 @@ class SubObject(LevelObject):
 
 PROBER.baseclass = LevelObject
 SUBOBJ_PROBER.baseclass = SubObject
+
+
+def print_objects(p, gen):
+    counters = p.counters
+    for obj in gen:
+        p.tree_next_child()
+        counters.num_objects += 1
+        if 'numbers' in p.flags:
+            p(f"Level object: {counters.num_objects}")
+        p.print_data_of(obj)
 
 
 @PROBER.for_type('Group')
