@@ -8,46 +8,20 @@ class DefaultProbers(object):
 
     """Provides all probers that objects need internally.
 
-    Existing attributes cannot be overwritten. Use a new instance instead.
+    Existing attributes should not be overwritten. Use a subclass instead.
 
     """
 
     prober_class = BytesProber
 
-    def __setattr__(self, name, value):
-
-        """Disallows overwriting any existing attributes.
-
-        If a module were to replace existing probers, we would lose all
-        previous registrations on it by other modules.
-
-        """
-
-        if hasattr(self, name):
-            raise AttributeError(
-                "DefaultProbers attributes cannot be overwritten."
-                " Use copy() to create a modified instance.")
-
-        super().__setattr__(name, value)
-
-    def get_or_create(self, name):
+    @classmethod
+    def get_or_create(cls, name):
         try:
-            return getattr(self, name)
+            return getattr(cls, name)
         except AttributeError:
-            prober = self.prober_class()
-            setattr(self, name, prober)
+            prober = cls.prober_class()
+            setattr(cls, name, prober)
             return prober
-
-    def copy(self, **probers):
-        new = type(self)()
-        probers.update((name, prober) for name, prober in self.__dict__.items()
-                       if name not in probers)
-        for name, prober in probers.items():
-            setattr(new, name, prober)
-        return new
-
-
-DefaultProbers = DefaultProbers()
 
 
 # vim:set sw=4 ts=8 sts=4 et:
