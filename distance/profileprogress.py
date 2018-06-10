@@ -80,6 +80,9 @@ class StringEntry(BytesModel):
     def _write(self, dbytes):
         dbytes.write_str(self.value)
 
+    def _print_data(self, p):
+        p(f"Value: {self.value!r}")
+
 
 class Stat(object):
 
@@ -431,11 +434,16 @@ def _print_stringentries(p, title, prefix, entries, num_per_row=1):
     if entries:
         p(f"{title}: {len(entries)}")
         with p.tree_children():
-            it = iter(entries)
-            for _ in range(0, len(entries), num_per_row):
-                p.tree_next_child()
-                t_str = ', '.join(repr(t.value) for t in islice(it, num_per_row))
-                p(f"{prefix}: {t_str}")
+            if 'offset' in p.flags or 'size' in p.flags:
+                for entry in entries:
+                    p.tree_next_child()
+                    p.print_data_of(entry)
+            else:
+                it = iter(entries)
+                for _ in range(0, len(entries), num_per_row):
+                    p.tree_next_child()
+                    t_str = ', '.join(repr(t.value) for t in islice(it, num_per_row))
+                    p(f"{prefix}: {t_str}")
 
 
 @ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
