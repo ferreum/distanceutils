@@ -73,6 +73,8 @@ class BytesProber(object):
         else:
             sec = Section(*args, any_version=any_version, **kw)
         if versions is not None:
+            if any_version:
+                raise ValueError("Cannot use parameter 'versions' with 'any_version'")
             if isinstance(versions, numbers.Integral):
                 versions = [versions]
             for version in versions:
