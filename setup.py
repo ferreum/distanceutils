@@ -24,7 +24,7 @@ setup(
     install_requires=[
         'construct'
     ],
-    keywords='distance game data utilities',
+    keywords='distance user profile level map game data utilities',
     packages=['distance', 'distance.filter', 'distance_scripts'],
     entry_points={
         'console_scripts': [
