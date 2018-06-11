@@ -74,7 +74,10 @@ def construct_property(cls, name, doc=None):
     def fset(self, value):
         self.data[name] = value
     def fdel(self):
-        del self.data[name]
+        try:
+            del self.data[name]
+        except KeyError as e:
+            raise AssertionError from e
     return property(fget, fset, fdel, doc=doc)
 
 
