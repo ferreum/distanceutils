@@ -12,14 +12,12 @@ class DefaultProbers(object):
 
     """
 
-    prober_class = BytesProber
-
     @classmethod
     def get_or_create(cls, name):
         try:
             return getattr(cls, name)
         except AttributeError:
-            prober = cls.prober_class()
+            prober = BytesProber()
             setattr(cls, name, prober)
             return prober
 
