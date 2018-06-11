@@ -214,9 +214,13 @@ class CustomNameFragment(Fragment):
             p(f"Custom name: {self.custom_name!r}")
 
 
-@PROBER.fragment(Magic[2], 0x83, 3)
+@PROBER.fragment
 @ExposeConstructFields
 class GoldenSimplesFragment(BaseConstructFragment):
+
+    base_section = Section.base(Magic[2], 0x83)
+    section_versions = 3
+    default_section = Section(base_section, version=3)
 
     _format = C.struct(
         image_index = C.default(C.uint, 17),
