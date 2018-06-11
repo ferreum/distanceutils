@@ -27,7 +27,19 @@ class C(object):
     str = PascalString(VarInt, encoding='utf-16le')
 
 
-class BaseConstructFragment(Fragment):
+class ConstructMeta(type):
+
+    def __init__(cls, name, bases, dct):
+        super().__init__(name, bases, dct)
+        if cls._format is not None:
+            attrs = {}
+            for con in cls._format.subcons:
+                if con.name:
+                    attrs[con.name] = getattr(con, 'value', None)
+            cls._fields_map = attrs
+
+
+class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
 
     """Baseclass for fragments defined by construct Structs.
 
@@ -70,6 +82,10 @@ def construct_property(cls, name, doc=None):
         try:
             return self.data[name]
         except KeyError as e:
+            try:
+                return cls._fields_map[name]
+            except KeyError:
+                pass
             raise AssertionError from e
     def fset(self, value):
         self.data[name] = value
