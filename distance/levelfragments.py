@@ -215,63 +215,26 @@ class CustomNameFragment(Fragment):
 
 
 @PROBER.fragment(Magic[2], 0x83, 3)
-class GoldenSimplesFragment(Fragment):
+@ExposeConstructFields
+class GoldenSimplesFragment(BaseConstructFragment):
 
-    value_attrs = dict(
-        tex_scale = (1, 1, 1),
-        tex_offset = (0, 0, 0),
-        image_index = 17,
-        emit_index = 17,
-        flip_tex_uv = 0,
-        world_mapped = 0,
-        disable_diffuse = 0,
-        disable_bump = 0,
-        bump_strength = 0,
-        disable_reflect = 0,
-        disable_collision = 0,
-        additive_transp = 0,
-        multip_transp = 0,
-        invert_emit = 0,
+    _format = C.struct(
+        image_index = C.default(C.uint, 17),
+        emit_index = C.default(C.uint, 17),
+        preset = C.default(C.uint, 0),
+        tex_scale = C.default(C.float[3], (1, 1, 1)),
+        tex_offset = C.default(C.float[3], (0, 0, 0)),
+        flip_tex_uv = C.default(C.byte, 0),
+        world_mapped = C.default(C.byte, 0),
+        disable_diffuse = C.default(C.byte, 0),
+        disable_bump = C.default(C.byte, 0),
+        bump_strength = C.default(C.float, 0),
+        disable_reflect = C.default(C.byte, 0),
+        disable_collision = C.default(C.byte, 0),
+        additive_transp = C.default(C.byte, 0),
+        multip_transp = C.default(C.byte, 0),
+        invert_emit = C.default(C.byte, 0),
     )
-
-    def _init_defaults(self):
-        super()._init_defaults()
-        for name, value in self.value_attrs.items():
-            setattr(self, name, value)
-
-    def _read_section_data(self, dbytes, sec):
-        self.image_index = dbytes.read_uint4()
-        self.emit_index = dbytes.read_uint4()
-        dbytes.read_uint4() # preset
-        self.tex_scale = dbytes.read_struct(S_FLOAT3)
-        self.tex_offset = dbytes.read_struct(S_FLOAT3)
-        self.flip_tex_uv = dbytes.read_byte()
-        self.world_mapped = dbytes.read_byte()
-        self.disable_diffuse = dbytes.read_byte()
-        self.disable_bump = dbytes.read_byte()
-        self.bump_strength = dbytes.read_struct(S_FLOAT)[0]
-        self.disable_reflect = dbytes.read_byte()
-        self.disable_collision = dbytes.read_byte()
-        self.additive_transp = dbytes.read_byte()
-        self.multip_transp = dbytes.read_byte()
-        self.invert_emit = dbytes.read_byte()
-
-    def _write_section_data(self, dbytes, sec):
-        dbytes.write_int(4, self.image_index)
-        dbytes.write_int(4, self.emit_index)
-        dbytes.write_int(4, 0) # preset
-        dbytes.write_bytes(S_FLOAT3.pack(*self.tex_scale))
-        dbytes.write_bytes(S_FLOAT3.pack(*self.tex_offset))
-        dbytes.write_int(1, self.flip_tex_uv and 1 or 0)
-        dbytes.write_int(1, self.world_mapped and 1 or 0)
-        dbytes.write_int(1, self.disable_diffuse and 1 or 0)
-        dbytes.write_int(1, self.disable_bump and 1 or 0)
-        dbytes.write_bytes(S_FLOAT.pack(self.bump_strength))
-        dbytes.write_int(1, self.disable_reflect and 1 or 0)
-        dbytes.write_int(1, self.disable_collision and 1 or 0)
-        dbytes.write_int(1, self.additive_transp and 1 or 0)
-        dbytes.write_int(1, self.multip_transp and 1 or 0)
-        dbytes.write_int(1, self.invert_emit and 1 or 0)
 
     def _print_type(self, p):
         p(f"Fragment: GoldenSimples")

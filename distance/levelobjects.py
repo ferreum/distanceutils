@@ -400,7 +400,7 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 
 
-@ForwardFragmentAttrs(GoldenSimplesFragment, **GoldenSimplesFragment.value_attrs)
+@ForwardFragmentAttrs(GoldenSimplesFragment, **GoldenSimplesFragment._fields_map)
 @ForwardMaterialColors(
     mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
     mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
