@@ -54,6 +54,9 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _init_defaults(self):
         self.data = {}
 
+    def _clone_data(self, new):
+        new.data = dict(self.data)
+
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
             self.data = self._format.parse(dbytes.read_bytes(sec.content_size))
