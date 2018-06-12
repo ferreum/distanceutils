@@ -80,7 +80,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
 
 def construct_property(cls, name, doc=None):
     if doc is None:
-        doc = f"property forwarded to {cls.__name__!r}"
+        doc = f"property forwarded to construct field {name!r}"
     def fget(self):
         try:
             return self.data[name]
