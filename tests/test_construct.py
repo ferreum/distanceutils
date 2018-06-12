@@ -71,6 +71,14 @@ class TestFragmentTest(unittest.TestCase):
         self.assertEqual(res.second_uint, 64)
         check_exceptions(res)
 
+    def test_write_read_changed(self):
+        frag = TestFragment(self.dbytes)
+        frag.first_string = "new string"
+        res, rdb = write_read(frag)
+        self.assertEqual(frag.first_string, "new string")
+        self.assertEqual(frag.second_uint, 64)
+        check_exceptions(frag)
+
     def test_clone(self):
         frag = TestFragment(self.dbytes)
         res = frag.clone()
