@@ -3,6 +3,7 @@
 
 from construct import (
     PascalString, VarInt,
+    ConstructError,
 )
 
 from distance.base import Fragment
@@ -59,7 +60,10 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
-            self.data = self._format.parse(dbytes.read_bytes(sec.content_size))
+            try:
+                self.data = self._format.parse(dbytes.read_bytes(sec.content_size))
+            except ConstructError as e:
+                raise ValueError from e
         else:
             # Data is empty - game falls back to defaults here.
             self.data = {}
