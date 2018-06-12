@@ -105,8 +105,9 @@ Examples::
   # use filter 'goldify' without arguments
   goldify
 
-Filters provide a ``help`` argument, which just prints the filter's help, and
-aborts the program without executing any filters.
+Filters provide a ``:help`` argument, which lists the filter's available
+arguments.
+
 
 
 .. _filters: ./FILTERS.rst

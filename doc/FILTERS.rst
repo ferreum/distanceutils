@@ -7,6 +7,9 @@ This is a list of filters provided by the ``distance.filter`` module.
 These filters can be applied from the command line using the
 ``dst-filterlevel`` script.
 
+Filters provide a ``:help`` argument, which lists the filter's available
+arguments.
+
 
 filter: ``rm``
 ''''''''''''''
