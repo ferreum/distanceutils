@@ -87,14 +87,12 @@ class TestFragmentTest(unittest.TestCase):
 
     def test_read_empty(self):
         frag = TestFragment(self.dbytes_empty)
-
         self.assertEqual(frag.first_string, "default_str")
         self.assertEqual(frag.second_uint, 12)
         check_exceptions(frag)
 
     def test_read_empty_nondefault(self):
         frag = NondefaultFragment(self.dbytes_empty)
-
         self.assertEqual(None, frag.first_string)
         self.assertEqual(None, frag.second_uint)
         check_exceptions(frag)
@@ -114,11 +112,10 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_write_partial_default(self):
         frag = TestFragment(second_uint=23)
-
         res, db = write_read(frag)
-
         self.assertEqual(res.first_string, "default_str")
         self.assertEqual(res.second_uint, 23)
+        check_exceptions(res)
 
     def test_create(self):
         frag = TestFragment(first_string="created", second_uint=32)
@@ -152,6 +149,7 @@ class TestFragment2Test(unittest.TestCase):
         frag = ComplexFragment(db)
         self.assertEqual(frag.type, 0)
         self.assertEqual(frag.value, 7)
+        check_exceptions(frag)
 
     def test_read_complex2(self):
         db = DstBytes.in_memory()
@@ -163,6 +161,7 @@ class TestFragment2Test(unittest.TestCase):
         frag = ComplexFragment(db)
         self.assertEqual(frag.type, 1)
         self.assertEqual(frag.value, "value string")
+        check_exceptions(frag)
 
     def test_write_complex1(self):
         db = DstBytes.in_memory()
@@ -179,9 +178,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_write_type_error(self):
         db = DstBytes.in_memory()
-
         frag = ComplexFragment(type=0, value="a string")
-
         self.assertRaises(FormatFieldError, frag.write, db)
 
 
