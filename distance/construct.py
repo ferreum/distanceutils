@@ -61,7 +61,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
             try:
-                self.data = self._format.parse(dbytes.read_bytes(sec.content_size))
+                self.data = self._format.parse_stream(dbytes.file)
             except ConstructError as e:
                 raise ValueError from e
         else:
