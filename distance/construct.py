@@ -73,7 +73,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _write_section_data(self, dbytes, sec):
         # If data is empty, game falls back to defaults.
         if self.data:
-            dbytes.write_bytes(self._format.build(self.data))
+            self._format.build_stream(self.data, dbytes.file)
 
     def _print_data(self, p):
         if 'allprops' in p.flags:
