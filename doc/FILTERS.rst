@@ -15,7 +15,7 @@ Remove objects with matching type, index or sections.
 
 For example, to remove all roads from "my_level.bytes"::
 
-  $ dst-filterlevel my_level.bytes result.bytes -o rm:type=Road:all
+  $ dst-filterlevel my_level.bytes result.bytes -o rm:type=Road
 
 
 filter: ``goldify``
