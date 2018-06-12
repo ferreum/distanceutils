@@ -4,14 +4,13 @@ import construct as Con
 from construct import ConstructError, FormatFieldError
 
 from distance.bytes import DstBytes, Magic, Section
-from distance.construct import C, BaseConstructFragment, ExposeConstructFields
+from distance.construct import C, BaseConstructFragment
 from tests.common import write_read, check_exceptions
 
 
 test_section = Section(Magic[2], 0x1337, 42)
 
 
-@ExposeConstructFields
 class TestFragment(BaseConstructFragment):
 
     default_section = test_section
@@ -22,7 +21,6 @@ class TestFragment(BaseConstructFragment):
     )
 
 
-@ExposeConstructFields
 class NondefaultFragment(BaseConstructFragment):
 
     default_section = test_section
@@ -33,7 +31,6 @@ class NondefaultFragment(BaseConstructFragment):
     )
 
 
-@ExposeConstructFields
 class ComplexFragment(BaseConstructFragment):
 
     default_section = test_section

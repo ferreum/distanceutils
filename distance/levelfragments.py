@@ -16,7 +16,7 @@ from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._common import set_default_attrs
 from ._default_probers import DefaultProbers
-from .construct import BaseConstructFragment, ExposeConstructFields, C
+from .construct import BaseConstructFragment, C
 
 
 PROBER = DefaultProbers.fragments
@@ -221,7 +221,6 @@ class CustomNameFragment(Fragment):
 
 
 @PROBER.fragment
-@ExposeConstructFields
 class GoldenSimplesFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[2], 0x83)
@@ -765,7 +764,6 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
 
 
 @PROBER.fragment
-@ExposeConstructFields
 class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, BaseConstructFragment):
 
     section_versions = 1
@@ -851,7 +849,6 @@ class InfoDisplayLogicFragment(BaseInfoDisplayLogic, Fragment):
 
 
 @PROBER.fragment
-@ExposeConstructFields
 class AnimatorFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[2], 0x9a)
