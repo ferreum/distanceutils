@@ -44,7 +44,7 @@ KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 def setup_prober(args):
     prober = BytesProber()
     prober.add_fragment(Level, MAGIC_9)
-    prober.extendFrom(LEVELOBJ_PROBER)
+    prober.extend_from(LEVELOBJ_PROBER)
 
     return prober
 

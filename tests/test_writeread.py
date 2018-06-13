@@ -18,7 +18,7 @@ from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 UNK_PROBER = BytesProber()
 UNK_FRAG_PROBER = BytesProber()
-UNK_FRAG_PROBER.extendFrom(BASE_FRAG_PROBER)
+UNK_FRAG_PROBER.extend_from(BASE_FRAG_PROBER)
 
 
 class UnknownObject(LevelObject):

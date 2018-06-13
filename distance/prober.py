@@ -132,14 +132,14 @@ class BytesProber(object):
 
         return decorate
 
-    def extendFrom(self, other):
+    def extend_from(self, other):
         self._sections.update(((k, v) for k, v in other._sections.items()
-                                if k not in self._sections))
+                               if k not in self._sections))
         self._funcs.extend(other._funcs)
 
 
     # support old method name
-    extend = extendFrom
+    extend = extend_from
 
 
     def _probe_sections(self, sec):

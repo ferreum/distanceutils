@@ -35,8 +35,8 @@ def main():
     print_filename = 'filename' in flags or len(args.FILE) > 1
 
     prober = BytesProber(baseclass=Fragment)
-    prober.extendFrom(DefaultProbers.file)
-    prober.extendFrom(DefaultProbers.fragments)
+    prober.extend_from(DefaultProbers.file)
+    prober.extend_from(DefaultProbers.fragments)
 
     p = PrintContext(flags=flags)
 

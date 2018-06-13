@@ -32,7 +32,7 @@ def _detect_other(section):
     return None
 
 
-PROBER.extendFrom(LEVELOBJ_PROBER)
+PROBER.extend_from(LEVELOBJ_PROBER)
 
 
 probe = PROBER.probe
