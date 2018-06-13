@@ -4,8 +4,10 @@
 import sys
 import argparse
 
+from distance.base import Fragment
 from distance.printing import PrintContext
-from distance import knowntypes as types
+from distance.prober import BytesProber
+from distance import DefaultProbers
 
 
 def main():
@@ -32,6 +34,10 @@ def main():
 
     print_filename = 'filename' in flags or len(args.FILE) > 1
 
+    prober = BytesProber(baseclass=Fragment)
+    prober.extendFrom(DefaultProbers.file)
+    prober.extendFrom(DefaultProbers.fragments)
+
     p = PrintContext(flags=flags)
 
     have_error = False
@@ -40,7 +46,7 @@ def main():
             if print_filename:
                 p("")
                 p(f"File: {fname!r}")
-            obj = types.maybe(fname)
+            obj = prober.maybe(fname)
             p.print_data_of(obj)
         except BrokenPipeError:
             # suppress warning message when stdout gets closed
