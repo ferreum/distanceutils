@@ -58,6 +58,7 @@ This lazy-loading changes the seek position of the file.
 
 import distance.levelobjects
 import distance.levelfragments
+import distance.knowntypes
 
 from distance.level import Level
 from distance.replay import Replay
@@ -66,7 +67,6 @@ from distance.levelinfos import LevelInfos
 from distance.profileprogress import ProfileProgress
 from distance.workshoplevelinfos import WorkshopLevelInfos
 
-from distance.knowntypes import PROBER
 from distance._default_probers import DefaultProbers
 
 from distance.constants import (
@@ -78,6 +78,7 @@ from distance.constants import (
 # suppress warnings
 distance.levelobjects
 distance.levelfragments
+distance.knowntypes
 
 
 __all__ = [
@@ -91,6 +92,9 @@ __all__ = [
 ]
 
 __version__ = '0.4.7'
+
+
+PROBER = DefaultProbers.file
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
