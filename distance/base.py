@@ -267,7 +267,19 @@ class Fragment(BytesModel):
         if con is not None:
             self.container = con
 
-    def _read(self, dbytes, container=None, probers=None, **kw):
+    def _read(self, dbytes, container=None, probers=None, child_prober=None):
+
+        """Read data of the Fragment.
+
+        `container`    - Container Section of this Fragment. If omitted, it
+                         is read from dbytes before reading the Fragment.
+        `probers`      - If not None, sets the probers used by this Fragment.
+        `child_prober` - Specifies the child object prober name for
+                         ObjectFragment. Only accepted here to
+                         allow passing it without checking for its type.
+
+        """
+
         self.dbytes = dbytes
         if probers is not None:
             self.probers = probers
