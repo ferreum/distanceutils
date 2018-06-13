@@ -227,7 +227,7 @@ class GoldenSimplesFragment(BaseConstructFragment):
     section_versions = 3
     default_section = Section(base_section, version=3)
 
-    _format = C.struct(
+    _construct = C.struct(
         image_index = C.default(C.uint, 17),
         emit_index = C.default(C.uint, 17),
         preset = C.default(C.uint, 0),
@@ -768,7 +768,7 @@ class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, BaseCon
 
     section_versions = 1
 
-    _format = C.struct(
+    _construct = C.struct(
         text = C.default(C.str, ""),
         per_char_speed = C.default(C.float, 0),
         clear_on_finish = C.default(C.byte, 0),
@@ -855,7 +855,7 @@ class AnimatorFragment(BaseConstructFragment):
     section_versions = 7
     default_section = Section(base_section, version=7)
 
-    _format = C.struct(
+    _construct = C.struct(
         # 2: hinge
         motion_mode = C.default(C.uint, 2),
         do_scale = C.default(C.byte, 0),

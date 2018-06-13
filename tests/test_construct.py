@@ -15,7 +15,7 @@ class TestFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _format = C.struct(
+    _construct = C.struct(
         first_string = C.default(C.str, "default_str"),
         second_uint = C.default(C.uint, 12),
     )
@@ -25,7 +25,7 @@ class NondefaultFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _format = C.struct(
+    _construct = C.struct(
         first_string = C.str,
         second_uint = C.uint,
     )
@@ -35,7 +35,7 @@ class ComplexFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _format = C.struct(
+    _construct = C.struct(
         type = C.byte,
         value = Con.IfThenElse(Con.this.type == 0, C.byte, C.str)
     )

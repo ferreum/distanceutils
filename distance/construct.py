@@ -32,9 +32,9 @@ class ConstructMeta(type):
 
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
-        if cls._format is not None:
+        if cls._construct is not None:
             attrs = {}
-            for con in cls._format.subcons:
+            for con in cls._construct.subcons:
                 if con.name:
                     attrs[con.name] = getattr(con, 'value', None)
             cls._fields_map = attrs
@@ -46,13 +46,13 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
 
     """Baseclass for fragments defined by construct Structs.
 
-    Subclasses need to override the `_format` attribute with the Struct that
+    Subclasses need to override the `_construct` attribute with the Struct that
     defines the fragment.
 
     """
 
     # to be overridden by subclasses
-    _format = None
+    _construct = None
 
     def _init_defaults(self):
         self.data = {}
@@ -63,7 +63,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
             try:
-                self.data = self._format.parse_stream(dbytes.file)
+                self.data = self._construct.parse_stream(dbytes.file)
             except ConstructError as e:
                 raise ValueError from e
         else:
@@ -73,7 +73,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _write_section_data(self, dbytes, sec):
         # If data is empty, game falls back to defaults.
         if self.data:
-            self._format.build_stream(self.data, dbytes.file)
+            self._construct.build_stream(self.data, dbytes.file)
 
     def _print_data(self, p):
         if 'allprops' in p.flags:
@@ -112,7 +112,7 @@ def ExposeConstructFields(target=None, only=None):
 
     def decorate(target):
         if only is None:
-            names = (c.name for c in target._format.subcons if c.name)
+            names = (c.name for c in target._construct.subcons if c.name)
         else:
             names = only
         for name in names:
