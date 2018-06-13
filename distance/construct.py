@@ -39,7 +39,7 @@ class ConstructMeta(type):
                     attrs[con.name] = getattr(con, 'value', None)
             cls._fields_map = attrs
 
-            ExposeConstructFields(cls, getattr(cls, '_expose_only', None))
+            ExposeConstructFields(cls, getattr(cls, '_exposed_fields', None))
 
 
 class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
