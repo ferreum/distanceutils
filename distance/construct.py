@@ -114,7 +114,7 @@ def ExposeConstructFields(target=None, only=None):
         if only is None:
             names = (c.name for c in target._construct.subcons if c.name)
         else:
-            names = only
+            names = [only] if isinstance(only, str) else only
         for name in names:
             setattr(target, name, construct_property(target, name))
         return target

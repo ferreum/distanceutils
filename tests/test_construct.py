@@ -178,5 +178,27 @@ class TestFragment2Test(unittest.TestCase):
         frag = ComplexFragment(type=0, value="a string")
         self.assertRaises(FormatFieldError, frag.write, db)
 
+    def test_single_exposed_field(self):
+        class TestFragment(BaseConstructFragment):
+            _exposed_fields = 'a_uint'
+            _construct = C.struct(
+                a_uint = C.uint,
+                a_string = C.str,
+            )
+        self.assertTrue(hasattr(TestFragment, 'a_uint'))
+        self.assertFalse(hasattr(TestFragment, 'a_string'))
+
+    def test_exposed_fields(self):
+        class TestFragment(BaseConstructFragment):
+            _exposed_fields = 'a_uint', 'a_string'
+            _construct = C.struct(
+                a_uint = C.uint,
+                a_string = C.str,
+                a_long = C.long,
+            )
+        self.assertTrue(hasattr(TestFragment, 'a_uint'))
+        self.assertTrue(hasattr(TestFragment, 'a_string'))
+        self.assertFalse(hasattr(TestFragment, 'a_long'))
+
 
 # vim:set sw=4 ts=8 sts=4 et:
