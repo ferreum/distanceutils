@@ -81,7 +81,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
                 for k, v in self.data.items():
                     if k != '_io': # construct internal?
                         p.tree_next_child()
-                        p(f"Construct: {k} = {v!r}")
+                        p(f"Field: {k} = {v!r}")
 
 
 def construct_property(cls, name, doc=None):
