@@ -25,7 +25,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
-        'construct'
+        'construct>=2.8,<3.0'
     ],
     keywords='distance user profile level map game data utilities',
     packages=['distance', 'distance.filter', 'distance_scripts'],
