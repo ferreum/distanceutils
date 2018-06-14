@@ -74,11 +74,14 @@ from distance.constants import (
     ForceType, Mode, Rating
 )
 
+from ._version import __version__
+
 
 # suppress warnings
 distance.levelobjects
 distance.levelfragments
 distance.knowntypes
+__version__
 
 
 __all__ = [
@@ -90,8 +93,6 @@ __all__ = [
 
     'DefaultProbers',
 ]
-
-__version__ = '0.4.7'
 
 
 PROBER = DefaultProbers.file

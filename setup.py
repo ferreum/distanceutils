@@ -3,11 +3,14 @@
 
 from setuptools import setup
 
-import distance
+import runpy
+
+
+version = runpy.run_path('distance/_version.py')['__version__']
 
 setup(
     name='distanceutils',
-    version=distance.__version__,
+    version=version,
     description='Utilities for the Refract Studios game Distance',
     license='MIT',
     author_email='code.danielk@gmail.com',
