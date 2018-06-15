@@ -410,6 +410,12 @@ class Section(BytesModel):
                 argstr += f", name={self.name!r}, count={self.count}, version={self.version}"
         return f"Section({argstr})"
 
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            raise KeyError(repr(key))
+
     def to_key(self, any_version=False):
         """Create a key of this section's type identity."""
         magic = self.magic
