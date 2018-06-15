@@ -229,7 +229,7 @@ class GravityTrigger(LevelObject):
 
 @PROBER.for_type('ForceZoneBox')
 @ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
-@ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment.value_attrs)
+@ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment._fields_map)
 class ForceZoneBox(LevelObject):
 
     default_transform = Transform.fill(scale=(35, 35, 35))

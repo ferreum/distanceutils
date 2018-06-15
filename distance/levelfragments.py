@@ -432,41 +432,26 @@ class MusicTriggerFragment(Fragment):
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
-_forcezone_value_attrs = dict(
-    force_direction = (0.0, 0.0, 1.0),
-    global_force = 0,
-    force_type = ForceType.WIND,
-    gravity_magnitude = 25.0,
-    disable_global_gravity = 0,
-    wind_speed = 300.0,
-    drag_multiplier = 1.0,
-)
-
-
 @PROBER.fragment
-@set_default_attrs(_forcezone_value_attrs)
-class ForceZoneFragment(Fragment):
+class ForceZoneFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[2], 0xa0)
     section_versions = 0
 
     is_interesting = True
 
-    value_attrs = _forcezone_value_attrs
-
-    def _read_section_data(self, dbytes, sec):
-        self.__dict__.update(self.value_attrs)
-        if sec.content_size:
-            self.force_direction = read_n_floats(dbytes, 3, (0.0, 0.0, 1.0))
-            self.global_force = dbytes.read_byte()
-            self.force_type = dbytes.read_uint4()
-            self.gravity_magnitude = dbytes.read_struct(S_FLOAT)[0]
-            self.disable_global_gravity = dbytes.read_byte()
-            self.wind_speed = dbytes.read_struct(S_FLOAT)[0]
-            self.drag_multiplier = dbytes.read_struct(S_FLOAT)[0]
+    _construct = C.struct(
+        force_direction = C.default(C.optional(C.float[3], (0.0, 0.0, 1.0)), (0.0, 0.0, 1.0)),
+        global_force = C.default(C.byte, 0),
+        force_type = C.default(C.uint, ForceType.WIND),
+        gravity_magnitude = C.default(C.float, 25.0),
+        disable_global_gravity = C.default(C.byte, 0),
+        wind_speed = C.default(C.float, 300.0),
+        drag_multiplier = C.default(C.float, 1.0)
+    )
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        super()._print_data(p)
         if self.force_direction:
             dir_str = ', '.join(str(v) for v in self.force_direction)
             p(f"Force direction: {dir_str}")
