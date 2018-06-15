@@ -416,6 +416,10 @@ class Section(BytesModel):
         except AttributeError:
             raise KeyError(repr(key))
 
+    @property
+    def content_end(self):
+        return self.content_start + self.content_size
+
     def to_key(self, any_version=False):
         """Create a key of this section's type identity."""
         magic = self.magic
