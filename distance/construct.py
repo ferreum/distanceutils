@@ -2,12 +2,10 @@
 
 
 from construct import (
-    PascalString, VarInt, Bytes,
-    IfThenElse, FocusedSeq,
+    PascalString, VarInt,
     ConstructError,
-    Const, Rebuild, Select,
+    Const, Select,
     Mapping,
-    this,
 )
 
 from distance.base import Fragment
@@ -33,17 +31,9 @@ class C(object):
     str = PascalString(VarInt, encoding='utf-16le')
 
     def optional(subcon, otherwise=None):
-        return FocusedSeq(
-            'field',
-            'field' / IfThenElse(
-                this._parsing,
-                Select(Mapping(Const(SKIP_BYTES), {otherwise: SKIP_BYTES}),
-                       subcon),
-                IfThenElse(this.field == otherwise,
-                           Rebuild(Bytes(4), SKIP_BYTES),
-                           subcon)
-            ),
-        )
+        return Select(
+            Mapping(Const(SKIP_BYTES), {otherwise: SKIP_BYTES}),
+            subcon)
 
 
 class ConstructMeta(type):
