@@ -340,36 +340,27 @@ class TeleporterExitCheckpointFragment(Fragment):
 
 
 @PROBER.fragment
-class SphereColliderFragment(Fragment):
+class SphereColliderFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[3], 0x0e)
     section_versions = 1
 
-    trigger_center = None
-    trigger_radius = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size >= 8:
-            self.trigger_center = read_n_floats(dbytes, 3)
-            radius = dbytes.read_struct(S_FLOAT)[0]
-            if math.isnan(radius):
-                radius = None
-            self.trigger_radius = radius
+    _construct = C.struct(
+        trigger_center = C.default(C.optional(C.float[3]), None),
+        trigger_radius = C.default(C.optional(C.float), None),
+    )
 
 
 @PROBER.fragment
-class BoxColliderFragment(Fragment):
+class BoxColliderFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[3], 0xf)
     section_versions = 2
 
-    trigger_center = None
-    trigger_size = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.trigger_center = read_n_floats(dbytes, 3)
-            self.trigger_size = read_n_floats(dbytes, 3)
+    _construct = C.struct(
+        trigger_center = C.default(C.optional(C.float[3]), None),
+        trigger_size = C.default(C.optional(C.float[3]), None),
+    )
 
 
 @PROBER.fragment
