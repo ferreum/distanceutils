@@ -92,7 +92,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
             try:
-                self.data = self._construct.parse_stream(dbytes.file)
+                self.data = self._construct.parse_stream(dbytes.file, sec=sec)
             except ConstructError as e:
                 raise ValueError from e
         else:
@@ -102,7 +102,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _write_section_data(self, dbytes, sec):
         # If data is empty, game falls back to defaults.
         if self.data:
-            self._construct.build_stream(self.data, dbytes.file)
+            self._construct.build_stream(self.data, dbytes.file, sec=sec)
 
     def _print_data(self, p):
         super()._print_data(p)
