@@ -6,6 +6,7 @@ from construct import (
     ConstructError,
     Const, Select,
     Mapping,
+    Compiled,
 )
 
 from distance.base import Fragment
@@ -43,9 +44,12 @@ def _get_subcons(con):
         pass
 
     try:
-        return _get_subcons(con.defersubcon)
+        return _get_subcons(con.subcon)
     except AttributeError:
         pass
+
+    if isinstance(con, Compiled):
+        return _get_subcons(con.defersubcon)
 
     raise AttributeError(f"could not get subcons of {con}")
 

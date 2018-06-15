@@ -211,7 +211,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_compiled(self):
         class TestFragment(BaseConstructFragment):
-            _construct = C.struct(
+            _construct = 'my_struct' / C.struct(
                 uint = C.uint,
             ).compile()
         db = DstBytes.in_memory()
