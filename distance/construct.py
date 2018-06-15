@@ -2,11 +2,16 @@
 
 
 from construct import (
-    PascalString, VarInt,
+    PascalString, VarInt, Bytes,
+    IfThenElse, FocusedSeq,
     ConstructError,
+    Const, Rebuild, Select,
+    Mapping,
+    this,
 )
 
 from distance.base import Fragment
+from distance.bytes import SKIP_BYTES
 
 
 class C(object):
@@ -26,6 +31,19 @@ class C(object):
     )
 
     str = PascalString(VarInt, encoding='utf-16le')
+
+    def optional(subcon, otherwise=None):
+        return FocusedSeq(
+            'field',
+            'field' / IfThenElse(
+                this._parsing,
+                Select(Mapping(Const(SKIP_BYTES), {otherwise: SKIP_BYTES}),
+                       subcon),
+                IfThenElse(this.field == otherwise,
+                           Rebuild(Bytes(4), SKIP_BYTES),
+                           subcon)
+            ),
+        )
 
 
 class ConstructMeta(type):

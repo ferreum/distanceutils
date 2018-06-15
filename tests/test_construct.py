@@ -3,7 +3,7 @@ import unittest
 import construct as Con
 from construct import ConstructError, FormatFieldError
 
-from distance.bytes import DstBytes, Magic, Section
+from distance.bytes import DstBytes, Magic, Section, SKIP_BYTES
 from distance.construct import C, BaseConstructFragment
 from tests.common import write_read, check_exceptions
 
@@ -38,6 +38,15 @@ class ComplexFragment(BaseConstructFragment):
     _construct = C.struct(
         type = C.byte,
         value = Con.IfThenElse(Con.this.type == 0, C.byte, C.str)
+    )
+
+
+class OptionalFragment(BaseConstructFragment):
+
+    default_section = test_section
+
+    _construct = C.struct(
+        value = C.optional(C.str)
     )
 
 
@@ -199,6 +208,73 @@ class TestFragment2Test(unittest.TestCase):
         self.assertTrue(hasattr(TestFragment, 'a_uint'))
         self.assertTrue(hasattr(TestFragment, 'a_string'))
         self.assertFalse(hasattr(TestFragment, 'a_long'))
+
+
+class OptionalTest(unittest.TestCase):
+
+    def test_read_subcon(self):
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            db.write_str("test string")
+        db.seek(0)
+
+        frag = OptionalFragment(db)
+
+        self.assertEqual(frag.value, "test string")
+        check_exceptions(frag)
+
+    def test_read_subcon_short(self):
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            db.write_str("")
+        db.seek(0)
+
+        frag = OptionalFragment(db)
+
+        self.assertEqual(frag.value, "")
+        check_exceptions(frag)
+
+    def test_read_absent(self):
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            db.write_bytes(SKIP_BYTES)
+        db.seek(0)
+
+        frag = OptionalFragment(db)
+
+        self.assertEqual(frag.value, None)
+        check_exceptions(frag)
+
+    def test_read_empty(self):
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            pass
+        db.seek(0)
+
+        frag = OptionalFragment(db)
+
+        self.assertEqual(frag.value, None)
+
+    def test_write_subcon(self):
+        db = DstBytes.in_memory()
+
+        OptionalFragment(value="test").write(db)
+
+        db.seek(0)
+        sec = Section(db)
+        db.seek(sec.content_start)
+        self.assertEqual(db.read_str(), "test")
+        self.assertEqual(db.file.read(), b'')
+
+    def test_write_absent(self):
+        db = DstBytes.in_memory()
+
+        OptionalFragment(value=None).write(db)
+
+        db.seek(0)
+        sec = Section(db)
+        db.seek(sec.content_start)
+        self.assertEqual(db.file.read(), SKIP_BYTES)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
