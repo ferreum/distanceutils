@@ -209,6 +209,20 @@ class TestFragment2Test(unittest.TestCase):
         self.assertTrue(hasattr(TestFragment, 'a_string'))
         self.assertFalse(hasattr(TestFragment, 'a_long'))
 
+    def test_compiled(self):
+        class TestFragment(BaseConstructFragment):
+            _construct = C.struct(
+                uint = C.uint,
+            ).compile()
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            db.write_int(4, 135)
+        db.seek(0)
+
+        frag = TestFragment(db)
+
+        self.assertEqual(frag.uint, 135)
+
 
 class OptionalTest(unittest.TestCase):
 

@@ -36,13 +36,27 @@ class C(object):
             subcon)
 
 
+def _get_subcons(con):
+    try:
+        return con.subcons
+    except AttributeError:
+        pass
+
+    try:
+        return _get_subcons(con.defersubcon)
+    except AttributeError:
+        pass
+
+    raise AttributeError(f"could not get subcons of {con}")
+
+
 class ConstructMeta(type):
 
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
         if cls._construct is not None:
             attrs = {}
-            for con in cls._construct.subcons:
+            for con in _get_subcons(cls._construct):
                 if con.name:
                     attrs[con.name] = getattr(con, 'value', None)
             cls._fields_map = attrs
@@ -121,7 +135,7 @@ def ExposeConstructFields(target=None, only=None):
 
     def decorate(target):
         if only is None:
-            names = (c.name for c in target._construct.subcons if c.name)
+            names = (c.name for c in _get_subcons(target._construct) if c.name)
         else:
             names = [only] if isinstance(only, str) else only
         for name in names:
