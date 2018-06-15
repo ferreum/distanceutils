@@ -2,12 +2,13 @@
 
 
 from construct import (
-    PascalString, VarInt,
+    PascalString, VarInt, Bytes,
     ConstructError,
-    Const, Select,
-    Mapping,
+    Const, Select, FocusedSeq, Tell,
+    Mapping, Rebuild, Computed,
     Compiled,
     Container,
+    this, len_,
 )
 
 from distance.base import Fragment
@@ -36,6 +37,13 @@ class C(object):
         return Select(
             Mapping(Const(SKIP_BYTES), {otherwise: SKIP_BYTES}),
             subcon)
+
+    remainder = FocusedSeq(
+        'rem',
+        'pos' / Tell,
+        'size' / Rebuild(Computed(this._._.sec.content_end - this.pos), len_(this.rem)),
+        'rem' / Bytes(this.size),
+    )
 
 
 def _get_subcons(con):
