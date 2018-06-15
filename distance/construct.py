@@ -7,6 +7,7 @@ from construct import (
     Const, Select,
     Mapping,
     Compiled,
+    Container,
 )
 
 from distance.base import Fragment
@@ -83,10 +84,10 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     _construct = None
 
     def _init_defaults(self):
-        self.data = {}
+        self.data = Container()
 
     def _clone_data(self, new):
-        new.data = dict(self.data)
+        new.data = Container(self.data)
 
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
@@ -96,7 +97,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
                 raise ValueError from e
         else:
             # Data is empty - game falls back to defaults here.
-            self.data = {}
+            self.data = Container()
 
     def _write_section_data(self, dbytes, sec):
         # If data is empty, game falls back to defaults.
