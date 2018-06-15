@@ -180,7 +180,7 @@ class TestFragment2Test(unittest.TestCase):
         db.seek(sec.content_start)
         self.assertEqual(db.read_byte(), 1)
         self.assertEqual(db.read_str(), "in value")
-        self.assertEqual(db.tell(), len(db.file.getbuffer()))
+        self.assertEqual(db.file.read(), b'')
 
     def test_write_type_error(self):
         db = DstBytes.in_memory()
