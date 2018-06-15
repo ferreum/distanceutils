@@ -300,14 +300,13 @@ class BaseTeleporterExit(object):
 
 
 @PROBER.fragment
-class TeleporterExitFragment(BaseTeleporterExit, Fragment):
+class TeleporterExitFragment(BaseTeleporterExit, BaseConstructFragment):
 
     section_versions = 1
 
-    link_id = None
-
-    def _read_section_data(self, dbytes, sec):
-        self.link_id = dbytes.read_uint4()
+    _construct = C.struct(
+        link_id = C.default(C.uint, 0),
+    )
 
 
 @PROBER.fragment
