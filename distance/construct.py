@@ -94,6 +94,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
             self._construct.build_stream(self.data, dbytes.file)
 
     def _print_data(self, p):
+        super()._print_data(p)
         if 'allprops' in p.flags:
             with p.tree_children():
                 for k, v in self.data.items():
