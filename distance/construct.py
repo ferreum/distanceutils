@@ -77,6 +77,8 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
 
     """
 
+    __slots__ = ('data',)
+
     # to be overridden by subclasses
     _construct = None
 
