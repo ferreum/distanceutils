@@ -1,6 +1,10 @@
 """Level fragment implementations."""
 
 
+from construct import (
+    If, this,
+)
+
 from .bytes import (
     Section,
     S_FLOAT, S_FLOAT3, S_BYTE, S_UINT,
@@ -916,24 +920,17 @@ class OldInterpolateToPositionOnTriggerFragment(
 
 @PROBER.fragment
 class InterpolateToPositionOnTriggerFragment(
-        BaseInterpolateToPositiononTrigger, Fragment):
+        BaseInterpolateToPositiononTrigger, BaseConstructFragment):
 
     section_versions = 1, 2
 
-    actually_interpolate = 0
-    relative = 1
-    interp_end_pos = None
-    interp_time = None
-    local_movement = 0
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.actually_interpolate = dbytes.read_byte()
-            self.relative = dbytes.read_byte()
-            self.interp_end_pos = read_n_floats(dbytes, 3)
-            self.interp_time = dbytes.read_struct(S_FLOAT)[0]
-            if sec.version >= 2:
-                self.local_movement = dbytes.read_byte()
+    _construct = C.struct(
+        actually_interpolate = C.default(C.byte, 0),
+        relative = C.default(C.byte, 1),
+        interp_end_pos = C.default(C.optional(C.float[3]), None),
+        interp_time = C.default(C.float, None),
+        local_movement = C.default(If(this._.sec.version >= 2, C.byte), 0),
+    )
 
 
 @PROBER.fragment
