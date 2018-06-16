@@ -2,13 +2,13 @@
 
 
 from construct import (
-    PascalString, VarInt, Bytes,
+    PascalString, VarInt, Bytes, GreedyBytes,
     ConstructError,
     Const, Select, FocusedSeq, Tell,
-    Mapping, Rebuild, Computed,
+    Mapping, IfThenElse,
     Compiled,
     Container,
-    this, len_,
+    this,
 )
 
 from distance.base import Fragment
@@ -41,8 +41,9 @@ class C(object):
     remainder = FocusedSeq(
         'rem',
         'pos' / Tell,
-        'size' / Rebuild(Computed(this._._.sec.content_end - this.pos), len_(this.rem)),
-        'rem' / Bytes(this.size),
+        'rem' / IfThenElse(this._parsing,
+                           Bytes(this._._.sec.content_end - this.pos),
+                           GreedyBytes),
     )
 
 
