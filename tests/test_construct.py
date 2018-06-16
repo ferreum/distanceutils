@@ -7,7 +7,7 @@ from distance.bytes import DstBytes, Magic, Section, SKIP_BYTES
 from distance.construct import (
     BaseConstructFragment,
     Byte, UInt, Long, DstString,
-    Struct, Default, DstOptional,
+    Struct, Default, DstOptional, Remainder,
 )
 from tests.common import write_read, check_exceptions
 
@@ -51,6 +51,16 @@ class OptionalFragment(BaseConstructFragment):
 
     _construct = Struct(
         value = DstOptional(DstString)
+    )
+
+
+class RemainderFragment(BaseConstructFragment):
+
+    default_section = test_section
+
+    _construct = Struct(
+        value = DstString,
+        rem = Remainder,
     )
 
 
@@ -106,6 +116,41 @@ class TestFragmentTest(unittest.TestCase):
         self.assertEqual(None, frag.first_string)
         self.assertEqual(None, frag.second_uint)
         check_exceptions(frag)
+
+    def test_remainder_empty(self):
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            db.write_str("test")
+        db.seek(0)
+
+        frag = RemainderFragment(db)
+
+        self.assertEqual(frag.rem, b'')
+
+    def test_remainder_write_read(self):
+        frag = RemainderFragment(self.dbytes)
+
+        res, rdb = write_read(frag)
+
+        self.assertEqual(res.value, "a string")
+        self.assertEqual(res.rem, b'\x40\0\0\0')
+
+    def test_remainder_modify_write_read(self):
+        frag = RemainderFragment(self.dbytes)
+        frag.value = "new str"
+
+        res, rdb = write_read(frag)
+
+        self.assertEqual(res.value, "new str")
+        self.assertEqual(res.rem, b'\x40\0\0\0')
+
+    def test_remainder_create_write_read(self):
+        frag = RemainderFragment(value="test str", rem=b'')
+
+        res, rdb = write_read(frag)
+
+        self.assertEqual(res.value, "test str")
+        self.assertEqual(res.rem, b'')
 
 
 class TestFragment2Test(unittest.TestCase):
