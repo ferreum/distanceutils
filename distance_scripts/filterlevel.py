@@ -35,6 +35,7 @@ class FileFilter(object):
         parser.epilog = """
         Filter files consist any number of filters, on per line.
         Filters are formatted as per the -o/--of/--objfilter argument.
+        Empty lines and lines starting with '#' are ignored.
         """
 
     def __init__(self, args):
@@ -48,7 +49,8 @@ class FileFilter(object):
             defaults = dict(relative_to=os.path.dirname(abssrc), **args.__dict__)
             return create_filter(l, defaults)
         with open(abssrc, 'r') as f:
-            self.filters = [(create(l), l) for l in map(str.strip, f)]
+            self.filters = [(create(l), l) for l in map(str.strip, f)
+                            if l and not l.startswith('#')]
         self.aborted = False
 
     def apply(self, content):
