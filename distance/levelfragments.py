@@ -17,7 +17,11 @@ from .prober import RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
 from ._default_probers import DefaultProbers
-from .construct import BaseConstructFragment, C
+from .construct import (
+    BaseConstructFragment,
+    Byte, UInt, Float, DstString,
+    Struct, Default, DstOptional, Remainder,
+)
 
 
 PROBER = DefaultProbers.fragments
@@ -228,22 +232,22 @@ class GoldenSimplesFragment(BaseConstructFragment):
     section_versions = 3
     default_section = Section(base_section, version=3)
 
-    _construct = C.struct(
-        image_index = C.default(C.uint, 17),
-        emit_index = C.default(C.uint, 17),
-        preset = C.default(C.uint, 0),
-        tex_scale = C.default(C.float[3], (1, 1, 1)),
-        tex_offset = C.default(C.float[3], (0, 0, 0)),
-        flip_tex_uv = C.default(C.byte, 0),
-        world_mapped = C.default(C.byte, 0),
-        disable_diffuse = C.default(C.byte, 0),
-        disable_bump = C.default(C.byte, 0),
-        bump_strength = C.default(C.float, 0),
-        disable_reflect = C.default(C.byte, 0),
-        disable_collision = C.default(C.byte, 0),
-        additive_transp = C.default(C.byte, 0),
-        multip_transp = C.default(C.byte, 0),
-        invert_emit = C.default(C.byte, 0),
+    _construct = Struct(
+        image_index = Default(UInt, 17),
+        emit_index = Default(UInt, 17),
+        preset = Default(UInt, 0),
+        tex_scale = Default(Float[3], (1, 1, 1)),
+        tex_offset = Default(Float[3], (0, 0, 0)),
+        flip_tex_uv = Default(Byte, 0),
+        world_mapped = Default(Byte, 0),
+        disable_diffuse = Default(Byte, 0),
+        disable_bump = Default(Byte, 0),
+        bump_strength = Default(Float, 0),
+        disable_reflect = Default(Byte, 0),
+        disable_collision = Default(Byte, 0),
+        additive_transp = Default(Byte, 0),
+        multip_transp = Default(Byte, 0),
+        invert_emit = Default(Byte, 0),
     )
 
     def _print_type(self, p):
@@ -276,9 +280,9 @@ class TeleporterEntranceFragment(BaseTeleporterEntrance, BaseConstructFragment):
 
     section_versions = 1, 2, 3
 
-    _construct = C.struct(
-        destination = C.default(C.uint, 0),
-        rem = C.remainder,
+    _construct = Struct(
+        destination = Default(UInt, 0),
+        rem = Remainder,
     )
 
     def _print_data(self, p):
@@ -304,8 +308,8 @@ class TeleporterExitFragment(BaseTeleporterExit, BaseConstructFragment):
 
     section_versions = 1
 
-    _construct = C.struct(
-        link_id = C.default(C.uint, 0),
+    _construct = Struct(
+        link_id = Default(UInt, 0),
     )
 
 
@@ -345,9 +349,9 @@ class SphereColliderFragment(BaseConstructFragment):
     base_section = Section.base(Magic[3], 0x0e)
     section_versions = 1
 
-    _construct = C.struct(
-        trigger_center = C.default(C.optional(C.float[3]), None),
-        trigger_radius = C.default(C.optional(C.float), None),
+    _construct = Struct(
+        trigger_center = Default(DstOptional(Float[3]), None),
+        trigger_radius = Default(DstOptional(Float), None),
     )
 
 
@@ -357,9 +361,9 @@ class BoxColliderFragment(BaseConstructFragment):
     base_section = Section.base(Magic[3], 0xf)
     section_versions = 2
 
-    _construct = C.struct(
-        trigger_center = C.default(C.optional(C.float[3]), None),
-        trigger_size = C.default(C.optional(C.float[3]), None),
+    _construct = Struct(
+        trigger_center = Default(DstOptional(Float[3]), None),
+        trigger_size = Default(DstOptional(Float[3]), None),
     )
 
 
@@ -431,14 +435,14 @@ class ForceZoneFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = C.struct(
-        force_direction = C.default(C.optional(C.float[3], (0.0, 0.0, 1.0)), (0.0, 0.0, 1.0)),
-        global_force = C.default(C.byte, 0),
-        force_type = C.default(C.uint, ForceType.WIND),
-        gravity_magnitude = C.default(C.float, 25.0),
-        disable_global_gravity = C.default(C.byte, 0),
-        wind_speed = C.default(C.float, 300.0),
-        drag_multiplier = C.default(C.float, 1.0)
+    _construct = Struct(
+        force_direction = Default(DstOptional(Float[3], (0.0, 0.0, 1.0)), (0.0, 0.0, 1.0)),
+        global_force = Default(Byte, 0),
+        force_type = Default(UInt, ForceType.WIND),
+        gravity_magnitude = Default(Float, 25.0),
+        disable_global_gravity = Default(Byte, 0),
+        wind_speed = Default(Float, 300.0),
+        drag_multiplier = Default(Float, 1.0)
     )
 
     def _print_data(self, p):
@@ -744,16 +748,16 @@ class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, BaseCon
 
     section_versions = 1
 
-    _construct = C.struct(
-        text = C.default(C.str, ""),
-        per_char_speed = C.default(C.float, 0),
-        clear_on_finish = C.default(C.byte, 0),
-        clear_on_trigger_exit = C.default(C.byte, 0),
-        destroy_on_trigger_exit = C.default(C.byte, 0),
-        time_text = C.default(C.str, ""),
-        static_time_text = C.default(C.byte, 1),
-        delay = C.default(C.float, 0),
-        announcer_action = C.default(C.uint, 0),
+    _construct = Struct(
+        text = Default(DstString, ""),
+        per_char_speed = Default(Float, 0),
+        clear_on_finish = Default(Byte, 0),
+        clear_on_trigger_exit = Default(Byte, 0),
+        destroy_on_trigger_exit = Default(Byte, 0),
+        time_text = Default(DstString, ""),
+        static_time_text = Default(Byte, 1),
+        delay = Default(Float, 0),
+        announcer_action = Default(UInt, 0),
     )
 
 
@@ -831,47 +835,47 @@ class AnimatorFragment(BaseConstructFragment):
     section_versions = 7
     default_section = Section(base_section, version=7)
 
-    _construct = C.struct(
+    _construct = Struct(
         # 2: hinge
-        motion_mode = C.default(C.uint, 2),
-        do_scale = C.default(C.byte, 0),
-        scale_exponents = C.default(C.float[3], (0, 1, 0)),
-        do_rotate = C.default(C.byte, 1),
-        rotate_axis = C.default(C.float[3], (0, 1, 0)),
-        rotate_global = C.default(C.byte, 0),
-        rotate_magnitude = C.default(C.float, 90),
-        centerpoint = C.default(C.float[3], (0, 0, 0)),
+        motion_mode = Default(UInt, 2),
+        do_scale = Default(Byte, 0),
+        scale_exponents = Default(Float[3], (0, 1, 0)),
+        do_rotate = Default(Byte, 1),
+        rotate_axis = Default(Float[3], (0, 1, 0)),
+        rotate_global = Default(Byte, 0),
+        rotate_magnitude = Default(Float, 90),
+        centerpoint = Default(Float[3], (0, 0, 0)),
         # 0: none
-        translate_type = C.default(C.uint, 0),
-        translate_vector = C.default(C.float[3], (0, 10, 0)),
-        follow_track_distance = C.default(C.float, 25),
-        projectile_gravity = C.default(C.float[3], (0, -25, 0)),
-        delay = C.default(C.float, 1),
-        duration = C.default(C.float, 1),
-        time_offset = C.default(C.float, 0),
-        do_loop = C.default(C.byte, 1),
+        translate_type = Default(UInt, 0),
+        translate_vector = Default(Float[3], (0, 10, 0)),
+        follow_track_distance = Default(Float, 25),
+        projectile_gravity = Default(Float[3], (0, -25, 0)),
+        delay = Default(Float, 1),
+        duration = Default(Float, 1),
+        time_offset = Default(Float, 0),
+        do_loop = Default(Byte, 1),
         # 1: pingpong
-        extrapolation_type = C.default(C.uint, 1),
+        extrapolation_type = Default(UInt, 1),
         # 3: ease in out
-        curve_type = C.default(C.uint, 3),
-        editor_anim_time = C.default(C.float, 0),
-        use_custom_pong_values = C.default(C.byte, 0),
-        pong_delay = C.default(C.float, 1),
-        pong_duration = C.default(C.float, 1),
+        curve_type = Default(UInt, 3),
+        editor_anim_time = Default(Float, 0),
+        use_custom_pong_values = Default(Byte, 0),
+        pong_delay = Default(Float, 1),
+        pong_duration = Default(Float, 1),
         # 2: ease in out
-        pong_curve_type = C.default(C.uint, 2),
-        anim_physics = C.default(C.byte, 1),
-        always_animate = C.default(C.byte, 0),
+        pong_curve_type = Default(UInt, 2),
+        anim_physics = Default(Byte, 1),
+        always_animate = Default(Byte, 0),
         # 1: play
-        trigger_default_action = C.default(C.uint, 1),
+        trigger_default_action = Default(UInt, 1),
         # 1: play
-        trigger_on_action = C.default(C.uint, 1),
-        trigger_wait_for_anim_finish = C.default(C.byte, 0),
-        trigger_on_reset = C.default(C.byte, 0),
+        trigger_on_action = Default(UInt, 1),
+        trigger_wait_for_anim_finish = Default(Byte, 0),
+        trigger_on_reset = Default(Byte, 0),
         # 2: play reverse
-        trigger_off_action = C.default(C.uint, 2),
-        trigger_off_wait_for_anim_finish = C.default(C.byte, 0),
-        trigger_off_reset = C.default(C.byte, 0),
+        trigger_off_action = Default(UInt, 2),
+        trigger_off_wait_for_anim_finish = Default(Byte, 0),
+        trigger_off_reset = Default(Byte, 0),
     )
 
 
@@ -923,12 +927,12 @@ class InterpolateToPositionOnTriggerFragment(
 
     section_versions = 1, 2
 
-    _construct = C.struct(
-        actually_interpolate = C.default(C.byte, 0),
-        relative = C.default(C.byte, 1),
-        interp_end_pos = C.default(C.optional(C.float[3]), None),
-        interp_time = C.default(C.float, None),
-        local_movement = C.default(If(this._.sec.version >= 2, C.byte), 0),
+    _construct = Struct(
+        actually_interpolate = Default(Byte, 0),
+        relative = Default(Byte, 1),
+        interp_end_pos = Default(DstOptional(Float[3]), None),
+        interp_time = Default(Float, None),
+        local_movement = Default(If(this._.sec.version >= 2, Byte), 0),
     )
 
 

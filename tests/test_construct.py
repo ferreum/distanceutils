@@ -4,7 +4,11 @@ import construct as Con
 from construct import ConstructError, FormatFieldError
 
 from distance.bytes import DstBytes, Magic, Section, SKIP_BYTES
-from distance.construct import C, BaseConstructFragment
+from distance.construct import (
+    BaseConstructFragment,
+    Byte, UInt, Long, DstString,
+    Struct, Default, DstOptional,
+)
 from tests.common import write_read, check_exceptions
 
 
@@ -15,9 +19,9 @@ class TestFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _construct = C.struct(
-        first_string = C.default(C.str, "default_str"),
-        second_uint = C.default(C.uint, 12),
+    _construct = Struct(
+        first_string = Default(DstString, "default_str"),
+        second_uint = Default(UInt, 12),
     )
 
 
@@ -25,9 +29,9 @@ class NondefaultFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _construct = C.struct(
-        first_string = C.str,
-        second_uint = C.uint,
+    _construct = Struct(
+        first_string = DstString,
+        second_uint = UInt,
     )
 
 
@@ -35,9 +39,9 @@ class ComplexFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _construct = C.struct(
-        type = C.byte,
-        value = Con.IfThenElse(Con.this.type == 0, C.byte, C.str)
+    _construct = Struct(
+        type = Byte,
+        value = Con.IfThenElse(Con.this.type == 0, Byte, DstString)
     )
 
 
@@ -45,8 +49,8 @@ class OptionalFragment(BaseConstructFragment):
 
     default_section = test_section
 
-    _construct = C.struct(
-        value = C.optional(C.str)
+    _construct = Struct(
+        value = DstOptional(DstString)
     )
 
 
@@ -190,9 +194,9 @@ class TestFragment2Test(unittest.TestCase):
     def test_single_exposed_field(self):
         class TestFragment(BaseConstructFragment):
             _exposed_fields = 'a_uint'
-            _construct = C.struct(
-                a_uint = C.uint,
-                a_string = C.str,
+            _construct = Struct(
+                a_uint = UInt,
+                a_string = DstString,
             )
         self.assertTrue(hasattr(TestFragment, 'a_uint'))
         self.assertFalse(hasattr(TestFragment, 'a_string'))
@@ -200,10 +204,10 @@ class TestFragment2Test(unittest.TestCase):
     def test_exposed_fields(self):
         class TestFragment(BaseConstructFragment):
             _exposed_fields = 'a_uint', 'a_string'
-            _construct = C.struct(
-                a_uint = C.uint,
-                a_string = C.str,
-                a_long = C.long,
+            _construct = Struct(
+                a_uint = UInt,
+                a_string = DstString,
+                a_long = Long,
             )
         self.assertTrue(hasattr(TestFragment, 'a_uint'))
         self.assertTrue(hasattr(TestFragment, 'a_string'))
@@ -211,8 +215,8 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_compiled(self):
         class TestFragment(BaseConstructFragment):
-            _construct = 'my_struct' / C.struct(
-                uint = C.uint,
+            _construct = 'my_struct' / Struct(
+                uint = UInt,
             ).compile()
         db = DstBytes.in_memory()
         with db.write_section(test_section):

@@ -9,42 +9,42 @@ from construct import (
     Compiled,
     Container,
     this,
+
+    Struct,
+    Default,
+    Byte,
+    Int32sl as Int,
+    Int32ul as UInt,
+    Int64sl as Long,
+    Int64ul as ULong,
+    Float32l as Float,
+    Float64l as Double,
 )
 
 from distance.base import Fragment
 from distance.bytes import SKIP_BYTES
 
+__all__ = [
+    'Byte', 'Int', 'UInt', 'Long', 'ULong', 'Float', 'Double', 'DstString',
+    'DstOptional', 'Remainder',
+    'Struct', 'Default',
+]
 
-class C(object):
 
-    """Provides cons useful for distance .bytes files."""
+DstString = PascalString(VarInt, encoding='utf-16le')
 
-    from construct import (
-        Struct as struct,
-        Default as default,
-        Byte as byte,
-        Int32sl as int,
-        Int32ul as uint,
-        Int64sl as long,
-        Int64ul as ulong,
-        Float32l as float,
-        Float64l as double,
-    )
+def DstOptional(subcon, otherwise=None):
+    return Select(
+        Mapping(Const(SKIP_BYTES), {otherwise: SKIP_BYTES}),
+        subcon)
 
-    str = PascalString(VarInt, encoding='utf-16le')
-
-    def optional(subcon, otherwise=None):
-        return Select(
-            Mapping(Const(SKIP_BYTES), {otherwise: SKIP_BYTES}),
-            subcon)
-
-    remainder = FocusedSeq(
-        'rem',
-        'pos' / Tell,
-        'rem' / IfThenElse(this._parsing,
-                           Bytes(this._._.sec.content_end - this.pos),
-                           GreedyBytes),
-    )
+Remainder = FocusedSeq(
+    'rem',
+    'pos' / Tell,
+    'rem' / IfThenElse(this._parsing,
+                        Bytes(this._._.sec.content_end - this.pos),
+                        GreedyBytes),
+)
 
 
 def _get_subcons(con):
