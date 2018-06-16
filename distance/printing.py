@@ -14,8 +14,13 @@ class PrintContext(object):
     def __init__(self, file=sys.stdout, flags=()):
         self.file = file
         self.flags = flags
-        # buffered lines, object finished
-        self._tree_data = [], []
+        # Data for each level of tree_children():
+        # 0. Buffered lines for that level.
+        # 1. Whether the child on that level has been ended
+        #    by a call to tree_next_child().
+        # 2. Current counter if 'count' was passed to tree_children()
+        #    on that level.
+        self._tree_data = [], [], []
 
     @classmethod
     def for_test(clazz, file=None, flags=None):
@@ -31,61 +36,93 @@ class PrintContext(object):
         return p
 
     def __call__(self, text):
-        buf, ended = self._tree_data
+        buf, ended, remain = self._tree_data
         if buf:
-            last = buf[-1]
-            if ended[-1]:
-                self.tree_push_up(last, False)
-                last.clear()
-            last.extend(text.split('\n'))
+            count = remain[-1]
+            if count is not None:
+                self.tree_push_up(len(buf) - 1, [text], count <= 1)
+            else:
+                lines = buf[-1]
+                if ended[-1]:
+                    self.tree_push_up(len(buf) - 1, lines, False)
+                    lines.clear()
+                lines.extend(text.split('\n'))
         else:
             f = self.file
             if f is not None:
                 print(text, file=f)
 
-    def tree_push_up(self, lines, last):
+    def tree_push_up(self, level, lines, last):
         if not lines:
             return
-        buf, ended = self._tree_data
-        ended[-1] = False
-        if len(buf) > 1:
-            dest = buf[-2]
-            push_line = dest.append
+        buf, ended, remain = self._tree_data
+        if level < 0:
+            raise IndexError
+        was_ended = ended[level]
+        ended[level] = False
+        if level > 0:
+            upbuffer = buf[level - 1]
+            push_line = upbuffer.append
         else:
             f = self.file
             def push_line(line):
                 if f is not None:
                     print(line, file=f)
         it = iter(lines)
-        if last:
-            prefix = "└─ "
-        else:
-            prefix = "├─ "
-        push_line(prefix + next(it))
+        if was_ended:
+            if last:
+                prefix = "└─ "
+            else:
+                prefix = "├─ "
+            push_line(prefix + next(it))
         if last:
             prefix = "   "
         else:
             prefix = "│  "
         for line in it:
             push_line(prefix + line)
+        count = remain[level]
+        if count is not None and level > 0:
+            # In unbuffered mode (with 'count' passed to tree_children)
+            # we push everyting up to root immediately.
+            self.tree_push_up(level - 1, upbuffer, remain[level - 1] <= 1)
+            upbuffer.clear()
 
     @contextmanager
-    def tree_children(self):
-        buf, ended = self._tree_data
+    def tree_children(self, count=None):
+        buf, ended, remain = self._tree_data
+        level = len(buf)
+        if remain and remain[level - 1] is None:
+            # We are nested inside a tree_children() without count. Cannot
+            # use unbufferd printing.
+            count = None
         lines = []
         buf.append(lines)
-        ended.append(False)
+        ended.append(True)
+        remain.append(count)
         try:
             yield
         finally:
-            self.tree_push_up(lines, True)
+            ended[level] = True
+            if count is None:
+                self.tree_push_up(level, lines, True)
             buf.pop()
             ended.pop()
+            remain.pop()
 
     def tree_next_child(self):
-        buf, ended = self._tree_data
-        if buf and buf[-1]:
-            ended[-1] = True
+        buf, ended, remain = self._tree_data
+        if buf:
+            count = remain[-1]
+            if count is not None:
+                # We don't count down if nothing was printed.
+                # For our tree to look correct, classes need to make sure
+                # they print at least once for each child anyways.
+                if not ended[-1]:
+                    remain[-1] = count - 1
+                    ended[-1] = True
+            elif buf[-1]:
+                ended[-1] = True
 
     def print_data_of(self, obj):
         obj.print_data(p=self)

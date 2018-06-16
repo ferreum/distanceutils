@@ -105,6 +105,62 @@ class TreeTest(BaseTest):
            └─ Second
         """)
 
+    def test_count_unbuffered(self):
+        p = self.p
+        p("Root")
+        with p.tree_children(2):
+            p(f"First")
+
+            self.assertResult("""
+            Root
+            ├─ First
+            """)
+
+            p.tree_next_child()
+
+            p(f"Second")
+
+            self.assertResult("""
+            Root
+            ├─ First
+            └─ Second
+            """)
+
+            p.tree_next_child()
+        self.assertResult("""
+        Root
+        ├─ First
+        └─ Second
+        """)
+
+    def test_count_unbuffered_nested(self):
+        p = self.p
+        p("Root")
+        with p.tree_children(2):
+            p.tree_next_child()
+
+            p(f"First")
+            with p.tree_children(1):
+                p.tree_next_child()
+                p(f"One")
+
+            p.tree_next_child()
+            p(f"Second")
+
+            with p.tree_children(1):
+                p(f"Two")
+                p.tree_next_child()
+            p.tree_next_child()
+
+        self.assertResult("""
+        Root
+        ├─ First
+        │  └─ One
+        └─ Second
+           └─ Two
+        """)
+
+
 
 if __name__ == '__main__':
     unittest.main()
