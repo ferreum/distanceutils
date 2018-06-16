@@ -16,9 +16,8 @@ from ._common import set_default_attrs
 from ._default_probers import DefaultProbers
 
 
-LEVEL_CONTENT_PROBER = DefaultProbers.get_or_create('level_content')
-
-FRAG_PROBER = DefaultProbers.fragments
+LEVEL_CONTENT_PROBER = DefaultProbers.get_or_create('level_content').transaction()
+FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
 def format_layer_flags(gen):
@@ -335,6 +334,10 @@ class Level(Fragment):
                     counters.print_data(p)
         except Exception as e:
             p.print_exception(e)
+
+
+LEVEL_CONTENT_PROBER.commit()
+FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

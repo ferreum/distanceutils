@@ -5,9 +5,8 @@ import argparse
 import re
 from io import BytesIO
 
+from distance import DefaultProbers
 from distance.level import Level
-from distance.levelfragments import PROBER as LEVEL_FRAG_PROBER
-from distance.levelobjects import PROBER as LEVELOBJ_PROBER
 from distance.bytes import (
     DstBytes, Section,
     MAGIC_2, MAGIC_3, MAGIC_9
@@ -44,7 +43,7 @@ KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 def setup_prober(args):
     prober = BytesProber()
     prober.add_fragment(Level, MAGIC_9)
-    prober.extend_from(LEVELOBJ_PROBER)
+    prober.extend_from(DefaultProbers.level_objects)
 
     return prober
 
@@ -160,7 +159,7 @@ def main():
 
     prober = setup_prober(args)
 
-    matcher = FragmentMatcher(LEVEL_FRAG_PROBER, args)
+    matcher = FragmentMatcher(DefaultProbers.fragments, args)
 
     content = prober.read(args.IN)
     if isinstance(content, Level):

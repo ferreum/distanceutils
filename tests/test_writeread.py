@@ -1,5 +1,6 @@
 import unittest
 
+from distance import DefaultProbers
 from distance.levelobjects import (
     LevelObject, GoldenSimple, Group, InfoDisplayBox, WinLogic,
     OldSimple, WorldText,
@@ -9,8 +10,7 @@ from distance.levelfragments import (
     TrackNodeFragment,
 )
 from distance.level import Level
-from distance.levelobjects import PROBER as LEVEL_PROBER
-from distance.base import Fragment, BASE_FRAG_PROBER
+from distance.base import Fragment
 from distance.prober import BytesProber
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
@@ -18,7 +18,9 @@ from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 UNK_PROBER = BytesProber()
 UNK_FRAG_PROBER = BytesProber()
-UNK_FRAG_PROBER.extend_from(BASE_FRAG_PROBER)
+UNK_FRAG_PROBER.extend_from(DefaultProbers.base_fragments)
+
+LEVEL_PROBER = DefaultProbers.level_objects
 
 
 class UnknownObject(LevelObject):

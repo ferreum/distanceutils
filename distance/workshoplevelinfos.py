@@ -13,7 +13,7 @@ from ._default_probers import DefaultProbers
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
-FRAG_PROBER = DefaultProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
 def format_date(date):
@@ -95,6 +95,9 @@ class WorkshopLevelInfos(BaseObject):
                     p(f"Rating: {Rating.to_name(level.rating)}")
                 if level.exception:
                     p.print_exception(level.exception)
+
+
+FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

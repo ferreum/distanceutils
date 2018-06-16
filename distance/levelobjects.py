@@ -28,8 +28,8 @@ from .printing import need_counters
 from ._default_probers import DefaultProbers
 
 
-PROBER = DefaultProbers.get_or_create('level_objects')
-SUBOBJ_PROBER = DefaultProbers.get_or_create('level_subobjects')
+PROBER = DefaultProbers.get_or_create('level_objects').transaction()
+SUBOBJ_PROBER = DefaultProbers.get_or_create('level_subobjects').transaction()
 
 
 class LevelObject(BaseObject):
@@ -59,10 +59,6 @@ class SubObject(LevelObject):
         if container and container.magic == MAGIC_6:
             type_str = container.type
             p(f"Subobject type: {type_str!r}")
-
-
-PROBER.baseclass = LevelObject
-SUBOBJ_PROBER.baseclass = SubObject
 
 
 def print_objects(p, gen):
@@ -569,6 +565,13 @@ for shape in OLD_SIMPLES_SHAPES:
     PROBER.add_type(shape + 'WithCollision', OldSimple)
     PROBER.add_type('Emissive' + shape + 'WithCollision', OldSimple)
 del shape
+
+
+PROBER.commit()
+SUBOBJ_PROBER.commit()
+
+DefaultProbers.level_objects.baseclass = LevelObject
+DefaultProbers.level_subobjects.baseclass = SubObject
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

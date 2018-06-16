@@ -14,11 +14,11 @@ from ._default_probers import DefaultProbers
 
 
 # these probers may be used outside
-BASE_PROBER = DefaultProbers.get_or_create('base_objects')
-BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments')
+BASE_PROBER = DefaultProbers.get_or_create('base_objects').transaction()
+BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments').transaction()
 
-DefaultProbers.get_or_create('objects')
-DefaultProbers.get_or_create('fragments')
+OBJ_PROBER = DefaultProbers.get_or_create('objects').transaction()
+FRAG_PROBER = DefaultProbers.get_or_create('fragments').transaction()
 
 EMPTY_PROBER = BytesProber()
 
@@ -373,8 +373,8 @@ class Fragment(BytesModel):
                     p.print_data_of(container)
 
 
-@DefaultProbers.base_fragments.fragment
-@DefaultProbers.fragments.fragment
+@BASE_FRAG_PROBER.fragment
+@FRAG_PROBER.fragment
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',
@@ -685,6 +685,11 @@ def require_type(typ):
         return cls
     return decorate
 
+
+BASE_PROBER.commit()
+BASE_FRAG_PROBER.commit()
+OBJ_PROBER.commit()
+FRAG_PROBER.commit()
 
 DefaultProbers.base_objects.baseclass = BaseObject
 DefaultProbers.base_fragments.baseclass = Fragment

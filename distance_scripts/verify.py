@@ -5,7 +5,7 @@ from itertools import zip_longest
 
 from distance.bytes import DstBytes
 from distance.base import ObjectFragment
-from distance import PROBER, Level
+from distance import DefaultProbers, Level
 from distance.levelfragments import NamedPropertiesFragment
 from distance.printing import PrintContext
 
@@ -85,7 +85,7 @@ def main():
         data = f.read()
 
     db_in = DstBytes.from_data(data)
-    orgobj = PROBER.read(db_in)
+    orgobj = DefaultProbers.file.read(db_in)
 
     db_out = DstBytes.in_memory()
     orgobj.write(db_out)
@@ -113,7 +113,7 @@ def main():
         print("data matches")
     else:
         db_out.seek(0)
-        resobj = PROBER.read(db_out)
+        resobj = DefaultProbers.file.read(db_out)
         listdiffs(orgobj, resobj)
 
     return 0 if is_equal else 1

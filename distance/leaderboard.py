@@ -17,7 +17,7 @@ NO_REPLAY = 0xffffffffffffffff
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
-FRAG_PROBER = DefaultProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
 class Entry(BytesModel):
@@ -77,6 +77,9 @@ class Leaderboard(BaseObject):
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
             if entry.exception:
                 p.print_exception(entry.exception)
+
+
+FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

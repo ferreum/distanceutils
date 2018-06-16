@@ -26,6 +26,9 @@ class BytesProber(object):
             for ty, cls in types.items():
                 self._sections[Section(MAGIC_6, ty).to_key()] = cls
 
+    def transaction(self):
+        return _ProberTransaction(self)
+
     def add_type(self, type, cls):
         self._sections[Section(MAGIC_6, type).to_key()] = cls
 
@@ -228,6 +231,30 @@ class BytesProber(object):
         dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
+
+
+class _ProberTransaction(BytesProber):
+
+    def __init__(self, target):
+        super().__init__()
+        self._target = target
+
+    def commit(self):
+
+        target = self._target
+
+        for sec, cls in self._sections.items():
+            try:
+                targetcls = target._sections[sec]
+            except KeyError:
+                pass
+            else:
+                if targetcls.__module__ != cls.__module__:
+                    raise RegisterError(
+                        f"Cannot override class of different module.")
+
+        target._sections.update(self._sections)
+        target._funcs.extend(self._funcs)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

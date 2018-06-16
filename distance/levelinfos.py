@@ -15,7 +15,7 @@ from ._default_probers import DefaultProbers
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
-FRAG_PROBER = DefaultProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
 class Entry(BytesModel):
@@ -94,6 +94,9 @@ class LevelInfos(BaseObject):
             for entry in self.levels:
                 p.tree_next_child()
                 p.print_data_of(entry)
+
+
+FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

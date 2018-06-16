@@ -17,7 +17,7 @@ from ._default_probers import DefaultProbers
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
-FRAG_PROBER = DefaultProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
 def format_score(mode, score, comp):
@@ -488,6 +488,9 @@ class ProfileProgress(BaseObject):
             p("No level progress")
         if self.stats:
             p.print_data_of(self.stats)
+
+
+FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

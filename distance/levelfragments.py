@@ -24,7 +24,7 @@ from .construct import (
 )
 
 
-PROBER = DefaultProbers.fragments
+PROBER = DefaultProbers.fragments.transaction()
 
 
 def read_n_floats(dbytes, n, default=None):
@@ -1132,6 +1132,9 @@ class ForwardMaterialColors(object):
         mats = obj.fragment_by_type(MaterialFragment).materials
         for matname, colname, value in obj.__default_colors.values():
             mats.get_or_add(matname)[colname] = value
+
+
+PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

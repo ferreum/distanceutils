@@ -14,7 +14,7 @@ from ._default_probers import DefaultProbers
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
-FRAG_PROBER = DefaultProbers.fragments
+FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 _value_attrs = dict(
     version = None,
@@ -84,6 +84,9 @@ class ReplayFragment(Fragment):
 class Replay(BaseObject):
 
     fragment_prober = FRAG_PROBER
+
+
+FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

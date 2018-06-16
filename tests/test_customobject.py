@@ -1,11 +1,11 @@
 import unittest
 
+from distance import DefaultProbers
 from distance.base import (
     ObjectFragment,
     BaseObject,
 )
 from distance.levelobjects import (
-    PROBER,
     Group,
     SubTeleporter,
     WinLogic,
@@ -21,6 +21,9 @@ from distance.levelfragments import (
 from distance.printing import PrintContext
 from distance.constants import ForceType
 from .common import check_exceptions
+
+
+PROBER = DefaultProbers.level_objects
 
 
 class InfoDisplayBoxTest(unittest.TestCase):
