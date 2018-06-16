@@ -31,6 +31,11 @@ class FileFilter(object):
     def add_args(cls, parser):
         parser.add_argument(":src", help="File containing the filter definitions.")
         parser.add_argument(":relative_to", help="Path that src is relative to (used internally).")
+        parser.description = "Load a filter chain from file."
+        parser.epilog = """
+        Filter files consist any number of filters, on per line.
+        Filters are formatted as per the -o/--of/--objfilter argument.
+        """
 
     def __init__(self, args):
         src = args.src
