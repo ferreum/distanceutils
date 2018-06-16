@@ -104,7 +104,7 @@ class SettingsFilter(ObjectFilter):
         self.abilities = args.abilities
         self.applied_version = None
 
-    def apply(self, content):
+    def apply(self, content, p=None):
         if not isinstance(content, Level):
             raise ValueError("settings filter can only "
                              "be used with Levels.")
@@ -135,11 +135,9 @@ class SettingsFilter(ObjectFilter):
 
         self.applied_version = settings.version
 
+        if p:
+            p(f"Settings applied (version {settings.version})")
+
         return content
-
-    def print_summary(self, p):
-        if self.applied_version is not None:
-            p(f"Settings applied (version {self.applied_version})")
-
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -779,11 +779,20 @@ class VisualizeFilter(ObjectFilter):
             return obj,
         assert False
 
-    def apply(self, content):
-        super().apply(content, passnum=0)
+    def apply(self, content, p=None):
+        if not super().apply(content, passnum=0):
+            return False
         for m in self._mappers:
             m.post_prepare()
-        return super().apply(content, passnum=1)
+        if not super().apply(content, passnum=1):
+            return False
+
+        if p:
+            p(f"Visualized objects: {self.num_visualized}")
+            if self._num_skipped:
+                self._print_skipped(p)
+
+        return True
 
     def _print_objects(self, p, objs):
         with p.tree_children():
@@ -806,11 +815,6 @@ class VisualizeFilter(ObjectFilter):
                 p(f"{label}: {len(objs)}")
                 if self.verbose >= verbosity:
                     self._print_objects(p, objs)
-
-    def print_summary(self, p):
-        p(f"Visualized objects: {self.num_visualized}")
-        if self._num_skipped:
-            self._print_skipped(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

@@ -4,6 +4,7 @@
 import os
 import sys
 import argparse
+from contextlib import contextmanager
 
 from distance.level import Level
 from distance.levelobjects import Group
@@ -23,6 +24,15 @@ def filterlevel_getfilter(name):
     if name == 'file':
         return FileFilter
     return getfilter(name)
+
+
+@contextmanager
+def optcontext(obj, func, *args, **kw):
+    if obj is None:
+        yield
+    else:
+        with getattr(obj, func)(*args, **kw) as o:
+            yield o
 
 
 class FileFilter(object):
@@ -53,24 +63,18 @@ class FileFilter(object):
                             if l and not l.startswith('#')]
         self.aborted = False
 
-    def apply(self, content):
-        for f, l in self.filters:
-            f.apply(content)
-            if not f.post_filter(content):
-                self.aborted = True
-                return
-
-    def post_filter(self, p):
-        return not self.aborted
-
-    def print_summary(self, p):
-        p(f"File: {self.src!r}")
-        p(f"Filters: {len(self.filters)}")
-        with p.tree_children():
+    def apply(self, content, p=None, **kw):
+        with optcontext(p, 'tree_children'):
+            if p:
+                p(f"File: {self.src!r}")
+                p(f"Filters: {len(self.filters)}")
             for f, l in self.filters:
-                p.tree_next_child()
-                p(f"Filter: {l}")
-                f.print_summary(p)
+                if p:
+                    p.tree_next_child()
+                    p(f"Filter: {l}")
+                if not f.apply(content, p=p, **kw):
+                    return False
+        return True
 
 
 def make_arglist(s):
@@ -153,10 +157,8 @@ def main():
     p = PrintContext(flags=('groups', 'subobjects'))
 
     for f in filters:
-        f.apply(content)
-        if not f.post_filter(content):
+        if not f.apply(content, p=p):
             return 1
-        f.print_summary(p)
 
     if args.list:
         p.print_data_of(content)

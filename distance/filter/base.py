@@ -77,13 +77,18 @@ class ObjectFilter(object):
         # group object
         grp.children = self.filter_objects(grp.children, self.maxrecurse, **kw)
 
-    def apply(self, content, **kw):
+    def apply(self, content, p=None, **kw):
         if isinstance(content, Level):
             self.apply_level(content, **kw)
         elif isinstance(content, Group):
             self.apply_group(content, **kw)
         else:
             raise TypeError(f'Unknown object type: {type(content).__name__!r}')
+        if not self.post_filter(content):
+            return False
+        if p:
+            self.print_summary(p)
+        return True
 
     def post_filter(self, content):
         return True
