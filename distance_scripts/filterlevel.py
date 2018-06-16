@@ -35,6 +35,19 @@ def optcontext(obj, func, *args, **kw):
             yield o
 
 
+def apply_filters(filters, content, p=None, **kw):
+    if p:
+        p(f"Filters: {len(filters)}")
+    with optcontext(p, 'tree_children'):
+        for f in filters:
+            if p:
+                p.tree_next_child()
+                p(f"Filter: {f.__def_string}")
+            if not f.apply(content, p=p, **kw):
+                return False
+    return True
+
+
 class FileFilter(object):
 
     @classmethod
@@ -55,25 +68,20 @@ class FileFilter(object):
             src = os.path.join(relative_to, src)
         abssrc = os.path.abspath(src)
         self.src = os.path.relpath(src)
+
         def create(l):
             defaults = dict(relative_to=os.path.dirname(abssrc), **args.__dict__)
             return create_filter(l, defaults)
+
         with open(abssrc, 'r') as f:
-            self.filters = [(create(l), l) for l in map(str.strip, f)
+            self.filters = [create(l) for l in map(str.strip, f)
                             if l and not l.startswith('#')]
         self.aborted = False
 
     def apply(self, content, p=None, **kw):
-        with optcontext(p, 'tree_children'):
-            if p:
-                p(f"File: {self.src!r}")
-                p(f"Filters: {len(self.filters)}")
-            for f, l in self.filters:
-                if p:
-                    p.tree_next_child()
-                    p(f"Filter: {l}")
-                if not f.apply(content, p=p, **kw):
-                    return False
+        if p:
+            p(f"File: {self.src!r}")
+            apply_filters(self.filters, content, p=p)
         return True
 
 
@@ -112,7 +120,9 @@ def create_filter(option, defaults):
     cls.add_args(parser)
     args = parser.parse_args(make_arglist(argstr))
 
-    return cls(args)
+    flt = cls(args)
+    flt.__def_string = option
+    return flt
 
 
 def main():
@@ -156,9 +166,8 @@ def main():
 
     p = PrintContext(flags=('groups', 'subobjects'))
 
-    for f in filters:
-        if not f.apply(content, p=p):
-            return 1
+    if not apply_filters(filters, content, p=p):
+        return 1
 
     if args.list:
         p.print_data_of(content)
