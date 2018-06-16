@@ -56,9 +56,9 @@ class FileFilter(object):
     def apply(self, content):
         for f, l in self.filters:
             f.apply(content)
-        if not f.post_filter(content):
-            self.aborted = True
-            return
+            if not f.post_filter(content):
+                self.aborted = True
+                return
 
     def post_filter(self, p):
         return not self.aborted
