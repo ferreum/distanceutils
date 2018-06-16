@@ -19,6 +19,53 @@ PROBER.add_type('Group', Group)
 PROBER.add_fragment(Level, MAGIC_9)
 
 
+def filterlevel_getfilter(name):
+    if name == 'file':
+        return FileFilter
+    return getfilter(name)
+
+
+class FileFilter(object):
+
+    @classmethod
+    def add_args(cls, parser):
+        parser.add_argument(":src", help="File containing the filter definitions.")
+        parser.add_argument(":relative_to", help="Path that src is relative to (used internally).")
+
+    def __init__(self, args):
+        src = args.src
+        relative_to = args.__dict__.pop('relative_to', None) or '.'
+        if not src.startswith('/'):
+            src = os.path.join(relative_to, src)
+        abssrc = os.path.abspath(src)
+        self.src = os.path.relpath(src)
+        def create(l):
+            defaults = dict(relative_to=os.path.dirname(abssrc), **args.__dict__)
+            return create_filter(l, defaults)
+        with open(abssrc, 'r') as f:
+            self.filters = [(create(l), l) for l in map(str.strip, f)]
+        self.aborted = False
+
+    def apply(self, content):
+        for f, l in self.filters:
+            f.apply(content)
+        if not f.post_filter(content):
+            self.aborted = True
+            return
+
+    def post_filter(self, p):
+        return not self.aborted
+
+    def print_summary(self, p):
+        p(f"File: {self.src!r}")
+        p(f"Filters: {len(self.filters)}")
+        with p.tree_children():
+            for f, l in self.filters:
+                p.tree_next_child()
+                p(f"Filter: {l}")
+                f.print_summary(p)
+
+
 def make_arglist(s):
 
     def iter_tokens(source):
@@ -44,7 +91,7 @@ def make_arglist(s):
 
 def create_filter(option, defaults):
     name, sep, argstr = option.partition(':')
-    cls = getfilter(name)
+    cls = filterlevel_getfilter(name)
 
     parser = argparse.ArgumentParser(prog=name, prefix_chars=':',
                                      add_help=False)
