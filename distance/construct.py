@@ -25,6 +25,7 @@ from distance.base import Fragment
 from distance.bytes import SKIP_BYTES
 
 __all__ = [
+    'BaseConstructFragment',
     'Byte', 'Int', 'UInt', 'Long', 'ULong', 'Float', 'Double', 'DstString',
     'DstOptional', 'Remainder',
     'Struct', 'Default',
