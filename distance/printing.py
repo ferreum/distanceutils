@@ -18,8 +18,8 @@ class PrintContext(object):
         # 0. Buffered lines for that level.
         # 1. Whether the child on that level has been ended
         #    by a call to tree_next_child().
-        # 2. Current counter if 'count' was passed to tree_children()
-        #    on that level.
+        # 2. Counter of remaining children if 'count' was passed to
+        #    tree_children() on that level.
         self._tree_data = [], [], []
 
     @classmethod
