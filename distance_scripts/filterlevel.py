@@ -38,7 +38,7 @@ def optcontext(obj, func, *args, **kw):
 def apply_filters(filters, content, p=None, **kw):
     if p:
         p(f"Filters: {len(filters)}")
-    with optcontext(p, 'tree_children'):
+    with optcontext(p, 'tree_children', count=len(filters)):
         for f in filters:
             if p:
                 p.tree_next_child()
