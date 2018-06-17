@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+"""Prints distanceutils version when executed."""
 
 
 from . import __version__

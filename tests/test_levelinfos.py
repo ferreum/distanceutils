@@ -81,4 +81,4 @@ class Version0EntryVersion2AuthorTest(unittest.TestCase):
         self.assertEqual("Rekall", self.levels[1].level_name)
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

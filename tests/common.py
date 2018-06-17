@@ -131,4 +131,4 @@ class ExtraAssertMixin(object):
                 self.assertAlmostEqual(va, vb, msg=f"\nindex={i}\na={a}\nb={b}{msg}", **kw)
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

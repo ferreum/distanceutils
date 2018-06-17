@@ -181,4 +181,4 @@ class ReadWriteTest(ExtraAssertMixin, unittest.TestCase):
         self.assertSeqAlmostEqual((8, 9, 0), db.read_struct(S_FLOAT3))
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

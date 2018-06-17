@@ -22,4 +22,4 @@ class UnkillTest(unittest.TestCase):
         self.assertFalse(any('Kill' in t for t in types))
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

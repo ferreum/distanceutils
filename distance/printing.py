@@ -244,4 +244,4 @@ def format_transform(trans):
     return ', '.join(f"({format_floats(f)})" for f in trans)
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

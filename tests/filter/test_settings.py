@@ -70,4 +70,4 @@ class SettingsTest(unittest.TestCase):
         self.assertEqual(orig_modes, dict(l.settings.modes))
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

@@ -51,4 +51,4 @@ done
 
 (( errors == 0 ))
 
-# vim:set sw=2 ts=2 sts=0 et sta sr ft=sh fdm=marker:
+# vim:set sw=2 ts=2 sts=0 et:

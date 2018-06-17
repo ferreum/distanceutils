@@ -257,4 +257,4 @@ class _ProberTransaction(BytesProber):
         target._funcs_by_tag.update(self._funcs_by_tag)
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

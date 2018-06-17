@@ -96,4 +96,4 @@ class UnkillFilter(ObjectFilter):
         p(f"Replaced kill grids: {self.num_replaced}")
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:

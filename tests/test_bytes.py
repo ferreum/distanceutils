@@ -33,4 +33,4 @@ class DstBytesTest(unittest.TestCase):
             self.assertTrue("'b' mode" in msg, msg=f"actual message: {msg!r}")
 
 
-# vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
+# vim:set sw=4 ts=8 sts=4 et:
