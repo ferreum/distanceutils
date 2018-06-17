@@ -63,7 +63,6 @@ class LeaderboardFragment(Fragment):
 class Leaderboard(BaseObject):
 
     type = FTYPE_LEADERBOARD
-    fragment_prober = FRAG_PROBER
 
     def _print_data(self, p):
         p(f"Version: {self.version}")

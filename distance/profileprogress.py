@@ -454,8 +454,6 @@ class ProfileProgress(BaseObject):
 
     type = FTYPE_PROFILEPROGRESS
 
-    fragment_prober = FRAG_PROBER
-
     @property
     def stats(self):
         return self.fragment_by_type(ProfileStatsFragment)
