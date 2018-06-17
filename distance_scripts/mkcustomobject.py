@@ -14,15 +14,7 @@ from distance.prober import BytesProber
 
 
 PROBER = BytesProber()
-
-
-@PROBER.func
-def _detect_other(section):
-    if section.magic == MAGIC_9:
-        return Level
-    return None
-
-
+PROBER.add_fragment(Level, MAGIC_9)
 PROBER.extend_from(DefaultProbers.level_objects)
 
 
