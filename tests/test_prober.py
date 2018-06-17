@@ -3,7 +3,7 @@ import unittest
 from distance.bytes import DstBytes, Magic, Section
 from distance.prober import BytesProber
 from distance.base import BaseObject
-from distance.knowntypes import read
+from distance import DefaultProbers
 
 
 class TestObject(BaseObject):
@@ -52,25 +52,25 @@ class RegisteredTest(unittest.TestCase):
     def test_levelinfos(self):
         for ver in range(0, 1):
             with self.subTest(version=ver):
-                result = read(f"tests/in/workshoplevelinfos/version_{ver}.bytes")
+                result = DefaultProbers.file.read(f"tests/in/workshoplevelinfos/version_{ver}.bytes")
                 self.assertEqual("WorkshopLevelInfos", type(result).__name__)
 
     def test_leaderboard(self):
         for ver in range(0, 2):
             with self.subTest(version=ver):
-                result = read(f"tests/in/leaderboard/version_{ver}.bytes")
+                result = DefaultProbers.file.read(f"tests/in/leaderboard/version_{ver}.bytes")
                 self.assertEqual("Leaderboard", type(result).__name__)
 
     def test_replay(self):
         for ver in range(1, 5):
             with self.subTest(version=ver):
-                result = read(f"tests/in/replay/version_{ver}.bytes")
+                result = DefaultProbers.file.read(f"tests/in/replay/version_{ver}.bytes")
                 self.assertEqual("Replay", type(result).__name__)
 
     def test_level(self):
         for levelfile in ("test-straightroad",):
             with self.subTest(levelfile=levelfile):
-                result = read(f"tests/in/level/{levelfile}.bytes")
+                result = DefaultProbers.file.read(f"tests/in/level/{levelfile}.bytes")
                 self.assertEqual("Level", type(result).__name__)
 
 
@@ -88,6 +88,19 @@ class TransactionTest(unittest.TestCase):
         t.commit()
         res = prober.probe_section(Section(Magic[6], 't'))
         self.assertEqual(res.tag, 2)
+
+
+class UnknownObjectFileTest(unittest.TestCase):
+
+    def test_unknown_object(self):
+        db = DstBytes.in_memory()
+        with db.write_section(Magic[6], '__distanceutils__test__object__'):
+            pass
+        db.seek(0)
+
+        obj = DefaultProbers.file.read(db)
+
+        self.assertEqual(type(obj), BaseObject)
 
 
 if __name__ == '__main__':

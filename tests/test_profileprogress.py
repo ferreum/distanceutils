@@ -4,9 +4,14 @@ from distance.profileprogress import ProfileProgress
 from distance.printing import PrintContext
 from distance.constants import Completion, Mode
 from .common import check_exceptions
+from distance import DefaultProbers
 
 
 class ProfileProgressTest(unittest.TestCase):
+
+    def test_probe(self):
+        obj = DefaultProbers.file.read("tests/in/profileprogress/new profile.bytes")
+        self.assertEqual(type(obj), ProfileProgress)
 
     def test_read_new(self):
         obj = ProfileProgress("tests/in/profileprogress/new profile.bytes")

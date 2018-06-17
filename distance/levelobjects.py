@@ -573,5 +573,10 @@ SUBOBJ_PROBER.commit()
 DefaultProbers.level_objects.baseclass = LevelObject
 DefaultProbers.level_subobjects.baseclass = SubObject
 
+_prober = DefaultProbers.file.transaction()
+_prober.extend_from(DefaultProbers.level_objects)
+_prober.commit()
+del _prober
+
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

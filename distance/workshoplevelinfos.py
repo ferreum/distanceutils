@@ -5,7 +5,6 @@ from .bytes import BytesModel, MAGIC_2
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
-    require_type,
 )
 from .constants import Rating
 from ._default_probers import DefaultProbers
@@ -14,6 +13,7 @@ from ._default_probers import DefaultProbers
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
 FRAG_PROBER = DefaultProbers.fragments.transaction()
+FILE_PROBER = DefaultProbers.file.transaction()
 
 
 def format_date(date):
@@ -68,9 +68,11 @@ class WorkshopLevelInfosFragment(Fragment):
                                          start_pos=sec.content_start + 8)
 
 
+@FILE_PROBER.for_type
 @ForwardFragmentAttrs(WorkshopLevelInfosFragment, levels=())
-@require_type(FTYPE_WSLEVELINFOS)
 class WorkshopLevelInfos(BaseObject):
+
+    type = FTYPE_WSLEVELINFOS
 
     def _print_data(self, p):
         p(f"Levelinfos: {len(self.levels)}")
@@ -98,6 +100,7 @@ class WorkshopLevelInfos(BaseObject):
 
 
 FRAG_PROBER.commit()
+FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

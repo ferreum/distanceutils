@@ -17,6 +17,7 @@ NO_REPLAY = 0xffffffffffffffff
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
+FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
@@ -55,9 +56,11 @@ class LeaderboardFragment(Fragment):
                                           version=version)
 
 
+@FILE_PROBER.for_type
 @ForwardFragmentAttrs(LeaderboardFragment, version=None, entries=())
 class Leaderboard(BaseObject):
 
+    type = FTYPE_LEADERBOARD
     fragment_prober = FRAG_PROBER
 
     def _print_data(self, p):
@@ -80,6 +83,7 @@ class Leaderboard(BaseObject):
 
 
 FRAG_PROBER.commit()
+FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

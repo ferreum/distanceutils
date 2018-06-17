@@ -1,7 +1,7 @@
 """Read replay metadata."""
 
 
-from .bytes import S_COLOR_RGBA, MAGIC_1, MAGIC_2
+from .bytes import S_COLOR_RGBA, Magic
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -14,6 +14,7 @@ from ._default_probers import DefaultProbers
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
+FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 _value_attrs = dict(
@@ -31,7 +32,7 @@ _value_attrs = dict(
 )
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x7f, any_version=True)
+@FRAG_PROBER.fragment(Magic[2], 0x7f, any_version=True)
 @set_default_attrs(_value_attrs)
 class ReplayFragment(Fragment):
 
@@ -57,10 +58,10 @@ class ReplayFragment(Fragment):
         self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
 
         if version <= 1:
-            dbytes.require_equal_uint4(MAGIC_1)
+            dbytes.require_equal_uint4(Magic[1])
             section_size = dbytes.read_uint4() * 4
             dbytes.read_bytes(section_size)
-            dbytes.require_equal_uint4(MAGIC_1)
+            dbytes.require_equal_uint4(Magic[1])
             section_size = dbytes.read_uint4()
             dbytes.read_bytes(section_size - 8)
             self.finish_time = dbytes.read_uint4()
@@ -86,7 +87,16 @@ class Replay(BaseObject):
     fragment_prober = FRAG_PROBER
 
 
+@FILE_PROBER.func('Replay,BaseObject')
+def _detect_other(section):
+    if section.magic == Magic[6]:
+        if section.type.startswith(FTYPE_REPLAY_PREFIX):
+            return Replay
+    return None
+
+
 FRAG_PROBER.commit()
+FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

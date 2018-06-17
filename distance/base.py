@@ -13,10 +13,10 @@ from .lazy import LazySequence, LazyMappedSequence
 from ._default_probers import DefaultProbers
 
 
-# these probers may be used outside
+DefaultProbers.get_or_create('file')
+
 BASE_PROBER = DefaultProbers.get_or_create('base_objects').transaction()
 BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments').transaction()
-
 OBJ_PROBER = DefaultProbers.get_or_create('objects').transaction()
 FRAG_PROBER = DefaultProbers.get_or_create('fragments').transaction()
 
@@ -695,6 +695,7 @@ DefaultProbers.base_objects.baseclass = BaseObject
 DefaultProbers.base_fragments.baseclass = Fragment
 DefaultProbers.fragments.baseclass = Fragment
 DefaultProbers.objects.baseclass = BaseObject
+DefaultProbers.file.baseclass = Fragment
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

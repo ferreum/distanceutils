@@ -15,6 +15,7 @@ from ._default_probers import DefaultProbers
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
+FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
@@ -83,9 +84,11 @@ class LevelInfosFragment(Fragment):
             dbytes, num_entries, version=entry_version)
 
 
+@FILE_PROBER.for_type
 @ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
-@require_type(FTYPE_LEVELINFOS)
 class LevelInfos(BaseObject):
+
+    type = FTYPE_LEVELINFOS
 
     def _print_data(self, p):
         p(f"Version: {self.version}")
@@ -97,6 +100,7 @@ class LevelInfos(BaseObject):
 
 
 FRAG_PROBER.commit()
+FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

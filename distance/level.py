@@ -3,7 +3,7 @@
 
 from collections import OrderedDict
 
-from .bytes import S_FLOAT, MAGIC_2, MAGIC_7, MAGIC_8, MAGIC_9
+from .bytes import S_FLOAT, Magic
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs
@@ -16,6 +16,7 @@ from ._common import set_default_attrs
 from ._default_probers import DefaultProbers
 
 
+FILE_PROBER = DefaultProbers.file.transaction()
 LEVEL_CONTENT_PROBER = DefaultProbers.get_or_create('level_content').transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
@@ -77,7 +78,7 @@ class LevelSettings(object):
             p(f"Description: {self.description}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x52, any_version=True)
+@FRAG_PROBER.fragment(Magic[2], 0x52, any_version=True)
 @set_default_attrs(LevelSettings.value_attrs)
 class LevelSettingsFragment(Fragment):
 
@@ -165,7 +166,7 @@ class NewLevelSettings(LevelSettings, BaseObject):
             p(f"Object version: {self.version}")
 
 
-@LEVEL_CONTENT_PROBER.fragment(MAGIC_8)
+@LEVEL_CONTENT_PROBER.fragment(Magic[8])
 @set_default_attrs(LevelSettings.value_attrs)
 class OldLevelSettings(LevelSettings, Fragment):
 
@@ -180,7 +181,7 @@ class OldLevelSettings(LevelSettings, Fragment):
         p(f"Type: LevelSettings (old)")
 
 
-@LEVEL_CONTENT_PROBER.fragment(MAGIC_7)
+@LEVEL_CONTENT_PROBER.fragment(Magic[7])
 class Layer(Fragment):
 
     layer_name = None
@@ -191,7 +192,7 @@ class Layer(Fragment):
     unknown_flag = 0
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic != MAGIC_7:
+        if sec.magic != Magic[7]:
             raise ValueError(f"Invalid layer section: {sec.magic}")
         self.layer_name = sec.name
 
@@ -218,7 +219,7 @@ class Layer(Fragment):
             dbytes, sec.count, start_pos=obj_start)
 
     def _write_section_data(self, dbytes, sec):
-        if sec.magic != MAGIC_7:
+        if sec.magic != Magic[7]:
             raise ValueError(f"Invalid layer section: {sec.magic}")
         if self.has_layer_flags:
             flags = self.layer_flags
@@ -259,6 +260,7 @@ class Layer(Fragment):
                 counters.print_data(p)
 
 
+@FILE_PROBER.fragment(Magic[9])
 class Level(Fragment):
 
     _settings = Ellipsis
@@ -267,7 +269,7 @@ class Level(Fragment):
     version = 3
 
     def _read_section_data(self, dbytes, sec):
-        if sec.magic != MAGIC_9:
+        if sec.magic != Magic[9]:
             raise ValueError(f"Unexpected section: {sec.magic}")
         self.name = sec.name
         self.version = sec.version
@@ -283,12 +285,12 @@ class Level(Fragment):
 
     def _write(self, dbytes):
         num_layers = len(self.layers)
-        with dbytes.write_section(MAGIC_9, self.name,
+        with dbytes.write_section(Magic[9], self.name,
                                   num_layers, self.version) as sec:
             self._write_section_data(dbytes, sec)
 
     def _write_section_data(self, dbytes, sec):
-        if sec.magic != MAGIC_9:
+        if sec.magic != Magic[9]:
             raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
             obj.write(dbytes)
@@ -338,6 +340,7 @@ class Level(Fragment):
 
 LEVEL_CONTENT_PROBER.commit()
 FRAG_PROBER.commit()
+FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:

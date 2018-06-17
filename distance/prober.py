@@ -94,7 +94,7 @@ class BytesProber(object):
 
         return decorate
 
-    def for_type(self, *types):
+    def for_type(self, *args):
 
         """Decorator for conveniently adding a class for a type."""
 
@@ -102,7 +102,13 @@ class BytesProber(object):
             for t in types:
                 self.add_type(t, cls)
             return cls
-        return decorate
+
+        if len(args) == 1 and callable(args[0]):
+            types = [args[0].type]
+            return decorate(args[0])
+        else:
+            types = args
+            return decorate
 
     def fragment(self, *args, **kw):
 

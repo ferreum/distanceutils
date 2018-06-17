@@ -58,7 +58,6 @@ This lazy-loading changes the seek position of the file.
 
 import distance.levelobjects
 import distance.levelfragments
-import distance.knowntypes
 
 from distance.level import Level
 from distance.replay import Replay
@@ -77,10 +76,21 @@ from distance.constants import (
 from ._version import __version__
 
 
+# File prober's baseclass is Fragment. For Magic[6] objects,
+# fall back to BaseObject. We do this here, because it needs to be
+# registered after the replay func.
+@DefaultProbers.file.func('fallback_object')
+def _fallback_object(sec):
+    from distance.bytes import Magic
+    from distance.base import BaseObject
+    if sec.magic == Magic[6]:
+        return BaseObject
+    return None
+
+
 # suppress warnings
 distance.levelobjects
 distance.levelfragments
-distance.knowntypes
 __version__
 
 

@@ -2,6 +2,7 @@ import unittest
 
 from distance.replay import Replay
 from distance.printing import PrintContext
+from distance import DefaultProbers
 from .common import check_exceptions
 
 
@@ -11,6 +12,13 @@ def assertColor(first, second):
     for a, b in zip(first, second):
         if abs(a - b) > 0.001:
             raise AssertionError(f"colors don't match: {first} {second}")
+
+
+class ProbeTest(unittest.TestCase):
+
+    def test_probe(self):
+        obj = DefaultProbers.file.read("tests/in/replay/version_1.bytes")
+        self.assertEqual(type(obj), Replay)
 
 
 class Version1Test(unittest.TestCase):

@@ -8,7 +8,6 @@ from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
-    require_type,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -17,6 +16,7 @@ from ._default_probers import DefaultProbers
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
+FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
@@ -446,9 +446,11 @@ def _print_stringentries(p, title, prefix, entries, num_per_row=1):
                     p(f"{prefix}: {t_str}")
 
 
+@FILE_PROBER.for_type
 @ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
-@require_type(FTYPE_PROFILEPROGRESS)
 class ProfileProgress(BaseObject):
+
+    type = FTYPE_PROFILEPROGRESS
 
     fragment_prober = FRAG_PROBER
 
@@ -491,6 +493,7 @@ class ProfileProgress(BaseObject):
 
 
 FRAG_PROBER.commit()
+FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
