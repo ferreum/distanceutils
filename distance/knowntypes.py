@@ -22,7 +22,7 @@ PROBER.add_fragment(ProfileProgress, Magic[6], FTYPE_PROFILEPROGRESS)
 PROBER.add_fragment(Level, Magic[9])
 
 
-@PROBER.func
+@PROBER.func('Replay,BaseObject')
 def _detect_other(section):
     if section.magic == Magic[6]:
         if section.type.startswith(FTYPE_REPLAY_PREFIX):

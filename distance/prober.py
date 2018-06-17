@@ -2,6 +2,7 @@
 
 
 import numbers
+from collections import OrderedDict
 
 from .bytes import DstBytes, BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
 from .lazy import LazySequence
@@ -17,14 +18,11 @@ class RegisterError(ValueError):
 
 class BytesProber(object):
 
-    def __init__(self, types=None, sections=None, funcs=None,
-                 baseclass=BytesModel):
+    def __init__(self, baseclass=BytesModel):
         self.baseclass = baseclass
-        self._sections = sections or {}
-        self._funcs = funcs or []
-        if types:
-            for ty, cls in types.items():
-                self._sections[Section(MAGIC_6, ty).to_key()] = cls
+        self._sections = {}
+        self._funcs_by_tag = OrderedDict()
+        self._funcs = self._funcs_by_tag.values()
 
     def transaction(self):
         return _ProberTransaction(self)
@@ -32,11 +30,8 @@ class BytesProber(object):
     def add_type(self, type, cls):
         self._sections[Section(MAGIC_6, type).to_key()] = cls
 
-    def add_func(self, func, high_prio=False):
-        if high_prio:
-            self._funcs.insert(0, func)
-        else:
-            self._funcs.append(func)
+    def add_func(self, func, tag):
+        self._funcs_by_tag[tag] = func
 
     def _add_fragment_for_section(self, cls, sec, any_version):
         key = sec.to_key(any_version=any_version)
@@ -86,19 +81,18 @@ class BytesProber(object):
         else:
             self._add_fragment_for_section(cls, sec, any_version)
 
-    def func(self, *args, high_prio=False):
+    def func(self, tag):
 
         """Decorator for conveniently adding a function."""
 
         def decorate(func):
-            self.add_func(func, high_prio=high_prio)
+            self.add_func(func, tag)
             return func
 
-        if args:
-            func = args[0]
-            return decorate(func)
-        else:
-            return decorate
+        if callable(tag):
+            raise ValueError("target passed as tag")
+
+        return decorate
 
     def for_type(self, *types):
 
@@ -138,7 +132,7 @@ class BytesProber(object):
     def extend_from(self, other):
         self._sections.update(((k, v) for k, v in other._sections.items()
                                if k not in self._sections))
-        self._funcs.extend(other._funcs)
+        self._funcs_by_tag.update(other._funcs_by_tag)
 
 
     # support old method name
@@ -254,7 +248,7 @@ class _ProberTransaction(BytesProber):
                         f"Cannot override class of different module.")
 
         target._sections.update(self._sections)
-        target._funcs.extend(self._funcs)
+        target._funcs_by_tag.update(self._funcs_by_tag)
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
