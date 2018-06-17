@@ -86,6 +86,7 @@ class LevelInfosFragment(Fragment):
 
 @FILE_PROBER.for_type
 @ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
+@require_type
 class LevelInfos(BaseObject):
 
     type = FTYPE_LEVELINFOS

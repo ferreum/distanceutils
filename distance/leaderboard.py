@@ -7,6 +7,7 @@ from .bytes import BytesModel, MAGIC_2
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
+    require_type,
 )
 from .printing import format_duration
 from ._default_probers import DefaultProbers
@@ -58,6 +59,7 @@ class LeaderboardFragment(Fragment):
 
 @FILE_PROBER.for_type
 @ForwardFragmentAttrs(LeaderboardFragment, version=None, entries=())
+@require_type
 class Leaderboard(BaseObject):
 
     type = FTYPE_LEADERBOARD

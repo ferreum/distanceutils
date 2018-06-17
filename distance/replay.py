@@ -81,7 +81,7 @@ class ReplayFragment(Fragment):
 
 
 @ForwardFragmentAttrs(ReplayFragment, **ReplayFragment.value_attrs)
-@require_type(lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+@require_type(func=lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
 class Replay(BaseObject):
 
     fragment_prober = FRAG_PROBER

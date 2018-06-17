@@ -8,6 +8,7 @@ from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
+    require_type
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -448,6 +449,7 @@ def _print_stringentries(p, title, prefix, entries, num_per_row=1):
 
 @FILE_PROBER.for_type
 @ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
+@require_type
 class ProfileProgress(BaseObject):
 
     type = FTYPE_PROFILEPROGRESS

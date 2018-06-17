@@ -667,7 +667,8 @@ class BaseObject(Fragment):
                     p.print_data_of(obj)
 
 
-def require_type(typ):
+def require_type(*args, func=None):
+
     def check(sec):
         if callable(typ):
             if not typ(sec.type):
@@ -683,7 +684,20 @@ def require_type(typ):
             superfunc(self, dbytes, sec)
         cls._read_section_data = checking_read_data
         return cls
-    return decorate
+
+    if func is not None:
+        if args:
+            raise ValueError
+        typ = func
+        return decorate
+    elif len(args) != 1:
+        raise ValueError
+    elif callable(args[0]):
+        typ = args[0].type
+        return decorate(args[0])
+    else:
+        typ = args[0]
+        return decorate
 
 
 BASE_PROBER.commit()
