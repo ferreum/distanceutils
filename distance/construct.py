@@ -136,14 +136,14 @@ def construct_property(cls, name, doc=None):
                 return cls._fields_map[name]
             except KeyError:
                 pass
-            raise AssertionError from e
+            raise AttributeError from e
     def fset(self, value):
         self.data[name] = value
     def fdel(self):
         try:
             del self.data[name]
         except KeyError as e:
-            raise AssertionError from e
+            raise AttributeError from e
     return property(fget, fset, fdel, doc=doc)
 
 
