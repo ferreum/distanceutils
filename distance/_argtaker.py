@@ -36,9 +36,9 @@ class ArgTaker(object):
 
     def verify(self):
         if len(self._args) > self._maxarg + 1:
-            raise TypeError(f"too many arguments (expected {self.maxarg})")
+            raise TypeError(f"too many arguments (expected {self._maxarg})")
         if self._kwargs:
-            raise TypeError(f"invalid kwargs: {self.kwargs}")
+            raise TypeError(f"invalid kwargs: {self._kwargs}")
 
 
 # vim:set sw=4 ts=8 sts=4 et sr ft=python fdm=marker tw=0:
