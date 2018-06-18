@@ -7,7 +7,6 @@ import collections
 
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
-from .prober import ProbeError
 from .lazy import LazySequence, LazyMappedSequence
 from ._default_probers import DefaultProbers
 
