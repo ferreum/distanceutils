@@ -604,15 +604,11 @@ class BaseObject(Fragment):
         sections = list(Section(s) for s in self.default_sections)
         fragments = []
         for sec in sections:
-            try:
-                cls = self.probers.fragments.probe_section(sec)
-            except ProbeError:
-                pass # subclass has to write this section
-            else:
-                frag = cls(container=sec)
-                if cls is ObjectFragment:
-                    frag.has_children = self.has_children
-                fragments.append(frag)
+            cls = self.probers.fragments.probe_section(sec)
+            frag = cls(container=sec)
+            if cls is ObjectFragment:
+                frag.has_children = self.has_children
+            fragments.append(frag)
         self.fragments = fragments
 
     def iter_children(self, ty=None, name=None):
