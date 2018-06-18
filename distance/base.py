@@ -7,7 +7,7 @@ import collections
 
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
-from .prober import BytesProber, ProbeError
+from .prober import ProbeError
 from .lazy import LazySequence, LazyMappedSequence
 from ._default_probers import DefaultProbers
 
@@ -18,8 +18,6 @@ BASE_PROBER = DefaultProbers.get_or_create('base_objects').transaction()
 BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments').transaction()
 OBJ_PROBER = DefaultProbers.get_or_create('objects').transaction()
 FRAG_PROBER = DefaultProbers.get_or_create('fragments').transaction()
-
-EMPTY_PROBER = BytesProber()
 
 TRANSFORM_MIN_SIZE = 12
 
@@ -393,10 +391,7 @@ class ObjectFragment(Fragment):
         self.children = ()
 
     def _read(self, dbytes, *args, **kw):
-        try:
-            self._child_prober = getattr(self.probers, kw['child_prober'])
-        except AttributeError:
-            self._child_prober = EMPTY_PROBER
+        self._child_prober = getattr(self.probers, kw['child_prober'])
         Fragment._read(self, dbytes, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
