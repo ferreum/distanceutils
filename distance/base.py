@@ -271,8 +271,10 @@ class Fragment(BytesModel):
 
         """Read data of the Fragment.
 
-        `container`    - Container Section of this Fragment. If omitted, it
-                         is read from dbytes before reading the Fragment.
+        `container`    - Container Section of this Fragment. `dbytes` needs to
+                         be positioned at content_start of the section if set.
+                         If omitted, it is read from dbytes before reading the
+                         Fragment.
         `probers`      - If not None, sets the probers used by this Fragment.
         `child_prober` - Specifies the child object prober name for
                          ObjectFragment. Only accepted here to

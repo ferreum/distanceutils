@@ -210,15 +210,14 @@ class BytesModel(object):
         successful, the `sane_end_pos` attribute is set to True.
 
         Arguments:
-        `dbytes` - Anything accepted by `DstBytes.from_arg()`.
-        `container` - The already read container section. `dbytes` needs to
-                      be positioned at the start of this section's content if
-                      set. (this argument needs to be supported by the
-                      `_read()` implementation)
+        `dbytes`   - Anything accepted by `DstBytes.from_arg()`.
         `seek_end` - Whether to seek to the end of the object after
-                     reading. Mainly useful for reading `Section`, which
-                     positions it at the start of its content if False.
-                     Default: True.
+                     reading. Setting to False is useful for reading
+                     `Section`, which positions it at the start of its
+                     content. Default: True.
+
+        Additional keyword arguments are passed to the `_read()`
+        implementation.
 
         """
 
