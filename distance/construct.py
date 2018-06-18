@@ -43,7 +43,7 @@ Remainder = FocusedSeq(
     'rem',
     'pos' / Tell,
     'rem' / IfThenElse(this._parsing,
-                       Bytes(this._._.sec.content_end - this.pos),
+                       Bytes(this._params.sec.content_end - this.pos),
                        GreedyBytes),
 )
 
