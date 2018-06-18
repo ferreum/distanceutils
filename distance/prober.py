@@ -173,20 +173,19 @@ class BytesProber(object):
         else:
             sec = probe_section
         cls = self.probe_section(sec)
-        return cls, {'container': sec}
+        return cls, sec
 
     def read(self, dbytes, probe_section=None, **kw):
         dbytes = DstBytes.from_arg(dbytes)
-        cls, add_kw = self.probe(dbytes, probe_section=probe_section)
-        kw.update(add_kw)
+        cls, con = self.probe(dbytes, probe_section=probe_section)
         obj = cls(plain=True)
-        obj.read(dbytes, **kw)
+        obj.read(dbytes, container=con, **kw)
         return obj
 
     def maybe(self, dbytes, probe_section=None, **kw):
         dbytes = DstBytes.from_arg(dbytes)
         try:
-            cls, add_kw = self.probe(dbytes, probe_section=probe_section)
+            cls, con = self.probe(dbytes, probe_section=probe_section)
         except ProbeError:
             raise
         except CATCH_EXCEPTIONS as e:
@@ -194,8 +193,7 @@ class BytesProber(object):
             ins.exception = e
             ins.sane_end_pos = False
             return ins
-        kw.update(add_kw)
-        return cls.maybe(dbytes, **kw)
+        return cls.maybe(dbytes, container=con, **kw)
 
     def iter_n_maybe(self, dbytes, n, *args, **kw):
         dbytes = DstBytes.from_arg(dbytes)
