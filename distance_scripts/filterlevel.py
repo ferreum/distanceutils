@@ -6,18 +6,11 @@ import sys
 import argparse
 from contextlib import contextmanager
 
-from distance.level import Level
+from distance import DefaultProbers
 from distance.levelobjects import Group
-from distance.base import BaseObject
-from distance.bytes import Magic
+from distance.levelobjects import LevelObject
 from distance.filter import getfilter
 from distance.printing import PrintContext
-from distance.prober import BytesProber
-
-
-PROBER = BytesProber(baseclass=BaseObject)
-PROBER.add_type('Group', Group)
-PROBER.add_fragment(Level, Magic[9])
 
 
 def filterlevel_getfilter(name):
@@ -162,12 +155,20 @@ def main():
               " pass -f to force.", file=sys.stderr)
         return 1
 
-    content = PROBER.read(args.IN)
+    content = DefaultProbers.level_like.read(args.IN)
+
+    is_wrapped = False
+    if isinstance(content, LevelObject) and content.type != 'Group':
+        is_wrapped = True
+        content = Group(children=[content])
 
     p = PrintContext(flags=('groups', 'subobjects'))
 
     if not apply_filters(filters, content, p=p):
         return 1
+
+    if is_wrapped and len(content.children) == 1:
+        content = content.children[0]
 
     if args.list:
         p.print_data_of(content)

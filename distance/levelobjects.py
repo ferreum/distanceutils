@@ -564,9 +564,15 @@ for shape in OLD_SIMPLES_SHAPES:
 del shape
 
 
+# Add everything to level_like prober too.
+LEVEL_LIKE_PROBER = DefaultProbers.get_or_create('level_like').transaction()
+LEVEL_LIKE_PROBER.extend_from(PROBER)
+
 PROBER.commit()
 SUBOBJ_PROBER.commit()
+LEVEL_LIKE_PROBER.commit()
 
+DefaultProbers.level_like.baseclass = LevelObject
 DefaultProbers.level_objects.baseclass = LevelObject
 DefaultProbers.level_subobjects.baseclass = SubObject
 

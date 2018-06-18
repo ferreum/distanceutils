@@ -8,14 +8,7 @@ import re
 
 from distance import DefaultProbers
 from distance.level import Level
-from distance.bytes import Magic
 from distance.printing import PrintContext
-from distance.prober import BytesProber
-
-
-PROBER = BytesProber()
-PROBER.add_fragment(Level, Magic[9])
-PROBER.extend_from(DefaultProbers.level_objects)
 
 
 def iter_objects(source, recurse=-1):
@@ -83,7 +76,7 @@ def main():
         print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
         return 1
 
-    content = PROBER.read(args.IN)
+    content = DefaultProbers.level_like.read(args.IN)
     if isinstance(content, Level):
         object_source = content.iter_objects()
     else:

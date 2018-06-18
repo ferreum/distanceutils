@@ -3,6 +3,7 @@ import unittest
 from distance.bytes import DstBytes, Magic, Section
 from distance.prober import BytesProber
 from distance.base import BaseObject
+from distance.levelobjects import LevelObject
 from distance import DefaultProbers
 
 
@@ -92,15 +93,21 @@ class TransactionTest(unittest.TestCase):
 
 class UnknownObjectFileTest(unittest.TestCase):
 
-    def test_unknown_object(self):
-        db = DstBytes.in_memory()
+    def setUp(self):
+        self.db = db = DstBytes.in_memory()
         with db.write_section(Magic[6], '__distanceutils__test__object__'):
             pass
         db.seek(0)
 
-        obj = DefaultProbers.file.read(db)
+    def test_unknown_object(self):
+        obj = DefaultProbers.file.read(self.db)
 
         self.assertEqual(type(obj), BaseObject)
+
+    def test_unknown_level_like(self):
+        obj = DefaultProbers.level_like.read(self.db)
+
+        self.assertEqual(type(obj), LevelObject)
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ from ._default_probers import DefaultProbers
 
 
 FILE_PROBER = DefaultProbers.file.transaction()
+LEVEL_LIKE_PROBER = DefaultProbers.get_or_create('level_like').transaction()
 LEVEL_CONTENT_PROBER = DefaultProbers.get_or_create('level_content').transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
@@ -261,6 +262,7 @@ class Layer(Fragment):
 
 
 @FILE_PROBER.fragment(Magic[9])
+@LEVEL_LIKE_PROBER.fragment(Magic[9])
 class Level(Fragment):
 
     _settings = Ellipsis
@@ -340,6 +342,7 @@ class Level(Fragment):
 
 LEVEL_CONTENT_PROBER.commit()
 FRAG_PROBER.commit()
+LEVEL_LIKE_PROBER.commit()
 FILE_PROBER.commit()
 
 
