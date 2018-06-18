@@ -267,8 +267,4 @@ class Version9PrintTest(Base.PrintTest):
     files = ("v9/sector 6624", "v9/flower")
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 # vim:set sw=4 ts=8 sts=4 et:

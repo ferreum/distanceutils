@@ -73,8 +73,4 @@ class Version0Test(unittest.TestCase):
         p.print_data_of(obj)
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 # vim:set sw=4 ts=8 sts=4 et:

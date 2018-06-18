@@ -147,8 +147,4 @@ class WriteSizeTest(unittest.TestCase):
                          b'\x04\x00\x00\x00\x00\x00\x00\x00test')
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 # vim:set sw=4 ts=8 sts=4 et:

@@ -135,8 +135,4 @@ class Version4Test(unittest.TestCase):
         p.print_data_of(Replay("tests/in/replay/version_4.bytes"))
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 # vim:set sw=4 ts=8 sts=4 et:

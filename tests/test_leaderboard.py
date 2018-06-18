@@ -63,8 +63,4 @@ class Version1Test(unittest.TestCase):
         p.print_data_of(Leaderboard("tests/in/leaderboard/version_1.bytes"))
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 # vim:set sw=4 ts=8 sts=4 et:
