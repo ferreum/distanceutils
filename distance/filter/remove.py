@@ -3,15 +3,9 @@
 
 import re
 
-from distance.bytes import (
-    MAGIC_2, MAGIC_3, MAGIC_32,
-    Section,
-)
+from distance.bytes import Magic, Section
 from .base import ObjectFilter
 from distance.printing import PrintContext
-
-
-MAGICMAP = {2: MAGIC_2, 3: MAGIC_3, 32: MAGIC_32}
 
 
 FILTERS = {}
@@ -19,7 +13,7 @@ FILTERS = {}
 
 def parse_section(arg):
     parts = arg.split(",")
-    magic = MAGICMAP[int(parts[0])]
+    magic = Magic[int(parts[0])]
     return Section(magic, *(int(p, base=0) for p in parts[1:]))
 
 

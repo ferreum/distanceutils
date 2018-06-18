@@ -5,8 +5,7 @@ from operator import itemgetter, attrgetter
 import numbers
 import collections
 
-from .bytes import (BytesModel, Section, MAGIC_3, MAGIC_5, MAGIC_6,
-                    SKIP_BYTES, S_FLOAT3, S_FLOAT4)
+from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
 from .prober import BytesProber, ProbeError
 from .lazy import LazySequence, LazyMappedSequence
@@ -382,10 +381,10 @@ class ObjectFragment(Fragment):
     __slots__ = ('real_transform', 'has_children', 'children',
                  '_child_prober')
 
-    base_section = Section.base(MAGIC_3, 1)
+    base_section = Section.base(Magic[3], 1)
     section_versions = 0
 
-    default_section = Section(MAGIC_3, 1, 0)
+    default_section = Section(Magic[3], 1, 0)
 
     def _init_defaults(self):
         super()._init_defaults()
@@ -423,7 +422,7 @@ class ObjectFragment(Fragment):
         if transform or has_children:
             transform.write_to(dbytes)
         if has_children:
-            with dbytes.write_section(MAGIC_5):
+            with dbytes.write_section(Magic[5]):
                 for obj in children:
                     obj.write(dbytes)
 
@@ -483,7 +482,7 @@ def _FragmentsContainerView(frags):
 @ForwardFragmentAttrs(ObjectFragment, real_transform=Transform(), children=())
 class BaseObject(Fragment):
 
-    """Represents data within a MAGIC_6 Section."""
+    """Represents data within a Magic[6] Section."""
 
     __slots__ = ('type', '_sections', '_fragments',
                  '_fragment_types', '_fragments_by_type')
@@ -493,7 +492,7 @@ class BaseObject(Fragment):
     has_children = False
 
     default_sections = (
-        Section(MAGIC_3, 0x01, 0),
+        Section(Magic[3], 0x01, 0),
     )
     default_transform = None
 
@@ -599,7 +598,7 @@ class BaseObject(Fragment):
             cid = sec.id
         except AttributeError:
             cid = None
-        return Section(MAGIC_6, self.type, id=cid)
+        return Section(Magic[6], self.type, id=cid)
 
     def _write_section_data(self, dbytes, sec):
         for frag in self._fragments:

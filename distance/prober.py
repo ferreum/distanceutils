@@ -4,7 +4,7 @@
 import numbers
 from collections import OrderedDict
 
-from .bytes import DstBytes, BytesModel, Section, MAGIC_6, CATCH_EXCEPTIONS
+from .bytes import DstBytes, BytesModel, Section, Magic, CATCH_EXCEPTIONS
 from .lazy import LazySequence
 
 
@@ -28,7 +28,7 @@ class BytesProber(object):
         return _ProberTransaction(self)
 
     def add_type(self, type, cls):
-        self._sections[Section(MAGIC_6, type).to_key()] = cls
+        self._sections[Section(Magic[6], type).to_key()] = cls
 
     def add_func(self, func, tag):
         self._funcs_by_tag[tag] = func

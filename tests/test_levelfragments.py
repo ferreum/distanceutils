@@ -11,7 +11,7 @@ from distance.levelfragments import (
     StructNamedProperty,
     NamedPropertiesFragment,
 )
-from distance.bytes import SKIP_BYTES, DstBytes, Section, MAGIC_3, S_UINT
+from distance.bytes import SKIP_BYTES, DstBytes, Section, Magic, S_UINT
 from tests import common
 from tests.common import ExtraAssertMixin, write_read
 
@@ -56,14 +56,14 @@ class CreateTest(unittest.TestCase):
 
         clone = frag.clone()
 
-        clone.container = Section(MAGIC_3, 1, 0)
+        clone.container = Section(Magic[3], 1, 0)
 
         db = DstBytes.in_memory()
         clone.write(db)
         db.seek(0)
         res = Section(db)
 
-        self.assertEqual(Section(MAGIC_3, 1, 0).to_key(), res.to_key())
+        self.assertEqual(Section(Magic[3], 1, 0).to_key(), res.to_key())
         self.assertEqual(0, res.content_size)
 
 

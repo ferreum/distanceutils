@@ -4,7 +4,7 @@
 from collections import OrderedDict
 from itertools import islice
 
-from .bytes import BytesModel, S_DOUBLE, MAGIC_1, MAGIC_2
+from .bytes import BytesModel, S_DOUBLE, Magic
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -50,13 +50,13 @@ class LevelProgress(BytesModel):
         dbytes.read_str() # unknown
         dbytes.read_bytes(1) # unknown
 
-        dbytes.require_equal_uint4(MAGIC_1)
+        dbytes.require_equal_uint4(Magic[1])
         num_levels = dbytes.read_uint4()
         self.completion = completion = []
         for i in range(num_levels):
             completion.append(dbytes.read_uint4())
 
-        dbytes.require_equal_uint4(MAGIC_1)
+        dbytes.require_equal_uint4(Magic[1])
         num_levels = dbytes.read_uint4()
         self.scores = scores = []
         for i in range(num_levels):
@@ -169,7 +169,7 @@ STATS = AttrOrderedDict((s.ident, s) for s in (
 ))
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x8e, any_version=True)
+@FRAG_PROBER.fragment(Magic[2], 0x8e, any_version=True)
 class ProfileStatsFragment(Fragment):
 
     version = None
@@ -189,19 +189,19 @@ class ProfileStatsFragment(Fragment):
         for k, stat in STATS.items():
             stats[k] = stat.read_value(dbytes)
 
-        dbytes.require_equal_uint4(MAGIC_1)
+        dbytes.require_equal_uint4(Magic[1])
         num = dbytes.read_uint4()
         self.modes_offline = offline_times = []
         for i in range(num):
             offline_times.append(read_double())
 
-        dbytes.require_equal_uint4(MAGIC_1)
+        dbytes.require_equal_uint4(Magic[1])
         num = dbytes.read_uint4()
         self.modes_unknown = modes_unknown = []
         for i in range(num):
             modes_unknown.append(dbytes.read_uint8())
 
-        dbytes.require_equal_uint4(MAGIC_1)
+        dbytes.require_equal_uint4(Magic[1])
         num = dbytes.read_uint4()
         self.modes_online = online_times = []
         for i in range(num):
@@ -209,7 +209,7 @@ class ProfileStatsFragment(Fragment):
 
         if version >= 6:
             dbytes.add_read_bytes(8)
-            dbytes.require_equal_uint4(MAGIC_1)
+            dbytes.require_equal_uint4(Magic[1])
             num = dbytes.read_uint4()
             self.trackmogrify_mods = mods = []
             for i in range(num):
@@ -300,7 +300,7 @@ class ProfileStatsFragment(Fragment):
                     p(f"Found: {mods_str}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x6a, any_version=True)
+@FRAG_PROBER.fragment(Magic[2], 0x6a, any_version=True)
 class ProfileProgressFragment(Fragment):
 
     value_attrs = dict(
@@ -344,7 +344,7 @@ class ProfileProgressFragment(Fragment):
         if lazy is None:
             dbytes = self.dbytes
             dbytes.seek(self._officials_start_pos())
-            dbytes.require_equal_uint4(MAGIC_1)
+            dbytes.require_equal_uint4(Magic[1])
             num = dbytes.read_uint4()
             lazy = StringEntry.lazy_n_maybe(dbytes, num)
             self.lazy = lazy
@@ -371,7 +371,7 @@ class ProfileProgressFragment(Fragment):
             else:
                 dbytes = self.dbytes
                 dbytes.seek(self._tricks_start_pos())
-                dbytes.require_equal_uint4(MAGIC_1)
+                dbytes.require_equal_uint4(Magic[1])
                 num = dbytes.read_uint4()
                 tricks = StringEntry.lazy_n_maybe(dbytes, num)
             self._tricks = tricks
@@ -397,7 +397,7 @@ class ProfileProgressFragment(Fragment):
             else:
                 dbytes = self.dbytes
                 dbytes.seek(self._adventures_start_pos())
-                dbytes.require_equal_uint4(MAGIC_1)
+                dbytes.require_equal_uint4(Magic[1])
                 num = dbytes.read_uint4()
                 adventures = StringEntry.lazy_n_maybe(dbytes, num)
             self._unlocked_adventures = adventures
@@ -424,7 +424,7 @@ class ProfileProgressFragment(Fragment):
             else:
                 dbytes = self.dbytes
                 dbytes.seek(self._somelevels_start_pos())
-                dbytes.require_equal_uint4(MAGIC_1)
+                dbytes.require_equal_uint4(Magic[1])
                 num = dbytes.read_uint4()
                 levels = StringEntry.lazy_n_maybe(dbytes, num)
             self._somelevels = levels

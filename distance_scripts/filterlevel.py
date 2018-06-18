@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from distance.level import Level
 from distance.levelobjects import Group
 from distance.base import BaseObject
-from distance.bytes import MAGIC_9
+from distance.bytes import Magic
 from distance.filter import getfilter
 from distance.printing import PrintContext
 from distance.prober import BytesProber
@@ -17,7 +17,7 @@ from distance.prober import BytesProber
 
 PROBER = BytesProber(baseclass=BaseObject)
 PROBER.add_type('Group', Group)
-PROBER.add_fragment(Level, MAGIC_9)
+PROBER.add_fragment(Level, Magic[9])
 
 
 def filterlevel_getfilter(name):

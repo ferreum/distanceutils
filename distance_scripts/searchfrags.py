@@ -7,10 +7,7 @@ from io import BytesIO
 
 from distance import DefaultProbers
 from distance.level import Level
-from distance.bytes import (
-    DstBytes, Section,
-    MAGIC_2, MAGIC_3, MAGIC_9
-)
+from distance.bytes import DstBytes, Section, Magic
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
 from distance.base import Fragment, ObjectFragment
@@ -42,7 +39,7 @@ KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 
 def setup_prober(args):
     prober = BytesProber()
-    prober.add_fragment(Level, MAGIC_9)
+    prober.add_fragment(Level, Magic[9])
     prober.extend_from(DefaultProbers.level_objects)
 
     return prober
@@ -69,7 +66,7 @@ class FragmentMatcher(object):
         data = frag.raw_data
         matches = []
 
-        if self.closeversions and type(frag) is Fragment and sec.magic in (MAGIC_2, MAGIC_3):
+        if self.closeversions and type(frag) is Fragment and sec.magic in (Magic[2], Magic[3]):
             ver = sec.version
             versions = []
             versions.extend(range(ver))

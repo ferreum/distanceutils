@@ -3,7 +3,7 @@
 
 from operator import attrgetter
 
-from .bytes import BytesModel, MAGIC_2
+from .bytes import BytesModel, Magic
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -40,7 +40,7 @@ class Entry(BytesModel):
             raise ValueError(f"unknown version: {version}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x37, any_version=True)
+@FRAG_PROBER.fragment(Magic[2], 0x37, any_version=True)
 class LeaderboardFragment(Fragment):
 
     version = None

@@ -6,7 +6,7 @@ import math
 
 from distance.levelobjects import GoldenSimple, Group
 from distance import levelfragments as levelfrags
-from distance.bytes import Section, MAGIC_2
+from distance.bytes import Section, Magic
 from distance.base import Transform, NoDefaultTransformError
 from .base import ObjectFilter, DoNotApply, create_replacement_group
 
@@ -211,7 +211,7 @@ class VisualizeMapper(object):
 class GravityTriggerMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x45),
+        Section.base(Magic[2], 0x45),
     )
 
     vis = SphereVisualizer(
@@ -228,9 +228,9 @@ class TeleporterMapper(VisualizeMapper):
 
     match_sections = (
         # tele entrance
-        Section.base(MAGIC_2, 0x3e),
+        Section.base(Magic[2], 0x3e),
         # tele exit
-        Section.base(MAGIC_2, 0x3f),
+        Section.base(Magic[2], 0x3f),
     )
 
     vis = SphereVisualizer(
@@ -329,7 +329,7 @@ class TeleporterMapper(VisualizeMapper):
 class VirusSpiritSpawnerMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x3a),
+        Section.base(Magic[2], 0x3a),
     )
 
     vis = SphereVisualizer(
@@ -345,7 +345,7 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
 class EventTriggerMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x89),
+        Section.base(Magic[2], 0x89),
     )
 
     color = (0, .4, 0)
@@ -365,7 +365,7 @@ class EventTriggerMapper(VisualizeMapper):
 class EnableAbilitiesTriggerMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x5e),
+        Section.base(Magic[2], 0x5e),
     )
 
     vis = BoxVisualizer(
@@ -380,7 +380,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
 class ForceZoneMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0xa0),
+        Section.base(Magic[2], 0xa0),
     )
 
     vis = BoxVisualizer(
@@ -395,7 +395,7 @@ class ForceZoneMapper(VisualizeMapper):
 class WingCorruptionZoneMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x53),
+        Section.base(Magic[2], 0x53),
     )
 
     vis_box = BoxVisualizer(
@@ -421,7 +421,7 @@ class WingCorruptionZoneMapper(VisualizeMapper):
 class VirusMazeMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x43),
+        Section.base(Magic[2], 0x43),
     )
 
     _opts = dict(
@@ -464,7 +464,7 @@ class VirusMazeMapper(VisualizeMapper):
 class CheckpointMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x19),
+        Section.base(Magic[2], 0x19),
     )
 
     _opts = dict(
@@ -582,7 +582,7 @@ class CooldownTriggerMapper(VisualizeMapper):
 class PlanetWithSphericalGravityMapper(VisualizeMapper):
 
     match_sections = (
-        Section.base(MAGIC_2, 0x5f),
+        Section.base(Magic[2], 0x5f),
     )
 
     vis = SphereVisualizer(
@@ -598,7 +598,7 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
 class GoldenSimplesMapper(VisualizeMapper):
 
     match_sections = (
-        Section(MAGIC_2, 0x83, 3),
+        Section(Magic[2], 0x83, 3),
     )
 
     _dark_textures = {0, 1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16, 17,

@@ -1,10 +1,7 @@
 """Level objects."""
 
 
-from .bytes import (
-    Section,
-    MAGIC_2, MAGIC_3, MAGIC_6
-)
+from .bytes import Section, Magic
 from .base import Transform, BaseObject, Fragment, ForwardFragmentAttrs
 from .levelfragments import (
     ForwardMaterialColors,
@@ -56,7 +53,7 @@ class SubObject(LevelObject):
 
     def _print_type(self, p):
         container = self.container
-        if container and container.magic == MAGIC_6:
+        if container and container.magic == Magic[6]:
             type_str = container.type
             p(f"Subobject type: {type_str!r}")
 
@@ -82,8 +79,8 @@ class Group(LevelObject):
 
     default_sections = (
         *LevelObject.default_sections,
-        Section(MAGIC_2, 0x1d, version=1),
-        Section(MAGIC_2, 0x63, version=0),
+        Section(Magic[2], 0x1d, version=1),
+        Section(Magic[2], 0x63, version=0),
     )
     default_transform = Transform.fill()
 
@@ -407,8 +404,8 @@ class GoldenSimple(LevelObject):
 
     default_sections = (
         *LevelObject.default_sections,
-        Section(MAGIC_3, 3, 2),
-        Section(MAGIC_2, 0x83, 3),
+        Section(Magic[3], 3, 2),
+        Section(Magic[2], 0x83, 3),
     )
     default_transform = Transform.fill()
 
@@ -435,7 +432,7 @@ class OldSimple(LevelObject):
 
     default_sections = (
         *LevelObject.default_sections,
-        Section(MAGIC_3, 3, 2), # material
+        Section(Magic[3], 3, 2), # material
     )
     default_cone_transform = Transform.fill(rot=(2**.5/2, 0, 0, 2**.5/-2),
                                             scale=(.5, .5, .5))
@@ -457,7 +454,7 @@ class OldSimple(LevelObject):
             if self.shape != 'Cone':
                 del self.color_cone
         if self.with_collision:
-            sec = Section(MAGIC_3, 0x0f, 2)
+            sec = Section(Magic[3], 0x0f, 2)
             frag = Fragment(container=sec)
             # box collider fragment seems to be empty for simples
             frag.raw_data = b''

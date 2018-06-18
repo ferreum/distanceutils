@@ -3,7 +3,7 @@
 
 from collections import OrderedDict
 
-from .bytes import MAGIC_1, S_FLOAT4
+from .bytes import Magic, S_FLOAT4
 from .printing import format_bytes
 
 
@@ -78,8 +78,8 @@ class NamedPropertyList(OrderedDict):
 class ColorSet(OrderedDict):
 
     def read(self, dbytes):
-        if dbytes.read_uint4() != MAGIC_1:
-            raise ValueError(f"expected {MAGIC_1}")
+        if dbytes.read_uint4() != Magic[1]:
+            raise ValueError(f"expected {Magic[1]}")
         num_colors = dbytes.read_uint4()
         for _ in range(num_colors):
             colname, colors = self.read_color(dbytes)
@@ -91,7 +91,7 @@ class ColorSet(OrderedDict):
         return colname, colors
 
     def write(self, dbytes):
-        dbytes.write_int(4, MAGIC_1)
+        dbytes.write_int(4, Magic[1])
         dbytes.write_int(4, len(self))
         for colname, color in self.items():
             self.write_color(dbytes, colname, color)
@@ -120,8 +120,8 @@ class MaterialSet(OrderedDict):
             return colors
 
     def read(self, dbytes):
-        if dbytes.read_uint4() != MAGIC_1:
-            raise ValueError(f"expected {MAGIC_1}")
+        if dbytes.read_uint4() != Magic[1]:
+            raise ValueError(f"expected {Magic[1]}")
         num_mats = dbytes.read_uint4()
         for _ in range(num_mats):
             matname, colors = self.read_material(dbytes)
@@ -134,7 +134,7 @@ class MaterialSet(OrderedDict):
         return matname, colors
 
     def write(self, dbytes):
-        dbytes.write_int(4, MAGIC_1)
+        dbytes.write_int(4, Magic[1])
         dbytes.write_int(4, len(self))
         for matname, colors in self.items():
             self.write_material(dbytes, matname, colors)

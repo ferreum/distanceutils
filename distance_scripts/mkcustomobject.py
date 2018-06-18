@@ -8,13 +8,13 @@ import re
 
 from distance import DefaultProbers
 from distance.level import Level
-from distance.bytes import MAGIC_9
+from distance.bytes import Magic
 from distance.printing import PrintContext
 from distance.prober import BytesProber
 
 
 PROBER = BytesProber()
-PROBER.add_fragment(Level, MAGIC_9)
+PROBER.add_fragment(Level, Magic[9])
 PROBER.extend_from(DefaultProbers.level_objects)
 
 

@@ -1,7 +1,7 @@
 """LevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, MAGIC_2, MAGIC_12, S_FLOAT
+from .bytes import BytesModel, Magic, S_FLOAT
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -35,7 +35,7 @@ class Entry(BytesModel):
         self.level_path = dbytes.read_str()
         self.level_basename = dbytes.read_str()
         dbytes.read_bytes(16)
-        dbytes.require_equal_uint4(MAGIC_12)
+        dbytes.require_equal_uint4(Magic[12])
         num_modes = dbytes.read_uint4()
         self.modes = modes = {}
         for _ in range(num_modes):
@@ -70,7 +70,7 @@ class Entry(BytesModel):
             p(f"Description: {self.description}")
 
 
-@FRAG_PROBER.fragment(MAGIC_2, 0x97, 0)
+@FRAG_PROBER.fragment(Magic[2], 0x97, 0)
 class LevelInfosFragment(Fragment):
 
     version = None
