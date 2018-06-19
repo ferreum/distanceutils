@@ -4,6 +4,7 @@
 import sys
 from struct import Struct
 from contextlib import contextmanager
+from collections import namedtuple
 
 from .printing import PrintContext
 from ._argtaker import ArgTaker
@@ -78,6 +79,12 @@ Magic = {
 
 
 CATCH_EXCEPTIONS = (ValueError, EOFError)
+
+
+class ErrorPosition(namedtuple('_ErrorPosition', ['start', 'error'])):
+
+    def __repr__(self):
+        return f"{type(self).__name__}(start=0x{self.start:x}, error=0x{self.error:x})"
 
 
 class BytesModel(object):
@@ -242,7 +249,7 @@ class BytesModel(object):
             # Catching BaseEsception, because we re-raise everything.
         except BaseException as e:
             exc_pos = dbytes.tell()
-            e.args += (('start_pos', start_pos), ('exc_pos', exc_pos))
+            e.args += (ErrorPosition(start_pos, exc_pos),)
             e.start_pos = start_pos
             e.exc_pos = exc_pos
             end = self.end_pos

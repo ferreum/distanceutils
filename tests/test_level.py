@@ -3,6 +3,7 @@ import unittest
 from distance.level import Level
 from distance.printing import PrintContext
 from distance import DefaultProbers
+from distance.bytes import ErrorPosition
 from .common import check_exceptions
 
 
@@ -57,7 +58,14 @@ class LevelTest(unittest.TestCase):
             self.assertIsNotNone(obj, f"i == {i}")
             self.assertTrue(obj.sane_end_pos, f"i == {i}")
             if i == 2:
-                self.assertRaises(UnicodeError, check_exceptions, obj)
+                try:
+                    check_exceptions(obj)
+                except UnicodeError as e:
+                    pos = next(a for a in e.args if isinstance(a, ErrorPosition))
+                    self.assertEqual(pos.start, 0x12f7)
+                    self.assertEqual(pos.error, 0x1321)
+                else:
+                    raise AssertionError("UnicodeError not thrown")
             else:
                 check_exceptions(obj)
 
