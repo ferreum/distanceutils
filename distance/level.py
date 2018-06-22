@@ -24,7 +24,6 @@ from .lazy import LazySequence
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import print_objects
-from ._common import set_default_attrs
 from ._default_probers import DefaultProbers
 
 
@@ -187,15 +186,17 @@ class NewLevelSettings(LevelSettings, BaseObject):
 
 
 @LEVEL_CONTENT_PROBER.fragment(Magic[8])
-@set_default_attrs(LevelSettings.value_attrs)
-class OldLevelSettings(LevelSettings, Fragment):
+class OldLevelSettings(LevelSettings, BaseConstructFragment):
 
-    def _read_section_data(self, dbytes, sec):
-        # Levelinfo section only found in old (v1) maps
-        dbytes.read_bytes(4)
-        self.skybox_name = dbytes.read_str()
-        dbytes.read_bytes(143)
-        self.name = dbytes.read_str()
+    # Special settings section only found in very old maps.
+
+    _construct = Struct(
+        unk_0 = Bytes(4),
+        skybox_name = DstString,
+        unk_1 = Bytes(143),
+        name = DstString,
+        unk_2 = Remainder,
+    )
 
     def _print_type(self, p):
         p(f"Type: LevelSettings (old)")
