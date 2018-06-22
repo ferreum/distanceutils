@@ -3,10 +3,22 @@
 
 from collections import OrderedDict
 
-from .bytes import S_FLOAT, Magic
+from construct import (
+    Struct, Sequence,
+    Rebuild, If, Computed,
+    Container, ListContainer,
+    this, len_,
+)
+
+from .bytes import Magic
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs
+)
+from .construct import (
+    BaseConstructFragment,
+    Int, UInt, Bytes, Byte, Float,
+    DstString, Remainder,
 )
 from .lazy import LazySequence
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
@@ -80,81 +92,89 @@ class LevelSettings(object):
 
 
 @FRAG_PROBER.fragment(Magic[2], 0x52, any_version=True)
-@set_default_attrs(LevelSettings.value_attrs)
-class LevelSettingsFragment(Fragment):
+class LevelSettingsFragment(BaseConstructFragment):
 
-    _unk_0 = b''
-    _unk_1 = b''
-    _unk_2 = b''
-    _unk_3 = b''
-    _unk_4 = b''
-
-    def _read_section_data(self, dbytes, sec):
-        self.version = version = sec.version
-
-        self._unk_0 = dbytes.read_bytes(8)
-        self.name = dbytes.read_str()
-        if version >= 25:
-            self.description = dbytes.read_str()
-            self.author_name = dbytes.read_str()
-        self._unk_1 = dbytes.read_bytes(4)
-        self.modes = modes = OrderedDict()
-        num_modes = dbytes.read_uint4()
-        for i in range(num_modes):
-            mode = dbytes.read_uint4()
-            modes[mode] = dbytes.read_byte()
-        self.music_id = dbytes.read_uint4()
+    def get_unk_2_size(this):
+        version = this.version
         if version <= 3:
-            self.skybox_name = dbytes.read_str()
-            self._unk_2 = dbytes.read_bytes(57)
+            return 57
         elif version == 4:
-            self._unk_2 = dbytes.read_bytes(141)
+            return 141
         elif version == 5:
-            self._unk_2 = dbytes.read_bytes(172)
+            return 172
         elif 6 <= version < 25:
             # confirmed only for v6..v9
-            self._unk_2 = dbytes.read_bytes(176)
+            return 176
         else:
-            self._unk_2 = dbytes.read_bytes(231)
-            self.background_layer = dbytes.read_str()
-            self._unk_3 = dbytes.read_bytes(61)
-        self.medal_times = times = []
-        self.medal_scores = scores = []
-        for i in range(4):
-            times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_int4())
-        if version >= 1:
-            self.abilities = tuple(dbytes.read_bytes(5))
-        if version >= 2:
-            self.difficulty = dbytes.read_uint4()
-        self._unk_4 = dbytes.read_bytes(sec.end_pos - dbytes.tell())
+            # confirmed for v25..v26
+            return 231
 
-    def _write_section_data(self, dbytes, sec):
-        dbytes.write_bytes(self._unk_0)
-        dbytes.write_str(self.name)
-        if sec.version >= 25:
-            dbytes.write_str(self.description)
-            dbytes.write_str(self.author_name)
-        dbytes.write_bytes(self._unk_1)
-        dbytes.write_int(4, len(self.modes))
-        for mode, enabled in self.modes.items():
-            dbytes.write_int(4, mode)
-            dbytes.write_bytes(bytes([enabled]))
-        dbytes.write_int(4, self.music_id)
-        if sec.version <= 3:
-            dbytes.write_str(self.skybox_name)
-        dbytes.write_bytes(self._unk_2)
-        if self.version >= 25:
-            dbytes.write_str(self.background_layer)
-        dbytes.write_bytes(self._unk_3)
-        for time, score in zip(self.medal_times, self.medal_scores):
-            dbytes.write_bytes(S_FLOAT.pack(time))
-            dbytes.write_int(4, score, signed=True)
-        if sec.version >= 1:
-            dbytes.write_bytes(bytes(self.abilities))
-        if sec.version >= 2:
-            dbytes.write_int(4, self.difficulty)
-        dbytes.write_bytes(self._unk_4)
+    _construct = Struct(
+        version = Computed(this._params.sec.version),
+        unk_0 = Bytes(8),
+        name = DstString,
+        description = If(this.version >= 25, DstString),
+        author_name = If(this.version >= 25, DstString),
+        unk_1 = Bytes(4),
+        num_modes = Rebuild(UInt, len_(this.modes_list)),
+        modes_list = Struct(
+            mode = UInt,
+            enabled = Byte,
+        )[this.num_modes],
+        music_id = UInt,
+        skybox_name = If(this.version <= 3,
+                         DstString),
+        unk_2 = Bytes(get_unk_2_size),
+        # confirmed for v25..26
+        background_layer = If(this.version >= 25, DstString),
+        # confirmed for v25..26
+        unk_3 = If(this.version >= 25, Bytes(61)),
+        medals_list = Struct(
+            time = Float,
+            score = Int,
+        )[4],
+        abilities = If(this.version >= 1, Sequence(Byte, Byte, Byte, Byte, Byte)),
+        difficulty = If(this.version >= 2, UInt),
+        unk_4 = Remainder,
+    )
+
+    del get_unk_2_size
+
+    @property
+    def modes(self):
+        d = OrderedDict()
+        for elem in self.modes_list:
+            d[elem.mode] = elem.enabled
+        return d
+
+    @modes.setter
+    def modes(self, value):
+        l = [Container(mode=k, enabled=v) for k, v in value.items()]
+        self.modes_list = ListContainer(l)
+
+    @property
+    def medal_times(self):
+        return [m.time for m in self.medals_list]
+
+    @medal_times.setter
+    def medal_times(self, value):
+        if len(value) != 4:
+            raise ValueError("Need four medal times")
+        l = [Container(time = t, score = m.score)
+             for t, m in zip(value, self.medal_list)]
+        self.medals_list = ListContainer(l)
+
+    @property
+    def medal_scores(self):
+        return [m.score for m in self.medals_list]
+
+    @medal_scores.setter
+    def medal_scores(self, value):
+        if len(value) != 4:
+            raise ValueError("Need four medal scores")
+        l = [Container(time = m.time, score = s)
+             for m, s in zip(self.medal_list, value)]
+        self.medals_list = ListContainer(l)
 
 
 @LEVEL_CONTENT_PROBER.for_type('LevelSettings')

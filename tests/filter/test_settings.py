@@ -65,7 +65,7 @@ class SettingsTest(unittest.TestCase):
 
         self.assertEqual("Test-straightroad", l.name)
         self.assertEqual("Test-straightroad", l.settings.name)
-        self.assertEqual((1, 0, 0, 0, 0), l.settings.abilities)
+        self.assertEqual([1, 0, 0, 0, 0], list(l.settings.abilities))
         self.assertEqual(3, l.settings.version)
         self.assertEqual(orig_modes, dict(l.settings.modes))
 
