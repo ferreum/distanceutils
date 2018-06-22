@@ -122,8 +122,7 @@ class LevelSettingsFragment(BaseConstructFragment):
             enabled = Byte,
         )[this.num_modes],
         music_id = UInt,
-        skybox_name = If(this.version <= 3,
-                         DstString),
+        skybox_name = If(this.version <= 3, DstString),
         unk_2 = Bytes(get_unk_2_size),
         # confirmed for v25..26
         background_layer = If(this.version >= 25, DstString),
