@@ -6,7 +6,7 @@ from construct import (
     ConstructError,
     Const, Select, FocusedSeq, Tell,
     Mapping, IfThenElse,
-    Compiled,
+    Compiled, Construct,
     Container,
     this,
 
@@ -73,7 +73,14 @@ class ConstructMeta(type):
             attrs = {}
             for con in _get_subcons(cls._construct):
                 if con.name:
-                    attrs[con.name] = getattr(con, 'value', None)
+                    default = getattr(con, 'value', None)
+                    # The Default construct provides the default value via its
+                    # 'value' attribute. For nested structs, if there is a
+                    # 'value' subcon, we instead get that subcon via the attr.
+                    # Exclude Construct instances to work around this.
+                    if isinstance(default, Construct):
+                        default = None
+                    attrs[con.name] = default
             cls._fields_map = attrs
 
             ExposeConstructFields(cls, getattr(cls, '_exposed_fields', None))

@@ -272,6 +272,22 @@ class TestFragment2Test(unittest.TestCase):
 
         self.assertEqual(frag.uint, 135)
 
+    def test_subcon_called_value(self):
+        class TestFragment(BaseConstructFragment):
+            _construct = Struct(
+                nest = Struct(
+                    value = UInt,
+                ),
+            )
+        db = DstBytes.in_memory()
+        with db.write_section(test_section):
+            pass
+        db.seek(0)
+
+        frag = TestFragment(db)
+
+        self.assertEqual(frag.nest, None)
+
 
 class OptionalTest(unittest.TestCase):
 
