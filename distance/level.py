@@ -90,8 +90,10 @@ class LevelSettings(object):
             p(f"Description: {self.description}")
 
 
-@FRAG_PROBER.fragment(Magic[2], 0x52, any_version=True)
+@FRAG_PROBER.fragment(any_version=True)
 class LevelSettingsFragment(BaseConstructFragment):
+
+    base_container = Section.base(Magic[2], 0x52)
 
     def get_unk_2_size(this):
         version = this.version
@@ -175,9 +177,11 @@ class LevelSettingsFragment(BaseConstructFragment):
         self.medals_list = ListContainer(l)
 
 
-@LEVEL_CONTENT_PROBER.for_type('LevelSettings')
+@LEVEL_CONTENT_PROBER.for_type
 @ForwardFragmentAttrs(LevelSettingsFragment, **LevelSettings.value_attrs)
 class NewLevelSettings(LevelSettings, BaseObject):
+
+    type = 'LevelSettings'
 
     def _print_type(self, p):
         BaseObject._print_type(self, p)
@@ -215,8 +219,10 @@ class OldLevelSettings(LevelSettings, BaseConstructFragment):
         p(f"Type: LevelSettings (old)")
 
 
-@LEVEL_CONTENT_PROBER.fragment(Magic[7])
+@LEVEL_CONTENT_PROBER.fragment
 class Layer(Fragment):
+
+    default_container = Section(Magic[7])
 
     layer_name = None
     layer_flags = (0, 0, 0)
@@ -294,9 +300,11 @@ class Layer(Fragment):
                 counters.print_data(p)
 
 
-@FILE_PROBER.fragment(Magic[9])
-@LEVEL_LIKE_PROBER.fragment(Magic[9])
+@FILE_PROBER.fragment
+@LEVEL_LIKE_PROBER.fragment
 class Level(Fragment):
+
+    default_container = Section(Magic[9])
 
     _settings = Ellipsis
     layers = ()
