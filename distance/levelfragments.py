@@ -350,8 +350,8 @@ class SphereColliderFragment(BaseConstructFragment):
     section_versions = 1
 
     _construct = Struct(
-        trigger_center = DstOptional(Float[3]),
-        trigger_radius = DstOptional(Float),
+        trigger_center = Default(DstOptional(Float[3]), None),
+        trigger_radius = Default(DstOptional(Float), None),
     )
 
 
@@ -362,8 +362,8 @@ class BoxColliderFragment(BaseConstructFragment):
     section_versions = 2
 
     _construct = Struct(
-        trigger_center = DstOptional(Float[3]),
-        trigger_size = DstOptional(Float[3]),
+        trigger_center = Default(DstOptional(Float[3]), None),
+        trigger_size = Default(DstOptional(Float[3]), None),
     )
 
 
@@ -477,9 +477,9 @@ class TextMeshFragment(BaseConstructFragment):
     _unknown = b''
 
     _construct = Struct(
-        text = DstOptional(DstString),
-        font_style = DstOptional(UInt),
-        font = If(this._params.sec.version >= 2, DstOptional(UInt)),
+        text = Default(DstOptional(DstString), None),
+        font_style = Default(DstOptional(UInt), None),
+        font = If(this._params.sec.version >= 2, Default(DstOptional(UInt), None)),
         rem = Default(Remainder, b''),
     )
 
@@ -891,7 +891,7 @@ class InterpolateToPositionOnTriggerFragment(
     _construct = Struct(
         actually_interpolate = Default(Byte, 0),
         relative = Default(Byte, 1),
-        interp_end_pos = DstOptional(Float[3]),
+        interp_end_pos = Default(DstOptional(Float[3]), None),
         interp_time = Default(Float, None),
         local_movement = Default(If(this._.sec.version >= 2, Byte), 0),
     )
