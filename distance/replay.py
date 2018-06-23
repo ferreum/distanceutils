@@ -1,7 +1,7 @@
 """Read replay metadata."""
 
 
-from .bytes import S_COLOR_RGBA, Magic
+from .bytes import Magic, Section, S_COLOR_RGBA
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -32,9 +32,11 @@ _value_attrs = dict(
 )
 
 
-@FRAG_PROBER.fragment(Magic[2], 0x7f, any_version=True)
+@FRAG_PROBER.fragment(any_version=True)
 @set_default_attrs(_value_attrs)
 class ReplayFragment(Fragment):
+
+    base_container = Section.base(Magic[2], 0x7f)
 
     is_interesting = True
 

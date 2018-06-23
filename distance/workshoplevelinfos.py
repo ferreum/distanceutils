@@ -1,7 +1,7 @@
 """WorkshopLevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, Magic
+from .bytes import BytesModel, Magic, Section
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -58,8 +58,10 @@ class Level(BytesModel):
         self.rating = dbytes.read_uint4()
 
 
-@FRAG_PROBER.fragment(Magic[2], 0x6d, 0)
+@FRAG_PROBER.fragment
 class WorkshopLevelInfosFragment(Fragment):
+
+    default_container = Section(Magic[2], 0x6d, 0)
 
     levels = ()
 

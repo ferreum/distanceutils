@@ -4,7 +4,7 @@
 from collections import OrderedDict
 from itertools import islice
 
-from .bytes import BytesModel, S_DOUBLE, Magic
+from .bytes import BytesModel, Magic, Section, S_DOUBLE
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -169,8 +169,10 @@ STATS = AttrOrderedDict((s.ident, s) for s in (
 ))
 
 
-@FRAG_PROBER.fragment(Magic[2], 0x8e, any_version=True)
+@FRAG_PROBER.fragment(any_version=True)
 class ProfileStatsFragment(Fragment):
+
+    base_container = Section.base(Magic[2], 0x8e)
 
     version = None
     stats = {}
@@ -300,8 +302,10 @@ class ProfileStatsFragment(Fragment):
                     p(f"Found: {mods_str}")
 
 
-@FRAG_PROBER.fragment(Magic[2], 0x6a, any_version=True)
+@FRAG_PROBER.fragment(any_version=True)
 class ProfileProgressFragment(Fragment):
+
+    base_container = Section.base(Magic[2], 0x6a)
 
     value_attrs = dict(
         levels = (),

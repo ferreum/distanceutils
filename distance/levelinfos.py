@@ -1,7 +1,7 @@
 """LevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, Magic, S_FLOAT
+from .bytes import BytesModel, Magic, Section, S_FLOAT
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
@@ -70,8 +70,10 @@ class Entry(BytesModel):
             p(f"Description: {self.description}")
 
 
-@FRAG_PROBER.fragment(Magic[2], 0x97, 0)
+@FRAG_PROBER.fragment
 class LevelInfosFragment(Fragment):
+
+    default_container = Section(Magic[2], 0x97, 0)
 
     version = None
     levels = ()
