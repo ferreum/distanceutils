@@ -13,7 +13,7 @@ ANIM_FRAG_TYPES = (
     levelfrags.TrackAttachmentFragment,
 )
 
-ANIM_FRAG_SECTIONS = {cls.base_section.to_key(any_version=True)
+ANIM_FRAG_SECTIONS = {cls.base_container.to_key(any_version=True)
                       for cls in ANIM_FRAG_TYPES}
 
 def create_replacement_group(orig, objs, animated_only=False):

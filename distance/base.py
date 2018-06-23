@@ -241,14 +241,14 @@ def filter_interesting(sec, prober):
 
 
 def get_default_container(frag):
-    if frag.default_section is not None:
-        return frag.default_section
-    if (frag.base_section is not None
-            and frag.section_versions is not None):
-        versions = frag.section_versions
+    if frag.default_container is not None:
+        return frag.default_container
+    if (frag.base_container is not None
+            and frag.container_versions is not None):
+        versions = frag.container_versions
         if isinstance(versions, numbers.Integral):
             versions = [versions]
-        return Section(frag.base_section, version=max(versions))
+        return Section(frag.base_container, version=max(versions))
     return None
 
 
@@ -258,9 +258,9 @@ class Fragment(BytesModel):
 
     __slots__ = ('_raw_data', 'container', 'dbytes', 'probers')
 
-    default_section = None
-    base_section = None
-    section_versions = None
+    default_container = None
+    base_container = None
+    container_versions = None
 
     is_interesting = False
 
@@ -308,7 +308,7 @@ class Fragment(BytesModel):
             self._write_section_data(dbytes, sec)
 
     def _get_write_section(self, sec):
-        return sec or self.default_section
+        return sec or self.default_container
 
     @property
     def raw_data(self):
@@ -392,8 +392,8 @@ class ObjectFragment(Fragment):
     __slots__ = ('real_transform', 'has_children', 'children',
                  '_child_prober')
 
-    base_section = Section.base(Magic[3], 1)
-    section_versions = 0
+    base_container = Section.base(Magic[3], 1)
+    container_versions = 0
 
     def _init_defaults(self):
         super()._init_defaults()

@@ -17,7 +17,7 @@ test_section = Section(Magic[2], 0x1337, 42)
 
 class TestFragment(BaseConstructFragment):
 
-    default_section = test_section
+    default_container = test_section
 
     _construct = Struct(
         first_string = Default(DstString, "default_str"),
@@ -27,7 +27,7 @@ class TestFragment(BaseConstructFragment):
 
 class NondefaultFragment(BaseConstructFragment):
 
-    default_section = test_section
+    default_container = test_section
 
     _construct = Struct(
         first_string = DstString,
@@ -37,7 +37,7 @@ class NondefaultFragment(BaseConstructFragment):
 
 class ComplexFragment(BaseConstructFragment):
 
-    default_section = test_section
+    default_container = test_section
 
     _construct = Struct(
         type = Byte,
@@ -47,7 +47,7 @@ class ComplexFragment(BaseConstructFragment):
 
 class OptionalFragment(BaseConstructFragment):
 
-    default_section = test_section
+    default_container = test_section
 
     _construct = Struct(
         value = DstOptional(DstString)
@@ -56,7 +56,7 @@ class OptionalFragment(BaseConstructFragment):
 
 class RemainderFragment(BaseConstructFragment):
 
-    default_section = test_section
+    default_container = test_section
 
     _construct = Struct(
         value = DstString,
