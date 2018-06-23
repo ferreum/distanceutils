@@ -395,8 +395,6 @@ class ObjectFragment(Fragment):
     base_section = Section.base(Magic[3], 1)
     section_versions = 0
 
-    default_section = Section(Magic[3], 1, 0)
-
     def _init_defaults(self):
         super()._init_defaults()
         self.real_transform = Transform()

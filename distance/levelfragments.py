@@ -230,7 +230,6 @@ class GoldenSimplesFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[2], 0x83)
     section_versions = 3
-    default_section = Section(base_section, version=3)
 
     _construct = Struct(
         image_index = Default(UInt, 17),
@@ -488,7 +487,6 @@ class TrackNodeFragment(Fragment):
 
     base_section = Section.base(Magic[2], 0x16)
     section_versions = 2
-    default_section = Section(Magic[2], 0x16, 2)
 
     parent_id = 0
     snap_id = 0
@@ -789,7 +787,6 @@ class AnimatorFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[2], 0x9a)
     section_versions = 7
-    default_section = Section(base_section, version=7)
 
     _construct = Struct(
         # 2: hinge
