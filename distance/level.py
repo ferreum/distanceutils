@@ -188,7 +188,18 @@ class NewLevelSettings(LevelSettings, BaseObject):
 @LEVEL_CONTENT_PROBER.fragment(Magic[8])
 class OldLevelSettings(LevelSettings, BaseConstructFragment):
 
-    # Special settings section only found in very old maps.
+    """Special settings section only found in very old maps."""
+
+    # fallbacks for base LevelSettings and other usages
+    version = None
+    description = None
+    author_name = None
+    modes = ()
+    medal_times = ()
+    medal_scores = ()
+    background_layer = None
+    abilities = ()
+    difficulty = None
 
     _construct = Struct(
         unk_0 = Bytes(4),
