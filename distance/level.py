@@ -10,7 +10,7 @@ from construct import (
     this, len_,
 )
 
-from .bytes import Magic
+from .bytes import Magic, Section
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs
@@ -185,8 +185,10 @@ class NewLevelSettings(LevelSettings, BaseObject):
             p(f"Object version: {self.version}")
 
 
-@LEVEL_CONTENT_PROBER.fragment(Magic[8])
+@LEVEL_CONTENT_PROBER.fragment
 class OldLevelSettings(LevelSettings, BaseConstructFragment):
+
+    default_container = Section(Magic[8])
 
     """Special settings section only found in very old maps."""
 
