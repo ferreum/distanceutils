@@ -464,63 +464,24 @@ class ForceZoneFragment(BaseConstructFragment):
 
 
 @PROBER.fragment
-class TextMeshFragment(Fragment):
+class TextMeshFragment(BaseConstructFragment):
 
     base_section = Section.base(Magic[3], 0x7)
     section_versions = 1, 2
 
     is_interesting = True
 
-    have_content = False
-
     text = None
     font_style = None
     font = None
     _unknown = b''
 
-    def _init_defaults(self):
-        super()._init_defaults()
-        self.have_content = True
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-
-            def skip_or(func, *args):
-                with dbytes:
-                    try:
-                        skip = dbytes.read_bytes(4) == SKIP_BYTES
-                    except EOFError:
-                        pass
-                if skip:
-                    dbytes.read_bytes(4)
-                    return None
-                return func(*args)
-
-            self.have_content = True
-            self.text = skip_or(dbytes.read_str)
-            self.font_style = skip_or(dbytes.read_uint4)
-            if sec.version >= 2:
-                self.font = skip_or(dbytes.read_uint4)
-            rem = sec.end_pos - dbytes.tell()
-            if rem:
-                self._unknown = dbytes.read_bytes(rem)
-
-    def _write_section_data(self, dbytes, sec):
-        if self.have_content:
-            if self.text is None:
-                dbytes.write_bytes(SKIP_BYTES)
-            else:
-                dbytes.write_str(self.text)
-            if self.font_style is None:
-                dbytes.write_bytes(SKIP_BYTES)
-            else:
-                dbytes.write_int(4, self.font_style)
-            if sec.version >= 2:
-                if self.font is None:
-                    dbytes.write_bytes(SKIP_BYTES)
-                else:
-                    dbytes.write_int(4, self.font)
-            dbytes.write_bytes(self._unknown)
+    _construct = Struct(
+        text = DstOptional(DstString),
+        font_style = DstOptional(UInt),
+        font = If(this._params.sec.version >= 2, DstOptional(UInt)),
+        rem = Default(Remainder, b''),
+    )
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
