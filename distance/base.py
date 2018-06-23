@@ -240,6 +240,18 @@ def filter_interesting(sec, prober):
     return sec.content_size and prober.probe_section(sec).is_interesting
 
 
+def get_default_container(frag):
+    if frag.default_section is not None:
+        return frag.default_section
+    if (frag.base_section is not None
+            and frag.section_versions is not None):
+        versions = frag.section_versions
+        if isinstance(versions, numbers.Integral):
+            versions = [versions]
+        return Section(frag.base_section, version=max(versions))
+    return None
+
+
 class Fragment(BytesModel):
 
     """Represents data within a Section."""
@@ -247,6 +259,8 @@ class Fragment(BytesModel):
     __slots__ = ('_raw_data', 'container', 'dbytes', 'probers')
 
     default_section = None
+    base_section = None
+    section_versions = None
 
     is_interesting = False
 
@@ -259,7 +273,7 @@ class Fragment(BytesModel):
 
     def _init_defaults(self):
         super()._init_defaults()
-        con = self.default_section
+        con = get_default_container(self)
         if con is not None:
             self.container = con
 
@@ -433,6 +447,31 @@ def fragment_property(cls, name, default=None, doc=None):
     return property(fget, fset, None, doc=doc)
 
 
+class DefaultFragments(object):
+
+    @staticmethod
+    def add_to(target, *classes):
+        if not all(callable(c) for c in classes):
+            raise TypeError("Not all args are callable")
+        try:
+            registered = target.__fragments
+        except AttributeError:
+            registered = []
+        target.__fragments = registered + [f for f in classes
+                                           if f not in registered]
+
+    @staticmethod
+    def get(target):
+        return target.__fragments
+
+    def __init__(self, *classes):
+        self.classes = classes
+
+    def __call__(self, target):
+        self.add_to(target, *self.classes)
+        return target
+
+
 class ForwardFragmentAttrs(object):
 
     """Decorator to forward attributes of objects to their fragments."""
@@ -445,6 +484,7 @@ class ForwardFragmentAttrs(object):
         cls = self.cls
         for name, default in self.attrs.items():
             setattr(target, name, fragment_property(cls, name, default))
+        DefaultFragments.add_to(target, cls)
         return target
 
 
@@ -485,9 +525,6 @@ class BaseObject(Fragment):
     is_object_group = False
     has_children = False
 
-    default_sections = (
-        Section(Magic[3], 0x01, 0),
-    )
     default_transform = None
 
     @property
@@ -600,7 +637,8 @@ class BaseObject(Fragment):
 
     def _init_defaults(self):
         super()._init_defaults()
-        sections = list(Section(s) for s in self.default_sections)
+        sections = [sec for sec in map(get_default_container, DefaultFragments.get(self))
+                    if sec is not None]
         fragments = []
         for sec in sections:
             cls = self.probers.fragments.probe_section(sec)

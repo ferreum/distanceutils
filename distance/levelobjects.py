@@ -77,11 +77,6 @@ class Group(LevelObject):
     is_object_group = True
     type = 'Group'
 
-    default_sections = (
-        *LevelObject.default_sections,
-        Section(Magic[2], 0x1d, version=1),
-        Section(Magic[2], 0x63, version=0),
-    )
     default_transform = Transform.fill()
 
     def _print_children(self, p):
@@ -166,7 +161,7 @@ class WinLogic(SubObject):
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(TextMeshFragment, text=None, is_skip=False)
+@ForwardFragmentAttrs(TextMeshFragment, **TextMeshFragment._fields_map)
 class WorldText(LevelObject):
     type = 'WorldText'
 
@@ -420,11 +415,6 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 class GoldenSimple(LevelObject):
 
-    default_sections = (
-        *LevelObject.default_sections,
-        Section(Magic[3], 3, 2),
-        Section(Magic[2], 0x83, 3),
-    )
     default_transform = Transform.fill()
 
     def _init_defaults(self):
@@ -448,10 +438,6 @@ class WedgeGS(GoldenSimple):
 )
 class OldSimple(LevelObject):
 
-    default_sections = (
-        *LevelObject.default_sections,
-        Section(Magic[3], 3, 2), # material
-    )
     default_cone_transform = Transform.fill(rot=(2**.5/2, 0, 0, 2**.5/-2),
                                             scale=(.5, .5, .5))
     default_other_transform = Transform.fill()

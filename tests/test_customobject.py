@@ -10,6 +10,7 @@ from distance.levelobjects import (
     SubTeleporter,
     WinLogic,
     GoldenSimple,
+    WorldText,
 )
 from distance.levelfragments import (
     TrackNodeFragment,
@@ -20,7 +21,7 @@ from distance.levelfragments import (
 )
 from distance.printing import PrintContext
 from distance.constants import ForceType
-from .common import check_exceptions
+from .common import check_exceptions, write_read
 
 
 PROBER = DefaultProbers.level_objects
@@ -67,7 +68,6 @@ class WorldTextTest(unittest.TestCase):
     def test_read_default_helloworld(self):
         obj = PROBER.read("tests/in/customobject/worldtext helloworld.bytes")
         self.assertIsNone(obj.text, None)
-        self.assertFalse(obj.is_skip)
 
     def test_read_3(self):
         obj = PROBER.read("tests/in/customobject/worldtext weird.bytes")
@@ -76,6 +76,11 @@ class WorldTextTest(unittest.TestCase):
     def test_print_data(self):
         p = PrintContext.for_test()
         p.print_data_of(PROBER.read("tests/in/customobject/worldtext helloworld.bytes"))
+
+    def test_create(self):
+        obj = WorldText(text="test")
+        res, rdb = write_read(obj)
+        self.assertEqual(res.text, "test")
 
 
 class TeleExitTest(unittest.TestCase):

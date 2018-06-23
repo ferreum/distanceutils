@@ -12,7 +12,7 @@ from .bytes import (
     SKIP_BYTES,
     DstBytes,
 )
-from .base import Fragment
+from .base import Fragment, DefaultFragments
 from .prober import RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
@@ -471,11 +471,6 @@ class TextMeshFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    text = None
-    font_style = None
-    font = None
-    _unknown = b''
-
     _construct = Struct(
         text = Default(DstOptional(DstString), None),
         font_style = Default(DstOptional(UInt), None),
@@ -484,7 +479,7 @@ class TextMeshFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        super()._print_data(p)
         p(f"World text: {self.text!r}")
 
 
@@ -1085,6 +1080,8 @@ class ForwardMaterialColors(object):
         except AttributeError:
             target.__default_colors = clsdefaults = {}
         clsdefaults.update(self.colors)
+
+        DefaultFragments.add_to(target, MaterialFragment)
 
         return target
 
