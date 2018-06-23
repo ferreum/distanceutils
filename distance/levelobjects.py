@@ -68,7 +68,7 @@ def print_objects(p, gen):
         p.print_data_of(obj)
 
 
-@PROBER.for_type('Group')
+@PROBER.for_type
 @ForwardFragmentAttrs(GroupFragment, **GroupFragment.value_attrs)
 @ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 class Group(LevelObject):
@@ -151,27 +151,27 @@ class Teleporter(LevelObject):
     default_transform = Transform.fill()
 
 
-@SUBOBJ_PROBER.for_type('Teleporter')
+@SUBOBJ_PROBER.for_type
 @ForwardFragmentAttrs(BaseTeleporterEntrance, destination=None)
 @ForwardFragmentAttrs(BaseTeleporterExit, link_id=None)
 @ForwardFragmentAttrs(TeleporterExitCheckpointFragment, trigger_checkpoint=None)
 class SubTeleporter(SubObject):
-    pass
+    type = 'Teleporter'
 
 
-@SUBOBJ_PROBER.for_type('WinLogic')
+@SUBOBJ_PROBER.for_type
 @ForwardFragmentAttrs(RaceEndLogicFragment, delay_before_broadcast=None)
 class WinLogic(SubObject):
-    pass
+    type = 'WinLogic'
 
 
-@PROBER.for_type('WorldText')
+@PROBER.for_type
 @ForwardFragmentAttrs(TextMeshFragment, text=None, is_skip=False)
 class WorldText(LevelObject):
-    pass
+    type = 'WorldText'
 
 
-@PROBER.for_type('InfoDisplayBox')
+@PROBER.for_type
 @ForwardFragmentAttrs(BaseInfoDisplayLogic,
     fadeout_time = None,
     texts = (),
@@ -180,10 +180,11 @@ class WorldText(LevelObject):
     random_char_count = None,
 )
 class InfoDisplayBox(LevelObject):
-    pass
+
+    type = 'InfoDisplayBox'
 
 
-@PROBER.for_type('CarScreenTextDecodeTrigger')
+@PROBER.for_type
 @ForwardFragmentAttrs(BaseCarScreenTextDecodeTrigger,
     text = None,
     per_char_speed = None,
@@ -197,10 +198,11 @@ class InfoDisplayBox(LevelObject):
     announcer_phrases = (),
 )
 class CarScreenTextDecodeTrigger(LevelObject):
-    pass
+
+    type = 'CarScreenTextDecodeTrigger'
 
 
-@PROBER.for_type('GravityTrigger')
+@PROBER.for_type
 @ForwardFragmentAttrs(SphereColliderFragment,
     trigger_center = None,
     trigger_radius = None,
@@ -217,64 +219,75 @@ class CarScreenTextDecodeTrigger(LevelObject):
     disable_music_trigger = None,
 )
 class GravityTrigger(LevelObject):
+
+    type = 'GravityTrigger'
     default_transform = Transform.fill()
 
 
-@PROBER.for_type('ForceZoneBox')
+@PROBER.for_type
 @ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 @ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment._fields_map)
 class ForceZoneBox(LevelObject):
 
+    type = 'ForceZoneBox'
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 
-@PROBER.for_type('EnableAbilitiesBox')
+@PROBER.for_type
 @ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None,
                       enable_boosting=0, enable_jumping=0, enable_jets=0, enable_flying=0)
 class EnableAbilitiesBox(LevelObject):
 
+    type = 'EnableAbilitiesBox'
     default_transform = Transform.fill(scale=(100, 100, 100))
 
 
-@PROBER.for_type('EventTriggerBox')
+@PROBER.for_type
 class EvenTriggerBox(LevelObject):
 
+    type = 'EventTriggerBox'
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 
-@PROBER.for_type('EventTriggerSphere')
+@PROBER.for_type
 class EvenTriggerSphere(LevelObject):
 
+    type = 'EventTriggerSphere'
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 
-@PROBER.for_type('WingCorruptionZone')
+@PROBER.for_type
 class WingCorruptionZone(LevelObject):
 
+    type = 'WingCorruptionZone'
     default_transform = Transform.fill(scale=(100, 100, 100))
 
 
-@PROBER.for_type('WingCorruptionZoneLarge')
+@PROBER.for_type
 class WingCorruptionZoneLarge(LevelObject):
 
+    type = 'WingCorruptionZoneLarge'
     default_transform = Transform.fill(scale=(1000, 1000, 1000))
 
 
-@PROBER.for_type('VirusSpiritSpawner')
+@PROBER.for_type
 class VirusSpiritSpawner(LevelObject):
 
+    type = 'VirusSpiritSpawner'
     default_transform = Transform.fill()
 
 
-@PROBER.for_type('KillGridBox')
+@PROBER.for_type
 class KillGridBox(LevelObject):
 
+    type = 'KillGridBox'
     default_transform = Transform.fill(scale=(50, 50, 50))
 
 
-@PROBER.for_type('KillGridCylinder')
+@PROBER.for_type
 class KillGridCylinder(LevelObject):
 
+    type = 'KillGridCylinder'
     default_transform = Transform.fill(scale=(50, 50, 50))
 
 
@@ -291,27 +304,31 @@ class AbilityCheckpoint(LevelObject):
     default_transform = Transform.fill()
 
 
-@PROBER.for_type('NitronicCheckpoint')
+@PROBER.for_type
 class NitronicCheckpoint(LevelObject):
 
+    type = 'NitronicCheckpoint'
     default_transform = Transform.fill(scale=1.097)
 
 
-@PROBER.for_type('EmpirePowerFlyingRing')
+@PROBER.for_type
 class EmpirePowerFlyingRing(LevelObject):
 
+    type = 'EmpirePowerFlyingRing'
     default_transform = Transform.fill(scale=1.5)
 
 
-@PROBER.for_type('EmpirePowerRoadRing')
+@PROBER.for_type
 class EmpirePowerRoadRing(LevelObject):
 
+    type = 'EmpirePowerRoadRing'
     default_transform = Transform.fill()
 
 
-@PROBER.for_type('CooldownTriggerNoVisual')
+@PROBER.for_type
 class CooldownTriggerNoVisual(LevelObject):
 
+    type = 'CooldownTriggerNoVisual'
     default_transform = Transform.fill()
 
 
@@ -325,9 +342,10 @@ class VirusMazeBuilding(LevelObject):
     default_transform = Transform.fill()
 
 
-@PROBER.for_type('PlanetWithSphericalGravity')
+@PROBER.for_type
 class PlanetWithSphericalGravity(LevelObject):
 
+    type = 'PlanetWithSphericalGravity'
     default_transform = Transform.fill(scale=2.5)
 
 
