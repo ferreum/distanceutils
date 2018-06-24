@@ -349,6 +349,16 @@ class BaseObjectTest(unittest.TestCase):
         self.assertIsNone(result)
 
 
+class ConstructorTest(unittest.TestCase):
+
+    def test_invalid_attr(self):
+        self.assertRaises(AttributeError, GoldenSimple, test_attr=2)
+
+    def test_attr(self):
+        obj = GoldenSimple(emit_index=50)
+        self.assertEqual(obj.emit_index, 50)
+
+
 class TestFragments(unittest.TestCase):
 
     def test_getbytype_after_assign(self):

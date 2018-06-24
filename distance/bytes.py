@@ -193,7 +193,11 @@ class BytesModel(object):
             plain = kw.pop('plain', False)
             if not plain:
                 self._init_defaults()
+            cls = type(self)
             for k, v in kw.items():
+                if not hasattr(cls, k):
+                    raise AttributeError(
+                        f"{cls.__name__!r} object has no attribute {k!r}")
                 setattr(self, k, v)
             if not plain:
                 self._after_init()
