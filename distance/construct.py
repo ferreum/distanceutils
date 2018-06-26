@@ -101,6 +101,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     _construct = None
 
     def _init_defaults(self):
+        super()._init_defaults()
         self.data = Container()
 
     def _clone_data(self, new):

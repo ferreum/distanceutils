@@ -176,6 +176,16 @@ class AnimatorFragmentTest(ExtraAssertMixin, Base.WriteReadTest):
         self.assertEqual(1, frag.trigger_off_reset)
 
 
+class AnimatorFragmentCreateTest(unittest.TestCase):
+
+    def test_create_write_read(self):
+        frag = AnimatorFragment(motion_mode=4)
+
+        res, rdb = write_read(frag)
+
+        self.assertEqual(res.motion_mode, 4)
+
+
 class TypedNamedPropertyTest(unittest.TestCase):
 
     def setUp(self):

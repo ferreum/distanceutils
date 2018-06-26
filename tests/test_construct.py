@@ -288,6 +288,18 @@ class TestFragment2Test(unittest.TestCase):
 
         self.assertEqual(frag.nest, None)
 
+    def test_create_with_base_container(self):
+        class TestFragment(BaseConstructFragment):
+            base_container = Section.base(Magic[2], 0x1337)
+            container_versions = 4
+
+            _construct = Struct(
+                uint = UInt,
+            )
+        res, rdb = write_read(TestFragment(uint=3))
+
+        self.assertEqual(res.uint, 3)
+
 
 class OptionalTest(unittest.TestCase):
 
