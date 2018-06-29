@@ -87,7 +87,7 @@ class WriteReadTest(unittest.TestCase):
                 yield f
         except FileNotFoundError:
             if self.skip_if_missing:
-                self.skipTest("file {filename!r} is missing")
+                self.skipTest(f"file {filename!r} is missing")
             raise
 
     def test_read(self):
