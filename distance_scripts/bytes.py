@@ -3,6 +3,7 @@
 
 import sys
 import argparse
+from io import BytesIO
 
 from distance.base import Fragment
 from distance.printing import PrintContext
@@ -46,7 +47,13 @@ def main():
             if print_filename:
                 p("")
                 p(f"File: {fname!r}")
-            obj = prober.maybe(fname)
+            if fname == '-':
+                buf = BytesIO()
+                buf.write(sys.stdin.buffer.read())
+                buf.seek(0)
+                obj = prober.maybe(buf)
+            else:
+                obj = prober.maybe(fname)
             p.print_data_of(obj)
         except BrokenPipeError:
             # suppress warning message when stdout gets closed

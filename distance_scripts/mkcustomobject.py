@@ -41,7 +41,7 @@ def select_candidates(source, args):
 
 
 def print_candidates(candidates):
-    p = PrintContext(flags=('groups', 'subobjects'))
+    p = PrintContext(file=sys.stderr, flags=('groups', 'subobjects'))
     p(f"Candidates: {len(candidates)}")
     with p.tree_children():
         for i, obj in enumerate(candidates):
@@ -72,11 +72,19 @@ def main():
     if args.force:
         write_mode = 'wb'
 
-    if not args.force and os.path.exists(args.OUT):
+    if not args.force and args.OUT != '-' and os.path.exists(args.OUT):
         print(f"file {args.OUT} exists. pass -f to force.", file=sys.stderr)
         return 1
 
-    content = DefaultProbers.level_like.read(args.IN)
+    if args.IN == '-':
+        from io import BytesIO
+        buf = BytesIO()
+        buf.write(sys.stdin.buffer.read())
+        buf.seek(0)
+        srcarg = buf
+    else:
+        srcarg = args.IN
+    content = DefaultProbers.level_like.read(srcarg)
     if isinstance(content, Level):
         object_source = content.iter_objects()
     else:
@@ -95,11 +103,15 @@ def main():
     if tosave is None:
         return 1
 
-    tosave.print_data(file=sys.stdout, flags=('groups', 'subobjects'))
+    tosave.print_data(file=sys.stderr, flags=('groups', 'subobjects'))
 
-    print("writing...")
-    n = tosave.write(args.OUT, write_mode=write_mode)
-    print(f"{n} bytes written")
+    if args.OUT == '-':
+        destarg = sys.stdout.buffer
+    else:
+        destarg = args.OUT
+    print("writing...", file=sys.stderr)
+    n = tosave.write(destarg, write_mode=write_mode)
+    print(f"{n} bytes written", file=sys.stderr)
     return 0
 
 

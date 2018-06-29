@@ -150,19 +150,27 @@ def main():
     write_mode = 'xb'
     if args.force:
         write_mode = 'wb'
-    elif os.path.exists(args.OUT):
+    elif args.OUT != '-'and os.path.exists(args.OUT):
         print(f"{parser.prog}: file {args.OUT} exists."
               " pass -f to force.", file=sys.stderr)
         return 1
 
-    content = DefaultProbers.level_like.read(args.IN)
+    if args.IN == '-':
+        from io import BytesIO
+        buf = BytesIO()
+        buf.write(sys.stdin.buffer.read())
+        buf.seek(0)
+        srcarg = buf
+    else:
+        srcarg = args.IN
+    content = DefaultProbers.level_like.read(srcarg)
 
     is_wrapped = False
     if isinstance(content, LevelObject) and content.type != 'Group':
         is_wrapped = True
         content = Group(children=[content])
 
-    p = PrintContext(flags=('groups', 'subobjects'))
+    p = PrintContext(file=sys.stderr, flags=('groups', 'subobjects'))
 
     if not apply_filters(filters, content, p=p):
         return 1
@@ -173,9 +181,13 @@ def main():
     if args.list:
         p.print_data_of(content)
 
-    print("writing...")
-    n = content.write(args.OUT, write_mode=write_mode)
-    print(f"{n} bytes written")
+    print("writing...", file=sys.stderr)
+    if args.OUT == '-':
+        destarg = sys.stdout.buffer
+    else:
+        destarg = args.OUT
+    n = content.write(destarg, write_mode=write_mode)
+    print(f"{n} bytes written", file=sys.stderr)
     return 0
 
 
