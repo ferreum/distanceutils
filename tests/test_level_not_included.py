@@ -81,6 +81,21 @@ class Base(object):
                 self.skipTest(f"missing files: {skipped}")
 
 
+class Section8Test(BaseTest):
+
+    def test_the_virus_begins(self):
+        level, objects = self.getLevel("tests/in/level-not-included/s8/the virus begins.bytes")
+        self.assertEqual(level.name, "The Virus Begins")
+        self.assertEqual(len(objects), 403)
+        self.assertEqual(len(self.subobjects), 582)
+
+    def test_returnofandy(self):
+        level, objects = self.getLevel("tests/in/level-not-included/s8/returnofandy.bytes")
+        self.assertEqual(level.settings.name, "ReturnOfAndy")
+        self.assertEqual(len(objects), 836)
+        self.assertEqual(len(self.subobjects), 987)
+
+
 class Version0Test(BaseTest):
 
     def test_brutal_minimalism(self):
@@ -99,10 +114,6 @@ class Version0Test(BaseTest):
 
 
 class Version1Test(BaseTest):
-
-    MANY_LEVELS = ("car crusher", "city", "contraband delivery",
-                   "entanglement", "qwe", "returnofandy",
-                   "the virus begins", "damnation")
 
     def test_building_hop(self):
         level, objects = self.getLevel("tests/in/level-not-included/v1/building hop.bytes")
@@ -136,7 +147,7 @@ class Version1Test(BaseTest):
 
 class Version1PrintTest(Base.PrintTest):
 
-    files = ["v1/" + n for n in Version1Test.MANY_LEVELS[:3]]
+    files = ["v1/" + n for n in ["car crusher", "city", "contraband delivery"]]
 
 
 class Version3Test(BaseTest):

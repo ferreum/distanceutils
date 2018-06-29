@@ -67,7 +67,7 @@ class ChangeLevelnameTest(Base.WriteReadTest):
 
 class TheVirusBeginsS8Test(Base.WriteReadTest):
 
-    filename = "tests/in/level-not-included/v1/the virus begins.bytes"
+    filename = "tests/in/level-not-included/s8/the virus begins.bytes"
     skip_if_missing = True
 
     def verify_obj(self, level):
