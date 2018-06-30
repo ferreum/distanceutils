@@ -137,7 +137,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
                         prefix = f"Field: {name} = "
                         indent = " " * len(prefix)
                         it = iter(str(value).splitlines() or [""])
-                        p(f"{prefix}{next(it)}")
+                        p(prefix + next(it))
                         for line in it:
                             p(indent + line)
 
