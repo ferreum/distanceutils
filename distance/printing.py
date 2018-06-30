@@ -98,7 +98,9 @@ class PrintContext(object):
             count = None
         lines = []
         buf.append(lines)
-        ended.append(True)
+        # When unbuffered, we start with ended state, so we get our tree
+        # printed on the first nested line.
+        ended.append(count is not None)
         remain.append(count)
         try:
             yield

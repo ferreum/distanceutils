@@ -160,5 +160,35 @@ class TreeTest(BaseTest):
            └─ Two
         """)
 
+    def test_multiline_child(self):
+        p = self.p
+        p("Root")
+        with p.tree_children():
+            p(f"First 0")
+            p(f"First 1")
+            p(f"First 2")
+
+        self.assertResult("""
+        Root
+        └─ First 0
+           First 1
+           First 2
+        """)
+
+    def test_multiline_child_unbuffered(self):
+        p = self.p
+        p("Root")
+        with p.tree_children(1):
+            p(f"First 0")
+            p(f"First 1")
+            p(f"First 2")
+
+        self.assertResult("""
+        Root
+        └─ First 0
+           First 1
+           First 2
+        """)
+
 
 # vim:set sw=4 ts=8 sts=4 et:
