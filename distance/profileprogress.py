@@ -11,7 +11,7 @@ from construct import (
 
 from .bytes import BytesModel, Magic, Section
 from .base import (
-    BaseObject, Fragment,
+    BaseObject,
     ForwardFragmentAttrs,
     require_type
 )
