@@ -114,6 +114,9 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
             except ConstructError as e:
                 self.data = Container()
                 raise ValueError from e
+            except:
+                self.data = Container()
+                raise
         else:
             # Data is empty - game falls back to defaults here.
             self.data = Container()
