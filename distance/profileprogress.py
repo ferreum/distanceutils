@@ -21,6 +21,22 @@ FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
+def _print_stringentries(p, title, prefix, entries, num_per_row=1):
+    if entries:
+        p(f"{title}: {len(entries)}")
+        with p.tree_children():
+            if 'offset' in p.flags or 'size' in p.flags:
+                for entry in entries:
+                    p.tree_next_child()
+                    p.print_data_of(entry)
+            else:
+                it = iter(entries)
+                for _ in range(0, len(entries), num_per_row):
+                    p.tree_next_child()
+                    t_str = ', '.join(repr(t.value) for t in islice(it, num_per_row))
+                    p(f"{prefix}: {t_str}")
+
+
 def format_score(mode, score, comp):
     comp_str = Completion.to_name(comp)
     mode_str = Mode.to_name(mode)
@@ -174,6 +190,8 @@ class ProfileStatsFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x8e)
 
+    is_interesting = True
+
     version = None
     stats = {}
     modes_offline = ()
@@ -229,7 +247,6 @@ class ProfileStatsFragment(Fragment):
                 val_str = "None"
             else:
                 val_str = stat.format(value)
-            p.tree_next_child()
             p(f"{name}: {val_str}")
 
         ps(s.total, "All play time")
@@ -253,7 +270,9 @@ class ProfileStatsFragment(Fragment):
                     if time >= 0.001:
                         p.tree_next_child()
                         p(f"Time playing {Mode.to_name(mode)} online: {format_duration_dhms(time * 1000)}")
+            p.tree_next_child()
             ps(s.editor_working, "Time working in editor")
+            p.tree_next_child()
             ps(s.editor_playing, "Time playing in editor")
 
         total_distance = sum(values.get(stat.ident) for stat in
@@ -261,10 +280,15 @@ class ProfileStatsFragment(Fragment):
         ps(s.deaths, "Total deaths")
         with p.tree_children():
             ps(s.impact_deaths, "Impact deaths")
+            p.tree_next_child()
             ps(s.killgrid_deaths, "Killgrid deaths")
+            p.tree_next_child()
             ps(s.laser_deaths, "Laser deaths")
+            p.tree_next_child()
             ps(s.overheat_deaths, "Overheat deaths")
+            p.tree_next_child()
             ps(s.reset_deaths, "Reset deaths")
+            p.tree_next_child()
             ps(s.gibs_time, "Gibs time")
         ps(s.impacts, "Impact count")
         ps(s.splits, "Split count")
@@ -273,11 +297,17 @@ class ProfileStatsFragment(Fragment):
         p(f"Distance traveled: {format_distance(total_distance)}")
         with p.tree_children():
             ps(s.forward, "Distance driven forward")
+            p.tree_next_child()
             ps(s.reverse, "Distance driven reverse")
+            p.tree_next_child()
             ps(s.air_fly, "Distance airborn flying")
+            p.tree_next_child()
             ps(s.air_nofly, "Distance airborn not flying")
+            p.tree_next_child()
             ps(s.wallride, "Distance wall riding")
+            p.tree_next_child()
             ps(s.ceilingride, "Distance ceiling riding")
+            p.tree_next_child()
             ps(s.grinding, "Distance grinding")
         ps(s.lamps, "Lamps broken")
         ps(s.pumpkins, "Pumpkins smashed")
@@ -307,6 +337,8 @@ class ProfileStatsFragment(Fragment):
 class ProfileProgressFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x6a)
+
+    is_interesting = True
 
     value_attrs = dict(
         levels = (),
@@ -435,21 +467,33 @@ class ProfileProgressFragment(Fragment):
             self._somelevels = levels
         return levels
 
-
-def _print_stringentries(p, title, prefix, entries, num_per_row=1):
-    if entries:
-        p(f"{title}: {len(entries)}")
+    def _print_data(self, p):
+        super()._print_data(p)
+        p(f"Level progress version: {self.version}")
+        levels = self.levels
+        p(f"Level count: {len(levels)}")
         with p.tree_children():
-            if 'offset' in p.flags or 'size' in p.flags:
-                for entry in entries:
+            for level in levels:
+                p.tree_next_child()
+                p.print_data_of(level)
+        _print_stringentries(p, "Unlocked Levels", "Levels", self.officials, num_per_row=5)
+        _print_stringentries(p, "Found tricks", "Tricks", self.tricks, num_per_row=5)
+        _print_stringentries(p, "Unlocked adventure stages", "Level", self.unlocked_adventures)
+        _print_stringentries(p, "Some levels", "Level", self.somelevels)
+        if levels:
+            comps = [0] * 4
+            total = 0
+            for level in levels:
+                for score, comp in zip(level.scores, level.completion):
+                    comp -= Completion.BRONZE
+                    if comp >= 0:
+                        total += comp + 1
+                        comps[comp] += 1
+            p(f"Medal points: {total}")
+            with p.tree_children():
+                for comp, num in enumerate(comps, Completion.BRONZE):
                     p.tree_next_child()
-                    p.print_data_of(entry)
-            else:
-                it = iter(entries)
-                for _ in range(0, len(entries), num_per_row):
-                    p.tree_next_child()
-                    t_str = ', '.join(repr(t.value) for t in islice(it, num_per_row))
-                    p(f"{prefix}: {t_str}")
+                    p(f"{Completion.to_name(comp)} medals: {num}")
 
 
 @FILE_PROBER.for_type
@@ -462,39 +506,6 @@ class ProfileProgress(BaseObject):
     @property
     def stats(self):
         return self.fragment_by_type(ProfileStatsFragment)
-
-    def _print_data(self, p):
-        progress = self.fragment_by_type(ProfileProgressFragment)
-        if progress:
-            p(f"Level progress version: {progress.version}")
-            levels = self.levels
-            p(f"Level count: {len(levels)}")
-            with p.tree_children():
-                for level in levels:
-                    p.tree_next_child()
-                    p.print_data_of(level)
-            _print_stringentries(p, "Unlocked Levels", "Levels", self.officials, num_per_row=5)
-            _print_stringentries(p, "Found tricks", "Tricks", self.tricks, num_per_row=5)
-            _print_stringentries(p, "Unlocked adventure stages", "Level", self.unlocked_adventures)
-            _print_stringentries(p, "Some levels", "Level", self.somelevels)
-            if levels:
-                comps = [0] * 4
-                total = 0
-                for level in levels:
-                    for score, comp in zip(level.scores, level.completion):
-                        comp -= Completion.BRONZE
-                        if comp >= 0:
-                            total += comp + 1
-                            comps[comp] += 1
-                p(f"Medal points: {total}")
-                with p.tree_children():
-                    for comp, num in enumerate(comps, Completion.BRONZE):
-                        p.tree_next_child()
-                        p(f"{Completion.to_name(comp)} medals: {num}")
-        else:
-            p("No level progress")
-        if self.stats:
-            p.print_data_of(self.stats)
 
 
 FRAG_PROBER.commit()
