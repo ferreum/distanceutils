@@ -4,9 +4,9 @@
 from itertools import islice
 
 from construct import (
-    Struct, Default, Computed, PrefixedArray, Const, StopIf,
+    Struct, Default, Computed, PrefixedArray, Const, StopIf, If, Rebuild,
     Bytes,
-    this,
+    this, len_,
 )
 
 from .bytes import BytesModel, Magic, Section
@@ -17,7 +17,7 @@ from .base import (
 )
 from .construct import (
     BaseConstructFragment,
-    UInt, Double, Long, DstString,
+    UInt, Int, Double, Long, DstString,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -34,16 +34,11 @@ def _print_stringentries(p, title, prefix, entries, num_per_row=1):
     if entries:
         p(f"{title}: {len(entries)}")
         with p.tree_children():
-            if 'offset' in p.flags or 'size' in p.flags:
-                for entry in entries:
-                    p.tree_next_child()
-                    p.print_data_of(entry)
-            else:
-                it = iter(entries)
-                for _ in range(0, len(entries), num_per_row):
-                    p.tree_next_child()
-                    t_str = ', '.join(repr(t.value) for t in islice(it, num_per_row))
-                    p(f"{prefix}: {t_str}")
+            it = iter(entries)
+            for _ in range(0, len(entries), num_per_row):
+                p.tree_next_child()
+                t_str = ', '.join(map(repr, islice(it, num_per_row)))
+                p(f"{prefix}: {t_str}")
 
 
 def format_score(mode, score, comp):
@@ -271,138 +266,38 @@ class ProfileStatsFragment(BaseConstructFragment):
 
 
 @FRAG_PROBER.fragment(any_version=True)
-class ProfileProgressFragment(Fragment):
+class ProfileProgressFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x6a)
 
     is_interesting = True
 
-    value_attrs = dict(
-        levels = (),
-        officials = (),
-        official_levels = (),
-        tricks = (),
-        unlocked_adventures = (),
-        somelevels = (),
+    _construct = Struct(
+        'version' / Computed(this._params.sec.version),
+        'num_levels' / Rebuild(UInt, len_(this.levels)),
+        'unk_0' / UInt,
+        'levels' / Default(Struct(
+            'level_path' / DstString,
+            'unk_0' / DstString,
+            'unk_1' / Bytes(1),
+            Const(Magic[1], UInt),
+            'completion' / Default(PrefixedArray(UInt, UInt), ()),
+            Const(Magic[1], UInt),
+            'scores' / Default(PrefixedArray(UInt, Int), ()),
+            'unk_2' / If(this._.version > 2, Bytes(8)),
+        )[this.num_levels], ()),
+        Const(Magic[1], UInt),
+        'officials' / Default(PrefixedArray(UInt, DstString), ()),
+        StopIf(this.version < 6),
+        'unk_1' / Bytes(36),
+        Const(Magic[1], UInt),
+        'tricks' / Default(PrefixedArray(UInt, DstString), ()),
+        Const(Magic[1], UInt),
+        'unlocked_adventures' / Default(PrefixedArray(UInt, DstString), ()),
+        'unk_2' / Bytes(10),
+        Const(Magic[1], UInt),
+        'somelevels' / Default(PrefixedArray(UInt, DstString), ()),
     )
-
-    version = None
-    levels = ()
-    _officials = None
-    _official_levels = None
-    _tricks = None
-    _unlocked_adventures = None
-    _somelevels = None
-
-    def _read_section_data(self, dbytes, sec):
-        self.version = sec.version
-        num_levels = dbytes.read_uint4()
-        self._data_start = start = dbytes.tell() + 4
-        self.levels = LevelProgress.lazy_n_maybe(
-            dbytes, num_levels, start_pos=start,
-            version=sec.version)
-
-    def _officials_start_pos(self):
-        levels = self.levels
-        if levels:
-            last = levels[-1]
-            if not last.sane_end_pos:
-                return None
-            return last.end_pos
-        else:
-            return self._data_start
-
-    @property
-    def officials(self):
-        lazy = self._official_levels
-        if lazy is None:
-            dbytes = self.dbytes
-            dbytes.seek(self._officials_start_pos())
-            dbytes.require_equal_uint4(Magic[1])
-            num = dbytes.read_uint4()
-            lazy = StringEntry.lazy_n_maybe(dbytes, num)
-            self.lazy = lazy
-        return lazy
-
-    def _tricks_start_pos(self):
-        officials = self.officials
-        if officials:
-            last = officials[-1]
-            if not last.sane_end_pos:
-                return None
-            # officials_end + 36b (unknown)
-            return last.end_pos + 36
-        else:
-            # officials_start + 4b (s1) + 4b (num_officials) + 36b (unknown)
-            return self._officials_start_pos() + 8 + 36
-
-    @property
-    def tricks(self):
-        tricks = self._tricks
-        if tricks is None:
-            if self.version < 6:
-                tricks = ()
-            else:
-                dbytes = self.dbytes
-                dbytes.seek(self._tricks_start_pos())
-                dbytes.require_equal_uint4(Magic[1])
-                num = dbytes.read_uint4()
-                tricks = StringEntry.lazy_n_maybe(dbytes, num)
-            self._tricks = tricks
-        return tricks
-
-    def _adventures_start_pos(self):
-        tricks = self.tricks
-        if tricks:
-            last = tricks[-1]
-            if not last.sane_end_pos:
-                return None
-            return last.end_pos
-        else:
-            # officials_start + 4b (s1) + 4b (num_tricks)
-            return self._tricks_start_pos() + 8
-
-    @property
-    def unlocked_adventures(self):
-        adventures = self._unlocked_adventures
-        if adventures is None:
-            if self.version < 6:
-                adventures = ()
-            else:
-                dbytes = self.dbytes
-                dbytes.seek(self._adventures_start_pos())
-                dbytes.require_equal_uint4(Magic[1])
-                num = dbytes.read_uint4()
-                adventures = StringEntry.lazy_n_maybe(dbytes, num)
-            self._unlocked_adventures = adventures
-        return adventures
-
-    def _somelevels_start_pos(self):
-        adventures = self.unlocked_adventures
-        if adventures:
-            last = adventures[-1]
-            if not last.sane_end_pos:
-                return None
-            # last pos + 10b (unknown)
-            return last.end_pos + 10
-        else:
-            # unlocks_start + 4b (s1) + 4b (num_unlocks) + 10 (unknown)
-            return self._adventures_start_pos() + 18
-
-    @property
-    def somelevels(self):
-        levels = self._somelevels
-        if levels is None:
-            if self.version < 6:
-                levels = ()
-            else:
-                dbytes = self.dbytes
-                dbytes.seek(self._somelevels_start_pos())
-                dbytes.require_equal_uint4(Magic[1])
-                num = dbytes.read_uint4()
-                levels = StringEntry.lazy_n_maybe(dbytes, num)
-            self._somelevels = levels
-        return levels
 
     def _print_data(self, p):
         super()._print_data(p)
@@ -412,7 +307,10 @@ class ProfileProgressFragment(Fragment):
         with p.tree_children():
             for level in levels:
                 p.tree_next_child()
-                p.print_data_of(level)
+                p(f"Level path: {level.level_path!r}")
+                for mode, (score, comp) in enumerate(zip(level.scores, level.completion)):
+                    if comp != Completion.UNPLAYED:
+                        p(format_score(mode, score, comp))
         _print_stringentries(p, "Unlocked Levels", "Levels", self.officials, num_per_row=5)
         _print_stringentries(p, "Found tricks", "Tricks", self.tricks, num_per_row=5)
         _print_stringentries(p, "Unlocked adventure stages", "Level", self.unlocked_adventures)
@@ -434,7 +332,7 @@ class ProfileProgressFragment(Fragment):
 
 
 @FILE_PROBER.for_type
-@ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment.value_attrs)
+@ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment._fields_map)
 @require_type
 class ProfileProgress(BaseObject):
 

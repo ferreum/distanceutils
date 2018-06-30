@@ -3,8 +3,8 @@ import unittest
 from distance.profileprogress import ProfileProgress
 from distance.printing import PrintContext
 from distance.constants import Completion, Mode
-from .common import check_exceptions
 from distance import DefaultProbers
+from .common import check_exceptions, write_read
 
 
 class ProfileProgressTest(unittest.TestCase):
@@ -19,16 +19,16 @@ class ProfileProgressTest(unittest.TestCase):
 
     def test_read_single_map_started(self):
         obj = ProfileProgress("tests/in/profileprogress/started acclivity.bytes")
+        check_exceptions(obj)
         levels = obj.levels
         self.assertEqual(len(levels), 1)
-        check_exceptions(levels[0])
         self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.STARTED)
 
     def test_read_single_map_diamond(self):
         obj = ProfileProgress("tests/in/profileprogress/diamond acclivity.bytes")
+        check_exceptions(obj)
         levels = obj.levels
         self.assertEqual(len(levels), 1)
-        check_exceptions(levels[0])
         self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.DIAMOND)
         stats = obj.stats
         check_exceptions(stats)
@@ -57,6 +57,22 @@ class ProfileProgressTest(unittest.TestCase):
     def test_trackmogrify_mods(self):
         obj = ProfileProgress("tests/in/profileprogress/stats_version_1 trackmogrify.bytes")
         self.assertEqual(obj.stats.trackmogrify_mods, ["insanely", "short"])
+
+    def test_modify_write_read_progress(self):
+        obj = ProfileProgress("tests/in/profileprogress/unlocked adventure.bytes")
+        obj.officials[0] = "monolith"
+
+        res, rdb = write_read(obj)
+
+        self.assertEqual(res.officials, ["monolith"])
+
+    def test_modify_write_read_stats(self):
+        obj = ProfileProgress("tests/in/profileprogress/unlocked adventure.bytes")
+        obj.stats.horns = 10003445333456
+
+        res, rdb = write_read(obj)
+
+        self.assertEqual(res.stats.horns, 10003445333456)
 
 
 if __name__ == '__main__':
