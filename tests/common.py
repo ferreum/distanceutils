@@ -47,6 +47,13 @@ def write_read(obj, read_func=None):
     return result, dbytes.file
 
 
+def read_or_skip(cls, filename, *args, **kw):
+    try:
+        return cls(filename, *args, **kw)
+    except FileNotFoundError:
+        raise unittest.SkipTest(f"file {filename!r} is missing")
+
+
 class WriteReadTest(unittest.TestCase):
 
     """Base Write/Read test.

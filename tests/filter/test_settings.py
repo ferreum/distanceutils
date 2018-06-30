@@ -4,6 +4,7 @@ import unittest
 from distance import Level
 from distance.filter import SettingsFilter
 from distance.constants import Mode
+from ..common import read_or_skip, write_read
 
 
 orig_modes = {
@@ -68,6 +69,18 @@ class SettingsTest(unittest.TestCase):
         self.assertEqual([1, 0, 0, 0, 0], list(l.settings.abilities))
         self.assertEqual(3, l.settings.version)
         self.assertEqual(orig_modes, dict(l.settings.modes))
+
+
+class SettingsS8Test(unittest.TestCase):
+
+    def test_name(self):
+        l = read_or_skip(Level, f"tests/in/level-not-included/s8/the virus begins.bytes")
+        f = SettingsFilter(mkargs(name="Custom Name"))
+        f.apply(l)
+
+        res, rdb = write_read(l.settings)
+
+        self.assertEqual(res.name, "Custom Name")
 
 
 # vim:set sw=4 ts=8 sts=4 et:
