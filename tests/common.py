@@ -118,6 +118,9 @@ class WriteReadTest(unittest.TestCase):
 
         self.verify_obj(res)
         if self.cmp_bytes:
+            if orig_bytes != buf.getvalue():
+                from distance_scripts.verify import listdiffs
+                listdiffs(orig, res)
             self.assertEqual(orig_len, len(buf.getbuffer()))
             if self.exact:
                 self.assertEqual(orig_bytes, buf.getvalue())
