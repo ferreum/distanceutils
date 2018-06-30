@@ -86,6 +86,14 @@ class ErrorPosition(namedtuple('_ErrorPosition', ['start', 'error'])):
     def __repr__(self):
         return f"{type(self).__name__}(start=0x{self.start:x}, error=0x{self.error:x})"
 
+    @classmethod
+    def get(cls, ex):
+        return [a for a in ex.args if isinstance(a, cls)]
+
+    @classmethod
+    def first(cls, ex):
+        return cls.get(ex)[0]
+
 
 class BytesModel(object):
 

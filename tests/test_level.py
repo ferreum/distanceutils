@@ -61,7 +61,7 @@ class LevelTest(unittest.TestCase):
                 try:
                     check_exceptions(obj)
                 except UnicodeError as e:
-                    pos = next(a for a in e.args if isinstance(a, ErrorPosition))
+                    pos = ErrorPosition.first(e)
                     self.assertEqual(pos.start, 0x12f7)
                     self.assertEqual(pos.error, 0x1321)
                 else:
