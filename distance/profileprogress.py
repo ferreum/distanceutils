@@ -172,7 +172,7 @@ class ProfileStatsFragment(BaseConstructFragment):
             if value is None:
                 val_str = "None"
             elif stat.endswith('_seconds'):
-                val_str = format_duration_dhms(value)
+                val_str = format_duration_dhms(value * 1000)
             elif stat.endswith('_meters'):
                 val_str = format_distance(value)
             elif stat == 'ev':
