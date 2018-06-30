@@ -54,6 +54,10 @@ class ProfileProgressTest(unittest.TestCase):
         obj = ProfileProgress("tests/in/profileprogress/unlocked adventure.bytes")
         p.print_data_of(obj)
 
+    def test_trackmogrify_mods(self):
+        obj = ProfileProgress("tests/in/profileprogress/stats_version_1 trackmogrify.bytes")
+        self.assertEqual(obj.stats.trackmogrify_mods, ["insanely", "short"])
+
 
 if __name__ == '__main__':
     unittest.main()

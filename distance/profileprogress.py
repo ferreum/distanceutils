@@ -209,8 +209,8 @@ class ProfileStatsFragment(Fragment):
         for i in range(num):
             online_times.append(read_double())
 
-        if version >= 6:
-            dbytes.add_read_bytes(8)
+        if version >= 1:
+            dbytes.read_bytes(8)
             dbytes.require_equal_uint4(Magic[1])
             num = dbytes.read_uint4()
             self.trackmogrify_mods = mods = []
@@ -218,6 +218,7 @@ class ProfileStatsFragment(Fragment):
                 mods.append(dbytes.read_str())
 
     def _print_data(self, p):
+        super()._print_data(p)
         p(f"Player stats version: {self.version}")
         s = STATS
         values = self.stats
