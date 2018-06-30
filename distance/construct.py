@@ -131,10 +131,15 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
         if 'allprops' in p.flags:
             p(f"Fields: {len(self.data)}")
             with p.tree_children():
-                for k, v in self.data.items():
-                    if k != '_io': # construct internal?
+                for name, value in self.data.items():
+                    if name != '_io': # construct internal?
                         p.tree_next_child()
-                        p(f"Field: {k} = {v!r}")
+                        prefix = f"Field: {name} = "
+                        indent = " " * len(prefix)
+                        it = iter(str(value).splitlines() or [""])
+                        p(f"{prefix}{next(it)}")
+                        for line in it:
+                            p(indent + line)
 
 
 def construct_property(cls, name, doc=None):
