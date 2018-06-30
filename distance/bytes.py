@@ -2,6 +2,7 @@
 
 
 import sys
+from io import BytesIO
 from struct import Struct
 from contextlib import contextmanager
 from collections import namedtuple
@@ -576,7 +577,6 @@ class DstBytes(object):
         self._pos_stack = []
 
     def __repr__(self):
-        from io import BytesIO
         pos = self.tell()
         if isinstance(self.file, BytesIO):
             fstr = f"<memory size 0x{len(self.file.getbuffer()):x}> "
@@ -590,13 +590,11 @@ class DstBytes(object):
     @classmethod
     def in_memory(cls):
         """Create an empty in-memory instance."""
-        from io import BytesIO
         return DstBytes(BytesIO())
 
     @classmethod
     def from_data(cls, data):
         """Create a new instance for reading the given bytes object."""
-        from io import BytesIO
         return DstBytes(BytesIO(data))
 
     @classmethod
@@ -622,7 +620,6 @@ class DstBytes(object):
             # We open the file and read it completely into memory.
             # This actually speeds up I/O because we perform many small
             # operations which are faster on BytesIO.
-            from io import BytesIO
             with open(arg, 'rb') as f:
                 data = f.read()
             return cls(BytesIO(data))

@@ -157,10 +157,7 @@ def main():
 
     if args.IN == '-':
         from io import BytesIO
-        buf = BytesIO()
-        buf.write(sys.stdin.buffer.read())
-        buf.seek(0)
-        srcarg = buf
+        srcarg = BytesIO(sys.stdin.buffer.read())
     else:
         srcarg = args.IN
     content = DefaultProbers.level_like.read(srcarg)

@@ -48,12 +48,10 @@ def main():
                 p("")
                 p(f"File: {fname!r}")
             if fname == '-':
-                buf = BytesIO()
-                buf.write(sys.stdin.buffer.read())
-                buf.seek(0)
-                obj = prober.maybe(buf)
+                srcarg = BytesIO(sys.stdin.buffer.read())
             else:
-                obj = prober.maybe(fname)
+                srcarg = fname
+            obj = prober.maybe(srcarg)
             p.print_data_of(obj)
         except BrokenPipeError:
             # suppress warning message when stdout gets closed

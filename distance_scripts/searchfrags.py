@@ -3,7 +3,6 @@
 
 import argparse
 import re
-from io import BytesIO
 
 from distance import DefaultProbers
 from distance.level import Level
@@ -82,8 +81,7 @@ class FragmentMatcher(object):
                         matches.append(("Other version", None, repr(probe_sec)))
 
         pos = 0
-        buf = BytesIO(data)
-        db = DstBytes(buf)
+        db = DstBytes.from_data(data)
         while pos < len(data):
             db.seek(pos)
             try:
