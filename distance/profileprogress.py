@@ -9,7 +9,7 @@ from construct import (
     this, len_,
 )
 
-from .bytes import BytesModel, Magic, Section
+from .bytes import Magic, Section
 from .base import (
     BaseObject,
     ForwardFragmentAttrs,
@@ -57,52 +57,6 @@ def format_score(mode, score, comp):
         else:
             score_str = str(score)
     return f"{mode_str} {type_str}: {score_str} ({comp_str})"
-
-
-class LevelProgress(BytesModel):
-
-    level_path = None
-    completion = ()
-    scores = ()
-
-    def _read(self, dbytes, version=None):
-        self.level_path = dbytes.read_str()
-        dbytes.read_str() # unknown
-        dbytes.read_bytes(1) # unknown
-
-        dbytes.require_equal_uint4(Magic[1])
-        num_levels = dbytes.read_uint4()
-        self.completion = completion = []
-        for i in range(num_levels):
-            completion.append(dbytes.read_uint4())
-
-        dbytes.require_equal_uint4(Magic[1])
-        num_levels = dbytes.read_uint4()
-        self.scores = scores = []
-        for i in range(num_levels):
-            scores.append(dbytes.read_int4())
-        if version > 2:
-            dbytes.read_bytes(8)
-
-    def _print_data(self, p):
-        p(f"Level path: {self.level_path!r}")
-        for mode, (score, comp) in enumerate(zip(self.scores, self.completion)):
-            if comp != Completion.UNPLAYED:
-                p(format_score(mode, score, comp))
-
-
-class StringEntry(BytesModel):
-
-    value = None
-
-    def _read(self, dbytes):
-        self.value = dbytes.read_str()
-
-    def _write(self, dbytes):
-        dbytes.write_str(self.value)
-
-    def _print_data(self, p):
-        p(f"Value: {self.value!r}")
 
 
 @FRAG_PROBER.fragment(any_version=True)
