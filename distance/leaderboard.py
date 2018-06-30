@@ -3,17 +3,27 @@
 
 from operator import attrgetter
 
-from .bytes import BytesModel, Magic, Section
+from construct import (
+    Struct, Computed, Rebuild, If, Default,
+    Bytes,
+    this, len_,
+)
+
+from .bytes import Magic, Section
 from .base import (
-    BaseObject, Fragment,
+    BaseObject,
     ForwardFragmentAttrs,
     require_type,
+)
+from .construct import (
+    BaseConstructFragment,
+    UInt, DstString, Long,
 )
 from .printing import format_duration
 from ._default_probers import DefaultProbers
 
 
-NO_REPLAY = 0xffffffffffffffff
+NO_REPLAY = 0xffffffff_ffffffff
 
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
@@ -22,53 +32,37 @@ FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
-class Entry(BytesModel):
-
-    playername = None
-    time = None
-    replay = None
-
-    def _read(self, dbytes, version=None):
-        self.playername = dbytes.read_str()
-        self.time = dbytes.read_uint4()
-        if version == 0:
-            dbytes.read_bytes(4)
-        elif version == 1:
-            self.replay = dbytes.read_uint8()
-            dbytes.read_bytes(12)
-        else:
-            raise ValueError(f"unknown version: {version}")
-
-
 @FRAG_PROBER.fragment(any_version=True)
-class LeaderboardFragment(Fragment):
+class LeaderboardFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x37)
 
-    version = None
-    entries = None
-
-    def _read_section_data(self, dbytes, sec):
-        self.version = version = sec.version
-        num_entries = dbytes.read_uint4()
-        start = sec.content_start + 8
-        if version >= 1:
-            start += 4
-        self.entries = Entry.lazy_n_maybe(dbytes, num_entries,
-                                          start_pos=start,
-                                          version=version)
+    _construct = Struct(
+        version = Computed(this._params.sec.version),
+        num_entries = Rebuild(UInt, len_(this.entries)),
+        unk_1 = Bytes(4),
+        unk_2 = If(this.version >= 1, Bytes(4)),
+        entries = Struct(
+            playername = DstString,
+            time = UInt,
+            unk_1 = If(this._.version == 0, UInt),
+            replay = If(this._.version >= 1, Default(Long, NO_REPLAY)),
+            unk_2 = If(this._.version >= 1, Bytes(12))
+        )[this.num_entries],
+    )
 
 
 @FILE_PROBER.for_type
-@ForwardFragmentAttrs(LeaderboardFragment, version=None, entries=())
+@ForwardFragmentAttrs(LeaderboardFragment, **LeaderboardFragment._fields_map)
 @require_type
 class Leaderboard(BaseObject):
 
     type = FTYPE_LEADERBOARD
 
     def _print_data(self, p):
+        super()._print_data(p)
         p(f"Version: {self.version}")
-        entries = self.entries
+        entries = self.entries or ()
         p(f"Entries: {len(entries)}")
         if 'nosort' not in p.flags:
             nones = [e for e in entries if e.time is None]
@@ -81,8 +75,6 @@ class Leaderboard(BaseObject):
             if entry.replay is not None and entry.replay != NO_REPLAY:
                 rep_str = f" Replay: {entry.replay:X}"
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
-            if entry.exception:
-                p.print_exception(entry.exception)
 
 
 FRAG_PROBER.commit()

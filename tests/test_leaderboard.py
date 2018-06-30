@@ -2,6 +2,7 @@ import unittest
 
 from distance.leaderboard import Leaderboard
 from distance.printing import PrintContext
+from .common import check_exceptions, write_read
 
 
 class Version0Test(unittest.TestCase):
@@ -9,19 +10,26 @@ class Version0Test(unittest.TestCase):
     def test_version0(self):
         lb = Leaderboard("tests/in/leaderboard/version_0.bytes")
         entries = lb.entries
+        check_exceptions(lb)
         self.assertEqual([e.time for e in entries],
                             [162468, 152668, 135258, 581374, 127799, 182704, 517334])
         self.assertEqual([e.playername for e in entries],
                             ['\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7fFerreus'] * 6
                             + ['Ferreus'])
         self.assertEqual(lb.version, 0)
-        for entry in entries:
-            if entry.exception:
-                raise entry.exception
 
     def test_print_data(self):
         p = PrintContext.for_test()
         p.print_data_of(Leaderboard("tests/in/leaderboard/version_0.bytes"))
+
+    def test_modify_write_read(self):
+        lb = Leaderboard("tests/in/leaderboard/version_0.bytes")
+        lb.entries = lb.entries[-3:]
+
+        res, rdb = write_read(lb)
+
+        self.assertEqual([e.time for e in res.entries],
+                         [127799, 182704, 517334])
 
 
 class Version1Test(unittest.TestCase):
@@ -37,30 +45,28 @@ class Version1Test(unittest.TestCase):
                             ['Ferreus'] * 13 + ['\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7fFerreus'] + ['Ferreus'] * 3
                             + ['\x7f\x7f\x7f\x7f\x7f\x7f\x7f\x7fFerreus'] + ['Ferreus'] * 2)
         self.assertEqual(lb.version, 1)
-        self.assertTrue(entries[-1].sane_end_pos)
 
     def test_truncated(self):
         lb = Leaderboard.maybe("tests/in/leaderboard/version_1_truncated.bytes")
-        entries = lb.entries
-        self.assertEqual([e.time for e in entries],
-                            [57400, 57570, 58110, 58470, 58820, None])
-        self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5 + [None])
-        self.assertEqual(lb.version, 1)
-        self.assertEqual(EOFError, type(entries[-1].exception))
-        self.assertFalse(entries[-1].sane_end_pos)
+        self.assertRaises(EOFError, check_exceptions, lb)
 
     def test_truncated2(self):
         lb = Leaderboard.maybe("tests/in/leaderboard/version_1_truncated_2.bytes")
-        entries = lb.entries
-        self.assertEqual([e.time for e in entries],
-                            [57400, 57570, 58110, 58470, None])
-        self.assertEqual([e.playername for e in entries], ['Ferreus'] * 5)
-        self.assertEqual(lb.version, 1)
-        self.assertFalse(entries[-1].sane_end_pos)
+        self.assertRaises(EOFError, check_exceptions, lb)
 
     def test_print_data(self):
         p = PrintContext.for_test()
         p.print_data_of(Leaderboard("tests/in/leaderboard/version_1.bytes"))
+
+    def test_modify_write_read(self):
+        lb = Leaderboard("tests/in/leaderboard/version_1.bytes")
+        lb.entries = lb.entries[-3:]
+
+        res, rdb = write_read(lb)
+
+        check_exceptions(res)
+        self.assertEqual([e.time for e in res.entries],
+                         [105157, 104042, 99116])
 
 
 # vim:set sw=4 ts=8 sts=4 et:
