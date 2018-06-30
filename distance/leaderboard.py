@@ -42,13 +42,13 @@ class LeaderboardFragment(BaseConstructFragment):
         num_entries = Rebuild(UInt, len_(this.entries)),
         unk_1 = Bytes(4),
         unk_2 = If(this.version >= 1, Bytes(4)),
-        entries = Struct(
+        entries = Default(Struct(
             playername = DstString,
             time = UInt,
             unk_1 = If(this._.version == 0, UInt),
             replay = If(this._.version >= 1, Default(Long, NO_REPLAY)),
             unk_2 = If(this._.version >= 1, Bytes(12))
-        )[this.num_entries],
+        )[this.num_entries], ()),
     )
 
 
@@ -62,7 +62,7 @@ class Leaderboard(BaseObject):
     def _print_data(self, p):
         super()._print_data(p)
         p(f"Version: {self.version}")
-        entries = self.entries or ()
+        entries = self.entries
         p(f"Entries: {len(entries)}")
         if 'nosort' not in p.flags:
             nones = [e for e in entries if e.time is None]
