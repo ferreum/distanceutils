@@ -112,6 +112,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
             try:
                 self.data = self._construct.parse_stream(dbytes.file, sec=sec)
             except ConstructError as e:
+                self.data = Container()
                 raise ValueError from e
         else:
             # Data is empty - game falls back to defaults here.
