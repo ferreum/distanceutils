@@ -32,7 +32,7 @@ class ProfileProgressTest(unittest.TestCase):
         self.assertEqual(levels[0].completion[Mode.SPRINT], Completion.DIAMOND)
         stats = obj.stats
         check_exceptions(stats)
-        self.assertEqual(13, stats.stats['impacts'])
+        self.assertEqual(13, stats.impacts)
 
     def test_print_data(self):
         p = PrintContext.for_test()

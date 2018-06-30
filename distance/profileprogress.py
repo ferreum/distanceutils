@@ -1,14 +1,23 @@
 """ProfilePrgress .bytes support."""
 
 
-from collections import OrderedDict
 from itertools import islice
 
-from .bytes import BytesModel, Magic, Section, S_DOUBLE
+from construct import (
+    Struct, Default, Computed, PrefixedArray, Const, StopIf,
+    Bytes,
+    this,
+)
+
+from .bytes import BytesModel, Magic, Section
 from .base import (
     BaseObject, Fragment,
     ForwardFragmentAttrs,
     require_type
+)
+from .construct import (
+    BaseConstructFragment,
+    UInt, Double, Long, DstString,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -101,222 +110,150 @@ class StringEntry(BytesModel):
         p(f"Value: {self.value!r}")
 
 
-class Stat(object):
-
-    def __init__(self, type, ident, unit='num', nbytes=None):
-        if type == 'd':
-            def _read(dbytes):
-                return dbytes.read_struct(S_DOUBLE)[0]
-        elif type == 'u8':
-            def _read(dbytes):
-                return dbytes.read_uint8()
-        elif type == 'unk':
-            def _read(dbytes):
-                return dbytes.read_bytes(nbytes)
-        else:
-            raise ValueError(f"invalid type: {type!r}")
-        self.read_value = _read
-        if unit == 'sec':
-            self.format = lambda v: format_duration_dhms(v * 1000)
-        elif unit == 'num':
-            self.format = str
-        elif unit == 'unknown':
-            self.format = str
-        elif unit == 'meters':
-            self.format = format_distance
-        elif unit == 'ev':
-            self.format = lambda v: f"{v:,d} eV"
-        else:
-            raise ValueError(f"invalid unit: {unit!r}")
-        self.ident = ident
-        self.type = type
-        self.unit = unit
-
-    def read_value(self, dbytes):
-        raise NotImplementedError
-
-
-class AttrOrderedDict(OrderedDict):
-
-    def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
-            raise AttributeError(name)
-
-
-STATS = AttrOrderedDict((s.ident, s) for s in (
-    Stat('u8', 'deaths'),
-    Stat('u8', 'laser_deaths'),
-    Stat('u8', 'reset_deaths'),
-    Stat('u8', 'impact_deaths'),
-    Stat('u8', 'overheat_deaths'),
-    Stat('u8', 'killgrid_deaths'),
-    Stat('d', 'gibs_time', 'sec'),
-    Stat('d', 'unk_0', 'meters'),
-    Stat('d', 'forward', 'meters'),
-    Stat('d', 'reverse', 'meters'),
-    Stat('d', 'air_fly', 'meters'),
-    Stat('d', 'air_nofly', 'meters'),
-    Stat('d', 'wallride', 'meters'),
-    Stat('d', 'ceilingride', 'meters'),
-    Stat('d', 'grinding', 'meters'),
-    Stat('d', 'boost', 'sec'),
-    Stat('d', 'grip', 'sec'),
-    Stat('u8', 'splits'),
-    Stat('u8', 'impacts'),
-    Stat('u8', 'checkpoints'),
-    Stat('u8', 'jumps'),
-    Stat('u8', 'wings'),
-    Stat('u8', 'unk_1', 'unknown'),
-    Stat('u8', 'horns'),
-    Stat('u8', 'tricks'),
-    Stat('u8', 'ev', 'ev'),
-    Stat('u8', 'lamps'),
-    Stat('u8', 'pumpkins'),
-    Stat('u8', 'eggs'),
-    Stat('u8', 'unk_2', 'unknown'),
-    Stat('u8', 'unk_3', 'unknown'),
-    Stat('u8', 'unk_4', 'unknown'),
-    Stat('u8', 'cooldowns'),
-    Stat('d', 'total', 'sec'),
-    Stat('d', 'editor_working', 'sec'),
-    Stat('d', 'editor_playing', 'sec'),
-))
-
-
 @FRAG_PROBER.fragment(any_version=True)
-class ProfileStatsFragment(Fragment):
+class ProfileStatsFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x8e)
 
     is_interesting = True
 
-    version = None
-    stats = {}
-    modes_offline = ()
-    modes_online = ()
-    trackmogrify_mods = ()
-
-    def _read_section_data(self, dbytes, sec):
-        def read_double():
-            return dbytes.read_struct(S_DOUBLE)[0]
-        self.version = version = sec.version
-
-        dbytes.read_bytes(4) # unknown
-
-        self.stats = stats = {}
-        for k, stat in STATS.items():
-            stats[k] = stat.read_value(dbytes)
-
-        dbytes.require_equal_uint4(Magic[1])
-        num = dbytes.read_uint4()
-        self.modes_offline = offline_times = []
-        for i in range(num):
-            offline_times.append(read_double())
-
-        dbytes.require_equal_uint4(Magic[1])
-        num = dbytes.read_uint4()
-        self.modes_unknown = modes_unknown = []
-        for i in range(num):
-            modes_unknown.append(dbytes.read_uint8())
-
-        dbytes.require_equal_uint4(Magic[1])
-        num = dbytes.read_uint4()
-        self.modes_online = online_times = []
-        for i in range(num):
-            online_times.append(read_double())
-
-        if version >= 1:
-            dbytes.read_bytes(8)
-            dbytes.require_equal_uint4(Magic[1])
-            num = dbytes.read_uint4()
-            self.trackmogrify_mods = mods = []
-            for i in range(num):
-                mods.append(dbytes.read_str())
+    _construct = Struct(
+        'version' / Computed(this._params.sec.version),
+        'unk_0' / Bytes(4),
+        'deaths' / Long,
+        'laser_deaths' / Long,
+        'reset_deaths' / Long,
+        'impact_deaths' / Long,
+        'overheat_deaths' / Long,
+        'killgrid_deaths' / Long,
+        'gibs_seconds' / Double,
+        'unk_1' / Double,
+        'forward_meters' / Double,
+        'reverse_meters' / Double,
+        'air_fly_meters' / Double,
+        'air_nofly_meters' / Double,
+        'wallride_meters' / Double,
+        'ceilingride_meters' / Double,
+        'grinding_meters' / Double,
+        'boost_seconds' / Double,
+        'grip_seconds' / Double,
+        'splits' / Long,
+        'impacts' / Long,
+        'checkpoints' / Long,
+        'jumps' / Long,
+        'wings' / Long,
+        'unk_2' / Long,
+        'horns' / Long,
+        'tricks' / Long,
+        'ev' / Long,
+        'lamps' / Long,
+        'pumpkins' / Long,
+        'eggs' / Long,
+        'unk_3' / Long,
+        'unk_4' / Long,
+        'unk_5' / Long,
+        'cooldowns' / Long,
+        'total_seconds' / Double,
+        'editor_working_seconds' / Double,
+        'editor_playing_seconds' / Double,
+        Const(Magic[1], UInt),
+        'offline_times' / Default(PrefixedArray(UInt, Double), ()),
+        Const(Magic[1], UInt),
+        'modes_unknown' / Default(PrefixedArray(UInt, Long), ()),
+        Const(Magic[1], UInt),
+        'online_times' / Default(PrefixedArray(UInt, Double), ()),
+        StopIf(this.version < 1),
+        'unk_6' / Bytes(8),
+        Const(Magic[1], UInt),
+        'trackmogrify_mods' / Default(PrefixedArray(UInt, DstString), ()),
+    )
 
     def _print_data(self, p):
         super()._print_data(p)
         p(f"Player stats version: {self.version}")
-        s = STATS
-        values = self.stats
 
         def ps(stat, name):
-            value = values.get(stat.ident, None)
+            value = getattr(self, stat)
             if value is None:
                 val_str = "None"
+            elif stat.endswith('_seconds'):
+                val_str = format_duration_dhms(value)
+            elif stat.endswith('_meters'):
+                val_str = format_distance(value)
+            elif stat == 'ev':
+                val_str = f"{value:,d} eV"
             else:
-                val_str = stat.format(value)
+                val_str = repr(value)
             p(f"{name}: {val_str}")
 
-        ps(s.total, "All play time")
+        ps('total_seconds', "All play time")
         with p.tree_children():
-            total_in_modes = sum(self.modes_offline) + sum(self.modes_online)
+            total_in_modes = sum(self.offline_times) + sum(self.online_times)
             p.tree_next_child()
             p(f"Total time in modes: {format_duration_dhms(total_in_modes * 1000)}")
-            total_offline = sum(self.modes_offline)
-            total_online = sum(self.modes_online)
+            total_offline = sum(self.offline_times)
+            total_online = sum(self.online_times)
             p.tree_next_child()
             p(f"Total time in offline modes: {format_duration_dhms(total_offline * 1000)}")
             with p.tree_children():
-                for mode, time in enumerate(self.modes_offline):
+                for mode, time in enumerate(self.offline_times):
                     if time >= 0.001:
                         p.tree_next_child()
                         p(f"Time playing {Mode.to_name(mode)} offline: {format_duration_dhms(time * 1000)}")
             p.tree_next_child()
             p(f"Total time in online modes: {format_duration_dhms(total_online * 1000)}")
             with p.tree_children():
-                for mode, time in enumerate(self.modes_online):
+                for mode, time in enumerate(self.online_times):
                     if time >= 0.001:
                         p.tree_next_child()
                         p(f"Time playing {Mode.to_name(mode)} online: {format_duration_dhms(time * 1000)}")
             p.tree_next_child()
-            ps(s.editor_working, "Time working in editor")
+            ps('editor_working_seconds', "Time working in editor")
             p.tree_next_child()
-            ps(s.editor_playing, "Time playing in editor")
+            ps('editor_playing_seconds', "Time playing in editor")
 
-        total_distance = sum(values.get(stat.ident) for stat in
-                             (s.forward, s.reverse, s.air_fly, s.air_nofly))
-        ps(s.deaths, "Total deaths")
+        total_distance = sum([self.forward_meters or 0, self.reverse_meters or 0,
+                              self.air_fly_meters or 0, self.air_nofly_meters or 0])
+        ps('deaths', "Total deaths")
         with p.tree_children():
-            ps(s.impact_deaths, "Impact deaths")
+            ps('impact_deaths', "Impact deaths")
             p.tree_next_child()
-            ps(s.killgrid_deaths, "Killgrid deaths")
+            ps('killgrid_deaths', "Killgrid deaths")
             p.tree_next_child()
-            ps(s.laser_deaths, "Laser deaths")
+            ps('laser_deaths', "Laser deaths")
             p.tree_next_child()
-            ps(s.overheat_deaths, "Overheat deaths")
+            ps('overheat_deaths', "Overheat deaths")
             p.tree_next_child()
-            ps(s.reset_deaths, "Reset deaths")
+            ps('reset_deaths', "Reset deaths")
             p.tree_next_child()
-            ps(s.gibs_time, "Gibs time")
-        ps(s.impacts, "Impact count")
-        ps(s.splits, "Split count")
-        ps(s.checkpoints, "Checkpoints hit")
-        ps(s.cooldowns, "Cooldowns hit")
+            ps('gibs_seconds', "Gibs time")
+        ps('impacts', "Impact count")
+        ps('splits', "Split count")
+        ps('checkpoints', "Checkpoints hit")
+        ps('cooldowns', "Cooldowns hit")
         p(f"Distance traveled: {format_distance(total_distance)}")
         with p.tree_children():
-            ps(s.forward, "Distance driven forward")
+            ps('forward_meters', "Distance driven forward")
             p.tree_next_child()
-            ps(s.reverse, "Distance driven reverse")
+            ps('reverse_meters', "Distance driven reverse")
             p.tree_next_child()
-            ps(s.air_fly, "Distance airborn flying")
+            ps('air_fly_meters', "Distance airborn flying")
             p.tree_next_child()
-            ps(s.air_nofly, "Distance airborn not flying")
+            ps('air_nofly_meters', "Distance airborn not flying")
             p.tree_next_child()
-            ps(s.wallride, "Distance wall riding")
+            ps('wallride_meters', "Distance wall riding")
             p.tree_next_child()
-            ps(s.ceilingride, "Distance ceiling riding")
+            ps('ceilingride_meters', "Distance ceiling riding")
             p.tree_next_child()
-            ps(s.grinding, "Distance grinding")
-        ps(s.lamps, "Lamps broken")
-        ps(s.pumpkins, "Pumpkins smashed")
-        ps(s.eggs, "Eggs cracked")
-        ps(s.boost, "Boost held down time")
-        ps(s.grip, "Grip held down time")
-        ps(s.jumps, "Jump count")
-        ps(s.wings, "Wings count")
-        ps(s.horns, "Horn count")
+            ps('grinding_meters', "Distance grinding")
+        ps('lamps', "Lamps broken")
+        ps('pumpkins', "Pumpkins smashed")
+        ps('eggs', "Eggs cracked")
+        ps('boost_seconds', "Boost held down time")
+        ps('grip_seconds', "Grip held down time")
+        ps('jumps', "Jump count")
+        ps('wings', "Wings count")
+        ps('horns', "Horn count")
         if total_in_modes:
             avg_speed = total_distance / total_in_modes * 3.6
         else:
