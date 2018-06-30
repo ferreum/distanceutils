@@ -17,7 +17,7 @@ from .base import (
 )
 from .construct import (
     BaseConstructFragment,
-    UInt, Int, Double, Long, DstString,
+    UInt, Int, Double, Long, DstString, Remainder,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -288,15 +288,17 @@ class ProfileProgressFragment(BaseConstructFragment):
         )[this.num_levels], ()),
         Const(Magic[1], UInt),
         'officials' / Default(PrefixedArray(UInt, DstString), ()),
+        'unk_1' / If(this.version < 6, Remainder),
         StopIf(this.version < 6),
-        'unk_1' / Bytes(36),
+        'unk_2' / Bytes(36),
         Const(Magic[1], UInt),
         'tricks' / Default(PrefixedArray(UInt, DstString), ()),
         Const(Magic[1], UInt),
         'unlocked_adventures' / Default(PrefixedArray(UInt, DstString), ()),
-        'unk_2' / Bytes(10),
+        'unk_3' / Bytes(10),
         Const(Magic[1], UInt),
         'somelevels' / Default(PrefixedArray(UInt, DstString), ()),
+        'unk_4' / Remainder,
     )
 
     def _print_data(self, p):

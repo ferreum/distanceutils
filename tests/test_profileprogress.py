@@ -4,6 +4,7 @@ from distance.profileprogress import ProfileProgress
 from distance.printing import PrintContext
 from distance.constants import Completion, Mode
 from distance import DefaultProbers
+from . import common
 from .common import check_exceptions, write_read
 
 
@@ -73,6 +74,24 @@ class ProfileProgressTest(unittest.TestCase):
         res, rdb = write_read(obj)
 
         self.assertEqual(res.stats.horns, 10003445333456)
+
+
+class WriteReadVersion2Test(common.WriteReadTest):
+
+    filename = "tests/in/profileprogress/levels_version_2.bytes"
+    read_obj = ProfileProgress
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.levels[1].level_path, 'OfficialLevels/credits.bytes')
+
+
+class WriteReadVersion6Test(common.WriteReadTest):
+
+    filename = "tests/in/profileprogress/unlocked adventure.bytes"
+    read_obj = ProfileProgress
+
+    def verify_obj(self, obj):
+        self.assertAlmostEqual(obj.stats.boost_seconds, 81.32745432853699)
 
 
 if __name__ == '__main__':
