@@ -1,11 +1,23 @@
 """LevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, Magic, Section, S_FLOAT
+from operator import attrgetter
+
+from construct import (
+    Struct, Default, Rebuild, Computed, PrefixedArray, Byte,
+    Bytes, Const, StopIf,
+    this, len_,
+)
+
+from .bytes import Magic, Section
 from .base import (
-    BaseObject, Fragment,
+    BaseObject,
     ForwardFragmentAttrs,
     require_type,
+)
+from .construct import (
+    BaseConstructFragment,
+    UInt, Int, Float, DstString,
 )
 from .printing import format_duration
 from .constants import Mode
@@ -19,71 +31,60 @@ FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
 
-class Entry(BytesModel):
-
-    level_name = None
-    level_path = None
-    level_basename = None
-    modes = ()
-    medal_times = ()
-    medal_scores = ()
-    description = None
-    author_name = None
-
-    def _read(self, dbytes, version=0):
-        self.level_name = dbytes.read_str()
-        self.level_path = dbytes.read_str()
-        self.level_basename = dbytes.read_str()
-        dbytes.read_bytes(16)
-        dbytes.require_equal_uint4(Magic[12])
-        num_modes = dbytes.read_uint4()
-        self.modes = modes = {}
-        for _ in range(num_modes):
-            mode = dbytes.read_uint4()
-            modes[mode] = dbytes.read_byte()
-        self.medal_times = times = []
-        self.medal_scores = scores = []
-        for _ in range(4):
-            times.append(dbytes.read_struct(S_FLOAT)[0])
-            scores.append(dbytes.read_int4())
-        dbytes.read_bytes(25)
-        if version >= 2:
-            self.description = dbytes.read_str()
-            self.author_name = dbytes.read_str()
-
-    def _print_data(self, p):
-        p(f"Level name: {self.level_name!r}")
-        p(f"Level path: {self.level_path!r}")
-        p(f"Level basename: {self.level_basename!r}")
-        if self.modes:
-            mode_str = ', '.join(Mode.to_name(m) for m, e in sorted(self.modes.items()) if e)
-            p(f"Enabled modes: {mode_str or 'None'}")
-        if self.medal_times:
-            times_str = ', '.join(format_duration(t) for t in reversed(self.medal_times))
-            p(f"Medal times: {times_str}")
-        if self.medal_scores:
-            scores_str = ', '.join(str(s) for s in reversed(self.medal_scores))
-            p(f"Medal scores: {scores_str}")
-        if self.author_name:
-            p(f"Author: {self.author_name!r}")
-        if self.description and 'description' in p.flags:
-            p(f"Description: {self.description}")
-
-
 @FRAG_PROBER.fragment
-class LevelInfosFragment(Fragment):
+class LevelInfosFragment(BaseConstructFragment):
 
     default_container = Section(Magic[2], 0x97, 0)
 
-    version = None
-    levels = ()
+    is_interesting = True
 
-    def _read_section_data(self, dbytes, sec):
-        self.version = sec.version
-        num_entries = dbytes.read_uint4()
-        entry_version = dbytes.read_uint4()
-        self.levels = Entry.lazy_n_maybe(
-            dbytes, num_entries, version=entry_version)
+    _construct = Struct(
+        'version' / Computed(this._params.sec.version),
+        'num_entries' / Rebuild(UInt, len_(this.levels)),
+        'entry_version' / UInt,
+        'levels' / Default(Struct(
+            'level_name' / DstString,
+            'level_path' / DstString,
+            'level_basename' / DstString,
+            'unk_0' / Bytes(16),
+            Const(Magic[12], UInt),
+            'modes' / Default(PrefixedArray(UInt, Struct(
+                'mode' / UInt,
+                'enabled' / Byte,
+            )), ()),
+            'medals' / Struct(
+                'time' / Float,
+                'score' / Int,
+            )[4],
+            'unk_1' / Bytes(25),
+            StopIf(this._.entry_version < 2),
+            'description' / Default(DstString, None),
+            'author_name' / Default(DstString, None),
+        )[this.num_entries], ()),
+    )
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        with p.tree_children():
+            for level in self.levels:
+                p.tree_next_child()
+                p(f"Level name: {level.level_name!r}")
+                p(f"Level path: {level.level_path!r}")
+                p(f"Level basename: {level.level_basename!r}")
+                if level.modes:
+                    mode_str = ', '.join(Mode.to_name(e.mode)
+                                         for e in sorted(level.modes, key=attrgetter('mode'))
+                                         if e.enabled)
+                    p(f"Enabled modes: {mode_str or 'None'}")
+                if level.medals:
+                    times_str = ', '.join(format_duration(m.time) for m in reversed(level.medals))
+                    p(f"Medal times: {times_str}")
+                    scores_str = ', '.join(repr(m.score) for m in reversed(level.medals))
+                    p(f"Medal scores: {scores_str}")
+                if level.get('author_name', None):
+                    p(f"Author: {level.author_name!r}")
+                if level.get('description', None) and 'description' in p.flags:
+                    p(f"Description: {level.description}")
 
 
 @FILE_PROBER.for_type
@@ -92,14 +93,6 @@ class LevelInfosFragment(Fragment):
 class LevelInfos(BaseObject):
 
     type = FTYPE_LEVELINFOS
-
-    def _print_data(self, p):
-        p(f"Version: {self.version}")
-        p(f"Level entries: {len(self.levels)}")
-        with p.tree_children():
-            for entry in self.levels:
-                p.tree_next_child()
-                p.print_data_of(entry)
 
 
 FRAG_PROBER.commit()
