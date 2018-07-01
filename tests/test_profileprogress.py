@@ -94,8 +94,4 @@ class WriteReadVersion6Test(common.WriteReadTest):
         self.assertAlmostEqual(obj.stats.boost_seconds, 81.32745432853699)
 
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 # vim:set sw=4 ts=8 sts=4 et:
