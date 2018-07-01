@@ -3,6 +3,7 @@ import unittest
 from distance.levelinfos import LevelInfos
 from distance.printing import PrintContext
 from distance._common import ModesMapperProperty
+from . import common
 
 
 class Version0LevelsTest(unittest.TestCase):
@@ -80,6 +81,24 @@ class Version0EntryVersion2AuthorTest(unittest.TestCase):
         self.assertEqual("Pinapl", self.levels[0].author_name)
 
         self.assertEqual("Rekall", self.levels[1].level_name)
+
+
+class Version0WriteReadTest(common.WriteReadTest):
+
+    filename = "tests/in/levelinfos/LevelInfos.bytes"
+    read_obj = LevelInfos
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.levels[1].level_name, "Main Menu Datastream")
+
+
+class Version2WriteReadTest(common.WriteReadTest):
+
+    filename = "tests/in/levelinfos/LevelInfos v2.bytes"
+    read_obj = LevelInfos
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.levels[1].level_name, "Rekall")
 
 
 # vim:set sw=4 ts=8 sts=4 et:
