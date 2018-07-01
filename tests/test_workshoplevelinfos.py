@@ -2,6 +2,7 @@ import unittest
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance.printing import PrintContext
+from . import common
 from .common import check_exceptions
 
 
@@ -56,6 +57,15 @@ class Version0Test(unittest.TestCase):
         p = PrintContext.for_test()
         obj = WorkshopLevelInfos("tests/in/workshoplevelinfos/version_0.bytes")
         p.print_data_of(obj)
+
+
+class Version0WriteReadTest(common.WriteReadTest):
+
+    filename = "tests/in/workshoplevelinfos/version_0.bytes"
+    read_obj = WorkshopLevelInfos
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.levels[-1].title, "Recovering")
 
 
 # vim:set sw=4 ts=8 sts=4 et:
