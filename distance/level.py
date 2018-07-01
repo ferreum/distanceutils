@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from construct import (
     Struct, Sequence,
-    Rebuild, If, Computed,
+    PrefixedArray, If, Computed,
     Container, ListContainer,
     this, len_,
 )
@@ -117,11 +117,10 @@ class LevelSettingsFragment(BaseConstructFragment):
         description = If(this.version >= 25, DstString),
         author_name = If(this.version >= 25, DstString),
         unk_1 = Bytes(4),
-        num_modes = Rebuild(UInt, len_(this.modes_list)),
-        modes_list = Struct(
+        modes_list = PrefixedArray(UInt, Struct(
             mode = UInt,
             enabled = Byte,
-        )[this.num_modes],
+        )),
         music_id = UInt,
         skybox_name = If(this.version <= 3, DstString),
         unk_2 = Bytes(get_unk_2_size),
