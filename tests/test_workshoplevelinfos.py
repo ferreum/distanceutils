@@ -2,6 +2,7 @@ import unittest
 
 from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance.printing import PrintContext
+from .common import check_exceptions
 
 
 class Version0Test(unittest.TestCase):
@@ -42,30 +43,14 @@ class Version0Test(unittest.TestCase):
         self.assertEqual([l.rating for l in levels][:9],
                             [1, 0, 0, 1, 2, 0, 0, 0, 1])
         self.assertEqual(39, len(levels))
-        self.assertEqual([(o.sane_end_pos, o.exception) for o in levels], [(True, None)] * 39)
 
     def test_truncated(self):
         infos = WorkshopLevelInfos.maybe("tests/in/workshoplevelinfos/version_0_truncated.bytes")
-        gen = iter(infos.levels)
-        level = next(gen)
-        self.assertEqual(level.id, 469806096)
-        self.assertIsNone(level.exception)
-        self.assertTrue(level.sane_end_pos)
-        level = next(gen)
-        self.assertEqual(level.id, 822049253)
-        self.assertIsNone(level.author)
-        self.assertIsNone(level.authorid)
-        self.assertIsInstance(level.exception, EOFError)
-        self.assertFalse(level.sane_end_pos)
+        self.assertRaises(EOFError, check_exceptions, infos)
 
     def test_truncated_2(self):
         infos = WorkshopLevelInfos.maybe("tests/in/workshoplevelinfos/version_0_truncated_2.bytes")
-        gen = iter(infos.levels)
-        level = next(gen)
-        self.assertIsNone(level.exception)
-        level = next(gen)
-        self.assertIsInstance(level.exception, EOFError)
-        self.assertFalse(level.sane_end_pos)
+        self.assertRaises(EOFError, check_exceptions, infos)
 
     def test_print(self):
         p = PrintContext.for_test()

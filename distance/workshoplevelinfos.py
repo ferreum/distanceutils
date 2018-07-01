@@ -1,11 +1,20 @@
 """WorkshopLevelInfos .bytes support."""
 
 
-from .bytes import BytesModel, Magic, Section
+from construct import (
+    Struct, Default, Rebuild, Byte, Bytes,
+    this, len_,
+)
+
+from .bytes import Magic, Section
 from .base import (
-    BaseObject, Fragment,
+    BaseObject,
     ForwardFragmentAttrs,
     require_type,
+)
+from .construct import (
+    BaseConstructFragment,
+    UInt, ULong, DstString
 )
 from .constants import Rating
 from ._default_probers import DefaultProbers
@@ -24,61 +33,37 @@ def format_date(date):
     return str(datetime.fromtimestamp(date))
 
 
-class Level(BytesModel):
-
-    id = None
-    title = None
-    description = None
-    updated_date = None
-    published_date = None
-    tags = None
-    authorid = None
-    author = None
-    path = None
-    published_by_user = None
-    upvotes = None
-    downvotes = None
-    rating = None
-
-    def _read(self, dbytes):
-        self.id = dbytes.read_uint8()
-        self.title = dbytes.read_str()
-        self.description = dbytes.read_str()
-        self.updated_date = dbytes.read_uint4()
-        self.published_date = dbytes.read_uint4()
-        self.tags = dbytes.read_str()
-        self.authorid = dbytes.read_uint8()
-        self.author = dbytes.read_str()
-        self.path = dbytes.read_str()
-        self.published_by_user = dbytes.read_byte()
-        dbytes.read_bytes(7)
-        self.upvotes = dbytes.read_uint4()
-        self.downvotes = dbytes.read_uint4()
-        dbytes.read_bytes(4)
-        self.rating = dbytes.read_uint4()
-
-
 @FRAG_PROBER.fragment
-class WorkshopLevelInfosFragment(Fragment):
+class WorkshopLevelInfosFragment(BaseConstructFragment):
 
     default_container = Section(Magic[2], 0x6d, 0)
 
-    levels = ()
+    is_interesting = True
 
-    def _read_section_data(self, dbytes, sec):
-        num_levels = dbytes.read_uint4()
-        self.levels = Level.lazy_n_maybe(dbytes, num_levels,
-                                         start_pos=sec.content_start + 8)
-
-
-@FILE_PROBER.for_type
-@ForwardFragmentAttrs(WorkshopLevelInfosFragment, levels=())
-@require_type
-class WorkshopLevelInfos(BaseObject):
-
-    type = FTYPE_WSLEVELINFOS
+    _construct = Struct(
+        'num_entries' / Rebuild(UInt, len_(this.levels)),
+        'unk_0' / UInt, # entry version?
+        'levels' / Default(Struct(
+            'id' / ULong,
+            'title' / DstString,
+            'description' / DstString,
+            'updated_date' / UInt,
+            'published_date' / UInt,
+            'tags' / DstString,
+            'authorid' / ULong,
+            'author' / DstString,
+            'path' / DstString,
+            'published_by_user' / Byte,
+            'unk_0' / Bytes(7),
+            'upvotes' / UInt,
+            'downvotes' / UInt,
+            'unk_1' / Bytes(4),
+            'rating' / UInt,
+        )[this.num_entries], ()),
+    )
 
     def _print_data(self, p):
+        super()._print_data(p)
         p(f"Levelinfos: {len(self.levels)}")
         with p.tree_children():
             for level in self.levels:
@@ -99,8 +84,14 @@ class WorkshopLevelInfos(BaseObject):
                     p(f"Description: {level.description}")
                 if level.rating is not None and level.rating != Rating.NONE:
                     p(f"Rating: {Rating.to_name(level.rating)}")
-                if level.exception:
-                    p.print_exception(level.exception)
+
+
+@FILE_PROBER.for_type
+@ForwardFragmentAttrs(WorkshopLevelInfosFragment, **WorkshopLevelInfosFragment._fields_map)
+@require_type
+class WorkshopLevelInfos(BaseObject):
+
+    type = FTYPE_WSLEVELINFOS
 
 
 FRAG_PROBER.commit()
