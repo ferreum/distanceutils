@@ -1,13 +1,10 @@
 """Level and level object (CustomObject) support."""
 
 
-from collections import OrderedDict
-
 from construct import (
     Struct, Sequence,
     PrefixedArray, If, Computed,
-    Container, ListContainer,
-    this, len_,
+    this,
 )
 
 from .bytes import Magic, Section
@@ -25,6 +22,11 @@ from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import print_objects
 from ._default_probers import DefaultProbers
+from ._common import (
+    ModesMapperProperty,
+    MedalTimesMapperProperty,
+    MedalScoresMapperProperty,
+)
 
 
 FILE_PROBER = DefaultProbers.file.transaction()
@@ -128,7 +130,7 @@ class LevelSettingsFragment(BaseConstructFragment):
         background_layer = If(this.version >= 25, DstString),
         # confirmed for v25..26
         unk_3 = If(this.version >= 25, Bytes(61)),
-        medals_list = Struct(
+        medals = Struct(
             time = Float,
             score = Int,
         )[4],
@@ -139,41 +141,11 @@ class LevelSettingsFragment(BaseConstructFragment):
 
     del get_unk_2_size
 
-    @property
-    def modes(self):
-        d = OrderedDict()
-        for elem in self.modes_list:
-            d[elem.mode] = elem.enabled
-        return d
+    modes = ModesMapperProperty('modes_list')
 
-    @modes.setter
-    def modes(self, value):
-        l = [Container(mode=k, enabled=v) for k, v in value.items()]
-        self.modes_list = ListContainer(l)
+    medal_times = MedalTimesMapperProperty('medals')
 
-    @property
-    def medal_times(self):
-        return [m.time for m in self.medals_list]
-
-    @medal_times.setter
-    def medal_times(self, value):
-        if len(value) != 4:
-            raise ValueError("Need four medal times")
-        l = [Container(time = t, score = m.score)
-             for t, m in zip(value, self.medal_list)]
-        self.medals_list = ListContainer(l)
-
-    @property
-    def medal_scores(self):
-        return [m.score for m in self.medals_list]
-
-    @medal_scores.setter
-    def medal_scores(self, value):
-        if len(value) != 4:
-            raise ValueError("Need four medal scores")
-        l = [Container(time = m.time, score = s)
-             for m, s in zip(self.medal_list, value)]
-        self.medals_list = ListContainer(l)
+    medal_scores = MedalScoresMapperProperty('medals')
 
 
 @LEVEL_CONTENT_PROBER.for_type
