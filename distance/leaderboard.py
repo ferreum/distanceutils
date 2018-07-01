@@ -17,7 +17,7 @@ from .base import (
 )
 from .construct import (
     BaseConstructFragment,
-    UInt, DstString, Long,
+    UInt, DstString, ULong,
 )
 from .printing import format_duration
 from ._default_probers import DefaultProbers
@@ -46,7 +46,7 @@ class LeaderboardFragment(BaseConstructFragment):
             playername = DstString,
             time = UInt,
             unk_1 = If(this._.version == 0, UInt),
-            replay = If(this._.version >= 1, Default(Long, NO_REPLAY)),
+            replay = If(this._.version >= 1, Default(ULong, NO_REPLAY)),
             unk_2 = If(this._.version >= 1, Bytes(12))
         )[this.num_entries], ()),
     )

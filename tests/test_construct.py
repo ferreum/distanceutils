@@ -6,7 +6,7 @@ from construct import ConstructError, FormatFieldError
 from distance.bytes import DstBytes, Magic, Section, SKIP_BYTES
 from distance.construct import (
     BaseConstructFragment,
-    Byte, UInt, Long, DstString,
+    Byte, UInt, ULong, DstString,
     Struct, Default, DstOptional, Remainder,
 )
 from tests.common import write_read, check_exceptions
@@ -252,7 +252,7 @@ class TestFragment2Test(unittest.TestCase):
             _construct = Struct(
                 a_uint = UInt,
                 a_string = DstString,
-                a_long = Long,
+                a_long = ULong,
             )
         self.assertTrue(hasattr(TestFragment, 'a_uint'))
         self.assertTrue(hasattr(TestFragment, 'a_string'))
