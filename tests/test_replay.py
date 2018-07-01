@@ -3,6 +3,7 @@ import unittest
 from distance.replay import Replay
 from distance.printing import PrintContext
 from distance import DefaultProbers
+from . import common
 from .common import check_exceptions
 
 
@@ -111,6 +112,24 @@ class Version4Test(unittest.TestCase):
     def test_print_data(self):
         p = PrintContext.for_test()
         p.print_data_of(Replay("tests/in/replay/version_4.bytes"))
+
+
+class Version1WriteReadTest(common.WriteReadTest):
+
+    filename = "tests/in/replay/version_1.bytes"
+    read_obj = Replay
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.finish_time, 104370)
+
+
+class Version4WriteReadTest(common.WriteReadTest):
+
+    filename = "tests/in/replay/version_4.bytes"
+    read_obj = Replay
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.finish_time, 9570)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
