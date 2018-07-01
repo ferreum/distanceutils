@@ -1,14 +1,22 @@
 """Read replay metadata."""
 
 
-from .bytes import Magic, Section, S_COLOR_RGBA
+from construct import (
+    Struct, Bytes, Computed, If, Const,
+    this,
+)
+
+from .bytes import Magic, Section
 from .base import (
-    BaseObject, Fragment,
+    BaseObject,
     ForwardFragmentAttrs,
     require_type,
 )
+from .construct import (
+    BaseConstructFragment,
+    UInt, ULong, Float, DstString, Remainder,
+)
 from .printing import format_duration, format_color
-from ._common import set_default_attrs
 from ._default_probers import DefaultProbers
 
 
@@ -17,56 +25,47 @@ FTYPE_REPLAY_PREFIX = "Replay: "
 FILE_PROBER = DefaultProbers.file.transaction()
 FRAG_PROBER = DefaultProbers.fragments.transaction()
 
-_value_attrs = dict(
-    version = None,
-    player_name = None,
-    player_name_2 = None,
-    player_id = None,
-    finish_time = None,
-    replay_duration = None,
-    car_name = None,
-    car_color_primary = None,
-    car_color_secondary = None,
-    car_color_glow = None,
-    car_color_sparkle = None,
-)
-
-
 @FRAG_PROBER.fragment(any_version=True)
-@set_default_attrs(_value_attrs)
-class ReplayFragment(Fragment):
+class ReplayFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x7f)
 
     is_interesting = True
 
-    value_attrs = _value_attrs
+    _construct = Struct(
+        'version' / Computed(this._params.sec.version),
+        'player_name' / DstString,
+        'player_id' / If(this.version >= 2, ULong),
+        'player_name_2' / If(this.version >= 2, DstString),
+        'finish_time_v3' / If(this.version >= 3, UInt),
+        'replay_duration' / If(this.version >= 3, UInt),
+        'unk_0' / Bytes(4),
+        'car_name' / DstString,
+        'car_color_primary' / Float[4],
+        'car_color_secondary' / Float[4],
+        'car_color_glow' / Float[4],
+        'car_color_sparkle' / Float[4],
+        If(this.version <= 1, Const(Magic[1], UInt)),
+        'unk_1_size' / If(this.version <= 1, UInt),
+        'unk_1' / If(this.version <= 1, Bytes(this.unk_1_size * 4)),
+        If(this.version <= 1, Const(Magic[1], UInt)),
+        'unk_2_size' / If(this.version <= 1, UInt),
+        'unk_2' / If(this.version <= 1, Bytes(this.unk_2_size - 8)),
+        'finish_time_v1' / If(this.version <= 1, UInt),
+        'rem' / Remainder,
+    )
 
-    def _read_section_data(self, dbytes, sec):
-        # demo data
-        self.version = version = sec.version
-        self.player_name = dbytes.read_str()
-        if version >= 2:
-            self.player_id = dbytes.read_uint8()
-            self.player_name_2 = dbytes.read_str()
-            if version >= 3:
-                self.finish_time = dbytes.read_uint4()
-                self.replay_duration = dbytes.read_uint4()
-        dbytes.read_bytes(4)
-        self.car_name = dbytes.read_str()
-        self.car_color_primary = dbytes.read_struct(S_COLOR_RGBA)
-        self.car_color_secondary = dbytes.read_struct(S_COLOR_RGBA)
-        self.car_color_glow = dbytes.read_struct(S_COLOR_RGBA)
-        self.car_color_sparkle = dbytes.read_struct(S_COLOR_RGBA)
+    @property
+    def finish_time(self):
+        t = self.finish_time_v3
+        if t is None:
+            t = self.finish_time_v1
+        return t
 
-        if version <= 1:
-            dbytes.require_equal_uint4(Magic[1])
-            section_size = dbytes.read_uint4() * 4
-            dbytes.read_bytes(section_size)
-            dbytes.require_equal_uint4(Magic[1])
-            section_size = dbytes.read_uint4()
-            dbytes.read_bytes(section_size - 8)
-            self.finish_time = dbytes.read_uint4()
+    @finish_time.setter
+    def finish_time(self, value):
+        self.finish_time_v1 = value
+        self.finish_time_v3 = value
 
     def _print_data(self, p):
         p(f"Version: {self.version}")
@@ -82,13 +81,13 @@ class ReplayFragment(Fragment):
         p(f"Car color sparkle: {format_color(self.car_color_sparkle)}")
 
 
-@ForwardFragmentAttrs(ReplayFragment, **ReplayFragment.value_attrs)
+@ForwardFragmentAttrs(ReplayFragment, finish_time=None, **ReplayFragment._fields_map)
 @require_type(func=lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
 class Replay(BaseObject):
     pass
 
 
-@FILE_PROBER.func('Replay,BaseObject')
+@FILE_PROBER.func('Replay')
 def _detect_other(section):
     if section.magic == Magic[6]:
         if section.type.startswith(FTYPE_REPLAY_PREFIX):

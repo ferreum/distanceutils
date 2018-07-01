@@ -102,32 +102,10 @@ class Version4Test(unittest.TestCase):
 
     def test_partial(self):
         replay = Replay.maybe("tests/in/replay/version_4_truncated.bytes")
-        self.assertEqual(replay.player_name, "Ferreus")
-        self.assertEqual(replay.player_name_2, "Ferreus")
-        self.assertEqual(replay.player_id, 76561198040630941)
-        self.assertEqual(replay.finish_time, 9570)
-        self.assertEqual(replay.replay_duration, 9576)
-        self.assertEqual(replay.car_name, "Refractor")
-        assertColor(replay.car_color_primary, (0.193919882, 0, 0.0355945863, 1))
-        assertColor(replay.car_color_secondary, (0.193919882, 0, 0.0355945863, 1))
-        assertColor(replay.car_color_glow, (1, 0, 0.26908654, 1))
-        self.assertIsNone(replay.car_color_sparkle)
-        self.assertEqual(replay.version, 4)
         self.assertRaises(EOFError, check_exceptions, replay)
 
     def test_partial_2(self):
         replay = Replay.maybe("tests/in/replay/version_4_truncated_2.bytes")
-        self.assertEqual(replay.player_name, "Ferreus")
-        self.assertEqual(replay.player_name_2, "Ferreus")
-        self.assertEqual(replay.player_id, 76561198040630941)
-        self.assertEqual(replay.finish_time, 9570)
-        self.assertEqual(replay.replay_duration, 9576)
-        self.assertIsNone(replay.car_name)
-        self.assertIsNone(replay.car_color_primary)
-        self.assertIsNone(replay.car_color_secondary)
-        self.assertIsNone(replay.car_color_glow)
-        self.assertIsNone(replay.car_color_sparkle)
-        self.assertEqual(replay.version, 4)
         self.assertRaises(EOFError, check_exceptions, replay)
 
     def test_print_data(self):

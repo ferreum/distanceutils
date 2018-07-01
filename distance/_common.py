@@ -4,16 +4,6 @@
 from collections import OrderedDict
 
 
-def set_default_attrs(attrs):
-
-    def decorate(cls):
-        for name, value in attrs.items():
-            setattr(cls, name, value)
-        return cls
-
-    return decorate
-
-
 class ModesMapperProperty(object):
 
     def __init__(self, attr):
