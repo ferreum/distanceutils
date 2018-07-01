@@ -26,7 +26,7 @@ def main():
 
     c = conn.cursor()
     try:
-        c.execute("DROP TABLE level")
+        c.execute("DROP TABLE IF EXISTS level")
         c.execute("""CREATE TABLE level(
                   id, title, description, updated_date, published_date, tags,
                   author, authorid, path, published_by_user, upvotes, downvotes,
