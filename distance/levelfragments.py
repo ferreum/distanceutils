@@ -864,32 +864,18 @@ class InterpolateToPositionOnTriggerFragment(
 
 
 @PROBER.fragment
-class RigidbodyAxisRotationLogicFragment(Fragment):
+class RigidbodyAxisRotationLogicFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x17)
     container_versions = 1
 
-    angular_speed = None
-    rotation_axis = None
-    limit_rotation = None
-    rotation_bounds = None
-    starting_angle_offset = None
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.angular_speed = dbytes.read_struct(S_FLOAT)[0]
-            self.rotation_axis = dbytes.read_uint4()
-            self.limit_rotation = dbytes.read_byte()
-            self.rotation_bounds = dbytes.read_struct(S_FLOAT)[0]
-            self.starting_angle_offset = dbytes.read_struct(S_FLOAT)[0]
-
-    def _print_data(self, p):
-        if 'allprops' in p.flags:
-            p(f"Angular speed: {self.angular_speed}")
-            p(f"Rotation axis: {self.rotation_axis}")
-            p(f"Limit rotation: {self.limit_rotation}")
-            p(f"Rotation bounds: {self.rotation_bounds}")
-            p(f"Starting angle offset: {self.starting_angle_offset}")
+    _construct = Struct(
+        angular_speed = Float,
+        rotation_axis = UInt,
+        limit_rotation = Byte,
+        rotation_bounds = Float,
+        starting_angle_offset = Float,
+    )
 
 
 PROPERTY_FRAGS = (
