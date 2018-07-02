@@ -25,7 +25,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
-        'construct>=2.8,<3.0',
+        'construct>=2.9,<3.0',
         'numpy>=1.13.3,<2.0',
         'numpy-quaternion>=2017.10.19',
     ],
