@@ -21,6 +21,7 @@ from distance.levelfragments import (
 )
 from distance.printing import PrintContext
 from distance.constants import ForceType
+from . import common
 from .common import check_exceptions, write_read
 
 
@@ -57,6 +58,15 @@ class InfoDisplayBoxTest(unittest.TestCase):
     def test_quarantinetrigger(self):
         obj = PROBER.read("tests/in/customobject/quarantinetrigger empty infodisplaylogic.bytes")
         check_exceptions(obj)
+
+
+class InfoDisplayBoxV2WriteReadTest(common.WriteReadTest):
+
+    filename = "tests/in/customobject/infodisplaybox 1.bytes"
+    read_obj = PROBER.read
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.texts[0], "Text0")
 
 
 class WorldTextTest(unittest.TestCase):

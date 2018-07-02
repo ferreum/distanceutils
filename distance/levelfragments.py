@@ -3,6 +3,7 @@
 
 from construct import (
     If, this,
+    Container,
 )
 
 from .bytes import (
@@ -697,7 +698,7 @@ class BaseInfoDisplayLogic(object):
             p(f"Per char speed: {self.per_char_speed}")
         if self.destroy_on_trigger_exit is not None:
             p(f"Destroy on trigger exit: {self.destroy_on_trigger_exit and 'yes' or 'no'}")
-        if self.random_char_count is not None:
+        if self.fadeout_time is not None:
             p(f"Fade out time: {self.fadeout_time}")
         if self.random_char_count is not None:
             p(f"Random char count: {self.random_char_count}")
@@ -729,18 +730,30 @@ class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment)
 
 
 @PROBER.fragment
-class InfoDisplayLogicFragment(BaseInfoDisplayLogic, Fragment):
+class InfoDisplayLogicFragment(BaseInfoDisplayLogic, BaseConstructFragment):
 
     container_versions = 2
 
-    def _read_section_data(self, dbytes, sec):
-        # only verified in v2
-        if sec.content_size:
-            self.fadeout_time = dbytes.read_struct(S_FLOAT)
-            self.texts = texts = []
-            for i in range(5):
-                dbytes.read_bytes(4) # f32 delay
-                texts.append(dbytes.read_str())
+    _construct = Struct(
+        fadeout_time = Default(Float, 1.0),
+        entries = Struct(
+            delay = Float,
+            text = DstString,
+        )[5],
+        random_char_count = Default(UInt, 1),
+        per_char_speed = Default(Float, 0.035),
+        destroy_on_trigger_exit = Default(Byte, 0),
+        display_in_arcade = Default(Byte, 0),
+    )
+
+    @property
+    def texts(self):
+        return [e.text for e in self.entries]
+
+    @texts.setter
+    def texts(self, value):
+        self.entries = [Container(e.delay, t)
+                        for e, t in zip(self.entries, value)]
 
 
 @PROBER.fragment
