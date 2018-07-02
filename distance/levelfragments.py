@@ -466,39 +466,20 @@ class TextMeshFragment(BaseConstructFragment):
 
 
 @PROBER.fragment
-class TrackNodeFragment(Fragment):
+class TrackNodeFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x16)
     container_versions = 2
 
-    parent_id = 0
-    snap_id = 0
-    conn_id = 0
-    primary = 0
-
-    def _clone_data(self, new):
-        new.parent_id = self.parent_id
-        new.snap_id = self.snap_id
-        new.conn_id = self.conn_id
-        new.primary = self.primary
-
-    def _read_section_data(self, dbytes, sec):
-        self.parent_id = dbytes.read_uint4()
-        self.snap_id = dbytes.read_uint4()
-        self.conn_id = dbytes.read_uint4()
-        self.primary = dbytes.read_byte()
-
-    def _write_section_data(self, dbytes, sec):
-        dbytes.write_int(4, self.parent_id)
-        dbytes.write_int(4, self.snap_id)
-        dbytes.write_int(4, self.conn_id)
-        dbytes.write_int(1, self.primary)
-
-    def _print_type(self, p):
-        p(f"Fragment: TrackNode")
+    _construct = Struct(
+        parent_id = Default(UInt, 0),
+        snap_id = Default(UInt, 0),
+        conn_id = Default(UInt, 0),
+        primary = Default(Byte, 0),
+    )
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        super()._print_data(p)
         if 'sections' in p.flags or 'track' in p.flags:
             p(f"Parent ID: {self.parent_id}")
             p(f"Snapped to: {self.snap_id}")
