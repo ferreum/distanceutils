@@ -359,22 +359,18 @@ class BoxColliderFragment(BaseConstructFragment):
 
 
 @PROBER.fragment
-class GravityToggleFragment(Fragment):
+class GravityToggleFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x45)
     container_versions = 1
 
     is_interesting = True
 
-    disable_gravity = 1
-    drag_scale = 1.0
-    drag_scale_angular = 1.0
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.disable_gravity = dbytes.read_byte()
-            self.drag_scale = dbytes.read_struct(S_FLOAT)[0]
-            self.drag_scale_angular = dbytes.read_struct(S_FLOAT)[0]
+    _construct = Struct(
+        disable_gravity = Default(Byte, 1),
+        drag_scale = Default(Float, 1.0),
+        drag_scale_angular = Default(Float, 1.0),
+    )
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
