@@ -319,19 +319,14 @@ class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
 
 
 @PROBER.fragment
-class TeleporterExitCheckpointFragment(Fragment):
+class TeleporterExitCheckpointFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x51)
     container_versions = 0
 
-    trigger_checkpoint = 1
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.trigger_checkpoint = dbytes.read_byte()
-        else:
-            # if section is too short, the checkpoint is enabled
-            self.trigger_checkpoint = 1
+    _construct = Struct(
+        trigger_checkpoint = Default(Byte, 1),
+    )
 
     def _print_data(self, p):
         Fragment._print_data(self, p)
