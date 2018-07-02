@@ -329,7 +329,7 @@ class TeleporterExitCheckpointFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        super()._print_data(p)
         if self.trigger_checkpoint is not None:
             p(f"Trigger checkpoint: {self.trigger_checkpoint}")
 
@@ -373,7 +373,7 @@ class GravityToggleFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        super()._print_data(p)
         if self.disable_gravity is not None:
             p(f"Disable gravity: {self.disable_gravity and 'yes' or 'no'}")
         if self.drag_scale is not None:
