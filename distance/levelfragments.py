@@ -515,9 +515,6 @@ class MaterialFragment(Fragment):
         if self.materials or self.have_content:
             self.materials.write(dbytes)
 
-    def _print_type(self, p):
-        p(f"Fragment: Material")
-
     def _print_data(self, p):
         Fragment._print_data(self, p)
         if 'allprops' in p.flags and self.materials:
