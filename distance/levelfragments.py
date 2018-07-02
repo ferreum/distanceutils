@@ -249,9 +249,6 @@ class GoldenSimplesFragment(BaseConstructFragment):
         invert_emit = Default(Byte, 0),
     )
 
-    def _print_type(self, p):
-        p(f"Fragment: GoldenSimples")
-
 
 class BaseTeleporterEntrance(object):
 
