@@ -383,27 +383,22 @@ class GravityToggleFragment(BaseConstructFragment):
 
 
 @PROBER.fragment
-class MusicTriggerFragment(Fragment):
+class MusicTriggerFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x4b)
     container_versions = 1
 
     is_interesting = True
 
-    music_id = 19
-    one_time_trigger = 1
-    reset_before_trigger = 0
-    disable_music_trigger = 0
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size:
-            self.music_id = dbytes.read_uint4()
-            self.one_time_trigger = dbytes.read_byte()
-            self.reset_before_trigger = dbytes.read_byte()
-            self.disable_music_trigger = dbytes.read_byte()
+    _construct = Struct(
+        music_id = Default(UInt, 19),
+        one_time_trigger = Default(Byte, 1),
+        reset_before_trigger = Default(Byte, 0),
+        disable_music_trigger = Default(Byte, 0),
+    )
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        super()._print_data(p)
         if self.music_id is not None:
             p(f"Music ID: {self.music_id}")
         if self.one_time_trigger is not None:
