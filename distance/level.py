@@ -334,8 +334,10 @@ class Level(Fragment):
                 yield from layer.objects
 
     def _repr_detail(self):
+        supstr = super()._repr_detail()
         if self.name:
-            return f" {self.name!r}"
+            return f" {self.name!r}{supstr}"
+        return supstr
 
     def _print_data(self, p):
         p(f"Level name: {self.name!r}")
