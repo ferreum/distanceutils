@@ -298,11 +298,8 @@ class Level(Fragment):
                 (obj for obj in self.content if isinstance(obj, Layer)),
                 num_layers)
 
-    def _write(self, dbytes):
-        num_layers = len(self.layers)
-        with dbytes.write_section(Magic[9], self.name,
-                                  num_layers, self.version) as sec:
-            self._write_section_data(dbytes, sec)
+    def _get_write_section(self, sec):
+        return Section(Magic[9], self.name, len(self.layers), self.version)
 
     def _write_section_data(self, dbytes, sec):
         if sec.magic != Magic[9]:
