@@ -1,4 +1,4 @@
-"""Utilities for the Refract Studios game Distance.
+"""Read and modify .bytes files of the Refract Studios game Distance.
 
 There are different classes for reading different types of .bytes files.
 Additionally, PROBER can be used to detect any of these files.

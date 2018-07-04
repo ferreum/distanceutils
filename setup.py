@@ -11,7 +11,7 @@ version = runpy.run_path('distance/_version.py')['__version__']
 setup(
     name='distanceutils',
     version=version,
-    description='Utilities for the Refract Studios game Distance',
+    description='Read and modify .bytes files of the Refract Studios game Distance',
     license='MIT',
     author_email='code.danielk@gmail.com',
     url='https://gitlab.com/ferreum/distanceutils',

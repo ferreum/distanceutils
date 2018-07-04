@@ -2,8 +2,8 @@
 distanceutils
 *************
 
-Utilities for the Refract Studios game Distance.
-################################################
+Read and modify .bytes files of the Refract Studios game Distance.
+##################################################################
 
 Installing
 ==========
