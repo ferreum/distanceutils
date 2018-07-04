@@ -255,6 +255,7 @@ class Layer(Fragment):
         p(f"Layer: {self.layer_name!r}")
 
     def _print_data(self, p):
+        super()._print_data(p)
         with need_counters(p) as counters:
             p(f"Layer object count: {len(self.objects)}")
             if self.layer_flags:
@@ -340,6 +341,7 @@ class Level(Fragment):
         return supstr
 
     def _print_data(self, p):
+        super()._print_data(p)
         p(f"Level name: {self.name!r}")
         try:
             settings = self.settings
