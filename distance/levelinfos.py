@@ -5,7 +5,7 @@ from operator import attrgetter
 
 from construct import (
     Struct, Default, Rebuild, Computed, PrefixedArray, Byte,
-    Bytes, Const, StopIf,
+    Bytes, StopIf,
     this, len_,
 )
 
@@ -17,7 +17,7 @@ from .base import (
 )
 from .construct import (
     BaseConstructFragment,
-    UInt, Int, Float, DstString,
+    UInt, Int, Float, DstString, MagicConst,
 )
 from .printing import format_duration
 from .constants import Mode
@@ -47,7 +47,7 @@ class LevelInfosFragment(BaseConstructFragment):
             'level_path' / DstString,
             'level_basename' / DstString,
             'unk_0' / Bytes(16),
-            Const(Magic[12], UInt),
+            MagicConst(12),
             'modes' / Default(PrefixedArray(UInt, Struct(
                 'mode' / UInt,
                 'enabled' / Byte,

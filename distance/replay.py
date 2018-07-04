@@ -2,7 +2,7 @@
 
 
 from construct import (
-    Struct, Bytes, Computed, If, Const,
+    Struct, Bytes, Computed, If,
     this,
 )
 
@@ -14,7 +14,7 @@ from .base import (
 )
 from .construct import (
     BaseConstructFragment,
-    UInt, ULong, Float, DstString, Remainder,
+    UInt, ULong, Float, DstString, Remainder, MagicConst,
 )
 from .printing import format_duration, format_color
 from ._default_probers import DefaultProbers
@@ -45,10 +45,10 @@ class ReplayFragment(BaseConstructFragment):
         'car_color_secondary' / Float[4],
         'car_color_glow' / Float[4],
         'car_color_sparkle' / Float[4],
-        If(this.version <= 1, Const(Magic[1], UInt)),
+        If(this.version <= 1, MagicConst(1)),
         'unk_1_size' / If(this.version <= 1, UInt),
         'unk_1' / If(this.version <= 1, Bytes(this.unk_1_size * 4)),
-        If(this.version <= 1, Const(Magic[1], UInt)),
+        If(this.version <= 1, MagicConst(1)),
         'unk_2_size' / If(this.version <= 1, UInt),
         'unk_2' / If(this.version <= 1, Bytes(this.unk_2_size - 8)),
         'finish_time_v1' / If(this.version <= 1, UInt),

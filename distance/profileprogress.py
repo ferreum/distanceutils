@@ -4,7 +4,7 @@
 from itertools import islice
 
 from construct import (
-    Struct, Default, Computed, PrefixedArray, Const, StopIf, If, Rebuild,
+    Struct, Default, Computed, PrefixedArray, StopIf, If, Rebuild,
     Bytes,
     this, len_,
 )
@@ -17,7 +17,7 @@ from .base import (
 )
 from .construct import (
     BaseConstructFragment,
-    UInt, Int, Double, Long, DstString, Remainder,
+    UInt, Int, Double, Long, DstString, Remainder, MagicConst,
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
@@ -105,15 +105,15 @@ class ProfileStatsFragment(BaseConstructFragment):
         'total_seconds' / Double,
         'editor_working_seconds' / Double,
         'editor_playing_seconds' / Double,
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'offline_times' / Default(PrefixedArray(UInt, Double), ()),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'modes_unknown' / Default(PrefixedArray(UInt, Long), ()),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'online_times' / Default(PrefixedArray(UInt, Double), ()),
         StopIf(this.version < 1),
         'unk_6' / Bytes(8),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'trackmogrify_mods' / Default(PrefixedArray(UInt, DstString), ()),
     )
 
@@ -234,23 +234,23 @@ class ProfileProgressFragment(BaseConstructFragment):
             'level_path' / DstString,
             'unk_0' / DstString,
             'unk_1' / Bytes(1),
-            Const(Magic[1], UInt),
+            MagicConst(1),
             'completion' / Default(PrefixedArray(UInt, UInt), ()),
-            Const(Magic[1], UInt),
+            MagicConst(1),
             'scores' / Default(PrefixedArray(UInt, Int), ()),
             'unk_2' / If(this._.version > 2, Bytes(8)),
         )[this.num_levels], ()),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'officials' / Default(PrefixedArray(UInt, DstString), ()),
         'unk_1' / If(this.version < 6, Remainder),
         StopIf(this.version < 6),
         'unk_2' / Bytes(36),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'tricks' / Default(PrefixedArray(UInt, DstString), ()),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'unlocked_adventures' / Default(PrefixedArray(UInt, DstString), ()),
         'unk_3' / Bytes(10),
-        Const(Magic[1], UInt),
+        MagicConst(1),
         'somelevels' / Default(PrefixedArray(UInt, DstString), ()),
         'unk_4' / Remainder,
     )

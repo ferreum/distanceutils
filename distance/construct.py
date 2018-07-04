@@ -22,7 +22,7 @@ from construct import (
 )
 
 from distance.base import Fragment
-from distance.bytes import SKIP_BYTES
+from distance.bytes import Magic, SKIP_BYTES
 
 __all__ = [
     'BaseConstructFragment',
@@ -46,6 +46,10 @@ Remainder = FocusedSeq(
                        Bytes(this._params.sec.content_end - this.pos),
                        GreedyBytes),
 )
+
+
+_magic_consts = {k: Const(Magic[k], UInt) for k, v in Magic.items()}
+MagicConst = _magic_consts.__getitem__
 
 
 def _get_subcons(con):
