@@ -278,7 +278,6 @@ class Level(Fragment):
 
     default_container = Section(Magic[9])
 
-    _settings = Ellipsis
     layers = ()
     name = None
     version = 3
@@ -309,8 +308,9 @@ class Level(Fragment):
 
     @property
     def settings(self):
-        s = self._settings
-        if s is Ellipsis:
+        try:
+            return self._settings
+        except AttributeError:
             for obj in self.content:
                 if not isinstance(obj, Layer):
                     s = obj
@@ -318,7 +318,7 @@ class Level(Fragment):
             else:
                 s = None
             self._settings = s
-        return s
+            return s
 
     @settings.setter
     def settings(self, s):
