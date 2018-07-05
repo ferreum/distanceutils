@@ -300,6 +300,13 @@ class TestFragment2Test(unittest.TestCase):
 
         self.assertEqual(res.uint, 3)
 
+    def test_doc_on_property(self):
+        class TestFragment(BaseConstructFragment):
+            _construct = Struct(
+                value = Default(UInt, 0) * "a uint value",
+            )
+        self.assertEqual(TestFragment.value.__doc__, "a uint value")
+
 
 class OptionalTest(unittest.TestCase):
 

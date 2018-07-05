@@ -173,12 +173,25 @@ def ExposeConstructFields(target=None, only=None):
     """Decorator to expose construct fields as attributes."""
 
     def decorate(target):
+        subcons = _get_subcons(target._construct)
         if only is None:
-            names = (c.name for c in _get_subcons(target._construct) if c.name)
+            cons = (c for c in subcons if isinstance(c.name, str))
+            names = ()
         else:
-            names = [only] if isinstance(only, str) else only
-        for name in names:
-            setattr(target, name, construct_property(target, name))
+            names = set([only] if isinstance(only, str) else only)
+            def pop_name(con):
+                if con.name in names:
+                    names.remove(con.name)
+                    return True
+                return False
+            cons = filter(pop_name, subcons)
+        for con in cons:
+            doc = getattr(con, 'docs', None)
+            if not isinstance(doc, str) or not doc:
+                doc = None
+            setattr(target, con.name, construct_property(target, con.name, doc=doc))
+        if names:
+            raise AttributeError(f"{target.__name__} has no attributes {names!r}")
         return target
 
     if target is None:
