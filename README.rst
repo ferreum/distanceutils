@@ -13,9 +13,8 @@ For example, using pip::
 
   $ pip install --user distanceutils
 
-Many operations also require the packages ``numpy`` and ``numpy-quaternion`` to
-be installed.
-
+This also installs the dependencies ``construct``, ``numpy`` and
+``numpy-quaternion``.
 
 _`Module usage`
 ===============
