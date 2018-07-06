@@ -265,10 +265,7 @@ class Fragment(BytesModel):
     is_interesting = False
 
     def __init__(self, dbytes=None, **kw):
-        try:
-            self.probers = kw.pop('probers')
-        except KeyError:
-            self.probers = DefaultProbers
+        self.probers = kw.pop('probers', DefaultProbers)
         super().__init__(dbytes=dbytes, **kw)
 
     def _init_defaults(self):
