@@ -29,7 +29,7 @@ setup(
         'numpy>=1.13.3,<2.0',
         'numpy-quaternion>=2017.10.19',
     ],
-    keywords='distance user profile level map game data utilities',
+    keywords='distance game bytes file level map read edit modify',
     packages=['distance', 'distance.filter', 'distance_scripts'],
     entry_points={
         'console_scripts': [
