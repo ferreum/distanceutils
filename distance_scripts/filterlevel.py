@@ -150,7 +150,7 @@ def main():
     write_mode = 'xb'
     if args.force:
         write_mode = 'wb'
-    elif args.OUT != '-'and os.path.exists(args.OUT):
+    elif args.OUT != '-' and os.path.exists(args.OUT):
         print(f"{parser.prog}: file {args.OUT} exists."
               " pass -f to force.", file=sys.stderr)
         return 1
