@@ -12,7 +12,7 @@ from construct import (
 from .bytes import Magic, Section
 from .base import (
     BaseObject,
-    ForwardFragmentAttrs,
+    fragment_attrs,
     require_type,
 )
 from .construct import (
@@ -88,7 +88,7 @@ class LevelInfosFragment(BaseConstructFragment):
 
 
 @FILE_PROBER.for_type
-@ForwardFragmentAttrs(LevelInfosFragment, levels=(), version=None)
+@fragment_attrs(LevelInfosFragment, levels=(), version=None)
 @require_type
 class LevelInfos(BaseObject):
 

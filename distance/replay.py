@@ -9,7 +9,7 @@ from construct import (
 from .bytes import Magic, Section
 from .base import (
     BaseObject,
-    ForwardFragmentAttrs,
+    fragment_attrs,
     require_type,
 )
 from .construct import (
@@ -82,7 +82,7 @@ class ReplayFragment(BaseConstructFragment):
         p(f"Car color sparkle: {format_color(self.car_color_sparkle)}")
 
 
-@ForwardFragmentAttrs(ReplayFragment, finish_time=None, **ReplayFragment._fields_map)
+@fragment_attrs(ReplayFragment, finish_time=None, **ReplayFragment._fields_map)
 @require_type(func=lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
 class Replay(BaseObject):
     pass

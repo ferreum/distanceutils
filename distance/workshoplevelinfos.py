@@ -9,7 +9,7 @@ from construct import (
 from .bytes import Magic, Section
 from .base import (
     BaseObject,
-    ForwardFragmentAttrs,
+    fragment_attrs,
     require_type,
 )
 from .construct import (
@@ -87,7 +87,7 @@ class WorkshopLevelInfosFragment(BaseConstructFragment):
 
 
 @FILE_PROBER.for_type
-@ForwardFragmentAttrs(WorkshopLevelInfosFragment, **WorkshopLevelInfosFragment._fields_map)
+@fragment_attrs(WorkshopLevelInfosFragment, **WorkshopLevelInfosFragment._fields_map)
 @require_type
 class WorkshopLevelInfos(BaseObject):
 

@@ -2,9 +2,9 @@
 
 
 from .bytes import Section, Magic
-from .base import Transform, BaseObject, Fragment, ForwardFragmentAttrs
+from .base import Transform, BaseObject, Fragment, fragment_attrs
 from .levelfragments import (
-    ForwardMaterialColors,
+    material_attrs,
     GoldenSimplesFragment,
     GroupFragment,
     CustomNameFragment,
@@ -69,8 +69,8 @@ def print_objects(p, gen):
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(GroupFragment, **GroupFragment.value_attrs)
-@ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
+@fragment_attrs(GroupFragment, **GroupFragment.value_attrs)
+@fragment_attrs(CustomNameFragment, **CustomNameFragment.value_attrs)
 class Group(LevelObject):
 
     child_prober_name = 'level_objects'
@@ -147,27 +147,27 @@ class Teleporter(LevelObject):
 
 
 @SUBOBJ_PROBER.for_type
-@ForwardFragmentAttrs(BaseTeleporterEntrance, destination=None)
-@ForwardFragmentAttrs(BaseTeleporterExit, link_id=None)
-@ForwardFragmentAttrs(TeleporterExitCheckpointFragment, trigger_checkpoint=None)
+@fragment_attrs(BaseTeleporterEntrance, destination=None)
+@fragment_attrs(BaseTeleporterExit, link_id=None)
+@fragment_attrs(TeleporterExitCheckpointFragment, trigger_checkpoint=None)
 class SubTeleporter(SubObject):
     type = 'Teleporter'
 
 
 @SUBOBJ_PROBER.for_type
-@ForwardFragmentAttrs(RaceEndLogicFragment, delay_before_broadcast=None)
+@fragment_attrs(RaceEndLogicFragment, delay_before_broadcast=None)
 class WinLogic(SubObject):
     type = 'WinLogic'
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(TextMeshFragment, **TextMeshFragment._fields_map)
+@fragment_attrs(TextMeshFragment, **TextMeshFragment._fields_map)
 class WorldText(LevelObject):
     type = 'WorldText'
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(BaseInfoDisplayLogic,
+@fragment_attrs(BaseInfoDisplayLogic,
     fadeout_time = None,
     texts = (),
     per_char_speed = None,
@@ -180,7 +180,7 @@ class InfoDisplayBox(LevelObject):
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(BaseCarScreenTextDecodeTrigger,
+@fragment_attrs(BaseCarScreenTextDecodeTrigger,
     text = None,
     per_char_speed = None,
     clear_on_finish = None,
@@ -198,16 +198,16 @@ class CarScreenTextDecodeTrigger(LevelObject):
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(SphereColliderFragment,
+@fragment_attrs(SphereColliderFragment,
     trigger_center = None,
     trigger_radius = None,
 )
-@ForwardFragmentAttrs(GravityToggleFragment,
+@fragment_attrs(GravityToggleFragment,
     disable_gravity = None,
     drag_scale = None,
     drag_scale_angular = None,
 )
-@ForwardFragmentAttrs(MusicTriggerFragment,
+@fragment_attrs(MusicTriggerFragment,
     music_id = None,
     one_time_trigger = None,
     reset_before_trigger = None,
@@ -220,8 +220,8 @@ class GravityTrigger(LevelObject):
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(CustomNameFragment, **CustomNameFragment.value_attrs)
-@ForwardFragmentAttrs(ForceZoneFragment, **ForceZoneFragment._fields_map)
+@fragment_attrs(CustomNameFragment, **CustomNameFragment.value_attrs)
+@fragment_attrs(ForceZoneFragment, **ForceZoneFragment._fields_map)
 class ForceZoneBox(LevelObject):
 
     type = 'ForceZoneBox'
@@ -229,7 +229,7 @@ class ForceZoneBox(LevelObject):
 
 
 @PROBER.for_type
-@ForwardFragmentAttrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None,
+@fragment_attrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None,
                       enable_boosting=0, enable_jumping=0, enable_jets=0, enable_flying=0)
 class EnableAbilitiesBox(LevelObject):
 
@@ -406,8 +406,8 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 
 
-@ForwardFragmentAttrs(GoldenSimplesFragment, **GoldenSimplesFragment._fields_map)
-@ForwardMaterialColors(
+@fragment_attrs(GoldenSimplesFragment, **GoldenSimplesFragment._fields_map)
+@material_attrs(
     mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
     mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),
     mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
@@ -419,7 +419,7 @@ class GoldenSimple(LevelObject):
 
     def _init_defaults(self):
         super()._init_defaults()
-        ForwardMaterialColors.reset_colors(self)
+        material_attrs.reset_colors(self)
 
 
 for name in BASIC_GOLDEN_SIMPLES_NAMES:
@@ -431,7 +431,7 @@ class WedgeGS(GoldenSimple):
     type = 'WedgeGS'
 
 
-@ForwardMaterialColors(
+@material_attrs(
     color_diffuse = ('Default-Diffuse', '_Color', (0.3, 0.3, 0.3, 1)),
     color_cone = ('Cone', '_Color', (0.3, 0.3, 0.3, 1)),
     color_emit = ('EmitDetail__ArchGrid', '_EmitColor', (0.2, 0.2, 0.2, 0.5))
@@ -466,7 +466,7 @@ class OldSimple(LevelObject):
 
     def _init_defaults(self):
         super()._init_defaults()
-        ForwardMaterialColors.reset_colors(self)
+        material_attrs.reset_colors(self)
         self.type = 'Cube'
 
     @property

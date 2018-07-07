@@ -10,7 +10,7 @@ from construct import (
 from .bytes import Magic, Section
 from .base import (
     BaseObject, Fragment,
-    ForwardFragmentAttrs
+    fragment_attrs
 )
 from .construct import (
     BaseConstructFragment,
@@ -149,7 +149,7 @@ class LevelSettingsFragment(BaseConstructFragment):
 
 
 @LEVEL_CONTENT_PROBER.for_type
-@ForwardFragmentAttrs(LevelSettingsFragment, **LevelSettings.value_attrs)
+@fragment_attrs(LevelSettingsFragment, **LevelSettings.value_attrs)
 class NewLevelSettings(LevelSettings, BaseObject):
 
     type = 'LevelSettings'

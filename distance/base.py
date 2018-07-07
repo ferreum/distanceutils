@@ -442,7 +442,7 @@ def fragment_property(cls, name, default=None, doc=None):
     return property(fget, fset, None, doc=doc)
 
 
-class DefaultFragments(object):
+class default_fragments(object):
 
     @staticmethod
     def add_to(target, *classes):
@@ -467,7 +467,7 @@ class DefaultFragments(object):
         return target
 
 
-class ForwardFragmentAttrs(object):
+class fragment_attrs(object):
 
     """Decorator to forward attributes of objects to their fragments."""
 
@@ -479,7 +479,7 @@ class ForwardFragmentAttrs(object):
         cls = self.cls
         for name, default in self.attrs.items():
             setattr(target, name, fragment_property(cls, name, default))
-        DefaultFragments.add_to(target, cls)
+        default_fragments.add_to(target, cls)
         return target
 
 
@@ -508,7 +508,7 @@ def _FragmentsContainerView(frags):
     return MappedSequenceView(frags, attrgetter('container'))
 
 
-@ForwardFragmentAttrs(ObjectFragment, real_transform=Transform(), children=())
+@fragment_attrs(ObjectFragment, real_transform=Transform(), children=())
 class BaseObject(Fragment):
 
     """Represents data within a Magic[6] Section."""
@@ -632,7 +632,7 @@ class BaseObject(Fragment):
 
     def _init_defaults(self):
         super()._init_defaults()
-        sections = [sec for sec in map(get_default_container, DefaultFragments.get(self))
+        sections = [sec for sec in map(get_default_container, default_fragments.get(self))
                     if sec is not None]
         fragments = []
         for sec in sections:

@@ -12,7 +12,7 @@ from construct import (
 from .bytes import Magic, Section
 from .base import (
     BaseObject,
-    ForwardFragmentAttrs,
+    fragment_attrs,
     require_type
 )
 from .construct import (
@@ -288,7 +288,7 @@ class ProfileProgressFragment(BaseConstructFragment):
 
 
 @FILE_PROBER.for_type
-@ForwardFragmentAttrs(ProfileProgressFragment, **ProfileProgressFragment._fields_map)
+@fragment_attrs(ProfileProgressFragment, **ProfileProgressFragment._fields_map)
 @require_type
 class ProfileProgress(BaseObject):
 

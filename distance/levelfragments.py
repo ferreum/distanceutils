@@ -13,7 +13,7 @@ from .bytes import (
     SKIP_BYTES,
     DstBytes,
 )
-from .base import Fragment, DefaultFragments
+from .base import Fragment, default_fragments
 from .prober import RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
@@ -1021,7 +1021,7 @@ def material_property(matname, colname):
     return property(fget, fset, fdel, doc=doc)
 
 
-class ForwardMaterialColors(object):
+class material_attrs(object):
 
     """Decorator to forward attributes to colors of MaterialFragment."""
 
@@ -1038,7 +1038,7 @@ class ForwardMaterialColors(object):
             target.__default_colors = clsdefaults = {}
         clsdefaults.update(self.colors)
 
-        DefaultFragments.add_to(target, MaterialFragment)
+        default_fragments.add_to(target, MaterialFragment)
 
         return target
 
