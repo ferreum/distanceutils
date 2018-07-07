@@ -438,7 +438,7 @@ class WedgeGS(GoldenSimple):
 )
 class OldSimple(LevelObject):
 
-    default_cone_transform = Transform.fill(rot=(2**.5/2, 0, 0, 2**.5/-2),
+    default_cone_transform = Transform.fill(rot=(2**.5 / 2, 0, 0, 2**.5 / -2),
                                             scale=(.5, .5, .5))
     default_other_transform = Transform.fill()
 
