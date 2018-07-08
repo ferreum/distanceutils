@@ -17,15 +17,18 @@ from .construct import (
     UInt, ULong, Float, DstString, Remainder, MagicConst,
 )
 from .printing import format_duration, format_color
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
-FILE_PROBER = DefaultProbers.file.transaction()
-FRAG_PROBER = DefaultProbers.fragments.transaction()
 
-@FRAG_PROBER.fragment(any_version=True)
+class Probers(object):
+    file = BytesProber()
+    fragments = BytesProber()
+
+
+@Probers.fragments.fragment(any_version=True)
 class ReplayFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x7f)
@@ -88,16 +91,12 @@ class Replay(BaseObject):
     pass
 
 
-@FILE_PROBER.func('Replay')
+@Probers.file.func('Replay')
 def _detect_other(section):
     if section.magic == Magic[6]:
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
     return None
-
-
-FRAG_PROBER.commit()
-FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

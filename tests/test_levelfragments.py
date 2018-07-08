@@ -1,8 +1,8 @@
 import unittest
 
+from distance import DefaultProbers
 from distance.base import Fragment
 from distance.levelfragments import (
-    PROBER,
     MaterialFragment,
     TrackNodeFragment,
     PopupBlockerLogicFragment,
@@ -30,7 +30,7 @@ class Base(object):
             self.verify_obj(res)
 
         def test_probe(self):
-            res = PROBER.read(self.filename)
+            res = DefaultProbers.fragments.read(self.filename)
             res = self.modify_obj(res)
 
             self.assertEqual(self.read_obj, type(res))

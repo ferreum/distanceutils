@@ -21,7 +21,7 @@ from .lazy import LazySequence
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import print_objects
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 from ._common import (
     ModesMapperProperty,
     MedalTimesMapperProperty,
@@ -29,10 +29,11 @@ from ._common import (
 )
 
 
-FILE_PROBER = DefaultProbers.file.transaction()
-LEVEL_LIKE_PROBER = DefaultProbers.get_or_create('level_like').transaction()
-LEVEL_CONTENT_PROBER = DefaultProbers.get_or_create('level_content').transaction()
-FRAG_PROBER = DefaultProbers.fragments.transaction()
+class Probers(object):
+    file = BytesProber()
+    level_like = BytesProber()
+    level_content = BytesProber()
+    fragments = BytesProber()
 
 
 def format_layer_flags(gen):
@@ -92,7 +93,7 @@ class LevelSettings(object):
             p(f"Description: {self.description}")
 
 
-@FRAG_PROBER.fragment(any_version=True)
+@Probers.fragments.fragment(any_version=True)
 class LevelSettingsFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x52)
@@ -148,7 +149,7 @@ class LevelSettingsFragment(BaseConstructFragment):
     medal_scores = MedalScoresMapperProperty('medals')
 
 
-@LEVEL_CONTENT_PROBER.for_type
+@Probers.level_content.for_type
 @fragment_attrs(LevelSettingsFragment, **LevelSettings.value_attrs)
 class NewLevelSettings(LevelSettings, BaseObject):
 
@@ -160,7 +161,7 @@ class NewLevelSettings(LevelSettings, BaseObject):
             p(f"Object version: {self.version}")
 
 
-@LEVEL_CONTENT_PROBER.fragment
+@Probers.level_content.fragment
 class OldLevelSettings(LevelSettings, BaseConstructFragment):
 
     default_container = Section(Magic[8])
@@ -190,7 +191,7 @@ class OldLevelSettings(LevelSettings, BaseConstructFragment):
         p(f"Type: LevelSettings (old)")
 
 
-@LEVEL_CONTENT_PROBER.fragment
+@Probers.level_content.fragment
 class Layer(Fragment):
 
     default_container = Section(Magic[7])
@@ -272,8 +273,8 @@ class Layer(Fragment):
                 counters.print_data(p)
 
 
-@FILE_PROBER.fragment
-@LEVEL_LIKE_PROBER.fragment
+@Probers.file.fragment
+@Probers.level_like.fragment
 class Level(Fragment):
 
     default_container = Section(Magic[9])
@@ -351,12 +352,6 @@ class Level(Fragment):
                     counters.print_data(p)
         except Exception as e:
             p.print_exception(e)
-
-
-LEVEL_CONTENT_PROBER.commit()
-FRAG_PROBER.commit()
-LEVEL_LIKE_PROBER.commit()
-FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

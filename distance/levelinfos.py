@@ -21,17 +21,18 @@ from .construct import (
 )
 from .printing import format_duration
 from .constants import Mode
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 
 
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
-FILE_PROBER = DefaultProbers.file.transaction()
-FRAG_PROBER = DefaultProbers.fragments.transaction()
+class Probers(object):
+    file = BytesProber()
+    fragments = BytesProber()
 
 
-@FRAG_PROBER.fragment
+@Probers.fragments.fragment
 class LevelInfosFragment(BaseConstructFragment):
 
     default_container = Section(Magic[2], 0x97, 0)
@@ -87,16 +88,12 @@ class LevelInfosFragment(BaseConstructFragment):
                     p(f"Description: {level.description}")
 
 
-@FILE_PROBER.for_type
+@Probers.file.for_type
 @fragment_attrs(LevelInfosFragment, levels=(), version=None)
 @require_type
 class LevelInfos(BaseObject):
 
     type = FTYPE_LEVELINFOS
-
-
-FRAG_PROBER.commit()
-FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

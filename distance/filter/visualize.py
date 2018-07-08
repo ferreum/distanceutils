@@ -715,7 +715,9 @@ class VisualizeFilter(ObjectFilter):
     def _get_sec_mappers(self, sec):
         res = []
         res.extend(self._mappers_by_sec.get(sec.to_key(), ()))
-        res.extend(self._mappers_by_sec.get(sec.to_key(any_version=True), ()))
+        nover_key = sec.to_noversion_key()
+        if nover_key is not None:
+            res.extend(self._mappers_by_sec.get(nover_key, ()))
         return res
 
     def _add_matches(self, obj, objpath, dest):

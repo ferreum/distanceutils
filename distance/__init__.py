@@ -66,8 +66,6 @@ from distance.levelinfos import LevelInfos
 from distance.profileprogress import ProfileProgress
 from distance.workshoplevelinfos import WorkshopLevelInfos
 
-from distance._default_probers import DefaultProbers
-
 from distance.constants import (
     AbilityToggle, Completion, Difficulty,
     ForceType, Mode, Rating
@@ -75,6 +73,7 @@ from distance.constants import (
 
 from ._version import __version__
 
+from distance._core import DefaultProbers
 
 # File prober's baseclass is Fragment. For Magic[6] objects,
 # fall back to BaseObject. We do this here, because it needs to be

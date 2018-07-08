@@ -21,13 +21,15 @@ from .construct import (
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
-FILE_PROBER = DefaultProbers.file.transaction()
-FRAG_PROBER = DefaultProbers.fragments.transaction()
+
+class Probers(object):
+    file = BytesProber()
+    fragments = BytesProber()
 
 
 def _print_stringentries(p, title, prefix, entries, num_per_row=1):
@@ -59,7 +61,7 @@ def format_score(mode, score, comp):
     return f"{mode_str} {type_str}: {score_str} ({comp_str})"
 
 
-@FRAG_PROBER.fragment(any_version=True)
+@Probers.fragments.fragment(any_version=True)
 class ProfileStatsFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x8e)
@@ -219,7 +221,7 @@ class ProfileStatsFragment(BaseConstructFragment):
                     p(f"Found: {mods_str}")
 
 
-@FRAG_PROBER.fragment(any_version=True)
+@Probers.fragments.fragment(any_version=True)
 class ProfileProgressFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x6a)
@@ -287,7 +289,7 @@ class ProfileProgressFragment(BaseConstructFragment):
                     p(f"{Completion.to_name(comp)} medals: {num}")
 
 
-@FILE_PROBER.for_type
+@Probers.file.for_type
 @fragment_attrs(ProfileProgressFragment, **ProfileProgressFragment._fields_map)
 @require_type
 class ProfileProgress(BaseObject):
@@ -297,10 +299,6 @@ class ProfileProgress(BaseObject):
     @property
     def stats(self):
         return self.fragment_by_type(ProfileStatsFragment)
-
-
-FRAG_PROBER.commit()
-FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

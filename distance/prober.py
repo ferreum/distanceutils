@@ -1,11 +1,15 @@
 """Probe DstBytes for objects based on .bytes sections."""
 
 
+import os
 import numbers
 from collections import OrderedDict
 
 from .bytes import DstBytes, BytesModel, Section, Magic, CATCH_EXCEPTIONS
 from .lazy import LazySequence
+
+
+do_autoload = os.environ.get("DISTANCEUTILS_AUTOLOAD", "") != "0"
 
 
 class ProbeError(Exception):
@@ -18,9 +22,11 @@ class RegisterError(ValueError):
 
 class BytesProber(object):
 
-    def __init__(self, baseclass=BytesModel):
+    def __init__(self, baseclass=BytesModel, key=None):
         self.baseclass = baseclass
+        self.key = key
         self._sections = {}
+        self._autoload_sections = {}
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
@@ -34,7 +40,12 @@ class BytesProber(object):
         self._funcs_by_tag[tag] = func
 
     def _add_fragment_for_section(self, cls, sec, any_version):
-        key = sec.to_key(any_version=any_version)
+        if any_version:
+            key = sec.to_noversion_key()
+            if key is None:
+                raise ValueError(f"Cannot use any_version with {sec!r}")
+        else:
+            key = sec.to_key()
         try:
             registered = self._sections[key]
         except KeyError:
@@ -150,11 +161,14 @@ class BytesProber(object):
     extend = extend_from
 
 
-    def _probe_sections(self, sec):
-        cls = self._sections.get(sec.to_key(), None)
+    def _get_by_key(self, key):
+        cls = self._sections.get(key, None)
         if cls is not None:
             return cls
-        return self._sections.get(sec.to_key(any_version=True), None)
+        info = self._autoload_sections.get(key, None)
+        if info is not None:
+            return self._autoload_impl_module(key, info)
+        return None
 
     def _get_from_funcs(self, sec):
         for func in self._funcs:
@@ -164,9 +178,14 @@ class BytesProber(object):
         return None
 
     def probe_section(self, sec):
-        cls = self._probe_sections(sec)
+        cls = self._get_by_key(sec.to_key())
         if cls is not None:
             return cls
+        nover_key = sec.to_noversion_key()
+        if nover_key is not None:
+            cls = self._get_by_key(nover_key)
+            if cls is not None:
+                return cls
         cls = self._get_from_funcs(sec)
         if cls is not None:
             return cls
@@ -234,6 +253,51 @@ class BytesProber(object):
         dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
+
+    def autoload_modules(self, module_name, *impl_modules):
+        if do_autoload:
+            try:
+                self._load_autoload_module(module_name)
+                return
+            except ImportError:
+                pass
+        for name in impl_modules:
+            self._load_impl_module(name)
+
+    def _write_autoload_module(self, file):
+        self._autoload_all()
+        file.write("autoload_sections = {\n")
+        for key, cls in self._sections.items():
+            file.write(f"    {key}: ({cls.__module__!r}, {cls.__name__!r}),\n")
+        file.write("}\n")
+
+    def _autoload_all(self):
+        for module_name in set(info[0] for info in self._autoload_sections):
+            self._load_impl_module(module_name)
+
+    def _autoload_impl_module(self, sec_key, info):
+        import importlib
+        impl_module, classname = info
+        mod = importlib.import_module(impl_module)
+        prober = getattr(mod.Probers, self.key)
+        self.extend_from(prober)
+        return prober.probe_section(sec_key)
+
+    def _load_autoload_module(self, module_name):
+        import importlib
+        mod = importlib.import_module(module_name)
+        sections = mod.autoload_sections
+        self._autoload_sections.update(sections)
+
+    def _load_impl_module(self, module_name):
+        import importlib
+        mod = importlib.import_module(module_name)
+        try:
+            prober = getattr(mod.Probers, self.key)
+        except AttributeError:
+            pass
+        else:
+            self.extend_from(prober)
 
 
 class _ProberTransaction(BytesProber):

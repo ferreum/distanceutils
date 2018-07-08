@@ -17,7 +17,7 @@ from .base import Fragment, default_fragments
 from .prober import RegisterError
 from ._data import NamedPropertyList, MaterialSet
 from .constants import ForceType
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 from .construct import (
     BaseConstructFragment,
     Byte, UInt, Float, DstString,
@@ -25,7 +25,8 @@ from .construct import (
 )
 
 
-PROBER = DefaultProbers.fragments.transaction()
+class Probers(object):
+    fragments = BytesProber()
 
 
 def read_n_floats(dbytes, n, default=None):
@@ -160,7 +161,7 @@ class StringNamedProperty(BaseNamedProperty):
         del inst.props[self.propname]
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class GroupFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x1d)
@@ -197,7 +198,7 @@ class GroupFragment(Fragment):
             dbytes.write_bytes(self.raw_data)
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class CustomNameFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x63)
@@ -226,7 +227,7 @@ class CustomNameFragment(Fragment):
             p(f"Custom name: {self.custom_name!r}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class GoldenSimplesFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x83)
@@ -263,7 +264,7 @@ class BaseTeleporterEntrance(object):
             p(f"Teleports to: {self.destination}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class OldTeleporterEntranceFragment(BaseTeleporterEntrance, NamedPropertiesFragment):
 
     container_versions = 0
@@ -272,7 +273,7 @@ class OldTeleporterEntranceFragment(BaseTeleporterEntrance, NamedPropertiesFragm
     destination = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TeleporterEntranceFragment(BaseTeleporterEntrance, BaseConstructFragment):
 
     container_versions = 1, 2, 3
@@ -300,7 +301,7 @@ class BaseTeleporterExit(object):
             p(f"Link ID: {self.link_id}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TeleporterExitFragment(BaseTeleporterExit, BaseConstructFragment):
 
     container_versions = 1
@@ -310,7 +311,7 @@ class TeleporterExitFragment(BaseTeleporterExit, BaseConstructFragment):
     )
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
 
     container_versions = 0
@@ -319,7 +320,7 @@ class OldTeleporterExitFragment(BaseTeleporterExit, NamedPropertiesFragment):
     link_id = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TeleporterExitCheckpointFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x51)
@@ -335,7 +336,7 @@ class TeleporterExitCheckpointFragment(BaseConstructFragment):
             p(f"Trigger checkpoint: {self.trigger_checkpoint}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class SphereColliderFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[3], 0x0e)
@@ -347,7 +348,7 @@ class SphereColliderFragment(BaseConstructFragment):
     )
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class BoxColliderFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[3], 0xf)
@@ -359,7 +360,7 @@ class BoxColliderFragment(BaseConstructFragment):
     )
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class GravityToggleFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x45)
@@ -383,7 +384,7 @@ class GravityToggleFragment(BaseConstructFragment):
             p(f"Angular drag scale: {self.drag_scale_angular}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class MusicTriggerFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x4b)
@@ -410,7 +411,7 @@ class MusicTriggerFragment(BaseConstructFragment):
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class ForceZoneFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0xa0)
@@ -446,7 +447,7 @@ class ForceZoneFragment(BaseConstructFragment):
             p(f"Drag multiplier: {self.drag_multiplier}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TextMeshFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[3], 0x7)
@@ -466,7 +467,7 @@ class TextMeshFragment(BaseConstructFragment):
         p(f"World text: {self.text!r}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TrackNodeFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x16)
@@ -488,7 +489,7 @@ class TrackNodeFragment(BaseConstructFragment):
             p(f"Primary: {self.primary and 'yes' or 'no'}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class MaterialFragment(Fragment):
 
     base_container = Section.base(Magic[3], 0x3)
@@ -522,7 +523,7 @@ class MaterialFragment(Fragment):
             self.materials.print_data(p)
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class RaceEndLogicFragment(NamedPropertiesFragment):
 
     base_container = Section.base(Magic[2], 0x5d)
@@ -539,7 +540,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
             p(f"Delay before broadcast: {delay}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
 
     base_container = Section.base(Magic[2], 0x5e)
@@ -628,7 +629,7 @@ class BaseCarScreenTextDecodeTrigger(object):
                     p(f"Phrase: {phrase!r}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, NamedPropertiesFragment):
 
     container_versions = 0
@@ -659,7 +660,7 @@ class OldCarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, Name
         return phrases
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class CarScreenTextDecodeTriggerFragment(BaseCarScreenTextDecodeTrigger, BaseConstructFragment):
 
     container_versions = 1
@@ -704,7 +705,7 @@ class BaseInfoDisplayLogic(object):
             p(f"Random char count: {self.random_char_count}")
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment):
 
     container_versions = 0
@@ -729,7 +730,7 @@ class OldInfoDisplayLogicFragment(BaseInfoDisplayLogic, NamedPropertiesFragment)
     destroy_on_trigger_exit = ByteNamedProperty('DestroyOnTriggerExit')
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class InfoDisplayLogicFragment(BaseInfoDisplayLogic, BaseConstructFragment):
 
     container_versions = 2
@@ -756,7 +757,7 @@ class InfoDisplayLogicFragment(BaseInfoDisplayLogic, BaseConstructFragment):
                         for e, t in zip(self.entries, value)]
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class AnimatorFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x9a)
@@ -806,21 +807,21 @@ class AnimatorFragment(BaseConstructFragment):
     )
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class EventListenerFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x8a)
     container_versions = 0, 1
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TrackAttachmentFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x68)
     container_versions = 0
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class TurnLightOnNearCarFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x70)
@@ -832,7 +833,7 @@ class BaseInterpolateToPositiononTrigger(object):
     base_container = Section.base(Magic[2], 0x43)
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class OldInterpolateToPositionOnTriggerFragment(
         BaseInterpolateToPositiononTrigger, NamedPropertiesFragment):
 
@@ -848,7 +849,7 @@ class OldInterpolateToPositionOnTriggerFragment(
     interp_time = StructNamedProperty('MoveTime', S_FLOAT)
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class InterpolateToPositionOnTriggerFragment(
         BaseInterpolateToPositiononTrigger, BaseConstructFragment):
 
@@ -863,7 +864,7 @@ class InterpolateToPositionOnTriggerFragment(
     )
 
 
-@PROBER.fragment
+@Probers.fragments.fragment
 class RigidbodyAxisRotationLogicFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x17)
@@ -994,7 +995,7 @@ def add_property_fragments_to_prober(prober):
 
 
 _create_property_fragment_classes()
-add_property_fragments_to_prober(PROBER)
+add_property_fragments_to_prober(Probers.fragments)
 
 
 def material_property(matname, colname):
@@ -1047,9 +1048,6 @@ class material_attrs(object):
         mats = obj.fragment_by_type(MaterialFragment).materials
         for matname, colname, value in obj.__default_colors.values():
             mats.get_or_add(matname)[colname] = value
-
-
-PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

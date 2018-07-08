@@ -20,7 +20,7 @@ from .construct import (
     UInt, DstString, ULong,
 )
 from .printing import format_duration
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 
 
 NO_REPLAY = 0xffffffff_ffffffff
@@ -28,11 +28,12 @@ NO_REPLAY = 0xffffffff_ffffffff
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
-FILE_PROBER = DefaultProbers.file.transaction()
-FRAG_PROBER = DefaultProbers.fragments.transaction()
+class Probers(object):
+    file = BytesProber()
+    fragments = BytesProber()
 
 
-@FRAG_PROBER.fragment(any_version=True)
+@Probers.fragments.fragment(any_version=True)
 class LeaderboardFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x37)
@@ -52,7 +53,7 @@ class LeaderboardFragment(BaseConstructFragment):
     )
 
 
-@FILE_PROBER.for_type
+@Probers.file.for_type
 @fragment_attrs(LeaderboardFragment, **LeaderboardFragment._fields_map)
 @require_type
 class Leaderboard(BaseObject):
@@ -75,10 +76,6 @@ class Leaderboard(BaseObject):
             if entry.replay is not None and entry.replay != NO_REPLAY:
                 rep_str = f" Replay: {entry.replay:X}"
             p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
-
-
-FRAG_PROBER.commit()
-FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

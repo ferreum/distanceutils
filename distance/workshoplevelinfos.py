@@ -17,13 +17,15 @@ from .construct import (
     UInt, ULong, DstString
 )
 from .constants import Rating
-from ._default_probers import DefaultProbers
+from .prober import BytesProber
 
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
-FRAG_PROBER = DefaultProbers.fragments.transaction()
-FILE_PROBER = DefaultProbers.file.transaction()
+
+class Probers(object):
+    fragments = BytesProber()
+    file = BytesProber()
 
 
 def format_date(date):
@@ -33,7 +35,7 @@ def format_date(date):
     return str(datetime.fromtimestamp(date))
 
 
-@FRAG_PROBER.fragment
+@Probers.fragments.fragment
 class WorkshopLevelInfosFragment(BaseConstructFragment):
 
     default_container = Section(Magic[2], 0x6d, 0)
@@ -86,16 +88,12 @@ class WorkshopLevelInfosFragment(BaseConstructFragment):
                     p(f"Rating: {Rating.to_name(level.rating)}")
 
 
-@FILE_PROBER.for_type
+@Probers.file.for_type
 @fragment_attrs(WorkshopLevelInfosFragment, **WorkshopLevelInfosFragment._fields_map)
 @require_type
 class WorkshopLevelInfos(BaseObject):
 
     type = FTYPE_WSLEVELINFOS
-
-
-FRAG_PROBER.commit()
-FILE_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

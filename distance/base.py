@@ -11,11 +11,7 @@ from .lazy import LazySequence, LazyMappedSequence
 from ._default_probers import DefaultProbers
 
 
-DefaultProbers.get_or_create('file')
-
-BASE_PROBER = DefaultProbers.get_or_create('base_objects').transaction()
 BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments').transaction()
-OBJ_PROBER = DefaultProbers.get_or_create('objects').transaction()
 FRAG_PROBER = DefaultProbers.get_or_create('fragments').transaction()
 
 TRANSFORM_MIN_SIZE = 12
@@ -516,7 +512,7 @@ class BaseObject(Fragment):
     __slots__ = ('type', '_sections', '_fragments',
                  '_fragment_types', '_fragments_by_type')
 
-    child_prober_name = 'objects'
+    child_prober_name = 'base_objects'
     is_object_group = False
     has_children = False
 
@@ -724,16 +720,8 @@ def require_type(*args, func=None):
         return decorate
 
 
-BASE_PROBER.commit()
 BASE_FRAG_PROBER.commit()
-OBJ_PROBER.commit()
 FRAG_PROBER.commit()
-
-DefaultProbers.base_objects.baseclass = BaseObject
-DefaultProbers.base_fragments.baseclass = Fragment
-DefaultProbers.fragments.baseclass = Fragment
-DefaultProbers.objects.baseclass = BaseObject
-DefaultProbers.file.baseclass = Fragment
 
 
 # vim:set sw=4 ts=8 sts=4 et:
