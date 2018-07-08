@@ -3,7 +3,7 @@
 
 import os
 import numbers
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from .bytes import DstBytes, BytesModel, Section, Magic, CATCH_EXCEPTIONS
 from .lazy import LazySequence
@@ -27,6 +27,7 @@ class BytesProber(object):
         self.key = key
         self._sections = {}
         self._autoload_sections = {}
+        self._autoload_module = None
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
@@ -167,7 +168,8 @@ class BytesProber(object):
             return cls
         info = self._autoload_sections.get(key, None)
         if info is not None:
-            return self._autoload_impl_module(key, info)
+            self._autoload_impl_module(key, info)
+            return self._sections.get(key, None)
         return None
 
     def _get_from_funcs(self, sec):
@@ -255,6 +257,9 @@ class BytesProber(object):
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
     def autoload_modules(self, module_name, *impl_modules):
+        if self._autoload_module is not None:
+            raise Exception(f"autoload_modules already specified")
+        self._autoload_module = module_name
         if do_autoload:
             try:
                 self._load_autoload_module(module_name)
@@ -264,12 +269,27 @@ class BytesProber(object):
         for name in impl_modules:
             self._load_impl_module(name)
 
-    def _write_autoload_module(self, file):
+    def write_autoload_module(self):
+        import os
+        import importlib
+        modname = self._autoload_module
+        if modname is None:
+            raise Exception("autoload_modules not specified")
+        parent_modname, sep, mod_basename = modname.rpartition('.')
+        parent_mod = importlib.import_module(parent_modname)
+        dirname = os.path.dirname(parent_mod.__file__)
+        filename = os.path.join(dirname, mod_basename + ".py")
+        content = self._generate_autoload_content()
+        with open(filename, 'w') as f:
+            f.write(content)
+
+    def _generate_autoload_content(self):
         self._autoload_all()
-        file.write("autoload_sections = {\n")
+        result = ["autoload_sections = {\n"]
         for key, cls in self._sections.items():
-            file.write(f"    {key}: ({cls.__module__!r}, {cls.__name__!r}),\n")
-        file.write("}\n")
+            result.append(f"    {key}: ({cls.__module__!r}, {cls.__name__!r}),\n")
+        result.append("}\n")
+        return ''.join(result)
 
     def _autoload_all(self):
         for module_name in set(info[0] for info in self._autoload_sections):
@@ -281,7 +301,6 @@ class BytesProber(object):
         mod = importlib.import_module(impl_module)
         prober = getattr(mod.Probers, self.key)
         self.extend_from(prober)
-        return prober.probe_section(sec_key)
 
     def _load_autoload_module(self, module_name):
         import importlib

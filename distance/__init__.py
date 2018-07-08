@@ -56,16 +56,6 @@ This lazy-loading changes the seek position of the file.
 # Import public classes, and ensure these modules are always loaded
 # so they register their objects in our probers.
 
-import distance.levelobjects
-import distance.levelfragments
-
-from distance.level import Level
-from distance.replay import Replay
-from distance.leaderboard import Leaderboard
-from distance.levelinfos import LevelInfos
-from distance.profileprogress import ProfileProgress
-from distance.workshoplevelinfos import WorkshopLevelInfos
-
 from distance.constants import (
     AbilityToggle, Completion, Difficulty,
     ForceType, Mode, Rating
@@ -88,8 +78,6 @@ def _fallback_object(sec):
 
 
 # suppress warnings
-distance.levelobjects
-distance.levelfragments
 __version__
 
 

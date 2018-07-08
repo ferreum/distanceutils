@@ -1,7 +1,7 @@
 from argparse import Namespace
 import unittest
 
-from distance import Level
+from distance.level import Level
 from distance.levelobjects import OldSimple
 from distance import levelfragments as levelfrags
 from distance.filter import GoldifyFilter

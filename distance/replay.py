@@ -91,12 +91,4 @@ class Replay(BaseObject):
     pass
 
 
-@Probers.file.func('Replay')
-def _detect_other(section):
-    if section.magic == Magic[6]:
-        if section.type.startswith(FTYPE_REPLAY_PREFIX):
-            return Replay
-    return None
-
-
 # vim:set sw=4 ts=8 sts=4 et:

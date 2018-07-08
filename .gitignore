@@ -10,3 +10,5 @@ __pycache__
 /*.egg-info/
 docs/build/
 wheelhouse/
+!/distance/_autoload/__init__.py
+/distance/_autoload/
