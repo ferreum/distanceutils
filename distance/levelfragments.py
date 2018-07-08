@@ -29,17 +29,6 @@ class Probers(object):
     fragments = BytesProber()
 
 
-def read_n_floats(dbytes, n, default=None):
-    def read_float():
-        return dbytes.read_struct(S_FLOAT)[0]
-    fdata = dbytes.read_bytes(4)
-    if fdata == SKIP_BYTES:
-        return default
-    else:
-        f = S_FLOAT.unpack(fdata)[0]
-        return (f, *(read_float() for _ in range(n - 1)))
-
-
 class NamedPropertiesFragment(Fragment):
 
     def __init__(self, *args, **kw):
