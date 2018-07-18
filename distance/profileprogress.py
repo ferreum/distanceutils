@@ -21,15 +21,13 @@ from .construct import (
 )
 from .printing import format_duration, format_duration_dhms, format_distance
 from .constants import Completion, Mode, TIMED_MODES
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
 
-class Probers(object):
-    file = BytesProber()
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 def _print_stringentries(p, title, prefix, entries, num_per_row=1):

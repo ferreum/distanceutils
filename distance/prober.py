@@ -3,7 +3,8 @@
 
 import os
 import numbers
-from collections import OrderedDict, defaultdict
+import importlib
+from collections import OrderedDict
 
 from .bytes import DstBytes, BytesModel, Section, Magic, CATCH_EXCEPTIONS
 from .lazy import LazySequence
@@ -27,7 +28,6 @@ class BytesProber(object):
         self.key = key
         self._sections = {}
         self._autoload_sections = {}
-        self._autoload_module = None
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
@@ -256,60 +256,24 @@ class BytesProber(object):
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
-    def autoload_modules(self, module_name, *impl_modules):
-        if self._autoload_module is not None:
-            raise Exception(f"autoload_modules already specified")
-        self._autoload_module = module_name
-        if do_autoload:
-            try:
-                self._load_autoload_module(module_name)
-                return
-            except ImportError:
-                pass
-        for name in impl_modules:
-            self._load_impl_module(name)
+    def _load_autoload_content(self, content):
+        self._autoload_sections.update(content['sections'])
 
-    def write_autoload_module(self):
-        import os
-        import importlib
-        modname = self._autoload_module
-        if modname is None:
-            raise Exception("autoload_modules not specified")
-        parent_modname, sep, mod_basename = modname.rpartition('.')
-        parent_mod = importlib.import_module(parent_modname)
-        dirname = os.path.dirname(parent_mod.__file__)
-        filename = os.path.join(dirname, mod_basename + ".py")
-        content = self._generate_autoload_content()
-        with open(filename, 'w') as f:
-            f.write(content)
-
-    def _generate_autoload_content(self):
-        self._autoload_all()
-        result = ["autoload_sections = {\n"]
+    def _generate_autoload_content_lines(self):
+        result = ["{", "    'sections': {"]
         for key, cls in self._sections.items():
-            result.append(f"    {key}: ({cls.__module__!r}, {cls.__name__!r}),\n")
-        result.append("}\n")
-        return ''.join(result)
-
-    def _autoload_all(self):
-        for module_name in set(info[0] for info in self._autoload_sections.values()):
-            self._load_impl_module(module_name)
+            result.append(f"        {key}: ({cls.__module__!r}, {cls.__name__!r}),")
+        result.append("    }")
+        result.append("}")
+        return result
 
     def _autoload_impl_module(self, sec_key, info):
-        import importlib
         impl_module, classname = info
         mod = importlib.import_module(impl_module)
         prober = getattr(mod.Probers, self.key)
         self.extend_from(prober)
 
-    def _load_autoload_module(self, module_name):
-        import importlib
-        mod = importlib.import_module(module_name)
-        sections = mod.autoload_sections
-        self._autoload_sections.update(sections)
-
     def _load_impl_module(self, module_name):
-        import importlib
         mod = importlib.import_module(module_name)
         try:
             prober = getattr(mod.Probers, self.key)
@@ -341,6 +305,115 @@ class _ProberTransaction(BytesProber):
 
         target._sections.update(self._sections)
         target._funcs_by_tag.update(self._funcs_by_tag)
+
+
+class ProberGroup(object):
+
+    def __init__(self):
+        self._probers = {}
+
+    def __getattr__(self, name):
+        try:
+            return self._probers[name]
+        except KeyError:
+            prober = BytesProber()
+            self._probers[name] = prober
+            return prober
+
+
+class ProbersRegistry(object):
+
+    def __init__(self):
+        self._autoload_modules = {}
+        self._probers = {}
+
+    def get_or_create(self, name):
+        try:
+            return self._probers[name]
+        except KeyError:
+            prober = BytesProber(key=name)
+            self._probers[name] = prober
+            return prober
+
+    def __getattr__(self, name):
+        try:
+            return self._probers[name]
+        except KeyError:
+            raise AttributeError
+
+    def autoload_modules(self, module_name, impl_modules):
+        if module_name in self._autoload_modules:
+            raise Exception(f"Autoload of {module_name!r} is already defined")
+        self._autoload_modules[module_name] = impl_modules
+        if do_autoload:
+            try:
+                self._load_autoload_module(module_name)
+                return
+            except ImportError:
+                pass
+        if callable(impl_modules):
+            impl_modules = impl_modules()
+        for name in impl_modules:
+            for prober in self._probers.values():
+                prober._load_impl_module(name)
+
+    def _load_autoload_module(self, module_name):
+        mod = importlib.import_module(module_name)
+        content_map = mod.content_map
+        for key, content in content_map.items():
+            self.get_or_create(key)._load_autoload_content(content)
+
+    def write_autoload_module(self, module_name):
+        try:
+            impl_modules = self._autoload_modules[module_name]
+        except KeyError:
+            raise KeyError(f"Autoload module is not defined: {module_name!r}")
+        if callable(impl_modules):
+            impl_modules = impl_modules()
+        parent_modname, sep, mod_basename = module_name.rpartition('.')
+        parent_mod = importlib.import_module(parent_modname)
+        dirname = os.path.dirname(parent_mod.__file__)
+        filename = os.path.join(dirname, mod_basename + ".py")
+        content = self._generate_autoload_content(module_name, impl_modules)
+        with open(filename, 'w') as f:
+            f.write(content)
+
+    def _generate_autoload_content(self, module_name, impl_modules):
+        self._verify_autoload()
+        content = [
+            '''"""Auto-generated module for autoload definitions."""''',
+            "",
+            "# This is generated code. Do not modify.",
+            "",
+            "content_map = {",
+        ]
+        for key in self._probers:
+            prober = BytesProber(key=key)
+            for name in impl_modules:
+                prober._load_impl_module(name)
+            lines = iter(prober._generate_autoload_content_lines())
+            content.append(f"    {key!r}: {next(lines)}")
+            content.extend(f"    {line}" for line in lines)
+            content[-1] += ","
+        content.extend([
+            "}",
+            "" # newline at eof
+        ])
+        return '\n'.join(content)
+
+    def _verify_autoload(self):
+        for impl_modules in self._autoload_modules.values():
+            if callable(impl_modules):
+                impl_modules = impl_modules()
+            for name in impl_modules:
+                mod = importlib.import_module(name)
+                try:
+                    for key in mod.Probers._probers.keys():
+                        if key not in self._probers:
+                            raise ValueError(
+                                f"Prober in module {name!r} not registered: {key!r}")
+                except:
+                    raise RegisterError(f"Failed to load module {name!r}")
 
 
 # vim:set sw=4 ts=8 sts=4 et:

@@ -8,14 +8,10 @@ from .levelfragments import (
     CustomNameFragment,
 )
 from .printing import need_counters
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
-class Probers(object):
-    file = BytesProber()
-    level_like = BytesProber()
-    level_objects = BytesProber()
-    level_subobjects = BytesProber()
+Probers = ProberGroup()
 
 
 class LevelObject(BaseObject):

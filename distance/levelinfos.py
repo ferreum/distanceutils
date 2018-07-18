@@ -21,15 +21,13 @@ from .construct import (
 )
 from .printing import format_duration
 from .constants import Mode
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
-class Probers(object):
-    file = BytesProber()
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 @Probers.fragments.fragment

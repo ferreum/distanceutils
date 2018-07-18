@@ -3,7 +3,7 @@
 from distance.levelobjects import LevelObject, SubObject
 from distance.bytes import Section, Magic
 from distance.base import Transform, Fragment, fragment_attrs
-from distance.prober import BytesProber
+from distance.prober import ProberGroup
 from distance.levelfragments import (
     material_attrs,
 )
@@ -31,9 +31,7 @@ from distance._impl.fragments.levelfragments import (
 )
 
 
-class Probers(object):
-    level_objects = BytesProber()
-    level_subobjects = BytesProber()
+Probers = ProberGroup()
 
 
 @Probers.level_objects.for_type('Teleporter', 'TeleporterVirus',

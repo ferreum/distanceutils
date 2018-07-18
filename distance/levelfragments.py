@@ -4,11 +4,10 @@
 from .bytes import Section, Magic
 from .base import Fragment, default_fragments
 from ._data import MaterialSet
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
-class Probers(object):
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 @Probers.fragments.fragment

@@ -7,12 +7,11 @@ from distance.bytes import (
 )
 from distance.base import Fragment
 from distance._data import NamedPropertyList
-from distance.prober import BytesProber, RegisterError
+from distance.prober import ProberGroup, RegisterError
 from . import bases
 
 
-class Probers(object):
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 class NamedPropertiesFragment(Fragment):

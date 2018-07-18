@@ -21,7 +21,7 @@ from .lazy import LazySequence
 from .constants import Difficulty, Mode, AbilityToggle, LAYER_FLAG_NAMES
 from .printing import format_duration, need_counters
 from .levelobjects import print_objects
-from .prober import BytesProber
+from .prober import ProberGroup
 from ._common import (
     ModesMapperProperty,
     MedalTimesMapperProperty,
@@ -29,11 +29,7 @@ from ._common import (
 )
 
 
-class Probers(object):
-    file = BytesProber()
-    level_like = BytesProber()
-    level_content = BytesProber()
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 def format_layer_flags(gen):

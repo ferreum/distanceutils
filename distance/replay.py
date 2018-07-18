@@ -17,15 +17,13 @@ from .construct import (
     UInt, ULong, Float, DstString, Remainder, MagicConst,
 )
 from .printing import format_duration, format_color
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
 FTYPE_REPLAY_PREFIX = "Replay: "
 
 
-class Probers(object):
-    file = BytesProber()
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 @Probers.fragments.fragment(any_version=True)

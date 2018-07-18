@@ -110,4 +110,10 @@ class UnknownObjectFileTest(unittest.TestCase):
         self.assertEqual(type(obj), LevelObject)
 
 
+class VerifyTest(unittest.TestCase):
+
+    def test_verify(self):
+        DefaultProbers._verify_autoload()
+
+
 # vim:set sw=4 ts=8 sts=4 et:

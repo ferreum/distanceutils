@@ -17,15 +17,13 @@ from .construct import (
     UInt, ULong, DstString
 )
 from .constants import Rating
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
 
-class Probers(object):
-    fragments = BytesProber()
-    file = BytesProber()
+Probers = ProberGroup()
 
 
 def format_date(date):

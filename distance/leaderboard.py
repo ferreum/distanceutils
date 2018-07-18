@@ -20,7 +20,7 @@ from .construct import (
     UInt, DstString, ULong,
 )
 from .printing import format_duration
-from .prober import BytesProber
+from .prober import ProberGroup
 
 
 NO_REPLAY = 0xffffffff_ffffffff
@@ -28,9 +28,7 @@ NO_REPLAY = 0xffffffff_ffffffff
 FTYPE_LEADERBOARD = "LocalLeaderboard"
 
 
-class Probers(object):
-    file = BytesProber()
-    fragments = BytesProber()
+Probers = ProberGroup()
 
 
 @Probers.fragments.fragment(any_version=True)
