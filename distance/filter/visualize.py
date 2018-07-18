@@ -4,11 +4,14 @@
 from collections import defaultdict
 import math
 
-from distance.levelobjects import GoldenSimple, Group
-from distance import levelfragments as levelfrags
+from distance.levelobjects import Group
+from distance._impl.level_objects.objects import GoldenSimple
+from distance._impl.fragments import bases as basefrags
+from distance._impl.fragments import levelfragments as levelfrags
 from distance.bytes import Section, Magic
 from distance.base import Transform, NoDefaultTransformError
 from .base import ObjectFilter, DoNotApply, create_replacement_group
+
 
 SKIP_REASONS = {
     'no_collider': ("No collider found", 1),
@@ -452,7 +455,7 @@ class VirusMazeMapper(VisualizeMapper):
     }
 
     def _apply_match(self, main, objpath, frags):
-        interp_frag = main.fragment_by_type(levelfrags.BaseInterpolateToPositiononTrigger)
+        interp_frag = main.fragment_by_type(basefrags.BaseInterpolateToPositiononTrigger)
         if interp_frag and not interp_frag.actually_interpolate:
             raise DoNotApply('disabled')
         vis = self.visualizers.get(main.type, None)

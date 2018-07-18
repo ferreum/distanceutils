@@ -292,7 +292,7 @@ class BytesProber(object):
         return ''.join(result)
 
     def _autoload_all(self):
-        for module_name in set(info[0] for info in self._autoload_sections):
+        for module_name in set(info[0] for info in self._autoload_sections.values()):
             self._load_impl_module(module_name)
 
     def _autoload_impl_module(self, sec_key, info):

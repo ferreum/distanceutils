@@ -2,7 +2,7 @@
 
 
 from distance.levelfragments import MaterialFragment
-from distance.levelobjects import GoldenSimple
+from distance._impl.level_objects.objects import GoldenSimple
 from .base import (ObjectFilter, ObjectMapper, DoNotApply,
                    create_replacement_group)
 

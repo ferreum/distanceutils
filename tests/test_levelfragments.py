@@ -2,14 +2,16 @@ import unittest
 
 from distance import DefaultProbers
 from distance.base import Fragment
-from distance.levelfragments import (
-    MaterialFragment,
+from distance.levelfragments import MaterialFragment
+from distance._impl.fragments.levelfragments import (
     TrackNodeFragment,
+    AnimatorFragment,
+)
+from distance._impl.fragments.npfragments import (
+    NamedPropertiesFragment,
     PopupBlockerLogicFragment,
     ObjectSpawnCircleFragment,
-    AnimatorFragment,
     StructNamedProperty,
-    NamedPropertiesFragment,
 )
 from distance.bytes import SKIP_BYTES, DstBytes, Section, Magic, S_UINT
 from tests import common

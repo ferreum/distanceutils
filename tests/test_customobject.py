@@ -7,17 +7,23 @@ from distance.base import (
 )
 from distance.levelobjects import (
     Group,
+)
+from distance._impl.level_objects.objects import (
     SubTeleporter,
     WinLogic,
     GoldenSimple,
     WorldText,
 )
-from distance.levelfragments import (
+from distance._impl.fragments.levelfragments import (
     TrackNodeFragment,
-    BaseCarScreenTextDecodeTrigger,
     CarScreenTextDecodeTriggerFragment,
-    OldCarScreenTextDecodeTriggerFragment,
     AnimatorFragment,
+)
+from distance._impl.fragments.bases import (
+    BaseCarScreenTextDecodeTrigger,
+)
+from distance._impl.fragments.npfragments import (
+    OldCarScreenTextDecodeTriggerFragment,
 )
 from distance.printing import PrintContext
 from distance.constants import ForceType

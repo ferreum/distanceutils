@@ -16,6 +16,9 @@ _autoload_mods = [
     'distance.workshoplevelinfos',
     'distance.levelfragments',
     'distance.levelobjects',
+    'distance._impl.fragments.levelfragments',
+    'distance._impl.fragments.npfragments',
+    'distance._impl.level_objects.objects',
 ]
 _autoload_prober_keys = [
     'file',

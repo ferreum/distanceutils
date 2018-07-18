@@ -3,7 +3,7 @@
 
 import numpy as np, quaternion
 
-from .levelobjects import GoldenSimple
+from distance._impl.level_objects.objects import GoldenSimple
 
 
 quaternion # suppress warning

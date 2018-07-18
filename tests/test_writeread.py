@@ -1,12 +1,15 @@
 import unittest
 
 from distance import DefaultProbers
-from distance.levelobjects import (
-    LevelObject, GoldenSimple, Group, InfoDisplayBox, WinLogic,
+from distance.levelobjects import Group
+from distance._impl.level_objects.objects import (
+    LevelObject, GoldenSimple, InfoDisplayBox, WinLogic,
     OldSimple, WorldText,
 )
 from distance.levelfragments import (
     MaterialFragment,
+)
+from distance._impl.fragments.levelfragments import (
     TrackNodeFragment,
 )
 from distance.level import Level

@@ -4,7 +4,7 @@
 from distance.base import Transform, TransformError
 from distance.level import Level
 from distance.levelobjects import Group
-from distance import levelfragments as levelfrags
+import distance._impl.fragments.levelfragments as levelfrags
 
 
 ANIM_FRAG_TYPES = (

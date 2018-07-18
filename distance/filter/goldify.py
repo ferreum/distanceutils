@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 from distance.base import Transform
-from distance.levelobjects import GoldenSimple, OldSimple
+from distance._impl.level_objects.objects import GoldenSimple, OldSimple
 from .base import ObjectFilter, ObjectMapper, DoNotApply, create_replacement_group, TransformError
 
 
