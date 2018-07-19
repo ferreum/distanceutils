@@ -259,6 +259,17 @@ class BytesProber(object):
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
 
+    def _generate_autoload_content(self):
+        return {
+            'sections': {key: (cls.__module__, cls.__name__)
+                         for key, cls in self._sections.items()},
+        }
+
+    def _get_current_autoload_content(self):
+        return {
+            'sections': self._autoload_sections,
+        }
+
     def _generate_autoload_content_lines(self):
         result = ["{", "    'sections': {"]
         for key, cls in self._sections.items():
@@ -273,14 +284,8 @@ class BytesProber(object):
         prober = getattr(mod.Probers, self.key)
         self.extend_from(prober)
 
-    def _load_impl_module(self, module_name):
-        mod = importlib.import_module(module_name)
-        try:
-            prober = getattr(mod.Probers, self.key)
-        except AttributeError:
-            pass
-        else:
-            self.extend_from(prober)
+    def _load_impl(self, prober):
+        self.extend_from(prober)
 
 
 class _ProberTransaction(BytesProber):
@@ -347,29 +352,17 @@ class ProbersRegistry(object):
         self._autoload_modules[module_name] = impl_modules
         if do_autoload:
             try:
-                self._load_autoload_module(module_name)
+                _load_autoload_module(self._probers, module_name)
                 return
             except ImportError:
                 pass
-        if callable(impl_modules):
-            impl_modules = impl_modules()
-        for name in impl_modules:
-            for prober in self._probers.values():
-                prober._load_impl_module(name)
-
-    def _load_autoload_module(self, module_name):
-        mod = importlib.import_module(module_name)
-        content_map = mod.content_map
-        for key, content in content_map.items():
-            self.get_or_create(key)._load_autoload_content(content)
+        _load_impls_to_probers(self._probers, impl_modules)
 
     def write_autoload_module(self, module_name):
         try:
             impl_modules = self._autoload_modules[module_name]
         except KeyError:
             raise KeyError(f"Autoload module is not defined: {module_name!r}")
-        if callable(impl_modules):
-            impl_modules = impl_modules()
         parent_modname, sep, mod_basename = module_name.rpartition('.')
         parent_mod = importlib.import_module(parent_modname)
         dirname = os.path.dirname(parent_mod.__file__)
@@ -379,7 +372,6 @@ class ProbersRegistry(object):
             f.write(content)
 
     def _generate_autoload_content(self, module_name, impl_modules):
-        self._verify_autoload()
         content = [
             '''"""Auto-generated module for autoload definitions."""''',
             "",
@@ -387,10 +379,9 @@ class ProbersRegistry(object):
             "",
             "content_map = {",
         ]
-        for key in self._probers:
-            prober = BytesProber(key=key)
-            for name in impl_modules:
-                prober._load_impl_module(name)
+        probers = {k: BytesProber(key=k) for k in self._probers}
+        _load_impls_to_probers(probers, impl_modules)
+        for key, prober in probers.items():
             lines = iter(prober._generate_autoload_content_lines())
             content.append(f"    {key!r}: {next(lines)}")
             content.extend(f"    {line}" for line in lines)
@@ -401,19 +392,41 @@ class ProbersRegistry(object):
         ])
         return '\n'.join(content)
 
-    def _verify_autoload(self):
-        for impl_modules in self._autoload_modules.values():
-            if callable(impl_modules):
-                impl_modules = impl_modules()
-            for name in impl_modules:
-                mod = importlib.import_module(name)
+    def _verify_autoload(self, verify_autoload=True):
+        actual_probers = {k: BytesProber(key=k) for k in self._probers}
+        autoload_probers = {k: BytesProber(key=k) for k in self._probers}
+        for autoload_module, impl_modules in self._autoload_modules.items():
+            _load_impls_to_probers(actual_probers, impl_modules)
+            _load_autoload_module(autoload_probers, autoload_module)
+        if verify_autoload:
+            if not do_autoload:
+                raise Exception(f"Autoload is disabled")
+            for key in self._probers.keys():
+                actual_sec = actual_probers[key]._generate_autoload_content()
+                loaded_sec = autoload_probers[key]._get_current_autoload_content()
+                if actual_sec != loaded_sec:
+                    raise Exception(f"Autoload modules are not up-to-date")
+
+def _load_autoload_module(probers, module_name):
+    mod = importlib.import_module(module_name)
+    content_map = mod.content_map
+    for key, content in content_map.items():
+        probers[key]._load_autoload_content(content)
+
+def _load_impls_to_probers(probers, impl_modules):
+    if callable(impl_modules):
+        impl_modules = impl_modules()
+    for name in impl_modules:
+        mod = importlib.import_module(name)
+        try:
+            for key, prober in mod.Probers._probers.items():
                 try:
-                    for key in mod.Probers._probers.keys():
-                        if key not in self._probers:
-                            raise ValueError(
-                                f"Prober in module {name!r} not registered: {key!r}")
-                except:
-                    raise RegisterError(f"Failed to load module {name!r}")
+                    dest = probers[key]
+                except KeyError as e:
+                    raise KeyError(f"Prober in module {name!r} does not exist: {key!r}") from e
+                dest._load_impl(prober)
+        except Exception as e:
+            raise Exception(f"Failed to load probers of module {name!r}") from e
 
 
 # vim:set sw=4 ts=8 sts=4 et:

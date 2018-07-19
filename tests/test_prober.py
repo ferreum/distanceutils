@@ -113,7 +113,13 @@ class UnknownObjectFileTest(unittest.TestCase):
 class VerifyTest(unittest.TestCase):
 
     def test_verify(self):
-        DefaultProbers._verify_autoload()
+        DefaultProbers._verify_autoload(verify_autoload=False)
+
+    def test_verify_autoload(self):
+        import distance
+        if not distance.prober.do_autoload:
+            self.skipTest("Autoload is disabled")
+        DefaultProbers._verify_autoload(verify_autoload=True)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
