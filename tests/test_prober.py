@@ -2,7 +2,7 @@ import unittest
 
 from distance.bytes import DstBytes, Magic, Section
 from distance.prober import BytesProber
-from distance.base import BaseObject
+from distance.base import BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
 
@@ -121,6 +121,18 @@ class VerifyTest(unittest.TestCase):
             self.skipTest("Autoload is disabled")
         actual, loaded = DefaultProbers._verify_autoload(verify_autoload=True)
         self.assertEqual(loaded, actual)
+
+
+class VerifyClassInfo(unittest.TestCase):
+
+    def test_create_fragment(self):
+        frag = DefaultProbers.fragments.create('Object')
+        self.assertEqual(type(frag), ObjectFragment)
+
+    def test_create_fragment_autoloaded(self):
+        from distance._impl.fragments.levelfragments import GoldenSimplesFragment
+        frag = DefaultProbers.fragments.create('GoldenSimples')
+        self.assertEqual(type(frag), GoldenSimplesFragment)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

@@ -20,6 +20,7 @@ DefaultProbers.get_or_create('base_fragments').baseclass = Fragment
 
 def _impl_modules():
     return [
+        'distance.base',
         'distance.level',
         'distance.replay',
         'distance.leaderboard',

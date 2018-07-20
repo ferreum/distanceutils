@@ -279,6 +279,13 @@ class BytesProber(object):
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
+    def create(self, tag, *args, **kw):
+        info = self._classes[tag]
+        modname, clsname = info['cls']
+        mod = importlib.import_module(modname)
+        cls = getattr(mod, clsname)
+        return cls(*args, **kw)
+
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
         self._classes.update(content['classes'])

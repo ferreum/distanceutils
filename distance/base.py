@@ -8,11 +8,11 @@ import collections
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
 from .lazy import LazySequence, LazyMappedSequence
+from .prober import ProberGroup
 from ._default_probers import DefaultProbers
 
 
-BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments').transaction()
-FRAG_PROBER = DefaultProbers.get_or_create('fragments').transaction()
+Probers = ProberGroup()
 
 TRANSFORM_MIN_SIZE = 12
 
@@ -385,8 +385,8 @@ class Fragment(BytesModel):
                     p.print_data_of(container)
 
 
-@BASE_FRAG_PROBER.fragment
-@FRAG_PROBER.fragment
+@Probers.base_fragments.fragment
+@Probers.fragments.fragment
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',
@@ -729,10 +729,6 @@ def require_type(*args, func=None):
     else:
         typ = args[0]
         return decorate
-
-
-BASE_FRAG_PROBER.commit()
-FRAG_PROBER.commit()
 
 
 # vim:set sw=4 ts=8 sts=4 et:
