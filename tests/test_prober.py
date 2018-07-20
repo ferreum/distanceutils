@@ -119,7 +119,8 @@ class VerifyTest(unittest.TestCase):
         import distance
         if not distance.prober.do_autoload:
             self.skipTest("Autoload is disabled")
-        DefaultProbers._verify_autoload(verify_autoload=True)
+        actual, loaded = DefaultProbers._verify_autoload(verify_autoload=True)
+        self.assertEqual(loaded, actual)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

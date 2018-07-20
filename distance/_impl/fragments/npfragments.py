@@ -16,6 +16,13 @@ Probers = ProberGroup()
 
 class NamedPropertiesFragment(Fragment):
 
+    @classmethod
+    def class_tag(cls):
+        tag = super().class_tag()
+        if tag == 'NamedProperties':
+            return None
+        return tag
+
     def __init__(self, *args, **kw):
         self.props = NamedPropertyList()
         Fragment.__init__(self, *args, **kw)

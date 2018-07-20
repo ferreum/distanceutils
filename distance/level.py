@@ -160,9 +160,10 @@ class NewLevelSettings(LevelSettings, BaseObject):
 @Probers.level_content.fragment
 class OldLevelSettings(LevelSettings, BaseConstructFragment):
 
-    default_container = Section(Magic[8])
-
     """Special settings section only found in very old maps."""
+
+    class_tag = 'OldLevelSettings'
+    default_container = Section(Magic[8])
 
     # fallbacks for base LevelSettings and other usages
     version = None
@@ -190,6 +191,7 @@ class OldLevelSettings(LevelSettings, BaseConstructFragment):
 @Probers.level_content.fragment
 class Layer(Fragment):
 
+    class_tag = 'Layer'
     default_container = Section(Magic[7])
 
     layer_name = None
@@ -273,6 +275,7 @@ class Layer(Fragment):
 @Probers.level_like.fragment
 class Level(Fragment):
 
+    class_tag = 'Level'
     default_container = Section(Magic[9])
 
     layers = ()

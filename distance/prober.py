@@ -28,6 +28,7 @@ class BytesProber(object):
         self.key = key
         self._sections = {}
         self._autoload_sections = {}
+        self._classes = {}
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
@@ -35,16 +36,16 @@ class BytesProber(object):
         return _ProberTransaction(self)
 
     def add_type(self, type, cls):
-        self._sections[Section(Magic[6], type).to_key()] = cls
+        sec = Section(Magic[6], type)
+        self._sections[sec.to_key()] = cls
+        self._add_class(cls, type, sec)
 
     def add_func(self, func, tag):
         self._funcs_by_tag[tag] = func
 
     def _add_fragment_for_section(self, cls, sec, any_version):
         if any_version:
-            key = sec.to_noversion_key()
-            if key is None:
-                raise ValueError(f"Cannot use any_version with {sec!r}")
+            key = sec.to_key(noversion=True)
         else:
             key = sec.to_key()
         try:
@@ -97,6 +98,11 @@ class BytesProber(object):
                 self._add_fragment_for_section(cls, s, any_version)
         else:
             self._add_fragment_for_section(cls, sec, any_version)
+        tag = cls.class_tag
+        if callable(tag):
+            tag = tag()
+        if tag is not None:
+            self._add_class(cls, tag, sec, versions)
 
     def func(self, tag):
 
@@ -152,10 +158,28 @@ class BytesProber(object):
 
         return decorate
 
+    def _add_class(self, cls, tag, container=None, versions=None):
+        versions = versions
+        info = {
+            'cls': (cls.__module__, cls.__name__),
+            'base_container': container.to_key(noversion=True),
+            'versions': None if versions is None else tuple(versions),
+            'fields': getattr(cls, '_fields_map', None),
+        }
+        try:
+            prev = self._classes[tag]
+        except KeyError:
+            pass
+        else:
+            if prev != info:
+                raise RegisterError(f"Duplicate class tag: {tag!r}")
+        self._classes[tag] = info
+
     def extend_from(self, other):
         self._sections.update(((k, v) for k, v in other._sections.items()
                                if k not in self._sections))
         self._funcs_by_tag.update(other._funcs_by_tag)
+        self._classes.update(other._classes)
 
 
     # support old method name
@@ -183,9 +207,8 @@ class BytesProber(object):
         cls = self._get_by_key(sec.to_key())
         if cls is not None:
             return cls
-        nover_key = sec.to_noversion_key()
-        if nover_key is not None:
-            cls = self._get_by_key(nover_key)
+        if sec.has_version():
+            cls = self._get_by_key(sec.to_key(noversion=True))
             if cls is not None:
                 return cls
         cls = self._get_from_funcs(sec)
@@ -258,16 +281,19 @@ class BytesProber(object):
 
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
+        self._classes.update(content['classes'])
 
     def _generate_autoload_content(self):
         return {
             'sections': {key: (cls.__module__, cls.__name__)
                          for key, cls in self._sections.items()},
+            'classes': dict(self._classes),
         }
 
     def _get_current_autoload_content(self):
         return {
-            'sections': self._autoload_sections,
+            'sections': dict(self._autoload_sections),
+            'classes': dict(self._classes),
         }
 
     def _autoload_impl_module(self, sec_key, info):
@@ -367,11 +393,12 @@ class ProbersRegistry(object):
         if verify_autoload:
             if not do_autoload:
                 raise Exception(f"Autoload is disabled")
+            actual_content = {}
+            loaded_content = {}
             for key in self._probers.keys():
-                actual_sec = actual_probers[key]._generate_autoload_content()
-                loaded_sec = autoload_probers[key]._get_current_autoload_content()
-                if actual_sec != loaded_sec:
-                    raise Exception(f"Autoload modules are not up-to-date")
+                actual_content[key] = actual_probers[key]._generate_autoload_content()
+                loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
+            return actual_content, loaded_content
 
 
 def _load_autoload_module(probers, module_name):

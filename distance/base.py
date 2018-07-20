@@ -260,6 +260,13 @@ class Fragment(BytesModel):
 
     is_interesting = False
 
+    @classmethod
+    def class_tag(cls):
+        name = cls.__name__
+        if not name.endswith('Fragment'):
+            raise Exception(f"Could not get class tag for {cls!r}")
+        return name[:-8]
+
     def __init__(self, dbytes=None, **kw):
         self.probers = kw.pop('probers', DefaultProbers)
         super().__init__(dbytes=dbytes, **kw)
@@ -517,6 +524,10 @@ class BaseObject(Fragment):
     has_children = False
 
     default_transform = None
+
+    @classmethod
+    def class_tag(cls):
+        return getattr(cls, 'type', cls.__name__)
 
     @property
     def transform(self):
