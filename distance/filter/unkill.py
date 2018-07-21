@@ -1,10 +1,11 @@
 """Filter for replacing kill grids."""
 
 
-from distance.levelfragments import MaterialFragment
-from distance._impl.level_objects.objects import GoldenSimple
-from .base import (ObjectFilter, ObjectMapper, DoNotApply,
-                   create_replacement_group)
+from distance._default_probers import DefaultProbers
+from .base import (
+    ObjectFilter, ObjectMapper, DoNotApply,
+    create_replacement_group,
+)
 
 
 class KillgridMapper(ObjectMapper):
@@ -14,11 +15,11 @@ class KillgridMapper(ObjectMapper):
         self.type = type
 
     def create_result(self, old, transform, collision=True, copy_color=True):
-        gs = GoldenSimple(type=self.type, transform=transform)
+        gs = DefaultProbers.level_objects.create(self.type, type=self.type, transform=transform)
         color = (.302, 0, 0, .471)
         if copy_color:
             try:
-                matfragment = old.fragment_by_type(MaterialFragment)
+                matfragment = old.fragment_by_tag('Material')
                 color = matfragment.materials['KillGridFinite']['_Color']
             except AttributeError:
                 pass
@@ -47,6 +48,7 @@ def create_mappers():
                                            rot=mkrotx(90),
                                            scale=1/64),
     }
+
 
 KILLGRID_MAPPERS = create_mappers()
 
