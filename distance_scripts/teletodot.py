@@ -4,7 +4,10 @@
 import argparse
 
 from distance.level import Level
-from distance.levelobjects import SubTeleporter
+from distance import DefaultProbers
+
+
+SubTeleporter = DefaultProbers.level_subobjects.klass('Teleporter')
 
 
 def main():
@@ -17,8 +20,8 @@ def main():
     def get_teleporters(gen):
         for obj in gen:
             teles = list(o for o in obj.iter_children(ty=SubTeleporter)
-                         if o.link_id is not None or
-                         o.destination is not None)
+                         if o.fragment_by_tag('TeleporterEntrance') is not None or
+                         o.fragment_by_tag('TeleporterExit') is not None)
             if teles:
                 yield obj, teles
             if not obj.sane_end_pos:
@@ -46,11 +49,12 @@ def main():
             if tele.link_id is not None:
                 add_to_listmap(dests, tele.link_id, tele)
                 label += f"{tele.link_id}"
-            if tele.destination is not None:
-                add_to_listmap(srcs, tele.destination, tele)
+            entrance = tele.fragment_by_tag('TeleporterEntrance')
+            if entrance is not None:
+                add_to_listmap(srcs, entrance.destination, tele)
                 if label:
                     label += " "
-                label += f"to {tele.destination}"
+                label += f"to {entrance.destination}"
             tele.__id = f"t{i}_{obj.type}"
             tele.__label = f"{obj.type} {label}"
 
@@ -65,8 +69,8 @@ def main():
                 dmain = sub_to_main[dest]
                 smain = sub_to_main[src]
                 dist = np.linalg.norm(
-                    np.array(dmain.transform[0]) - np.array(smain.transform[0]))
-                print(f'  {src.__id}->{dest.__id} [label="{dist:n}"];')
+                    np.array(dmain.real_transform.effective()[0]) - np.array(smain.real_transform.effective()[0]))
+                print(f'  {src.__id}->{dest.__id} [label="{dist:n} units"];')
     for dest_list in dests.values():
         for dest in dest_list:
             print(f'  {dest.__id} [label="{dest.__label}"];')
