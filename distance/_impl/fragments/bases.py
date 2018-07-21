@@ -1,9 +1,10 @@
 
 
 from distance.bytes import Section, Magic
+from distance.base import Fragment
 
 
-class BaseCarScreenTextDecodeTrigger(object):
+class BaseCarScreenTextDecodeTrigger(Fragment):
 
     base_container = Section.base(Magic[2], 0x57)
 
@@ -46,7 +47,7 @@ class BaseCarScreenTextDecodeTrigger(object):
                     p(f"Phrase: {phrase!r}")
 
 
-class BaseInfoDisplayLogic(object):
+class BaseInfoDisplayLogic(Fragment):
 
     base_container = Section.base(Magic[2], 0x4a)
 
@@ -73,7 +74,7 @@ class BaseInfoDisplayLogic(object):
             p(f"Random char count: {self.random_char_count}")
 
 
-class BaseTeleporterEntrance(object):
+class BaseTeleporterEntrance(Fragment):
 
     base_container = Section.base(Magic[2], 0x3e)
 
@@ -85,7 +86,7 @@ class BaseTeleporterEntrance(object):
             p(f"Teleports to: {self.destination}")
 
 
-class BaseTeleporterExit(object):
+class BaseTeleporterExit(Fragment):
 
     base_container = Section.base(Magic[2], 0x3f)
 
@@ -97,7 +98,7 @@ class BaseTeleporterExit(object):
             p(f"Link ID: {self.link_id}")
 
 
-class BaseInterpolateToPositiononTrigger(object):
+class BaseInterpolateToPositiononTrigger(Fragment):
 
     base_container = Section.base(Magic[2], 0x43)
 
