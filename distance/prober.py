@@ -35,9 +35,11 @@ def fragment_property(tag, name, default=None, doc=None):
 
 class BytesProber(object):
 
-    def __init__(self, baseclass=BytesModel, key=None):
+    def __init__(self, baseclass=BytesModel, key=None, keys=()):
         self.baseclass = baseclass
-        self.key = key
+        if key is not None:
+            keys = keys + (key,)
+        self.keys = keys
         self._sections = {}
         self._autoload_sections = {}
         self._classes = {}
@@ -198,11 +200,10 @@ class BytesProber(object):
                                if k not in self._sections))
         self._funcs_by_tag.update(other._funcs_by_tag)
         self._classes.update(other._classes)
-
-
-    # support old method name
-    extend = extend_from
-
+        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
+                                       if k not in self._autoload_sections)
+        self.keys = self.keys + tuple(k for k in other.keys
+                                      if k not in self.keys)
 
     def _get_by_key(self, key):
         cls = self._sections.get(key, None)
@@ -351,8 +352,9 @@ class BytesProber(object):
     def _autoload_impl_module(self, sec_key, info):
         impl_module, classname = info
         mod = importlib.import_module(impl_module)
-        prober = getattr(mod.Probers, self.key)
-        self.extend_from(prober)
+        for key in self.keys:
+            prober = getattr(mod.Probers, key)
+            self.extend_from(prober)
 
     def _load_impl(self, prober):
         self.extend_from(prober)
