@@ -49,10 +49,6 @@ _autoload_module = 'distance._autoload._probers'
 DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
 
 
-import distance.replay
-distance.replay
-
-
 @DefaultProbers.file.func('Replay')
 def _detect_other(section):
     if section.magic == Magic[6]:
