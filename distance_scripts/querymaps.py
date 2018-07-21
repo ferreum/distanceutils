@@ -53,9 +53,6 @@ def main():
             cond_parts += "?" if i == 0 else ", ?"
         cond_parts += ")"
 
-    if not cond_parts:
-        cond_parts += "1"
-
     if args.cols:
         fields = args.cols
     elif args.ids:
