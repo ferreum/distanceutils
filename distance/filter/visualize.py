@@ -4,12 +4,12 @@
 from collections import defaultdict
 import math
 
-from distance.levelobjects import Group
 from distance._impl.level_objects.objects import GoldenSimple
 from distance._impl.fragments import bases as basefrags
 from distance._impl.fragments import levelfragments as levelfrags
 from distance.bytes import Section, Magic
 from distance.base import Transform, NoDefaultTransformError
+from distance._default_probers import DefaultProbers
 from .base import ObjectFilter, DoNotApply, create_replacement_group
 
 
@@ -536,7 +536,7 @@ class CooldownTriggerMapper(VisualizeMapper):
             # static ring
             return objs
 
-        grp = Group(children=objs)
+        grp = DefaultProbers.level_objects.create('Group', children=objs)
         grp.recenter(main.transform.pos)
         grp.rerotate(main.transform.rot)
 

@@ -17,6 +17,19 @@ Probers = ProberGroup()
 class NamedPropertiesFragment(Fragment):
 
     @classmethod
+    def _fields_map(cls):
+        result = {name: value.default
+                for name, value in cls.__dict__.items()
+                if isinstance(value, (BaseNamedProperty, named_property_getter))}
+        try:
+            add = getattr(cls, '_add_fields')
+        except AttributeError:
+            pass
+        else:
+            result.update(add)
+        return result
+
+    @classmethod
     def class_tag(cls):
         tag = super().class_tag()
         if tag == 'NamedProperties':
@@ -47,21 +60,25 @@ class NamedPropertiesFragment(Fragment):
             self.props.print_data(p)
 
 
-def named_property_getter(propname, default=None):
+class named_property_getter(property):
 
     """Decorate properties to create a getter for a named property."""
 
-    def decorate(func):
-
-        def fget(self):
-            data = self.props.get(propname, None)
+    def __init__(self, propname, default=None):
+        self.propname = propname
+        self.default = default
+        def fget(obj):
+            data = self.props.get(self.propname, None)
             if not data or data == SKIP_BYTES:
-                return default
+                return self.default
             db = DstBytes.from_data(data)
-            return func(self, db)
-        return property(fget, None, None, doc=func.__doc__)
+            return self.func(obj, db)
+        property.__init__(self, fget)
 
-    return decorate
+    def __call__(self, func):
+        self.func = func
+        self.__doc__ = func.__doc__
+        return self
 
 
 class BaseNamedProperty(property):
@@ -145,6 +162,10 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
 
     is_interesting = True
 
+    _fields_map = dict(
+        delay_before_broadcast = 0.0,
+    )
+
     delay_before_broadcast = StructNamedProperty('DelayBeforeBroadcast', S_FLOAT)
 
     def _print_data(self, p):
@@ -165,6 +186,10 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
     KNOWN_ABILITIES = (
         'EnableFlying', 'EnableJumping',
         'EnableBoosting', 'EnableJetRotating',
+    )
+
+    _add_fields = dict(
+        abilities = None,
     )
 
     @property
@@ -220,15 +245,6 @@ class OldCarScreenTextDecodeTriggerFragment(bases.BaseCarScreenTextDecodeTrigger
     static_time_text = ByteNamedProperty('StaticTimeText')
 
     announcer_action = StructNamedProperty('AnnouncerAction', S_UINT)
-
-    @named_property_getter('AnnouncerPhrases', default=())
-    def announcer_phrases(self, db):
-        db.require_equal_uint4(Magic[1])
-        num_phrases = db.read_uint4()
-        phrases = []
-        for _ in range(num_phrases):
-            phrases.append(db.read_str())
-        return phrases
 
 
 @Probers.fragments.fragment

@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from collections import Sequence
 
 from distance.bytes import DstBytes
-from distance.level import Level, Layer
+from distance.level import Level
 from distance.base import BaseObject
 
 
@@ -21,14 +21,14 @@ def check_exceptions(obj):
         check_exceptions(obj.settings)
         for layer in obj.layers:
             check_exceptions(layer)
-    if isinstance(obj, Layer):
-        for obj in obj.objects:
-            check_exceptions(obj)
     if isinstance(obj, BaseObject):
         for frag in obj.fragments:
             check_exceptions(frag)
         for child in obj.children:
             check_exceptions(child)
+    if obj.class_tag == 'Layer':
+        for obj in obj.objects:
+            check_exceptions(obj)
 
 
 def write_read(obj, read_func=None):

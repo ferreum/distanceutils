@@ -275,6 +275,10 @@ class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment
         display_in_arcade = Default(Byte, 0),
     )
 
+    _add_fields = dict(
+        texts = (),
+    )
+
     @property
     def texts(self):
         return [e.text for e in self.entries]

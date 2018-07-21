@@ -2,113 +2,69 @@
 
 from distance.levelobjects import LevelObject, SubObject
 from distance.bytes import Section, Magic
-from distance.base import Transform, Fragment, fragment_attrs
+from distance.base import Transform, Fragment
 from distance.prober import ProberGroup
 from distance._default_probers import DefaultProbers
-from distance.levelfragments import (
-    material_attrs,
-)
-from distance._impl.fragments.bases import (
-    BaseTeleporterEntrance,
-    BaseTeleporterExit,
-    BaseCarScreenTextDecodeTrigger,
-    BaseInfoDisplayLogic,
-)
-from distance.levelfragments import (
-    CustomNameFragment,
-)
-from distance._impl.fragments.npfragments import (
-    RaceEndLogicFragment,
-    EnableAbilitiesTriggerFragment,
-)
-from distance._impl.fragments.levelfragments import (
-    GoldenSimplesFragment,
-    TeleporterExitCheckpointFragment,
-    ForceZoneFragment,
-    TextMeshFragment,
-    SphereColliderFragment,
-    GravityToggleFragment,
-    MusicTriggerFragment,
-)
+from distance.levelfragments import material_attrs
 
 
 Probers = ProberGroup()
 
+fragment_attrs = DefaultProbers.fragments.fragment_attrs
 
-@Probers.level_objects.for_type('Teleporter', 'TeleporterVirus',
-                                'TeleporterAndAmbientChangeTrigger', 'TeleporterExit')
+
+@Probers.level_objects.for_type(
+    'Teleporter',
+    'TeleporterVirus',
+    'TeleporterAndAmbientChangeTrigger',
+    'TeleporterExit',
+)
 class Teleporter(LevelObject):
 
     default_transform = Transform.fill()
 
 
 @Probers.level_subobjects.for_type
-@fragment_attrs(BaseTeleporterEntrance, destination=None)
-@fragment_attrs(BaseTeleporterExit, link_id=None)
-@fragment_attrs(TeleporterExitCheckpointFragment, trigger_checkpoint=None)
+@fragment_attrs(
+    'TeleporterEntrance',
+    'TeleporterExit',
+    'TeleporterExitCheckpoint',
+)
 class SubTeleporter(SubObject):
+
     type = 'Teleporter'
 
 
 @Probers.level_subobjects.for_type
-@fragment_attrs(RaceEndLogicFragment, delay_before_broadcast=None)
+@fragment_attrs('RaceEndLogic')
 class WinLogic(SubObject):
+
     type = 'WinLogic'
 
 
 @Probers.level_objects.for_type
-@fragment_attrs(TextMeshFragment, **TextMeshFragment._fields_map)
+@fragment_attrs('TextMesh')
 class WorldText(LevelObject):
+
     type = 'WorldText'
 
 
 @Probers.level_objects.for_type
-@fragment_attrs(BaseInfoDisplayLogic,
-    fadeout_time = None,
-    texts = (),
-    per_char_speed = None,
-    destroy_on_trigger_exit = None,
-    random_char_count = None,
-)
+@fragment_attrs('InfoDisplayLogic')
 class InfoDisplayBox(LevelObject):
 
     type = 'InfoDisplayBox'
 
 
 @Probers.level_objects.for_type
-@fragment_attrs(BaseCarScreenTextDecodeTrigger,
-    text = None,
-    per_char_speed = None,
-    clear_on_finish = None,
-    clear_on_trigger_exit = None,
-    destroy_on_trigger_exit = None,
-    static_time_text = None,
-    time_text = None,
-    delay = None,
-    announcer_action = None,
-    announcer_phrases = (),
-)
+@fragment_attrs('CarScreenTextDecodeTrigger')
 class CarScreenTextDecodeTrigger(LevelObject):
 
     type = 'CarScreenTextDecodeTrigger'
 
 
 @Probers.level_objects.for_type
-@fragment_attrs(SphereColliderFragment,
-    trigger_center = None,
-    trigger_radius = None,
-)
-@fragment_attrs(GravityToggleFragment,
-    disable_gravity = None,
-    drag_scale = None,
-    drag_scale_angular = None,
-)
-@fragment_attrs(MusicTriggerFragment,
-    music_id = None,
-    one_time_trigger = None,
-    reset_before_trigger = None,
-    disable_music_trigger = None,
-)
+@fragment_attrs('SphereCollider', 'GravityToggle', 'MusicTrigger')
 class GravityTrigger(LevelObject):
 
     type = 'GravityTrigger'
@@ -116,8 +72,7 @@ class GravityTrigger(LevelObject):
 
 
 @Probers.level_objects.for_type
-@fragment_attrs(CustomNameFragment, **CustomNameFragment.value_attrs)
-@fragment_attrs(ForceZoneFragment, **ForceZoneFragment._fields_map)
+@fragment_attrs('CustomName', 'ForceZone')
 class ForceZoneBox(LevelObject):
 
     type = 'ForceZoneBox'
@@ -125,8 +80,7 @@ class ForceZoneBox(LevelObject):
 
 
 @Probers.level_objects.for_type
-@fragment_attrs(EnableAbilitiesTriggerFragment, abilities=None, bloom_out=None,
-                      enable_boosting=0, enable_jumping=0, enable_jets=0, enable_flying=0)
+@fragment_attrs('EnableAbilitiesTrigger')
 class EnableAbilitiesBox(LevelObject):
 
     type = 'EnableAbilitiesBox'
@@ -304,7 +258,7 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 
 
-@DefaultProbers.fragments.fragment_attrs('GoldenSimples')
+@fragment_attrs('GoldenSimples')
 @material_attrs(
     mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
     mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),

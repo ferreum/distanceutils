@@ -1,7 +1,6 @@
 import unittest
 
 from distance import DefaultProbers
-from distance.levelobjects import Group
 from distance._impl.level_objects.objects import (
     LevelObject, GoldenSimple, InfoDisplayBox, WinLogic,
     OldSimple, WorldText,
@@ -17,6 +16,9 @@ from distance.base import Fragment
 from distance.prober import BytesProber
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
+
+
+Group = DefaultProbers.level_objects.klass('Group')
 
 
 UNK_PROBER = BytesProber()

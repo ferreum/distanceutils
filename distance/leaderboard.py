@@ -3,24 +3,10 @@
 
 from operator import attrgetter
 
-from construct import (
-    Struct, Computed, Rebuild, If, Default,
-    Bytes,
-    this, len_,
-)
-
-from .bytes import Magic, Section
-from .base import (
-    BaseObject,
-    fragment_attrs,
-    require_type,
-)
-from .construct import (
-    BaseConstructFragment,
-    UInt, DstString, ULong,
-)
+from .base import BaseObject, require_type
 from .printing import format_duration
 from .prober import ProberGroup
+from ._default_probers import DefaultProbers
 
 
 NO_REPLAY = 0xffffffff_ffffffff
@@ -31,28 +17,8 @@ FTYPE_LEADERBOARD = "LocalLeaderboard"
 Probers = ProberGroup()
 
 
-@Probers.fragments.fragment(any_version=True)
-class LeaderboardFragment(BaseConstructFragment):
-
-    base_container = Section.base(Magic[2], 0x37)
-
-    _construct = Struct(
-        version = Computed(this._params.sec.version),
-        num_entries = Rebuild(UInt, len_(this.entries)),
-        unk_1 = Bytes(4),
-        unk_2 = If(this.version >= 1, Bytes(4)),
-        entries = Default(Struct(
-            playername = DstString,
-            time = UInt,
-            unk_1 = If(this._.version == 0, UInt),
-            replay = If(this._.version >= 1, Default(ULong, NO_REPLAY)),
-            unk_2 = If(this._.version >= 1, Bytes(12))
-        )[this.num_entries], ()),
-    )
-
-
 @Probers.file.for_type
-@fragment_attrs(LeaderboardFragment, **LeaderboardFragment._fields_map)
+@DefaultProbers.fragments.fragment_attrs('Leaderboard')
 @require_type
 class Leaderboard(BaseObject):
 

@@ -3,7 +3,6 @@
 from distance.bytes import Magic
 from distance.base import BaseObject, Fragment
 from distance.levelobjects import LevelObject, SubObject
-from distance.replay import Replay, FTYPE_REPLAY_PREFIX
 from distance._default_probers import DefaultProbers
 
 
@@ -21,17 +20,26 @@ DefaultProbers.get_or_create('base_fragments').baseclass = Fragment
 def _impl_modules():
     return [
         'distance.base',
+        'distance._impl.fragments.group',
+        'distance._impl.fragments.levelfragments',
+        'distance._impl.fragments.npfragments',
+        'distance._impl.fragments.replay',
+        'distance._impl.fragments.levelsettings',
+        'distance._impl.fragments.leaderboard',
+        'distance._impl.fragments.levelinfos',
+        'distance._impl.fragments.profileprogress',
+        'distance._impl.fragments.workshoplevelinfos',
+        'distance._impl.level_objects.group',
+        'distance._impl.level_objects.objects',
+        'distance._impl.level_content.layer',
+        'distance._impl.level_content.newlevelsettings',
+        'distance._impl.level_content.oldlevelsettings',
         'distance.level',
-        'distance.replay',
         'distance.leaderboard',
         'distance.levelinfos',
         'distance.profileprogress',
         'distance.workshoplevelinfos',
         'distance.levelfragments',
-        'distance.levelobjects',
-        'distance._impl.fragments.levelfragments',
-        'distance._impl.fragments.npfragments',
-        'distance._impl.level_objects.objects',
     ]
 
 
@@ -41,9 +49,14 @@ _autoload_module = 'distance._autoload._probers'
 DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
 
 
+import distance.replay
+distance.replay
+
+
 @DefaultProbers.file.func('Replay')
 def _detect_other(section):
     if section.magic == Magic[6]:
+        from distance.replay import Replay, FTYPE_REPLAY_PREFIX
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
     return None

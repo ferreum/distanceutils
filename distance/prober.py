@@ -174,12 +174,15 @@ class BytesProber(object):
         from distance.base import get_default_container
         versions = versions
         defcon = get_default_container(cls)
+        fields_map = getattr(cls, '_fields_map', None)
+        if callable(fields_map):
+            fields_map = fields_map()
         info = {
             'cls': (cls.__module__, cls.__name__),
             'base_container': container.to_key(noversion=True),
             'default_container': None if defcon is None else defcon.to_key(),
             'versions': None if versions is None else tuple(versions),
-            'fields': getattr(cls, '_fields_map', None),
+            'fields': fields_map,
         }
         try:
             prev = self._classes[tag]
@@ -309,7 +312,8 @@ class BytesProber(object):
                 info = self._classes[tag]
                 fields = info['fields']
                 default_container = info['default_container']
-                containers.append(Section.from_key(default_container))
+                if default_container is not None:
+                    containers.append(Section.from_key(default_container))
                 if fields is None:
                     raise TypeError(f"Class with tag {tag!r} has no fields information")
                 for name, default in fields.items():
@@ -318,12 +322,14 @@ class BytesProber(object):
             return cls
         return decorate
 
-    def create(self, tag, *args, **kw):
+    def klass(self, tag):
         info = self._classes[tag]
         modname, clsname = info['cls']
         mod = importlib.import_module(modname)
-        cls = getattr(mod, clsname)
-        return cls(*args, **kw)
+        return getattr(mod, clsname)
+
+    def create(self, tag, *args, **kw):
+        return self.klass(tag)(*args, **kw)
 
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
