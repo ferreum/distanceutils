@@ -447,20 +447,25 @@ def fragment_property(cls, name, default=None, doc=None):
 
 class default_fragments(object):
 
-    @staticmethod
-    def add_to(target, *classes):
+    @classmethod
+    def add_to(cls, target, *classes):
         if not all(callable(c) for c in classes):
             raise TypeError("Not all args are callable")
-        try:
-            registered = target.__fragments
-        except AttributeError:
-            registered = []
-        target.__fragments = registered + [f for f in classes
-                                           if f not in registered]
+        cls.add_sections_to(target, *(con for con in map(get_default_container, classes)
+                                      if con is not None))
 
     @staticmethod
-    def get(target):
-        return target.__fragments
+    def add_sections_to(target, *sections):
+        try:
+            registered = target.__sections
+        except AttributeError:
+            registered = []
+        target.__sections = registered + [s for s in sections
+                                          if s not in registered]
+
+    @staticmethod
+    def get_sections(target):
+        return target.__sections
 
     def __init__(self, *classes):
         self.classes = classes
@@ -649,7 +654,7 @@ class BaseObject(Fragment):
 
     def _init_defaults(self):
         super()._init_defaults()
-        sections = [sec for sec in map(get_default_container, default_fragments.get(self))
+        sections = [sec for sec in default_fragments.get_sections(self)
                     if sec is not None]
         fragments = []
         for sec in sections:
