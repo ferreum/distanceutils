@@ -74,21 +74,19 @@ class BaseNamedProperty(property):
     """
 
     def __init__(self, propname, default=None):
-        self.__doc__ = f"Named property {propname!r}"
+        doc = f"Named property {propname!r}"
         self.propname = propname
         self.default = default
-
-    def __get__(self, inst, objtype=None):
-        data = inst.props.get(self.propname, None)
-        if not data or data == SKIP_BYTES:
-            return self.default
-        return self._from_bytes(data)
-
-    def __set__(self, inst, value):
-        inst.props[self.propname] = self._to_bytes(value)
-
-    def __delete__(self, inst):
-        del inst.props[self.propname]
+        def fget(obj, objtype=None):
+            data = obj.props.get(propname, None)
+            if not data or data == SKIP_BYTES:
+                return default
+            return self._from_bytes(data)
+        def fset(obj, value):
+            obj.props[propname] = self._to_bytes(value)
+        def fdel(obj):
+            del obj.props[propname]
+        super().__init__(fget, fset, fdel, doc=doc)
 
 
 class TupleStructNamedProperty(BaseNamedProperty):
@@ -137,9 +135,6 @@ class StringNamedProperty(BaseNamedProperty):
         db = DstBytes.in_memory()
         db.write_str(value)
         return db.file.getvalue()
-
-    def __delete__(self, inst):
-        del inst.props[self.propname]
 
 
 @Probers.fragments.fragment

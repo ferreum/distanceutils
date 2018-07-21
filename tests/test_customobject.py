@@ -24,6 +24,8 @@ from distance._impl.fragments.bases import (
     BaseCarScreenTextDecodeTrigger,
 )
 from distance._impl.fragments.npfragments import (
+    NamedPropertiesFragment,
+    ByteNamedProperty,
     OldCarScreenTextDecodeTriggerFragment,
 )
 from distance.printing import PrintContext
@@ -412,6 +414,10 @@ class PropertyTest(unittest.TestCase):
         times = MedalTimesMapperProperty('medals_list')
         scores = MedalScoresMapperProperty('medals_list')
 
+    class NamedPropFragment(NamedPropertiesFragment):
+
+        test = ByteNamedProperty('testValue')
+
     def test_create_modes(self):
         frag = self.TestFragment(modes={})
         self.assertEqual(list(frag.modes_list), [])
@@ -433,6 +439,10 @@ class PropertyTest(unittest.TestCase):
             Container(time=20, score=102),
             Container(time=10, score=103),
         ])
+
+    def test_named_property(self):
+        frag = self.NamedPropFragment(test=34)
+        self.assertEqual(frag.test, 34)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
