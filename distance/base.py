@@ -599,6 +599,16 @@ class BaseObject(Fragment):
         bytype[typ] = None
         return None
 
+    def fragment_by_tag(self, tag):
+        base_key = self.probers.fragments.base_container_key(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                frag = self._fragments[i]
+                return frag
+            i += 1
+        return None
+
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
         prober = self.probers.fragments

@@ -279,6 +279,13 @@ class BytesProber(object):
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
+    def base_container_key(self, tag):
+        info = self._classes[tag]
+        base = info.get('base_container', None)
+        if base is None:
+            raise TypeError(f"Class with tag {tag!r} has no container information")
+        return base
+
     def create(self, tag, *args, **kw):
         info = self._classes[tag]
         modname, clsname = info['cls']

@@ -5,6 +5,8 @@ from distance.prober import BytesProber
 from distance.base import BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
+from distance._impl.fragments.levelfragments import GoldenSimplesFragment
+from distance._impl.level_objects.objects import GoldenSimple
 
 
 class TestObject(BaseObject):
@@ -130,9 +132,19 @@ class VerifyClassInfo(unittest.TestCase):
         self.assertEqual(type(frag), ObjectFragment)
 
     def test_create_fragment_autoloaded(self):
-        from distance._impl.fragments.levelfragments import GoldenSimplesFragment
         frag = DefaultProbers.fragments.create('GoldenSimples')
         self.assertEqual(type(frag), GoldenSimplesFragment)
+
+    def test_fragment_by_tag_object(self):
+        obj = BaseObject()
+        frag = obj.fragment_by_tag('Object')
+        self.assertEqual(frag, obj.fragments[0])
+
+    def test_fragment_by_tag_goldensimples(self):
+        obj = GoldenSimple(type='CubeGS')
+        frag = obj.fragment_by_tag('GoldenSimples')
+        expect = next(f for f in obj.fragments if isinstance(f, GoldenSimplesFragment))
+        self.assertEqual(frag, expect)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
