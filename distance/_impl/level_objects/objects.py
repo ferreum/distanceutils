@@ -4,6 +4,7 @@ from distance.levelobjects import LevelObject, SubObject
 from distance.bytes import Section, Magic
 from distance.base import Transform, Fragment, fragment_attrs
 from distance.prober import ProberGroup
+from distance._default_probers import DefaultProbers
 from distance.levelfragments import (
     material_attrs,
 )
@@ -303,7 +304,7 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
 )
 
 
-@fragment_attrs(GoldenSimplesFragment, **GoldenSimplesFragment._fields_map)
+@DefaultProbers.fragments.fragment_attrs('GoldenSimples')
 @material_attrs(
     mat_color = ('SimplesMaterial', '_Color', (.3, .3, .3, 1)),
     mat_emit = ('SimplesMaterial', '_EmitColor', (.8, .8, .8, .5)),

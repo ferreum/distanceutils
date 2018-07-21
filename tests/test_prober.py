@@ -146,5 +146,9 @@ class VerifyClassInfo(unittest.TestCase):
         expect = next(f for f in obj.fragments if isinstance(f, GoldenSimplesFragment))
         self.assertEqual(frag, expect)
 
+    def test_fragment_attrs(self):
+        obj = GoldenSimple(type='CubeGS')
+        self.assertEqual(obj.emit_index, 17)
+
 
 # vim:set sw=4 ts=8 sts=4 et:

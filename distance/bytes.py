@@ -452,6 +452,10 @@ class Section(BytesModel):
         else:
             return magic
 
+    @classmethod
+    def from_key(cls, key):
+        return cls(*key)
+
     def has_version(self):
         return self.magic in (MAGIC_2, MAGIC_3)
 

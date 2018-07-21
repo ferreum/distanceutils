@@ -21,6 +21,18 @@ class RegisterError(ValueError):
     pass
 
 
+def fragment_property(tag, name, default=None, doc=None):
+    def fget(self):
+        frag = self.fragment_by_tag(tag)
+        return getattr(frag, name, default)
+    def fset(self, value):
+        frag = self.fragment_by_tag(tag)
+        setattr(frag, name, value)
+    if doc is None:
+        doc = f"property forwarded to {tag!r}"
+    return property(fget, fset, doc=doc)
+
+
 class BytesProber(object):
 
     def __init__(self, baseclass=BytesModel, key=None):
@@ -159,10 +171,13 @@ class BytesProber(object):
         return decorate
 
     def _add_class(self, cls, tag, container=None, versions=None):
+        from distance.base import get_default_container
         versions = versions
+        defcon = get_default_container(cls)
         info = {
             'cls': (cls.__module__, cls.__name__),
             'base_container': container.to_key(noversion=True),
+            'default_container': None if defcon is None else defcon.to_key(),
             'versions': None if versions is None else tuple(versions),
             'fields': getattr(cls, '_fields_map', None),
         }
@@ -285,6 +300,23 @@ class BytesProber(object):
         if base is None:
             raise TypeError(f"Class with tag {tag!r} has no container information")
         return base
+
+    def fragment_attrs(self, *tags):
+        def decorate(cls):
+            from .base import default_fragments
+            containers = []
+            for tag in tags:
+                info = self._classes[tag]
+                fields = info['fields']
+                default_container = info['default_container']
+                containers.append(Section.from_key(default_container))
+                if fields is None:
+                    raise TypeError(f"Class with tag {tag!r} has no fields information")
+                for name, default in fields.items():
+                    setattr(cls, name, fragment_property(tag, name, default))
+            default_fragments.add_sections_to(cls, *containers)
+            return cls
+        return decorate
 
     def create(self, tag, *args, **kw):
         info = self._classes[tag]
