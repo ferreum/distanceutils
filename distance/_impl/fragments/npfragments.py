@@ -14,52 +14,6 @@ from . import bases
 Probers = ProberGroup()
 
 
-class NamedPropertiesFragment(Fragment):
-
-    @classmethod
-    def _fields_map(cls):
-        result = {name: value.default
-                for name, value in cls.__dict__.items()
-                if isinstance(value, (BaseNamedProperty, named_property_getter))}
-        try:
-            add = getattr(cls, '_add_fields')
-        except AttributeError:
-            pass
-        else:
-            result.update(add)
-        return result
-
-    @classmethod
-    def class_tag(cls):
-        tag = super().class_tag()
-        if tag == 'NamedProperties':
-            return None
-        return tag
-
-    def __init__(self, *args, **kw):
-        self.props = NamedPropertyList()
-        Fragment.__init__(self, *args, **kw)
-
-    def _clone_data(self, new):
-        new.props.update(self.props)
-
-    def _read_section_data(self, dbytes, sec):
-        if sec.content_size >= 4:
-            self.props.read(dbytes, max_pos=sec.end_pos,
-                            detect_old=True)
-
-    def _write_section_data(self, dbytes, sec):
-        if self.props:
-            self.props.write(dbytes)
-
-    def _print_data(self, p):
-        super()._print_data(p)
-        if self.props.old_format:
-            p(f"Old properties format")
-        if 'allprops' in p.flags and self.props:
-            self.props.print_data(p)
-
-
 class named_property_getter(property):
 
     """Decorate properties to create a getter for a named property."""
@@ -152,6 +106,53 @@ class StringNamedProperty(BaseNamedProperty):
         db = DstBytes.in_memory()
         db.write_str(value)
         return db.file.getvalue()
+
+
+@Probers.fragments.add_info(tag='NamedProperties')
+class NamedPropertiesFragment(Fragment):
+
+    @classmethod
+    def _fields_map(cls):
+        result = {name: value.default
+                for name, value in cls.__dict__.items()
+                if isinstance(value, (BaseNamedProperty, named_property_getter))}
+        try:
+            add = getattr(cls, '_add_fields')
+        except AttributeError:
+            pass
+        else:
+            result.update(add)
+        return result
+
+    @classmethod
+    def class_tag(cls):
+        tag = super().class_tag()
+        if tag == 'NamedProperties':
+            return None
+        return tag
+
+    def __init__(self, *args, **kw):
+        self.props = NamedPropertyList()
+        Fragment.__init__(self, *args, **kw)
+
+    def _clone_data(self, new):
+        new.props.update(self.props)
+
+    def _read_section_data(self, dbytes, sec):
+        if sec.content_size >= 4:
+            self.props.read(dbytes, max_pos=sec.end_pos,
+                            detect_old=True)
+
+    def _write_section_data(self, dbytes, sec):
+        if self.props:
+            self.props.write(dbytes)
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        if self.props.old_format:
+            p(f"Old properties format")
+        if 'allprops' in p.flags and self.props:
+            self.props.print_data(p)
 
 
 @Probers.fragments.fragment

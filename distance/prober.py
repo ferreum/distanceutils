@@ -172,16 +172,35 @@ class BytesProber(object):
 
         return decorate
 
+    def add_info(self, *args, tag=None):
+        def decorate(cls):
+            nonlocal tag
+            if tag is None:
+                tag = cls.class_tag
+                if callable(tag):
+                    tag = tag()
+            self._add_class(cls, tag)
+            return cls
+        if len(args) == 1:
+            return decorate(args[0])
+        else:
+            return decorate
+
     def _add_class(self, cls, tag, container=None, versions=None):
+        if type(tag) != str:
+            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
         from distance.base import get_default_container
         versions = versions
         defcon = get_default_container(cls)
         fields_map = getattr(cls, '_fields_map', None)
+        base_container_key = None
+        if container is not None:
+            base_container_key = container.to_key(noversion=True)
         if callable(fields_map):
             fields_map = fields_map()
         info = {
             'cls': (cls.__module__, cls.__name__),
-            'base_container': container.to_key(noversion=True),
+            'base_container': base_container_key,
             'default_container': None if defcon is None else defcon.to_key(),
             'versions': None if versions is None else tuple(versions),
             'fields': fields_map,
