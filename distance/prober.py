@@ -354,10 +354,14 @@ class BytesProber(object):
         mod = importlib.import_module(impl_module)
         for key in self.keys:
             prober = getattr(mod.Probers, key)
-            self.extend_from(prober)
+            self._load_impl(prober, False)
 
-    def _load_impl(self, prober):
-        self.extend_from(prober)
+    def _load_impl(self, prober, update_classes):
+        self._sections.update(((k, v) for k, v in prober._sections.items()
+                               if k not in self._sections))
+        self._funcs_by_tag.update(prober._funcs_by_tag)
+        if update_classes:
+            self._classes.update(prober._classes)
 
 
 class _ProberTransaction(BytesProber):
@@ -472,7 +476,7 @@ def _load_impls_to_probers(probers, impl_modules):
                     dest = probers[key]
                 except KeyError as e:
                     raise KeyError(f"Prober in module {name!r} does not exist: {key!r}") from e
-                dest._load_impl(prober)
+                dest._load_impl(prober, True)
         except Exception as e:
             raise Exception(f"Failed to load probers of module {name!r}") from e
 
