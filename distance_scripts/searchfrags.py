@@ -10,7 +10,10 @@ from distance.bytes import DstBytes, Section, Magic
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError
 from distance.base import Fragment, ObjectFragment
-from distance.levelfragments import NamedPropertiesFragment, MaterialFragment
+
+
+NamedPropertiesFragment = DefaultProbers.fragments.klass('NamedProperties')
+MaterialFragment = DefaultProbers.fragments.klass('Material')
 
 
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")

@@ -4,7 +4,10 @@
 import sys
 import argparse
 
-from distance.levelobjects import Group
+from distance import DefaultProbers
+
+
+Group = DefaultProbers.level_objects.klass('Group')
 
 
 def read_floats(s):

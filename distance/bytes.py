@@ -439,11 +439,11 @@ class Section(BytesModel):
     def content_end(self):
         return self.content_start + self.content_size
 
-    def to_key(self, any_version=False):
+    def to_key(self, noversion=False):
         """Create a key of this section's type identity."""
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
-            if any_version:
+            if noversion:
                 return (magic, self.type, None)
             else:
                 return (magic, self.type, self.version)
@@ -451,6 +451,13 @@ class Section(BytesModel):
             return (magic, self.type)
         else:
             return magic
+
+    @classmethod
+    def from_key(cls, key):
+        return cls(*key)
+
+    def has_version(self):
+        return self.magic in (MAGIC_2, MAGIC_3)
 
     def _read(self, dbytes):
         magic, data_size = dbytes.read_struct(S_SEC_BASE)

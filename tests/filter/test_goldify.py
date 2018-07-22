@@ -1,9 +1,9 @@
 from argparse import Namespace
 import unittest
 
-from distance import Level
-from distance.levelobjects import OldSimple
-from distance import levelfragments as levelfrags
+from distance.level import Level
+from distance._impl.level_objects.objects import OldSimple
+from distance._impl.fragments.levelfragments import AnimatorFragment
 from distance.filter import GoldifyFilter
 from tests.common import ExtraAssertMixin
 
@@ -55,7 +55,7 @@ class GoldifyTest(ExtraAssertMixin, unittest.TestCase):
         self.assertAlmostEqual(0, rotdiff.angle())
 
         self.assertTrue(any(f for f in grp.fragments
-                            if isinstance(f, levelfrags.AnimatorFragment)))
+                            if isinstance(f, AnimatorFragment)))
 
 
 # vim:set sw=4 ts=8 sts=4 et:

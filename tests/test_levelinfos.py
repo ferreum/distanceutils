@@ -2,7 +2,7 @@ import unittest
 
 from distance.levelinfos import LevelInfos
 from distance.printing import PrintContext
-from distance._common import ModesMapperProperty
+from distance._common import modes_to_map
 from . import common
 
 
@@ -28,8 +28,8 @@ class Version0LevelsTest(unittest.TestCase):
         self.assertEqual('main menu datastream', self.levels[1].level_basename)
 
     def test_modes(self):
-        self.assertEqual({1: 1, 2: 0, 3: 0, 5: 0, 8: 0, 10: 0}, ModesMapperProperty.to_map(self.levels[0].modes))
-        self.assertEqual({1: 0, 2: 0, 5: 0, 8: 0, 13: 1}, ModesMapperProperty.to_map(self.levels[1].modes))
+        self.assertEqual({1: 1, 2: 0, 3: 0, 5: 0, 8: 0, 10: 0}, modes_to_map(self.levels[0].modes))
+        self.assertEqual({1: 0, 2: 0, 5: 0, 8: 0, 13: 1}, modes_to_map(self.levels[1].modes))
 
     def test_times(self):
         exp = [240000, 180000, 135000, 90000]

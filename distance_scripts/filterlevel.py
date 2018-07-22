@@ -7,10 +7,12 @@ import argparse
 from contextlib import contextmanager
 
 from distance import DefaultProbers
-from distance.levelobjects import Group
 from distance.levelobjects import LevelObject
 from distance.filter import getfilter
 from distance.printing import PrintContext
+
+
+level_objects = DefaultProbers.level_objects
 
 
 def filterlevel_getfilter(name):
@@ -165,7 +167,7 @@ def main():
     is_wrapped = False
     if isinstance(content, LevelObject) and content.type != 'Group':
         is_wrapped = True
-        content = Group(children=[content])
+        content = DefaultProbers.create('Group', children=[content])
 
     p = PrintContext(file=sys.stderr, flags=('groups', 'subobjects'))
 

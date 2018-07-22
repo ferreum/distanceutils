@@ -56,18 +56,6 @@ This lazy-loading changes the seek position of the file.
 # Import public classes, and ensure these modules are always loaded
 # so they register their objects in our probers.
 
-import distance.levelobjects
-import distance.levelfragments
-
-from distance.level import Level
-from distance.replay import Replay
-from distance.leaderboard import Leaderboard
-from distance.levelinfos import LevelInfos
-from distance.profileprogress import ProfileProgress
-from distance.workshoplevelinfos import WorkshopLevelInfos
-
-from distance._default_probers import DefaultProbers
-
 from distance.constants import (
     AbilityToggle, Completion, Difficulty,
     ForceType, Mode, Rating
@@ -75,6 +63,7 @@ from distance.constants import (
 
 from ._version import __version__
 
+from distance._core import DefaultProbers
 
 # File prober's baseclass is Fragment. For Magic[6] objects,
 # fall back to BaseObject. We do this here, because it needs to be
@@ -89,8 +78,6 @@ def _fallback_object(sec):
 
 
 # suppress warnings
-distance.levelobjects
-distance.levelfragments
 __version__
 
 

@@ -3,12 +3,13 @@
 
 from collections import defaultdict
 import math
+from itertools import filterfalse
 
-from distance.levelobjects import GoldenSimple, Group
-from distance import levelfragments as levelfrags
 from distance.bytes import Section, Magic
 from distance.base import Transform, NoDefaultTransformError
+from distance._default_probers import DefaultProbers
 from .base import ObjectFilter, DoNotApply, create_replacement_group
+
 
 SKIP_REASONS = {
     'no_collider': ("No collider found", 1),
@@ -28,6 +29,20 @@ HOLO_VISUAL_DEFAULT = dict(
     multip_transp = False,
     world_mapped = False,
 )
+
+
+GoldenSimple = DefaultProbers.level_objects.klass('CubeGS')
+
+
+def is_tag(frag, wanted):
+    tag = frag.class_tag
+    if callable(tag):
+        tag = tag()
+    return tag == wanted
+
+
+def is_tag_pred(wanted):
+    return lambda frag: is_tag(frag, wanted)
 
 
 class SimpleCreator(object):
@@ -130,7 +145,7 @@ class BoxVisualizer(Visualizer):
         main = objpath[0]
         obj = objpath[-1]
 
-        coll = obj.fragment_by_type(levelfrags.BoxColliderFragment)
+        coll = obj.fragment_by_tag('BoxCollider')
         if coll is None:
             raise DoNotApply('no_collider')
         coll_center = coll.trigger_center or self.default_center
@@ -159,7 +174,7 @@ class SphereVisualizer(Visualizer):
         main = objpath[0]
         obj = objpath[-1]
 
-        coll = obj.fragment_by_type(levelfrags.SphereColliderFragment)
+        coll = obj.fragment_by_tag('SphereCollider')
         if coll is None:
             raise DoNotApply('no_collider')
         coll_center = coll.trigger_center or self.default_center
@@ -262,11 +277,11 @@ class TeleporterMapper(VisualizeMapper):
         dest, link_id = None, None
         obj = objpath[-1]
         for frag in frags:
-            if isinstance(frag, levelfrags.TeleporterEntranceFragment):
+            if is_tag(frag, 'TeleporterEntrance'):
                 if frag.destination is not None:
                     dest = frag.destination
                     self._entrances[dest].append(obj)
-            elif isinstance(frag, levelfrags.TeleporterExitFragment):
+            elif is_tag(frag, 'TeleporterExit'):
                 if frag.link_id is not None:
                     link_id = frag.link_id
                     self._exits[link_id].append(obj)
@@ -452,7 +467,7 @@ class VirusMazeMapper(VisualizeMapper):
     }
 
     def _apply_match(self, main, objpath, frags):
-        interp_frag = main.fragment_by_type(levelfrags.BaseInterpolateToPositiononTrigger)
+        interp_frag = main.fragment_by_tag('InterpolateToPositionOnTrigger')
         if interp_frag and not interp_frag.actually_interpolate:
             raise DoNotApply('disabled')
         vis = self.visualizers.get(main.type, None)
@@ -516,7 +531,7 @@ class CooldownTriggerMapper(VisualizeMapper):
     )
 
     def _apply_ring_anim(self, main, objs):
-        rotLogic = main.fragment_by_type(levelfrags.RigidbodyAxisRotationLogicFragment)
+        rotLogic = main.fragment_by_tag('RigidbodyAxisRotationLogic')
         if rotLogic is None:
             # object is not a rotating ring
             return objs
@@ -533,11 +548,11 @@ class CooldownTriggerMapper(VisualizeMapper):
             # static ring
             return objs
 
-        grp = Group(children=objs)
+        grp = DefaultProbers.level_objects.create('Group', children=objs)
         grp.recenter(main.transform.pos)
         grp.rerotate(main.transform.rot)
 
-        anim = levelfrags.AnimatorFragment()
+        anim = DefaultProbers.fragments.create('Animator')
         anim.motion_mode = 5 # advanced
 
         if rotLogic.limit_rotation:
@@ -619,8 +634,7 @@ class GoldenSimplesMapper(VisualizeMapper):
             return lum * color[3]
         tex_brightness = 1
         # TurnLightOnNearCar feature overrides invert_emit
-        light_on_frag = main.fragment_by_type(
-            levelfrags.TurnLightOnNearCarFragment)
+        light_on_frag = main.fragment_by_tag('TurnLightOnNearCar')
         if light_on_frag or not frag.invert_emit:
             if frag.emit_index in self._dark_textures:
                 tex_brightness = 0.1
@@ -647,8 +661,7 @@ class GoldenSimplesMapper(VisualizeMapper):
         GoldenSimple.mat_emit.__set__(obj, color)
         for k, v in HOLO_VISUAL_DEFAULT.items():
             setattr(frag, k, v)
-        main.fragments = [f for f in main.fragments
-                          if not isinstance(f, levelfrags.TurnLightOnNearCarFragment)]
+        main.fragments = list(filterfalse(is_tag_pred('TurnLightOnNearCar'), main.fragments))
 
     def _apply_match(self, main, objpath, frags):
         visualized = False
@@ -715,7 +728,9 @@ class VisualizeFilter(ObjectFilter):
     def _get_sec_mappers(self, sec):
         res = []
         res.extend(self._mappers_by_sec.get(sec.to_key(), ()))
-        res.extend(self._mappers_by_sec.get(sec.to_key(any_version=True), ()))
+        if sec.has_version():
+            nover_key = sec.to_key(noversion=True)
+            res.extend(self._mappers_by_sec.get(nover_key, ()))
         return res
 
     def _add_matches(self, obj, objpath, dest):

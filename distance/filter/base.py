@@ -3,23 +3,26 @@
 
 from distance.base import Transform, TransformError
 from distance.level import Level
-from distance.levelobjects import Group
-from distance import levelfragments as levelfrags
+from distance._default_probers import DefaultProbers
 
 
-ANIM_FRAG_TYPES = (
-    levelfrags.AnimatorFragment,
-    levelfrags.EventListenerFragment,
-    levelfrags.TrackAttachmentFragment,
+_ANIM_FRAG_TAGS = (
+    'Animator',
+    'EventListener',
+    'TrackAttachment',
 )
 
-ANIM_FRAG_SECTIONS = {cls.base_container.to_key(any_version=True)
-                      for cls in ANIM_FRAG_TYPES}
+ANIM_FRAG_SECTIONS = {DefaultProbers.fragments.base_container_key(tag)
+                      for tag in _ANIM_FRAG_TAGS}
+
+
+Group = DefaultProbers.level_objects.klass('Group')
+
 
 def create_replacement_group(orig, objs, animated_only=False):
     copied_frags = []
     for i, sec in enumerate(orig.sections):
-        if sec.to_key(any_version=True) in ANIM_FRAG_SECTIONS:
+        if sec.to_key(noversion=True) in ANIM_FRAG_SECTIONS:
             copyfrag = orig.fragments[i]
             copied_frags.append(copyfrag.clone())
     if animated_only and not copied_frags:

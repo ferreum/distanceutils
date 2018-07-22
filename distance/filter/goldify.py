@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 from distance.base import Transform
-from distance.levelobjects import GoldenSimple, OldSimple
+from distance._default_probers import DefaultProbers
 from .base import ObjectFilter, ObjectMapper, DoNotApply, create_replacement_group, TransformError
 
 
@@ -19,7 +19,7 @@ class OldToGsMapper(ObjectMapper):
         if self.collision_only and not old.with_collision:
             raise DoNotApply('unmatched')
 
-        gs = GoldenSimple(type=self.type, transform=transform)
+        gs = DefaultProbers.level_objects.create(self.type, type=self.type, transform=transform)
         if old.emissive:
             gs.mat_emit = getattr(old, 'color_emit', (1, 0.74, 0.216, 1))
             gs.emit_index = 42
@@ -148,9 +148,10 @@ class GoldifyFilter(ObjectFilter):
         self.debug = args.debug
         self.num_replaced = 0
         self.skipped_by_reason = defaultdict(lambda: 0)
+        self.OldSimple = DefaultProbers.level_objects.klass('Cube')
 
     def filter_object(self, obj, global_transform=Transform.fill()):
-        if isinstance(obj, OldSimple):
+        if isinstance(obj, self.OldSimple):
             try:
                 mapper = self.mappers[obj.shape]
             except KeyError:

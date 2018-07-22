@@ -3,7 +3,7 @@
 
 import numpy as np, quaternion
 
-from .levelobjects import GoldenSimple
+from distance._default_probers import DefaultProbers
 
 
 quaternion # suppress warning
@@ -11,6 +11,9 @@ quaternion # suppress warning
 SIMPLE_SIZE = 64
 
 WEDGE_DEF_ROT = np.quaternion(np.cos(np.pi/4), 0, np.sin(np.pi/4), 0)
+
+
+_create_obj = DefaultProbers.level_objects.create
 
 
 def convquat(quat):
@@ -104,10 +107,10 @@ def create_two_wedges(pmax, pnext, plast, objs, simple_args={}):
     pr = vr + pnext
 
     transform = rtri_to_transform(np.array([pr, pmax, pnext]))
-    objs.append(GoldenSimple(type='WedgeGS', transform=transform, **simple_args))
+    objs.append(_create_obj('WedgeGS', type='WedgeGS', transform=transform, **simple_args))
 
     transform = rtri_to_transform(np.array([pr, plast, pmax]))
-    objs.append(GoldenSimple(type='WedgeGS', transform=transform, **simple_args))
+    objs.append(_create_obj('WedgeGS', type='WedgeGS', transform=transform, **simple_args))
 
 
 def create_single_wedge(pr, pa, pb, objs, simple_args={}):
@@ -122,7 +125,7 @@ def create_single_wedge(pr, pa, pb, objs, simple_args={}):
     import numpy as np
 
     transform = rtri_to_transform(np.array([pr, pa, pb]))
-    objs.append(GoldenSimple(type='WedgeGS', transform=transform, **simple_args))
+    objs.append(_create_obj('WedgeGS', type='WedgeGS', transform=transform, **simple_args))
 
 
 def create_triangle_simples(verts, objs, simple_args={}):

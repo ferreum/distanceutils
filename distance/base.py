@@ -8,15 +8,11 @@ import collections
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
 from .lazy import LazySequence, LazyMappedSequence
+from .prober import ProberGroup
 from ._default_probers import DefaultProbers
 
 
-DefaultProbers.get_or_create('file')
-
-BASE_PROBER = DefaultProbers.get_or_create('base_objects').transaction()
-BASE_FRAG_PROBER = DefaultProbers.get_or_create('base_fragments').transaction()
-OBJ_PROBER = DefaultProbers.get_or_create('objects').transaction()
-FRAG_PROBER = DefaultProbers.get_or_create('fragments').transaction()
+Probers = ProberGroup()
 
 TRANSFORM_MIN_SIZE = 12
 
@@ -264,6 +260,13 @@ class Fragment(BytesModel):
 
     is_interesting = False
 
+    @classmethod
+    def class_tag(cls):
+        name = cls.__name__
+        if not name.endswith('Fragment'):
+            raise Exception(f"Could not get class tag for {cls!r}")
+        return name[:-8]
+
     def __init__(self, dbytes=None, **kw):
         self.probers = kw.pop('probers', DefaultProbers)
         super().__init__(dbytes=dbytes, **kw)
@@ -382,8 +385,8 @@ class Fragment(BytesModel):
                     p.print_data_of(container)
 
 
-@BASE_FRAG_PROBER.fragment
-@FRAG_PROBER.fragment
+@Probers.base_fragments.fragment
+@Probers.fragments.fragment
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',
@@ -444,20 +447,25 @@ def fragment_property(cls, name, default=None, doc=None):
 
 class default_fragments(object):
 
-    @staticmethod
-    def add_to(target, *classes):
+    @classmethod
+    def add_to(cls, target, *classes):
         if not all(callable(c) for c in classes):
             raise TypeError("Not all args are callable")
-        try:
-            registered = target.__fragments
-        except AttributeError:
-            registered = []
-        target.__fragments = registered + [f for f in classes
-                                           if f not in registered]
+        cls.add_sections_to(target, *(con for con in map(get_default_container, classes)
+                                      if con is not None))
 
     @staticmethod
-    def get(target):
-        return target.__fragments
+    def add_sections_to(target, *sections):
+        try:
+            registered = target.__sections
+        except AttributeError:
+            registered = []
+        target.__sections = registered + [s for s in sections
+                                          if s not in registered]
+
+    @staticmethod
+    def get_sections(target):
+        return target.__sections
 
     def __init__(self, *classes):
         self.classes = classes
@@ -516,11 +524,15 @@ class BaseObject(Fragment):
     __slots__ = ('type', '_sections', '_fragments',
                  '_fragment_types', '_fragments_by_type')
 
-    child_prober_name = 'objects'
+    child_prober_name = 'base_objects'
     is_object_group = False
     has_children = False
 
     default_transform = None
+
+    @classmethod
+    def class_tag(cls):
+        return getattr(cls, 'type', cls.__name__)
 
     @property
     def transform(self):
@@ -592,6 +604,16 @@ class BaseObject(Fragment):
         bytype[typ] = None
         return None
 
+    def fragment_by_tag(self, tag):
+        base_key = self.probers.fragments.base_container_key(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                frag = self._fragments[i]
+                return frag
+            i += 1
+        return None
+
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
         prober = self.probers.fragments
@@ -632,7 +654,7 @@ class BaseObject(Fragment):
 
     def _init_defaults(self):
         super()._init_defaults()
-        sections = [sec for sec in map(get_default_container, default_fragments.get(self))
+        sections = [sec for sec in default_fragments.get_sections(self)
                     if sec is not None]
         fragments = []
         for sec in sections:
@@ -722,18 +744,6 @@ def require_type(*args, func=None):
     else:
         typ = args[0]
         return decorate
-
-
-BASE_PROBER.commit()
-BASE_FRAG_PROBER.commit()
-OBJ_PROBER.commit()
-FRAG_PROBER.commit()
-
-DefaultProbers.base_objects.baseclass = BaseObject
-DefaultProbers.base_fragments.baseclass = Fragment
-DefaultProbers.fragments.baseclass = Fragment
-DefaultProbers.objects.baseclass = BaseObject
-DefaultProbers.file.baseclass = Fragment
 
 
 # vim:set sw=4 ts=8 sts=4 et:

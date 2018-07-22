@@ -2,9 +2,11 @@ import unittest
 
 from distance.bytes import DstBytes, Magic, Section
 from distance.prober import BytesProber
-from distance.base import BaseObject
+from distance.base import BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
+from distance._impl.fragments.levelfragments import GoldenSimplesFragment
+from distance._impl.level_objects.objects import GoldenSimple
 
 
 class TestObject(BaseObject):
@@ -108,6 +110,45 @@ class UnknownObjectFileTest(unittest.TestCase):
         obj = DefaultProbers.level_like.read(self.db)
 
         self.assertEqual(type(obj), LevelObject)
+
+
+class VerifyTest(unittest.TestCase):
+
+    def test_verify(self):
+        DefaultProbers._verify_autoload(verify_autoload=False)
+
+    def test_verify_autoload(self):
+        import distance
+        if not distance.prober.do_autoload:
+            self.skipTest("Autoload is disabled")
+        actual, loaded = DefaultProbers._verify_autoload(verify_autoload=True)
+        self.assertEqual(loaded, actual)
+
+
+class VerifyClassInfo(unittest.TestCase):
+
+    def test_create_fragment(self):
+        frag = DefaultProbers.fragments.create('Object')
+        self.assertEqual(type(frag), ObjectFragment)
+
+    def test_create_fragment_autoloaded(self):
+        frag = DefaultProbers.fragments.create('GoldenSimples')
+        self.assertEqual(type(frag), GoldenSimplesFragment)
+
+    def test_fragment_by_tag_object(self):
+        obj = BaseObject()
+        frag = obj.fragment_by_tag('Object')
+        self.assertEqual(frag, obj.fragments[0])
+
+    def test_fragment_by_tag_goldensimples(self):
+        obj = GoldenSimple(type='CubeGS')
+        frag = obj.fragment_by_tag('GoldenSimples')
+        expect = next(f for f in obj.fragments if isinstance(f, GoldenSimplesFragment))
+        self.assertEqual(frag, expect)
+
+    def test_fragment_attrs(self):
+        obj = GoldenSimple(type='CubeGS')
+        self.assertEqual(obj.emit_index, 17)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

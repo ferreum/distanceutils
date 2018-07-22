@@ -1,7 +1,7 @@
 from argparse import Namespace
 import unittest
 
-from distance import Level
+from distance.level import Level
 from distance.filter import SettingsFilter
 from distance.constants import Mode
 from ..common import read_or_skip, write_read

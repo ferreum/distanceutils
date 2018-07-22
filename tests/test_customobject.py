@@ -4,23 +4,35 @@ from distance import DefaultProbers
 from distance.base import (
     ObjectFragment,
     BaseObject,
+    Fragment,
 )
-from distance.levelobjects import (
-    Group,
+from distance._impl.level_objects.objects import (
     SubTeleporter,
     WinLogic,
     GoldenSimple,
     WorldText,
 )
-from distance.levelfragments import (
+from distance._impl.fragments.levelfragments import (
     TrackNodeFragment,
-    BaseCarScreenTextDecodeTrigger,
     CarScreenTextDecodeTriggerFragment,
-    OldCarScreenTextDecodeTriggerFragment,
     AnimatorFragment,
+)
+from distance._impl.fragments.bases import (
+    BaseCarScreenTextDecodeTrigger,
+)
+from distance._impl.fragments.npfragments import (
+    NamedPropertiesFragment,
+    ByteNamedProperty,
+    OldCarScreenTextDecodeTriggerFragment,
 )
 from distance.printing import PrintContext
 from distance.constants import ForceType
+from construct import Container
+from distance._common import (
+    ModesMapperProperty,
+    MedalTimesMapperProperty,
+    MedalScoresMapperProperty,
+)
 from . import common
 from .common import check_exceptions, write_read
 
@@ -310,7 +322,6 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
         p.print_data_of(obj)
         self.assertEqual(obj.text, "Please, help us.")
         self.assertEqual(obj.time_text, "")
-        self.assertEqual(0, len(obj.announcer_phrases))
 
     def test_ver0(self):
         p = PrintContext.for_test()
@@ -323,7 +334,6 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
         self.assertEqual(obj.clear_on_finish, True)
         self.assertEqual(obj.destroy_on_trigger_exit, False)
         self.assertEqual(obj.time_text, "Download")
-        self.assertEqual(0, len(obj.announcer_phrases))
 
 
 class SplineRoadTest(unittest.TestCase):
@@ -373,7 +383,7 @@ class TestFragments(unittest.TestCase):
 
     def test_getbytype_after_assign(self):
         old_anim = AnimatorFragment()
-        obj = Group()
+        obj = DefaultProbers.level_objects.create('Group')
         obj.fragments = [ObjectFragment(), old_anim]
         obj.fragment_by_type(AnimatorFragment)
 
@@ -382,6 +392,52 @@ class TestFragments(unittest.TestCase):
 
         res = obj.fragment_by_type(AnimatorFragment)
         self.assertIs(new_anim, res)
+
+
+class PropertyTest(unittest.TestCase):
+
+    class TestFragment(Fragment):
+
+        medals_list = [
+            Container(time=40, score=200),
+            Container(time=30, score=400),
+            Container(time=20, score=700),
+            Container(time=10, score=1000),
+        ]
+
+        modes = ModesMapperProperty('modes_list')
+        times = MedalTimesMapperProperty('medals_list')
+        scores = MedalScoresMapperProperty('medals_list')
+
+    class NamedPropFragment(NamedPropertiesFragment):
+
+        test = ByteNamedProperty('testValue')
+
+    def test_create_modes(self):
+        frag = self.TestFragment(modes={})
+        self.assertEqual(list(frag.modes_list), [])
+
+    def test_create_times(self):
+        frag = self.TestFragment(times=(50, 49, 48, 47))
+        self.assertEqual(frag.medals_list, [
+            Container(time=50, score=200),
+            Container(time=49, score=400),
+            Container(time=48, score=700),
+            Container(time=47, score=1000),
+        ])
+
+    def test_create_scores(self):
+        frag = self.TestFragment(scores=(100, 101, 102, 103))
+        self.assertEqual(frag.medals_list, [
+            Container(time=40, score=100),
+            Container(time=30, score=101),
+            Container(time=20, score=102),
+            Container(time=10, score=103),
+        ])
+
+    def test_named_property(self):
+        frag = self.NamedPropFragment(test=34)
+        self.assertEqual(frag.test, 34)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
