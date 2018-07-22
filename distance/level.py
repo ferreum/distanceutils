@@ -84,17 +84,14 @@ class Level(Fragment):
     def _print_data(self, p):
         super()._print_data(p)
         p(f"Level name: {self.name!r}")
-        try:
-            settings = self.settings
-            with p.tree_children():
-                p.print_data_of(settings)
-            with need_counters(p) as counters:
-                for layer in self.layers:
-                    p.print_data_of(layer)
-                if counters:
-                    counters.print_data(p)
-        except Exception as e:
-            p.print_exception(e)
+        settings = self.settings
+        with p.tree_children():
+            p.print_data_of(settings)
+        with need_counters(p) as counters:
+            for layer in self.layers:
+                p.print_data_of(layer)
+            if counters:
+                counters.print_data(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
