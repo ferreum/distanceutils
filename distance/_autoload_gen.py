@@ -7,7 +7,7 @@ import importlib
 from distance.prober import BytesProber, _load_impls_to_probers
 
 
-value_types = int, float, bytes, str, type(None),
+value_types = int, float, bytes, str, bool, type(None),
 sequence_types = tuple,
 mapping_types = dict,
 

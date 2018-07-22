@@ -351,13 +351,23 @@ class BytesProber(object):
     def create(self, tag, *args, **kw):
         return self.klass(tag)(*args, **kw)
 
+    def is_section_interesting(self, sec):
+        cls = self._sections.get(sec, None)
+        if cls is not None:
+            return cls.is_interesting
+        info = self._autoload_sections.get(sec.to_key())
+        if info is not None:
+            modname, classname, is_interesting = info
+            return is_interesting
+        return False
+
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
         self._classes.update(content['classes'])
 
     def _generate_autoload_content(self):
         return {
-            'sections': {key: (cls.__module__, cls.__name__)
+            'sections': {key: (cls.__module__, cls.__name__, getattr(cls, 'is_interesting', False))
                          for key, cls in self._sections.items()},
             'classes': dict(self._classes),
         }
@@ -369,7 +379,7 @@ class BytesProber(object):
         }
 
     def _autoload_impl_module(self, sec_key, info):
-        impl_module, classname = info
+        impl_module, classname, is_interesting = info
         mod = importlib.import_module(impl_module)
         for key in self.keys:
             prober = getattr(mod.Probers, key)

@@ -233,7 +233,7 @@ class Transform(tuple):
 
 
 def filter_interesting(sec, prober):
-    return sec.content_size and prober.probe_section(sec).is_interesting
+    return sec.content_size and prober.is_section_interesting(sec)
 
 
 def get_default_container(frag):
