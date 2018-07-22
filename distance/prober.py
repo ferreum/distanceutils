@@ -439,7 +439,7 @@ class ProbersRegistry(object):
         try:
             return self._probers[name]
         except KeyError:
-            raise AttributeError
+            raise AttributeError(f"No such prober: {name!r}")
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
