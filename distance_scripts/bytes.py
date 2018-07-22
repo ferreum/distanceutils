@@ -9,8 +9,10 @@ from distance.base import Fragment
 from distance.printing import PrintContext
 from distance.prober import BytesProber
 from distance import DefaultProbers
+from ._common import handle_pipeerror
 
 
+@handle_pipeerror
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
@@ -54,9 +56,7 @@ def main():
             obj = prober.maybe(srcarg)
             p.print_data_of(obj)
         except BrokenPipeError:
-            # suppress warning message when stdout gets closed
-            sys.stderr.close()
-            break
+            raise
         except Exception as e:
             p.print_exception(e)
             have_error = True

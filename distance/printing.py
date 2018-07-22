@@ -102,11 +102,15 @@ class PrintContext(object):
         # printed on the first nested line.
         ended.append(count is not None)
         remain.append(count)
+        broken = False
         try:
             yield
+        except BrokenPipeError:
+            broken = True
+            raise
         finally:
             ended[level] = True
-            if count is None:
+            if not broken and count is None:
                 self.tree_push_up(level, lines, True)
             buf.pop()
             ended.pop()

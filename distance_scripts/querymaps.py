@@ -6,7 +6,7 @@ import argparse
 import sqlite3
 import re
 
-from ._common import get_cache_filename
+from ._common import get_cache_filename, handle_pipeerror
 
 
 def format_bytes(data):
@@ -20,6 +20,7 @@ def format_col(col):
         return repr(col)
 
 
+@handle_pipeerror
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
@@ -85,9 +86,6 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        exit(main())
-    except BrokenPipeError:
-        exit(1)
+    exit(main())
 
 # vim:set sw=4 ts=8 sts=4 et:
