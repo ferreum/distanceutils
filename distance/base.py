@@ -693,6 +693,9 @@ class BaseObject(Fragment):
                 frags = self.filtered_fragments(filter_interesting)
                 try:
                     frag = next(frags)
+                except StopIteration:
+                    pass
+                else:
                     p(f"Fragments: {len(self._fragments)} <filtered>")
                     with p.tree_children():
                         p.tree_next_child()
@@ -700,8 +703,6 @@ class BaseObject(Fragment):
                         for frag in frags:
                             p.tree_next_child()
                             p.print_data_of(frag)
-                except StopIteration:
-                    pass
 
     def _print_children(self, p):
         if self.children:
