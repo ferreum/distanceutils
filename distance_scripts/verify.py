@@ -5,9 +5,12 @@ from itertools import zip_longest
 
 from distance.bytes import DstBytes
 from distance.base import ObjectFragment
-from distance import DefaultProbers, Level
-from distance.levelfragments import NamedPropertiesFragment
+from distance import DefaultProbers
 from distance.printing import PrintContext
+
+
+Level = DefaultProbers.file.klass('Level')
+NamedPropertiesFragment = DefaultProbers.fragments.klass('NamedProperties')
 
 
 def rec_iter_fragments(orglist, reslist, path):
