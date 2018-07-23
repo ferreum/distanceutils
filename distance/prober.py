@@ -434,6 +434,9 @@ class ProberGroup(object):
             self._probers[name] = prober
             return prober
 
+    def __dir__(self):
+        return super().__dir__() + list(self._probers.keys())
+
 
 class ProbersRegistry(object):
 
@@ -454,6 +457,9 @@ class ProbersRegistry(object):
             return self._probers[name]
         except KeyError:
             raise AttributeError(f"No such prober: {name!r}")
+
+    def __dir__(self):
+        return super().__dir__() + list(self._probers.keys())
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
