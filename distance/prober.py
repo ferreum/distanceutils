@@ -21,6 +21,10 @@ class RegisterError(ValueError):
     pass
 
 
+class AutoloadError(Exception):
+    pass
+
+
 def fragment_property(tag, name, default=None, doc=None):
     def fget(self):
         frag = self.fragment_by_tag(tag)
@@ -494,6 +498,7 @@ def _load_autoload_module(probers, module_name):
     for key, content in content_map.items():
         probers[key]._load_autoload_content(content)
 
+
 def _load_impls_to_probers(probers, impl_modules):
     if callable(impl_modules):
         impl_modules = impl_modules()
@@ -504,10 +509,12 @@ def _load_impls_to_probers(probers, impl_modules):
                 try:
                     dest = probers[key]
                 except KeyError as e:
-                    raise KeyError(f"Prober in module {name!r} does not exist: {key!r}") from e
+                    raise AutoloadError(f"Prober in module {name!r} does not exist: {key!r}") from e
                 dest._load_impl(prober, True)
+        except AutoloadError:
+            raise
         except Exception as e:
-            raise Exception(f"Failed to load probers of module {name!r}") from e
+            raise AutoloadError(f"Failed to load probers of module {name!r}") from e
 
 
 # vim:set sw=4 ts=8 sts=4 et:
