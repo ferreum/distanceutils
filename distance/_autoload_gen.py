@@ -61,7 +61,7 @@ def _generate_source(content, indent):
             yield ",\n"
         yield "    " * indent + "}"
     else:
-        raise TypeError(f"Autolaod content of invalid type (a {typ.__name__!r}): {content}")
+        raise TypeError(f"Autoload content of invalid type (a {typ.__name__!r}): {content}")
 
 
 # vim:set sw=4 et:
