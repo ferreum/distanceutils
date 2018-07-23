@@ -265,6 +265,7 @@ BASIC_GOLDEN_SIMPLES_NAMES = (
     mat_reflect = ('SimplesMaterial', '_ReflectColor', (.3, .3, .3, .9)),
     mat_spec = ('SimplesMaterial', '_SpecColor', (1, 1, 1, 1)),
 )
+@Probers.common.add_info(tag='GoldenSimple')
 class GoldenSimple(LevelObject):
 
     default_transform = Transform.fill()
@@ -288,6 +289,7 @@ class WedgeGS(GoldenSimple):
     color_cone = ('Cone', '_Color', (0.3, 0.3, 0.3, 1)),
     color_emit = ('EmitDetail__ArchGrid', '_EmitColor', (0.2, 0.2, 0.2, 0.5))
 )
+@Probers.common.add_info(tag='OldSimple')
 class OldSimple(LevelObject):
 
     default_cone_transform = Transform.fill(rot=(2**.5 / 2, 0, 0, 2**.5 / -2),

@@ -7,7 +7,7 @@ from distance import DefaultProbers
 
 
 Group = DefaultProbers.level_objects.klass('Group')
-GoldenSimple = DefaultProbers.level_objects.klass('CubeGS')
+GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
 
 
 def main():

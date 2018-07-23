@@ -31,7 +31,7 @@ HOLO_VISUAL_DEFAULT = dict(
 )
 
 
-GoldenSimple = DefaultProbers.level_objects.klass('CubeGS')
+GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
 
 
 def is_tag(frag, wanted):
