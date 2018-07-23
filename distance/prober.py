@@ -43,7 +43,7 @@ class BytesProber(object):
         self.baseclass = baseclass
         if key is not None:
             keys = keys + (key,)
-        self.keys = keys
+        self._keys = keys
         self._sections = {}
         self._autoload_sections = {}
         self._classes = {}
@@ -225,8 +225,8 @@ class BytesProber(object):
         self._classes.update(other._classes)
         self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
                                        if k not in self._autoload_sections)
-        self.keys = self.keys + tuple(k for k in other.keys
-                                      if k not in self.keys)
+        self._keys += tuple(k for k in other._keys
+                            if k not in self._keys)
 
     def _get_by_key(self, key):
         cls = self._sections.get(key, None)
@@ -385,7 +385,7 @@ class BytesProber(object):
     def _autoload_impl_module(self, sec_key, info):
         impl_module, classname, is_interesting = info
         mod = importlib.import_module(impl_module)
-        for key in self.keys:
+        for key in self._keys:
             prober = getattr(mod.Probers, key)
             self._load_impl(prober, False)
 
