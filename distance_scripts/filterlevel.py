@@ -167,7 +167,7 @@ def main():
     is_wrapped = False
     if isinstance(content, LevelObject) and content.type != 'Group':
         is_wrapped = True
-        content = DefaultProbers.create('Group', children=[content])
+        content = DefaultProbers.level_objects.create('Group', children=[content])
 
     p = PrintContext(file=sys.stderr, flags=('groups', 'subobjects'))
 
