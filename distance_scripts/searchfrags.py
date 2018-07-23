@@ -12,7 +12,7 @@ from distance.prober import BytesProber, ProbeError
 from distance.base import Fragment, ObjectFragment
 
 
-NamedPropertiesFragment = DefaultProbers.fragments.klass('NamedProperties')
+NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
 MaterialFragment = DefaultProbers.fragments.klass('Material')
 
 

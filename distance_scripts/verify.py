@@ -10,7 +10,7 @@ from distance.printing import PrintContext
 
 
 Level = DefaultProbers.file.klass('Level')
-NamedPropertiesFragment = DefaultProbers.fragments.klass('NamedProperties')
+NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
 
 
 def rec_iter_fragments(orglist, reslist, path):

@@ -15,6 +15,7 @@ DefaultProbers.get_or_create('level_content').baseclass = Fragment
 DefaultProbers.get_or_create('fragments').baseclass = Fragment
 DefaultProbers.get_or_create('base_objects').baseclass = BaseObject
 DefaultProbers.get_or_create('base_fragments').baseclass = Fragment
+DefaultProbers.get_or_create('common').baseclass = Fragment
 
 
 def _impl_modules():

@@ -108,7 +108,7 @@ class StringNamedProperty(BaseNamedProperty):
         return db.file.getvalue()
 
 
-@Probers.fragments.add_info(tag='NamedProperties')
+@Probers.common.add_info(tag='NamedPropertiesFragment')
 class NamedPropertiesFragment(Fragment):
 
     @classmethod
