@@ -13,12 +13,8 @@ from distance._impl.level_objects.objects import (
     WorldText,
 )
 from distance._impl.fragments.levelfragments import (
-    TrackNodeFragment,
     CarScreenTextDecodeTriggerFragment,
     AnimatorFragment,
-)
-from distance._impl.fragments.bases import (
-    BaseCarScreenTextDecodeTrigger,
 )
 from distance._impl.fragments.npfragments import (
     NamedPropertiesFragment,
