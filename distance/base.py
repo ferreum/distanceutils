@@ -7,7 +7,7 @@ import collections
 
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
-from .lazy import LazySequence, LazyMappedSequence
+from .lazy import LazyMappedSequence
 from .prober import ProberGroup
 from ._default_probers import DefaultProbers
 
@@ -433,14 +433,25 @@ class ObjectFragment(Fragment):
                     obj.write(dbytes)
 
 
-def fragment_property(cls, name, default=None, doc=None):
+def _object_property(name, default=None, doc=None):
     if doc is None:
-        doc = f"property forwarded to {cls.__name__!r}"
+        doc = f"property forwarded to 'ObjectFragment'"
+
+    # Optimized access to the very frequently used ObjectFragment.
+    obj_key = ObjectFragment.base_container.to_key(noversion=True)
+    def get_object_fragment(self):
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == obj_key:
+                return self.fragments[i]
+            i += 1
+        return None
+
     def fget(self):
-        frag = self.fragment_by_type(cls)
+        frag = get_object_fragment(self)
         return getattr(frag, name, default)
     def fset(self, value):
-        frag = self.fragment_by_type(cls)
+        frag = get_object_fragment(self)
         setattr(frag, name, value)
     return property(fget, fset, None, doc=doc)
 
@@ -475,22 +486,6 @@ class default_fragments(object):
         return target
 
 
-class fragment_attrs(object):
-
-    """Decorator to forward attributes of objects to their fragments."""
-
-    def __init__(self, cls, **attrs):
-        self.cls = cls
-        self.attrs = attrs
-
-    def __call__(self, target):
-        cls = self.cls
-        for name, default in self.attrs.items():
-            setattr(target, name, fragment_property(cls, name, default))
-        default_fragments.add_to(target, cls)
-        return target
-
-
 class MappedSequenceView(collections.Sequence):
 
     __slots__ = ('_source', '_func')
@@ -516,13 +511,12 @@ def _FragmentsContainerView(frags):
     return MappedSequenceView(frags, attrgetter('container'))
 
 
-@fragment_attrs(ObjectFragment, real_transform=Transform(), children=())
+@default_fragments(ObjectFragment)
 class BaseObject(Fragment):
 
     """Represents data within a Magic[6] Section."""
 
-    __slots__ = ('type', '_sections', '_fragments',
-                 '_fragment_types', '_fragments_by_type')
+    __slots__ = ('type', '_sections', '_fragments')
 
     child_prober_name = 'base_objects'
     is_object_group = False
@@ -533,6 +527,10 @@ class BaseObject(Fragment):
     @classmethod
     def class_tag(cls):
         return getattr(cls, 'type', cls.__name__)
+
+    real_transform = _object_property('real_transform', default=Transform())
+
+    children = _object_property('children', default=())
 
     @property
     def transform(self):
@@ -553,7 +551,6 @@ class BaseObject(Fragment):
                 value = value.strip(*default)
         self.real_transform = value
 
-
     fragments = property(attrgetter('_fragments'),
                          doc="Fragments of this object.")
 
@@ -561,47 +558,19 @@ class BaseObject(Fragment):
     def fragments(self, value):
         self._sections = _FragmentsContainerView(value)
         self._fragments = value
-        self._fragment_types = MappedSequenceView(value, type)
-        self._fragments_by_type = {}
 
     sections = property(attrgetter('_sections'),
                         doc=("Containers of the fragments of this object."
                              " (read-only view of fragments*.container)"))
 
     def fragment_by_type(self, typ):
-        if typ is ObjectFragment:
-            # Optimized ObjectFragment access: it is virtually always first.
-            try:
-                frag = self._fragments[0]
-            except IndexError:
-                pass # empty fragments
-            else:
-                if type(frag) is ObjectFragment:
-                    return frag
-            # not first - fall through to regular method
-        try:
-            bytype = self._fragments_by_type
-        except AttributeError:
-            probe = self.probers.fragments.probe_section
-            secs = self._sections
-            types = LazySequence(map(probe, secs), len(secs))
-            bytype = {}
-            self._fragment_types = types
-            self._fragments_by_type = bytype
-        else:
-            try:
-                return bytype[typ]
-            except KeyError:
-                types = self._fragment_types
-                # not cached, fall through
+        probe = self.probers.fragments.probe_section
         i = 0
-        for sectype in types:
-            if issubclass(sectype, typ):
-                frag = self._fragments[i]
-                bytype[typ] = frag
-                return frag
+        for sec in self.sections:
+            sec_typ = probe(sec)
+            if issubclass(sec_typ, typ):
+                return self.fragments[i]
             i += 1
-        bytype[typ] = None
         return None
 
     def fragment_by_tag(self, tag):
