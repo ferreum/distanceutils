@@ -50,9 +50,6 @@ class BytesProber(object):
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
-    def transaction(self):
-        return _ProberTransaction(self)
-
     def add_type(self, type, cls):
         sec = Section(Magic[6], type)
         self._sections[sec.to_key()] = cls
@@ -395,30 +392,6 @@ class BytesProber(object):
         self._funcs_by_tag.update(prober._funcs_by_tag)
         if update_classes:
             self._classes.update(prober._classes)
-
-
-class _ProberTransaction(BytesProber):
-
-    def __init__(self, target):
-        super().__init__()
-        self._target = target
-
-    def commit(self):
-
-        target = self._target
-
-        for sec, cls in self._sections.items():
-            try:
-                targetcls = target._sections[sec]
-            except KeyError:
-                pass
-            else:
-                if targetcls.__module__ != cls.__module__:
-                    raise RegisterError(
-                        f"Cannot override class of different module.")
-
-        target._sections.update(self._sections)
-        target._funcs_by_tag.update(self._funcs_by_tag)
 
 
 class ProberGroup(object):

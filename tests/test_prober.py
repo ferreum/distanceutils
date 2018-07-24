@@ -77,22 +77,6 @@ class RegisteredTest(unittest.TestCase):
                 self.assertEqual("Level", type(result).__name__)
 
 
-class TransactionTest(unittest.TestCase):
-
-    def test_func(self):
-        prober = BytesProber()
-        t = prober.transaction()
-        def never_call(s):
-            assert False, "old func called"
-        t.func('test')(never_call)
-        t.commit()
-        t = prober.transaction()
-        t.func('test')(lambda s: TagClass(2))
-        t.commit()
-        res = prober.probe_section(Section(Magic[6], 't'))
-        self.assertEqual(res.tag, 2)
-
-
 class UnknownObjectFileTest(unittest.TestCase):
 
     def setUp(self):
