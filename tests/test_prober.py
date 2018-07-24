@@ -1,6 +1,6 @@
 import unittest
 
-from distance.bytes import DstBytes, Magic, Section
+from distance.bytes import DstBytes, Magic
 from distance.prober import BytesProber
 from distance.base import BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
