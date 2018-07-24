@@ -578,7 +578,7 @@ class BaseObject(Fragment):
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
-                frag = self._fragments[i]
+                frag = self.fragments[i]
                 return frag
             i += 1
         return None
