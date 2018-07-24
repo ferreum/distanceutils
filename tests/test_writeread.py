@@ -8,9 +8,6 @@ from distance._impl.level_objects.objects import (
 from distance.levelfragments import (
     MaterialFragment,
 )
-from distance._impl.fragments.levelfragments import (
-    TrackNodeFragment,
-)
 from distance.level import Level
 from distance.base import Fragment
 from distance.prober import BytesProber
@@ -270,8 +267,8 @@ class TracknodeFragmentTest(common.WriteReadTest):
     read_obj = LevelObject
 
     def verify_obj(self, obj):
-        node0 = obj.children[0].fragment_by_type(TrackNodeFragment)
-        node1 = obj.children[1].fragment_by_type(TrackNodeFragment)
+        node0 = obj.children[0].fragment_by_tag('TrackNode')
+        node1 = obj.children[1].fragment_by_tag('TrackNode')
         self.assertEqual(79, node0.parent_id)
         self.assertEqual(59, node0.snap_id)
         self.assertEqual(79, node1.parent_id)
@@ -284,7 +281,7 @@ class MaterialFragmentTest(common.WriteReadTest):
     read_obj = LevelObject
 
     def verify_obj(self, obj):
-        frag = obj.fragment_by_type(MaterialFragment)
+        frag = obj.fragment_by_tag('Material')
         mats = frag.materials
         panel_color = mats['empire_panel_light']['_Color']
         self.assertAlmostEqual(0.50588, panel_color[0], places=5)
