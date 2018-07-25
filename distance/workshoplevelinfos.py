@@ -12,7 +12,7 @@ Probers = ProberGroup()
 FTYPE_WSLEVELINFOS = "WorkshopLevelInfos"
 
 
-@Probers.file.for_type
+@Probers.file.object
 @require_type
 @DefaultProbers.fragments.fragment_attrs('WorkshopLevelInfos')
 class WorkshopLevelInfos(BaseObject):

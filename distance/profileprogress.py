@@ -12,7 +12,7 @@ Probers = ProberGroup()
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
 
-@Probers.file.for_type
+@Probers.file.object
 @DefaultProbers.fragments.fragment_attrs('ProfileProgress')
 @require_type
 class ProfileProgress(BaseObject):

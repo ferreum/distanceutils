@@ -50,7 +50,7 @@ class BytesProber(object):
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
-    def add_type(self, type, cls):
+    def add_object(self, type, cls):
         sec = Section(Magic[6], type)
         self._sections[sec.to_key()] = cls
         self._add_class(cls, type, sec)
@@ -132,13 +132,13 @@ class BytesProber(object):
 
         return decorate
 
-    def for_type(self, *args):
+    def object(self, *args):
 
         """Decorator for conveniently adding a class for a type."""
 
         def decorate(cls):
             for t in types:
-                self.add_type(t, cls)
+                self.add_object(t, cls)
             return cls
 
         if len(args) == 1 and callable(args[0]):

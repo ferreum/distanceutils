@@ -17,7 +17,7 @@ FTYPE_LEADERBOARD = "LocalLeaderboard"
 Probers = ProberGroup()
 
 
-@Probers.file.for_type
+@Probers.file.object
 @DefaultProbers.fragments.fragment_attrs('Leaderboard')
 @require_type
 class Leaderboard(BaseObject):

@@ -9,7 +9,7 @@ from .levelsettings_base import BaseLevelSettings
 Probers = ProberGroup()
 
 
-@Probers.level_content.for_type
+@Probers.level_content.object
 @DefaultProbers.fragments.fragment_attrs('LevelSettings')
 class NewLevelSettings(BaseLevelSettings, BaseObject):
 

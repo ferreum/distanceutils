@@ -10,7 +10,7 @@ from distance._default_probers import DefaultProbers
 Probers = ProberGroup()
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @DefaultProbers.fragments.fragment_attrs('Group', 'CustomName')
 class Group(LevelObject):
 
