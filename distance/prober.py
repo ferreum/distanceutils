@@ -50,29 +50,6 @@ class BytesProber(object):
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
-    def add_object(self, type, cls):
-        sec = Section(Magic[6], type)
-        self._sections[sec.to_key()] = cls
-        self._add_class(cls, type, sec)
-
-    def add_func(self, func, tag):
-        self._funcs_by_tag[tag] = func
-
-    def _add_fragment_for_section(self, cls, sec, any_version):
-        if any_version:
-            key = sec.to_key(noversion=True)
-        else:
-            key = sec.to_key()
-        try:
-            registered = self._sections[key]
-        except KeyError:
-            pass
-        else:
-            e = RegisterError(f"{sec} is already registered")
-            e.registered = registered
-            raise e
-        self._sections[key] = cls
-
     def add_fragment(self, cls, *args,
                      any_version=False, versions=None, **kw):
 
@@ -118,6 +95,71 @@ class BytesProber(object):
             tag = tag()
         if tag is not None:
             self._add_class(cls, tag, sec, versions)
+
+    def add_object(self, type, cls):
+        sec = Section(Magic[6], type)
+        self._sections[sec.to_key()] = cls
+        self._add_class(cls, type, sec)
+
+    def add_func(self, func, tag):
+        self._funcs_by_tag[tag] = func
+
+    def add_info(self, *args, tag=None):
+        def decorate(cls):
+            nonlocal tag
+            if tag is None:
+                tag = cls.class_tag
+                if callable(tag):
+                    tag = tag()
+            self._add_class(cls, tag)
+            return cls
+        if len(args) == 1:
+            return decorate(args[0])
+        else:
+            return decorate
+
+    def _add_fragment_for_section(self, cls, sec, any_version):
+        if any_version:
+            key = sec.to_key(noversion=True)
+        else:
+            key = sec.to_key()
+        try:
+            registered = self._sections[key]
+        except KeyError:
+            pass
+        else:
+            e = RegisterError(f"{sec} is already registered")
+            e.registered = registered
+            raise e
+        self._sections[key] = cls
+
+    def _add_class(self, cls, tag, container=None, versions=None):
+        if type(tag) != str:
+            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
+        from distance.base import get_default_container
+        versions = versions
+        defcon = get_default_container(cls)
+        fields_map = getattr(cls, '_fields_map', None)
+        base_container_key = None
+        if container is not None:
+            base_container_key = container.to_key(noversion=True)
+        if callable(fields_map):
+            fields_map = fields_map()
+        info = {
+            'cls': (cls.__module__, cls.__name__),
+            'base_container': base_container_key,
+            'default_container': None if defcon is None else defcon.to_key(),
+            'versions': None if versions is None else tuple(versions),
+            'fields': fields_map,
+        }
+        try:
+            prev = self._classes[tag]
+        except KeyError:
+            pass
+        else:
+            if prev != info:
+                raise RegisterError(f"Duplicate class tag: {tag!r}")
+        self._classes[tag] = info
 
     def func(self, tag):
 
@@ -172,48 +214,6 @@ class BytesProber(object):
             return cls
 
         return decorate
-
-    def add_info(self, *args, tag=None):
-        def decorate(cls):
-            nonlocal tag
-            if tag is None:
-                tag = cls.class_tag
-                if callable(tag):
-                    tag = tag()
-            self._add_class(cls, tag)
-            return cls
-        if len(args) == 1:
-            return decorate(args[0])
-        else:
-            return decorate
-
-    def _add_class(self, cls, tag, container=None, versions=None):
-        if type(tag) != str:
-            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
-        from distance.base import get_default_container
-        versions = versions
-        defcon = get_default_container(cls)
-        fields_map = getattr(cls, '_fields_map', None)
-        base_container_key = None
-        if container is not None:
-            base_container_key = container.to_key(noversion=True)
-        if callable(fields_map):
-            fields_map = fields_map()
-        info = {
-            'cls': (cls.__module__, cls.__name__),
-            'base_container': base_container_key,
-            'default_container': None if defcon is None else defcon.to_key(),
-            'versions': None if versions is None else tuple(versions),
-            'fields': fields_map,
-        }
-        try:
-            prev = self._classes[tag]
-        except KeyError:
-            pass
-        else:
-            if prev != info:
-                raise RegisterError(f"Duplicate class tag: {tag!r}")
-        self._classes[tag] = info
 
     def extend_from(self, other):
         self._sections.update(((k, v) for k, v in other._sections.items()
