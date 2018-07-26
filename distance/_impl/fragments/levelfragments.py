@@ -73,11 +73,6 @@ class TeleporterEntranceFragment(bases.BaseTeleporterEntrance, BaseConstructFrag
         rem = Remainder,
     )
 
-    def _print_data(self, p):
-        super()._print_data(p)
-        if self.destination is not None:
-            p(f"Teleports to: {self.destination}")
-
 
 @Probers.fragments.fragment
 class TeleporterExitFragment(bases.BaseTeleporterExit, BaseConstructFragment):
