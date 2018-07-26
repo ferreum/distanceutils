@@ -71,6 +71,9 @@ class BytesProber(object):
 
         """
 
+        if versions and any_version:
+            raise ValueError("Cannot use parameter 'versions' with 'any_version'")
+
         if not args and not kw:
             sec = cls.base_container
             if sec is not None:
@@ -81,14 +84,13 @@ class BytesProber(object):
         else:
             sec = Section(*args, any_version=any_version, **kw)
         if versions is not None:
-            if any_version:
-                raise ValueError("Cannot use parameter 'versions' with 'any_version'")
             if isinstance(versions, numbers.Integral):
                 versions = [versions]
             for version in versions:
                 s = Section(sec, version=version)
                 self._add_fragment_for_section(cls, s, any_version)
         else:
+            versions = [sec.version] if sec.has_version() and not any_version else None
             self._add_fragment_for_section(cls, sec, any_version)
         tag = cls.class_tag
         if callable(tag):
@@ -132,34 +134,6 @@ class BytesProber(object):
             e.registered = registered
             raise e
         self._sections[key] = cls
-
-    def _add_class(self, cls, tag, container=None, versions=None):
-        if type(tag) != str:
-            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
-        from distance.base import get_default_container
-        versions = versions
-        defcon = get_default_container(cls)
-        fields_map = getattr(cls, '_fields_map', None)
-        base_container_key = None
-        if container is not None:
-            base_container_key = container.to_key(noversion=True)
-        if callable(fields_map):
-            fields_map = fields_map()
-        info = {
-            'cls': (cls.__module__, cls.__name__),
-            'base_container': base_container_key,
-            'default_container': None if defcon is None else defcon.to_key(),
-            'versions': None if versions is None else tuple(versions),
-            'fields': fields_map,
-        }
-        try:
-            prev = self._classes[tag]
-        except KeyError:
-            pass
-        else:
-            if prev != info:
-                raise RegisterError(f"Duplicate class tag: {tag!r}")
-        self._classes[tag] = info
 
     def func(self, tag):
 
@@ -219,11 +193,41 @@ class BytesProber(object):
         self._sections.update(((k, v) for k, v in other._sections.items()
                                if k not in self._sections))
         self._funcs_by_tag.update(other._funcs_by_tag)
-        self._classes.update(other._classes)
+        _update_class_info(self._classes, other._classes)
         self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
                                        if k not in self._autoload_sections)
         self._keys += tuple(k for k in other._keys
                             if k not in self._keys)
+
+    def _add_class(self, cls, tag, container=None, versions=None):
+        if type(tag) != str:
+            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
+
+        fields_map = getattr(cls, '_fields_map', None)
+        if callable(fields_map):
+            fields_map = fields_map()
+
+        base_container = None
+        if container is not None:
+            base_container = container.to_key(noversion=True)
+
+        class_spec = (cls.__module__, cls.__name__)
+        if versions is None:
+            it = iter([None])
+        else:
+            it = iter(versions)
+        ver_map = {}
+        for ver in it:
+            prev = ver_map.get(ver, None)
+            if prev is not None and prev != class_spec:
+                raise RegisterError(f"version {ver!r} is already registered for {prev!r}")
+            ver_map[ver] = class_spec
+
+        _merge_class_info(self._classes, tag, {
+            'base_container': base_container,
+            'versions': ver_map,
+            'fields': fields_map,
+        })
 
     def _get_by_key(self, key):
         cls = self._sections.get(key, None)
@@ -332,11 +336,14 @@ class BytesProber(object):
             for tag in tags:
                 info = self._classes[tag]
                 fields = info['fields']
-                default_container = info['default_container']
-                if default_container is not None:
-                    containers.append(Section.from_key(default_container))
+                container_key = info['base_container']
+                if container_key is not None:
+                    container = Section.from_key(container_key)
+                    if container.has_version():
+                        container.version = max(info['versions'])
+                    containers.append(container)
                 if fields is None:
-                    raise TypeError(f"Class with tag {tag!r} has no fields information")
+                    raise TypeError(f"No field information for tag {tag!r}")
                 for name, default in fields.items():
                     setattr(cls, name, fragment_property(tag, name, default))
             default_fragments.add_sections_to(cls, *containers)
@@ -345,7 +352,12 @@ class BytesProber(object):
 
     def klass(self, tag):
         info = self._classes[tag]
-        modname, clsname = info['cls']
+        versions = info['versions']
+        try:
+            clsdef = versions[None]
+        except KeyError:
+            clsdef = versions[max(versions)]
+        modname, clsname = clsdef
         mod = importlib.import_module(modname)
         return getattr(mod, clsname)
 
@@ -391,7 +403,7 @@ class BytesProber(object):
                                if k not in self._sections))
         self._funcs_by_tag.update(prober._funcs_by_tag)
         if update_classes:
-            self._classes.update(prober._classes)
+            _update_class_info(self._classes, prober._classes)
 
 
 class ProberGroup(object):
@@ -469,6 +481,61 @@ class ProbersRegistry(object):
                 actual_content[key] = actual_probers[key]._generate_autoload_content()
                 loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
             return actual_content, loaded_content
+
+
+def _update_class_info(target, other):
+    for tag, oinfo in other.items():
+        _merge_class_info(target, tag, oinfo)
+
+
+def _merge_class_info(classes, tag, info):
+    try:
+        prev = classes[tag]
+    except KeyError:
+        classes[tag] = info
+    else:
+        classes[tag] = _merged_info(tag, prev, info)
+
+
+def _merged_info(tag, prev, new):
+    base_container = prev['base_container']
+    if new['base_container'] != base_container:
+        raise RegisterError(
+            f"Class tag {tag!r} is already registered for base container"
+            f" {base_container!r}, not {new['base_container']!r}")
+
+    new_vers = new['versions']
+    new_fields = new['fields']
+
+    if not new_vers and not new_fields:
+        return prev
+
+    prev_vers = prev['versions']
+    prev_fields = prev['fields']
+
+    if new_vers:
+        if not prev_vers:
+            prev_vers = new_vers
+        else:
+            for over, ocls in new_vers.items():
+                tcls = prev_vers.get(over, None)
+                if ocls != tcls:
+                    raise RegisterError(f"Tag {tag!r} version {over!r} already"
+                                        f" registered for {tcls.__module__}.{tcls.__name__}")
+                prev_vers[over] = ocls
+
+    if new_fields:
+        if not prev_fields:
+            prev_fields = new_fields
+        else:
+            prev_fields = dict(prev_fields)
+            prev_fields.update(new_fields)
+
+    return {
+        'base_container': base_container,
+        'versions': prev_vers,
+        'fields': prev_fields,
+    }
 
 
 def _load_autoload_module(probers, module_name):
