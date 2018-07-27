@@ -200,31 +200,30 @@ class BytesProber(object):
                             if k not in self._keys)
 
     def _add_class(self, cls, tag, container=None, versions=None):
-        if type(tag) != str:
+        if type(tag) is not str:
             raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
 
-        fields_map = getattr(cls, '_fields_map', None)
-        if callable(fields_map):
-            fields_map = fields_map()
+        info = {}
 
-        base_container = None
+        try:
+            fields_map = getattr(cls, '_fields_map')
+        except AttributeError:
+            pass
+        else:
+            if callable(fields_map):
+                fields_map = fields_map()
+            info['fields'] = fields_map
+
         if container is not None:
-            base_container = container.to_key(noversion=True)
+            info['base_container'] = container.to_key(noversion=True)
 
         class_spec = (cls.__module__, cls.__name__)
         if versions is None:
-            noversion_cls = class_spec
-            ver_map = None
+            info['noversion_cls'] = class_spec
         else:
-            noversion_cls = None
-            ver_map = dict.fromkeys(versions, class_spec)
+            info['versions'] = dict.fromkeys(versions, class_spec)
 
-        _merge_class_info(self._classes, tag, {
-            'base_container': base_container,
-            'noversion_cls': noversion_cls,
-            'versions': ver_map,
-            'fields': fields_map,
-        })
+        _merge_class_info(self._classes, tag, info)
 
     def _get_by_key(self, key):
         cls = self._sections.get(key, None)
@@ -321,8 +320,9 @@ class BytesProber(object):
 
     def base_container_key(self, tag):
         info = self._classes[tag]
-        base = info.get('base_container', None)
-        if base is None:
+        try:
+            base = info['base_container']
+        except KeyError:
             raise TypeError(f"Class with tag {tag!r} has no container information")
         return base
 
@@ -332,17 +332,18 @@ class BytesProber(object):
             containers = []
             for tag in tags:
                 info = self._classes[tag]
-                fields = info['fields']
-                container_key = info['base_container']
+                try:
+                    fields = info['fields']
+                except KeyError:
+                    raise TypeError(f"No field information for tag {tag!r}")
+                container_key = info.get('base_container', None)
                 if container_key is not None:
                     container = Section.from_key(container_key)
                     if container.has_version():
-                        versions = info['versions']
+                        versions = info.get('versions', None)
                         if versions is not None:
-                            container.version = max(info['versions'])
+                            container.version = max(versions)
                     containers.append(container)
-                if fields is None:
-                    raise TypeError(f"No field information for tag {tag!r}")
                 for name, default in fields.items():
                     setattr(cls, name, fragment_property(tag, name, default))
             default_fragments.add_sections_to(cls, *containers)
@@ -351,11 +352,11 @@ class BytesProber(object):
 
     def klass(self, tag):
         info = self._classes[tag]
-        clsdef = info['noversion_cls']
-        if clsdef is None:
+        try:
+            modname, clsname = info['noversion_cls']
+        except KeyError:
             versions = info['versions']
-            clsdef = versions[max(versions)]
-        modname, clsname = clsdef
+            modname, clsname = versions[max(versions)]
         mod = importlib.import_module(modname)
         return getattr(mod, clsname)
 
@@ -366,7 +367,7 @@ class BytesProber(object):
         cls = self._sections.get(sec, None)
         if cls is not None:
             return cls.is_interesting
-        info = self._autoload_sections.get(sec.to_key())
+        info = self._autoload_sections.get(sec.to_key(), None)
         if info is not None:
             modname, classname, is_interesting = info
             return is_interesting
