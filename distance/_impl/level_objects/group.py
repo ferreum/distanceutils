@@ -11,6 +11,7 @@ Probers = ProberGroup()
 
 
 @Probers.level_objects.object
+@Probers.common.object
 @DefaultProbers.fragments.fragment_attrs('Group', 'CustomName')
 class Group(LevelObject):
 
