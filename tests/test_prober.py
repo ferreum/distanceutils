@@ -140,12 +140,25 @@ class VerifyClassInfo(unittest.TestCase):
         frag1 = prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
         frag5 = prober2.fragment(TagFragment('Frag5', 'Test', base_container=base, container_versions=5))
         frag23 = prober2.fragment(TagFragment('Frag23', 'Test', base_container=base, container_versions=(2, 3)))
+        glob = globals()
+        glob['Frag1'] = frag1
+        glob['Frag23'] = frag23
+        glob['Frag5'] = frag5
 
-        prober = BytesProber()
-        prober._load_impl(prober1, True)
-        prober._load_impl(prober2, True)
+        try:
+            prober = BytesProber()
+            prober._load_impl(prober1, True)
+            prober._load_impl(prober2, True)
 
-        self.assertEqual(prober.base_container_key('Test'), base.to_key())
+            self.assertEqual(prober.base_container_key('Test'), base.to_key())
+            self.assertEqual(frag1, prober.klass('Test', version=1))
+            self.assertEqual(frag23, prober.klass('Test', version=2))
+            self.assertEqual(frag23, prober.klass('Test', version=3))
+            self.assertEqual(frag5, prober.klass('Test', version=5))
+        finally:
+            del glob['Frag1']
+            del glob['Frag23']
+            del glob['Frag5']
 
     def test_registration_version_conflict(self):
         prober1 = BytesProber()

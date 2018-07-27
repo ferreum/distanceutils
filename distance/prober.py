@@ -350,13 +350,9 @@ class BytesProber(object):
             return cls
         return decorate
 
-    def klass(self, tag):
+    def klass(self, tag, version=None):
         info = self._classes[tag]
-        try:
-            modname, clsname = info['noversion_cls']
-        except KeyError:
-            versions = info['versions']
-            modname, clsname = versions[max(versions)]
+        modname, clsname = _get_klass_def(info, version)
         mod = importlib.import_module(modname)
         return getattr(mod, clsname)
 
@@ -480,6 +476,20 @@ class ProbersRegistry(object):
                 actual_content[key] = actual_probers[key]._generate_autoload_content()
                 loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
             return actual_content, loaded_content
+
+
+def _get_klass_def(info, version):
+    if version is None:
+        try:
+            return info['noversion_cls']
+        except KeyError:
+            versions = info['versions']
+            return versions[max(versions)]
+    else:
+        try:
+            return info['versions'][version]
+        except KeyError:
+            return info['noversion_cls']
 
 
 def _update_class_info(target, other):
