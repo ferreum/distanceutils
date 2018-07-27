@@ -213,18 +213,15 @@ class BytesProber(object):
 
         class_spec = (cls.__module__, cls.__name__)
         if versions is None:
-            it = iter([None])
+            noversion_cls = class_spec
+            ver_map = None
         else:
-            it = iter(versions)
-        ver_map = {}
-        for ver in it:
-            prev = ver_map.get(ver, None)
-            if prev is not None and prev != class_spec:
-                raise RegisterError(f"version {ver!r} is already registered for {prev!r}")
-            ver_map[ver] = class_spec
+            noversion_cls = None
+            ver_map = dict.fromkeys(versions, class_spec)
 
         _merge_class_info(self._classes, tag, {
             'base_container': base_container,
+            'noversion_cls': noversion_cls,
             'versions': ver_map,
             'fields': fields_map,
         })
@@ -340,7 +337,9 @@ class BytesProber(object):
                 if container_key is not None:
                     container = Section.from_key(container_key)
                     if container.has_version():
-                        container.version = max(info['versions'])
+                        versions = info['versions']
+                        if versions is not None:
+                            container.version = max(info['versions'])
                     containers.append(container)
                 if fields is None:
                     raise TypeError(f"No field information for tag {tag!r}")
@@ -352,10 +351,9 @@ class BytesProber(object):
 
     def klass(self, tag):
         info = self._classes[tag]
-        versions = info['versions']
-        try:
-            clsdef = versions[None]
-        except KeyError:
+        clsdef = info['noversion_cls']
+        if clsdef is None:
+            versions = info['versions']
             clsdef = versions[max(versions)]
         modname, clsname = clsdef
         mod = importlib.import_module(modname)
