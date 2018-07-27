@@ -350,7 +350,7 @@ class BytesProber(object):
             return cls
         return decorate
 
-    def klass(self, tag, version=None):
+    def __klass(self, tag, version):
         info = self._classes[tag]
         (modname, clsname), def_version = _get_klass_def(info, version)
         container = info.get('base_container')
@@ -361,8 +361,15 @@ class BytesProber(object):
         mod = importlib.import_module(modname)
         return getattr(mod, clsname), container
 
+    def klass(self, tag, version=None):
+        return self.__klass(tag, version)[0]
+
+    def factory(self, tag, version=None):
+        cls, container = self.__klass(tag, version)
+        return InstanceFactory(cls, container)
+
     def create(self, tag, *args, **kw):
-        cls, container = self.klass(tag)
+        cls, container = self.__klass(tag, None)
         if 'container' not in kw:
             kw['container'] = container
         return cls(*args, **kw)
@@ -484,6 +491,18 @@ class ProbersRegistry(object):
                 actual_content[key] = actual_probers[key]._generate_autoload_content()
                 loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
             return actual_content, loaded_content
+
+
+class InstanceFactory(object):
+
+    def __init__(self, cls, container):
+        self.cls = cls
+        self.container = container
+
+    def __call__(self, *args, **kw):
+        if 'container' not in kw:
+            kw['container'] = self.container
+        return self.cls(*args, **kw)
 
 
 def _get_klass_def(info, version):

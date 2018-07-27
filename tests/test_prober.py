@@ -153,8 +153,8 @@ class VerifyClassInfo(unittest.TestCase):
             def sec(ver):
                 return Section(base=base, version=ver).to_key()
             def get_klass(*args, **kw):
-                cls, con = prober.klass(*args, **kw)
-                return cls, con.to_key()
+                fact = prober.factory(*args, **kw)
+                return fact.cls, fact.container.to_key()
             self.assertEqual(prober.base_container_key('Test'), base.to_key())
             self.assertEqual((frag1, sec(1)), get_klass('Test', version=1))
             self.assertEqual((frag23, sec(2)), get_klass('Test', version=2))
@@ -177,6 +177,30 @@ class VerifyClassInfo(unittest.TestCase):
         with self.assertRaises(RegisterError) as cm:
             prober._load_impl(prober2, True)
         self.assertRegex(str(cm.exception), r'.*already registered for .*Frag1.*')
+
+    def test_klass_teleporter_exit_version_new(self):
+        cls = DefaultProbers.fragments.klass('TeleporterExit', version=1)
+        from distance._impl.fragments.levelfragments import TeleporterExitFragment
+        self.assertEqual(TeleporterExitFragment, cls)
+
+    def test_klass_teleporter_exit_version_old(self):
+        cls = DefaultProbers.fragments.klass('TeleporterExit', version=0)
+        from distance._impl.fragments.npfragments import OldTeleporterExitFragment
+        self.assertEqual(OldTeleporterExitFragment, cls)
+
+    def test_create_teleporter_exit_version_new(self):
+        frag = DefaultProbers.fragments.factory('TeleporterExit', version=1)()
+        from distance._impl.fragments.levelfragments import TeleporterExitFragment
+        self.assertEqual(
+            (TeleporterExitFragment, Section(Magic[2], 0x3f, 1).to_key()),
+            (type(frag), frag.container.to_key()))
+
+    def test_create_teleporter_exit_version_old(self):
+        frag = DefaultProbers.fragments.factory('TeleporterExit', version=0)()
+        from distance._impl.fragments.npfragments import OldTeleporterExitFragment
+        self.assertEqual(
+            (OldTeleporterExitFragment, Section(Magic[2], 0x3f, 0).to_key()),
+            (type(frag), frag.container.to_key()))
 
 
 # vim:set sw=4 ts=8 sts=4 et:

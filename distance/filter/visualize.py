@@ -31,7 +31,7 @@ HOLO_VISUAL_DEFAULT = dict(
 )
 
 
-GoldenSimple = DefaultProbers.common.klass('GoldenSimple')[0]
+GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
 
 
 def is_tag(frag, wanted):
