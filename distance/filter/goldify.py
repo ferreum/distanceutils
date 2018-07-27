@@ -148,7 +148,7 @@ class GoldifyFilter(ObjectFilter):
         self.debug = args.debug
         self.num_replaced = 0
         self.skipped_by_reason = defaultdict(lambda: 0)
-        self.OldSimple = DefaultProbers.level_objects.klass('Cube')
+        self.OldSimple = DefaultProbers.level_objects.klass('Cube')[0]
 
     def filter_object(self, obj, global_transform=Transform.fill()):
         if isinstance(obj, self.OldSimple):

@@ -150,11 +150,16 @@ class VerifyClassInfo(unittest.TestCase):
             prober._load_impl(prober1, True)
             prober._load_impl(prober2, True)
 
+            def sec(ver):
+                return Section(base=base, version=ver).to_key()
+            def get_klass(*args, **kw):
+                cls, con = prober.klass(*args, **kw)
+                return cls, con.to_key()
             self.assertEqual(prober.base_container_key('Test'), base.to_key())
-            self.assertEqual(frag1, prober.klass('Test', version=1))
-            self.assertEqual(frag23, prober.klass('Test', version=2))
-            self.assertEqual(frag23, prober.klass('Test', version=3))
-            self.assertEqual(frag5, prober.klass('Test', version=5))
+            self.assertEqual((frag1, sec(1)), get_klass('Test', version=1))
+            self.assertEqual((frag23, sec(2)), get_klass('Test', version=2))
+            self.assertEqual((frag23, sec(3)), get_klass('Test', version=3))
+            self.assertEqual((frag5, sec(5)), get_klass('Test', version=5))
         finally:
             del glob['Frag1']
             del glob['Frag23']

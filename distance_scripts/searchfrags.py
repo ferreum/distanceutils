@@ -12,8 +12,8 @@ from distance.prober import BytesProber, ProbeError
 from distance.base import Fragment, ObjectFragment
 
 
-NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
-MaterialFragment = DefaultProbers.fragments.klass('Material')
+NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')[0]
+MaterialFragment = DefaultProbers.fragments.klass('Material')[0]
 
 
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")

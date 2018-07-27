@@ -15,7 +15,7 @@ from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 
-Group = DefaultProbers.level_objects.klass('Group')
+Group = DefaultProbers.level_objects.klass('Group')[0]
 
 
 UNK_PROBER = BytesProber()

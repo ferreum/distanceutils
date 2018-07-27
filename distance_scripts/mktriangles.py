@@ -6,8 +6,8 @@ import argparse
 from distance import DefaultProbers
 
 
-Group = DefaultProbers.level_objects.klass('Group')
-GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
+Group = DefaultProbers.level_objects.klass('Group')[0]
+GoldenSimple = DefaultProbers.common.klass('GoldenSimple')[0]
 
 
 def main():

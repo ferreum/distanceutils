@@ -7,7 +7,7 @@ from distance.level import Level
 from distance import DefaultProbers
 
 
-SubTeleporter = DefaultProbers.level_subobjects.klass('Teleporter')
+SubTeleporter = DefaultProbers.level_subobjects.klass('Teleporter')[0]
 
 
 def main():

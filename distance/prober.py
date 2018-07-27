@@ -352,12 +352,20 @@ class BytesProber(object):
 
     def klass(self, tag, version=None):
         info = self._classes[tag]
-        modname, clsname = _get_klass_def(info, version)
+        (modname, clsname), def_version = _get_klass_def(info, version)
+        container = info.get('base_container')
+        if container is not None:
+            container = Section.from_key(container)
+            if def_version is not None and container.has_version():
+                container.version = def_version
         mod = importlib.import_module(modname)
-        return getattr(mod, clsname)
+        return getattr(mod, clsname), container
 
     def create(self, tag, *args, **kw):
-        return self.klass(tag)(*args, **kw)
+        cls, container = self.klass(tag)
+        if 'container' not in kw:
+            kw['container'] = container
+        return cls(*args, **kw)
 
     def is_section_interesting(self, sec):
         cls = self._sections.get(sec, None)
@@ -481,15 +489,16 @@ class ProbersRegistry(object):
 def _get_klass_def(info, version):
     if version is None:
         try:
-            return info['noversion_cls']
+            return info['noversion_cls'], None
         except KeyError:
             versions = info['versions']
-            return versions[max(versions)]
+            ver = max(versions)
+            return versions[ver], ver
     else:
         try:
-            return info['versions'][version]
+            return info['versions'][version], version
         except KeyError:
-            return info['noversion_cls']
+            return info['noversion_cls'], version
 
 
 def _update_class_info(target, other):
