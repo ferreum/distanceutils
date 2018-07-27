@@ -1,8 +1,8 @@
 import unittest
 
-from distance.bytes import DstBytes, Magic
-from distance.prober import BytesProber
-from distance.base import BaseObject, ObjectFragment
+from distance.bytes import DstBytes, Magic, Section
+from distance.prober import BytesProber, RegisterError
+from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
 from distance._impl.fragments.levelfragments import GoldenSimplesFragment
@@ -15,10 +15,9 @@ class TestObject(BaseObject):
         self.init_args = kw
 
 
-def TagClass(tag_):
-    class TagClass(BaseObject):
-        tag = tag_
-    return TagClass
+def TagFragment(name, tag, **kw):
+    kw['class_tag'] = tag
+    return type(name, (Fragment,), kw)
 
 
 class ProberTest(unittest.TestCase):
@@ -133,6 +132,33 @@ class VerifyClassInfo(unittest.TestCase):
     def test_fragment_attrs(self):
         obj = GoldenSimple(type='CubeGS')
         self.assertEqual(obj.emit_index, 17)
+
+    def test_registration_version_merge(self):
+        prober1 = BytesProber()
+        prober2 = BytesProber()
+        base = Section.base(Magic[2], 23)
+        frag1 = prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
+        frag5 = prober2.fragment(TagFragment('Frag5', 'Test', base_container=base, container_versions=5))
+        frag23 = prober2.fragment(TagFragment('Frag23', 'Test', base_container=base, container_versions=(2, 3)))
+
+        prober = BytesProber()
+        prober._load_impl(prober1, True)
+        prober._load_impl(prober2, True)
+
+        self.assertEqual(prober.base_container_key('Test'), base.to_key())
+
+    def test_registration_version_conflict(self):
+        prober1 = BytesProber()
+        prober2 = BytesProber()
+        base = Section.base(Magic[2], 23)
+        prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
+        prober2.fragment(TagFragment('Frag2', 'Test', base_container=base, container_versions=(1, 2)))
+
+        prober = BytesProber()
+        prober._load_impl(prober1, True)
+        with self.assertRaises(RegisterError) as cm:
+            prober._load_impl(prober2, True)
+        self.assertRegex(str(cm.exception), r'.*already registered for .*Frag1.*')
 
 
 # vim:set sw=4 ts=8 sts=4 et:

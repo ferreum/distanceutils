@@ -503,38 +503,52 @@ def _merged_info(tag, prev, new):
             f"Class tag {tag!r} is already registered for base container"
             f" {base_container!r}, not {new['base_container']!r}")
 
-    new_vers = new['versions']
-    new_fields = new['fields']
+    new_vers = new.get('versions')
+    new_fields = new.get('fields')
+    new_nover_cls = new.get('noversion_cls')
 
-    if not new_vers and not new_fields:
+    if not new_vers and not new_fields and new_nover_cls is None:
         return prev
 
-    prev_vers = prev['versions']
-    prev_fields = prev['fields']
+    nover_cls = prev.get('noversion_cls')
+    vers = prev.get('versions')
+    fields = prev.get('fields')
 
-    if new_vers:
-        if not prev_vers:
-            prev_vers = new_vers
+    result = {'base_container': base_container}
+
+    if new_nover_cls is not None and new_nover_cls != nover_cls:
+        if not nover_cls:
+            nover_cls = new_nover_cls
         else:
-            for over, ocls in new_vers.items():
-                tcls = prev_vers.get(over, None)
-                if ocls != tcls:
-                    raise RegisterError(f"Tag {tag!r} version {over!r} already"
-                                        f" registered for {tcls.__module__}.{tcls.__name__}")
-                prev_vers[over] = ocls
+            raise RegisterError(
+                f"Cannot register {new_nover_cls!r} as version-less class for tag"
+                f" {tag!r} because it is already registered for {nover_cls!r}")
+    result['noversion_cls'] = nover_cls
 
-    if new_fields:
-        if not prev_fields:
-            prev_fields = new_fields
+    if new_vers is not None:
+        if vers is None:
+            vers = new_vers
         else:
-            prev_fields = dict(prev_fields)
-            prev_fields.update(new_fields)
+            vers = dict(vers)
+            for nver, ncls in new_vers.items():
+                cls = vers.get(nver)
+                if cls is not None and ncls != cls:
+                    raise RegisterError(f"Tag {tag!r} version {nver!r} already"
+                                        f" registered for {cls}")
+                vers[nver] = ncls
+    if vers is not None:
+        result['versions'] = vers
 
-    return {
-        'base_container': base_container,
-        'versions': prev_vers,
-        'fields': prev_fields,
-    }
+    if new_fields is not None:
+        if fields is None:
+            fields = new_fields
+        else:
+            fields = dict(fields)
+            fields.update(new_fields)
+    if fields is not None:
+        result['fields'] = fields
+
+    return result
 
 
 def _load_autoload_module(probers, module_name):
