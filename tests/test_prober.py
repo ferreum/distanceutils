@@ -1,4 +1,5 @@
 import unittest
+from contextlib import contextmanager
 
 from distance.bytes import DstBytes, Magic, Section
 from distance.prober import ClassCollector, BytesProber, RegisterError
@@ -18,6 +19,18 @@ class TestObject(BaseObject):
 def TagFragment(name, tag, **kw):
     kw['class_tag'] = tag
     return type(name, (Fragment,), kw)
+
+
+@contextmanager
+def classes_on_module(*classes):
+    globs = globals()
+    for cls in classes:
+        globs[cls.__name__] = cls
+    try:
+        yield
+    finally:
+        for cls in classes:
+            del globs[cls.__name__]
 
 
 class ProberTest(unittest.TestCase):
@@ -145,7 +158,7 @@ class VerifyClassInfo(unittest.TestCase):
         glob['Frag23'] = frag23
         glob['Frag5'] = frag5
 
-        try:
+        with classes_on_module(frag1, frag23, frag5):
             prober = BytesProber()
             prober._load_impl(prober1, True)
             prober._load_impl(prober2, True)
@@ -160,10 +173,6 @@ class VerifyClassInfo(unittest.TestCase):
             self.assertEqual((frag23, sec(2)), get_klass('Test', version=2))
             self.assertEqual((frag23, sec(3)), get_klass('Test', version=3))
             self.assertEqual((frag5, sec(5)), get_klass('Test', version=5))
-        finally:
-            del glob['Frag1']
-            del glob['Frag23']
-            del glob['Frag5']
 
     def test_reg_version_conflict(self):
         prober1 = ClassCollector()
@@ -193,13 +202,21 @@ class VerifyClassInfo(unittest.TestCase):
     def test_reg_base_container_merge(self):
         prober1 = ClassCollector()
         prober2 = ClassCollector()
-        prober1.add_info(TagFragment('Frag1', 'Test'))
-        prober2.fragment(TagFragment('Frag2', 'Test', base_container=Section.base(Magic[2], 34), container_versions=2))
+        frag1 = prober1.fragment(TagFragment('Frag1', 'Test', base_container=Section.base(Magic[2], 34), container_versions=2))
+        frag2 = prober2.add_info(TagFragment('Frag2', 'Test'))
 
-        prober = BytesProber()
-        prober._load_impl(prober1, True)
-        prober._load_impl(prober2, True)
-        self.assertEqual((Magic[2], 34, None), prober.base_container_key('Test'))
+        with classes_on_module(frag1, frag2):
+            for one_first in (True, False):
+                with self.subTest(one_first=one_first):
+                    prober = BytesProber()
+                    if one_first:
+                        prober._load_impl(prober1, True)
+                        prober._load_impl(prober2, True)
+                    else:
+                        prober._load_impl(prober2, True)
+                        prober._load_impl(prober1, True)
+                    self.assertEqual((Magic[2], 34, None), prober.base_container_key('Test'))
+                    self.assertEqual(frag2, prober.klass('Test'))
 
     def test_klass_teleporter_exit_version_new(self):
         cls = DefaultProbers.fragments.klass('TeleporterExit', version=1)
