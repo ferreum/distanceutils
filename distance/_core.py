@@ -8,7 +8,6 @@ from distance._default_probers import DefaultProbers
 
 DefaultProbers.get_or_create('file').baseclass = Fragment
 DefaultProbers.get_or_create('level_like').baseclass = LevelObject
-DefaultProbers.get_or_create('level_objects').baseclass = BaseObject
 DefaultProbers.get_or_create('level_objects').baseclass = LevelObject
 DefaultProbers.get_or_create('level_subobjects').baseclass = SubObject
 DefaultProbers.get_or_create('level_content').baseclass = Fragment
