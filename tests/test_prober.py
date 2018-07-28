@@ -131,17 +131,6 @@ class VerifyClassInfo(unittest.TestCase):
         frag = DefaultProbers.fragments.create('GoldenSimples')
         self.assertEqual(type(frag), GoldenSimplesFragment)
 
-    def test_fragment_by_tag_object(self):
-        obj = BaseObject()
-        frag = obj.fragment_by_tag('Object')
-        self.assertEqual(frag, obj.fragments[0])
-
-    def test_fragment_by_tag_goldensimples(self):
-        obj = GoldenSimple(type='CubeGS')
-        frag = obj.fragment_by_tag('GoldenSimples')
-        expect = next(f for f in obj.fragments if isinstance(f, GoldenSimplesFragment))
-        self.assertEqual(frag, expect)
-
     def test_fragment_attrs(self):
         obj = GoldenSimple(type='CubeGS')
         self.assertEqual(obj.emit_index, 17)

@@ -21,7 +21,10 @@ class ProfileProgress(BaseObject):
 
     @property
     def stats(self):
-        return self.fragment_by_tag('ProfileStats')
+        try:
+            return self['ProfileStats']
+        except KeyError:
+            raise AttributeError("ProfileStats fragment is not present.")
 
 
 # vim:set sw=4 ts=8 sts=4 et:

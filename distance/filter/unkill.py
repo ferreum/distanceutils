@@ -19,10 +19,10 @@ class KillgridMapper(ObjectMapper):
         color = (.302, 0, 0, .471)
         if copy_color:
             try:
-                matfragment = old.fragment_by_tag('Material')
+                matfragment = old['Material']
                 color = matfragment.materials['KillGridFinite']['_Color']
-            except AttributeError:
-                pass
+            except (AttributeError, KeyError):
+                pass # TODO notify if e.is_present
         color = color[:3] + (color[3] * .5,)
         gs.mat_emit = color
         gs.mat_reflect = (0, 0, 0, 0)

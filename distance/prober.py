@@ -27,10 +27,16 @@ class AutoloadError(Exception):
 
 def fragment_property(tag, name, default=None, doc=None):
     def fget(self):
-        frag = self.fragment_by_tag(tag)
+        try:
+            frag = self[tag]
+        except KeyError as e:
+            raise AttributeError(name)
         return getattr(frag, name, default)
     def fset(self, value):
-        frag = self.fragment_by_tag(tag)
+        try:
+            frag = self[tag]
+        except KeyError as e:
+            raise AttributeError(name)
         setattr(frag, name, value)
     if doc is None:
         doc = f"property forwarded to {tag!r}"
@@ -334,6 +340,18 @@ class BytesProber(ClassCollector):
             raise TypeError(f"Class with tag {tag!r} has no container information")
         return base
 
+    def get_tag_impl_info(self, tag):
+        info = self._classes[tag]
+        try:
+            base = info['base_container']
+        except KeyError:
+            raise TypeError(f"Class with tag {tag!r} has no container information")
+        if info.get('noversion_cls') is not None:
+            versions = 'all'
+        else:
+            versions = info.get('versions').keys()
+        return base, versions
+
     def fragment_attrs(self, *tags):
         def decorate(cls):
             from .base import default_fragments
@@ -498,6 +516,14 @@ class ProbersRegistry(object):
                 actual_content[key] = actual_probers[key]._generate_autoload_content()
                 loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
             return actual_content, loaded_content
+
+    def copy(self, **overrides):
+        probers = dict(self._probers)
+        probers.update(overrides)
+        res = ProbersRegistry()
+        res._autoload_modules = dict(self._autoload_modules)
+        res._probers = probers
+        return res
 
 
 class InstanceFactory(object):

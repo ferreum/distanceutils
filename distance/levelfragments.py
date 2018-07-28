@@ -47,18 +47,21 @@ class MaterialFragment(Fragment):
 def material_property(matname, colname):
     doc = f"property forwarded to material color {matname!r}/{colname!r}"
     def fget(self):
-        frag = self.fragment_by_tag('Material')
         try:
+            frag = self['Material']
             return frag.materials[matname][colname]
         except KeyError as e:
             raise AttributeError(f"color {matname!r}/{colname!r}") from e
     def fset(self, value):
-        frag = self.fragment_by_tag('Material')
+        try:
+            frag = self['Material']
+        except KeyError as e:
+            raise AttributeError(f"color {matname!r}/{colname!r}") from e
         frag.materials.get_or_add(matname)[colname] = value
     def fdel(self):
-        frag = self.fragment_by_tag('Material')
-        mats = frag.materials
         try:
+            frag = self['Material']
+            mats = frag.materials
             mat = mats[matname]
             del mat[colname]
         except KeyError as e:
@@ -91,7 +94,7 @@ class material_attrs(object):
 
     @staticmethod
     def reset_colors(obj):
-        mats = obj.fragment_by_tag('Material').materials
+        mats = obj['Material'].materials
         for matname, colname, value in obj.__default_colors.values():
             mats.get_or_add(matname)[colname] = value
 

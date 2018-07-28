@@ -25,6 +25,22 @@ class NoDefaultTransformError(TypeError):
     pass
 
 
+class FragmentKeyError(KeyError):
+    "A fragment for a tag is present but not implemented for its version."
+
+    def __init__(self, tag, version=None):
+        if version is None:
+            super().__init__(tag)
+        else:
+            super().__init__(f"{tag!r} not implemented for version {version}")
+        self.version = version
+
+    @property
+    def is_present(self):
+        "True if the fragment is present but not implemented."
+        return self.version is not None
+
+
 def _isclose(a, b):
     return -0.00001 < a - b < 0.00001
 
@@ -573,16 +589,6 @@ class BaseObject(Fragment):
             i += 1
         return None
 
-    def fragment_by_tag(self, tag):
-        base_key = self.probers.fragments.base_container_key(tag)
-        i = 0
-        for sec in self.sections:
-            if sec.to_key(noversion=True) == base_key:
-                frag = self.fragments[i]
-                return frag
-            i += 1
-        return None
-
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
         prober = self.probers.fragments
@@ -591,6 +597,57 @@ class BaseObject(Fragment):
             if type_filter(sec, prober):
                 yield fragments[i]
             i += 1
+
+    def __getitem__(self, tag):
+        """Get fragment with given tag, if implemented.
+
+        Raises
+        ------
+        FragmentKeyError (a KeyError)
+            If fragment is not present or not implemented.
+        """
+
+        base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                if (versions != 'all' and sec.has_version()
+                        and sec.version not in versions):
+                    raise FragmentKeyError(tag, sec.version)
+                return self.fragments[i]
+            i += 1
+        raise FragmentKeyError(tag)
+
+    def __contains__(self, tag):
+        "Check whether a fragment with given tag is present and implemented."
+        base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                return (versions == 'all' or not sec.has_version()
+                        or sec.version in versions)
+        return False
+
+    def __iter__(self):
+        "Not iterable. Implemented only to prevent __getitem__ iteration."
+        raise TypeError(f"{type(self).__name__!r} object is not iterable")
+
+    def get_any(self, tag):
+        "Get fragment with given tag, regardless of implementation."
+        base_key = self.probers.fragments.base_container_key(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                return self.fragments[i]
+            i += 1
+        return None
+
+    def has_any(self, tag):
+        "Check whether a fragment with given tag is present."
+        base_key = self.probers.fragments.base_container_key(tag)
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                return True
+        return False
 
     def _read_section_data(self, dbytes, sec):
         self.type = sec.type

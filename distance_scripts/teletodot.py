@@ -19,9 +19,9 @@ def main():
 
     def get_teleporters(gen):
         for obj in gen:
-            teles = list(o for o in obj.iter_children(ty=SubTeleporter)
-                         if o.fragment_by_tag('TeleporterEntrance') is not None or
-                         o.fragment_by_tag('TeleporterExit') is not None)
+            teles = [o for o in obj.iter_children(ty=SubTeleporter)
+                     if o.has_any('TeleporterEntrance') or
+                     o.has_any('TeleporterExit')]
             if teles:
                 yield obj, teles
             if not obj.sane_end_pos:
@@ -45,18 +45,25 @@ def main():
             get_teleporters(level.iter_objects())):
         for tele in teles:
             sub_to_main[tele] = obj
-            label = ""
-            if tele.link_id is not None:
-                add_to_listmap(dests, tele.link_id, tele)
-                label += f"{tele.link_id}"
-            entrance = tele.fragment_by_tag('TeleporterEntrance')
-            if entrance is not None:
+            parts = [obj.type]
+            try:
+                exit = tele['TeleporterExit']
+            except KeyError as e:
+                if e.is_present:
+                    parts.append("??")
+            else:
+                add_to_listmap(dests, exit.link_id, tele)
+                parts.append(f"{tele.link_id}")
+            try:
+                entrance = tele['TeleporterEntrance']
+            except KeyError as e:
+                if e.is_present:
+                    parts.append("to ??")
+            else:
                 add_to_listmap(srcs, entrance.destination, tele)
-                if label:
-                    label += " "
-                label += f"to {entrance.destination}"
+                parts.append(f"to {entrance.destination}")
             tele.__id = f"t{i}_{obj.type}"
-            tele.__label = f"{obj.type} {label}"
+            tele.__label = ' '.join(parts)
 
     import numpy as np
 

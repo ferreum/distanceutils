@@ -12,6 +12,7 @@ from .base import ObjectFilter, DoNotApply, create_replacement_group
 
 
 SKIP_REASONS = {
+    'unknown_version': ("Version not implemented", 1),
     'no_collider': ("No collider found", 1),
     'no_visualizer': ("No visualizer for type", 1),
     'disabled': ("Trigger disabled", 2),
@@ -145,9 +146,13 @@ class BoxVisualizer(Visualizer):
         main = objpath[0]
         obj = objpath[-1]
 
-        coll = obj.fragment_by_tag('BoxCollider')
-        if coll is None:
-            raise DoNotApply('no_collider')
+        try:
+            coll = obj['BoxCollider']
+        except KeyError as e:
+            if e.is_present:
+                raise DoNotApply('unknown_version', 'BoxCollider')
+            else:
+                raise DoNotApply('no_collider')
         coll_center = coll.trigger_center or self.default_center
         size = coll.trigger_size or self.default_size
         return self._transform_collider(
@@ -174,9 +179,13 @@ class SphereVisualizer(Visualizer):
         main = objpath[0]
         obj = objpath[-1]
 
-        coll = obj.fragment_by_tag('SphereCollider')
-        if coll is None:
-            raise DoNotApply('no_collider')
+        try:
+            coll = obj['SphereCollider']
+        except KeyError as e:
+            if e.is_present:
+                raise DoNotApply('unknown_version', 'SphereCollider')
+            else:
+                raise DoNotApply('no_collider')
         coll_center = coll.trigger_center or self.default_center
         radius = coll.trigger_radius or self.default_radius
         return self._transform_collider(
@@ -467,9 +476,13 @@ class VirusMazeMapper(VisualizeMapper):
     }
 
     def _apply_match(self, main, objpath, frags):
-        interp_frag = main.fragment_by_tag('InterpolateToPositionOnTrigger')
-        if interp_frag and not interp_frag.actually_interpolate:
-            raise DoNotApply('disabled')
+        try:
+            interp_frag = main['InterpolateToPositionOnTrigger']
+        except KeyError:
+            pass # TODO notify if e.is_present
+        else:
+            if not interp_frag.actually_interpolate:
+                raise DoNotApply('disabled')
         vis = self.visualizers.get(main.type, None)
         if vis is None:
             raise DoNotApply('no_visualizer')
@@ -531,9 +544,11 @@ class CooldownTriggerMapper(VisualizeMapper):
     )
 
     def _apply_ring_anim(self, main, objs):
-        rotLogic = main.fragment_by_tag('RigidbodyAxisRotationLogic')
-        if rotLogic is None:
+        try:
+            rotLogic = main['RigidbodyAxisRotationLogic']
+        except KeyError:
             # object is not a rotating ring
+            # TODO notify if e.is_present
             return objs
 
         spd = rotLogic.angular_speed
@@ -634,8 +649,7 @@ class GoldenSimplesMapper(VisualizeMapper):
             return lum * color[3]
         tex_brightness = 1
         # TurnLightOnNearCar feature overrides invert_emit
-        light_on_frag = main.fragment_by_tag('TurnLightOnNearCar')
-        if light_on_frag or not frag.invert_emit:
+        if main.has_any('TurnLightOnNearCar') or not frag.invert_emit:
             if frag.emit_index in self._dark_textures:
                 tex_brightness = 0.1
         return color_brightness(color) * tex_brightness
@@ -819,6 +833,8 @@ class VisualizeFilter(ObjectFilter):
                 except AttributeError:
                     objdetail = "(generated)"
                 objstr = '/'.join(repr(o.type) for o in objpath)
+                if exc.args:
+                    objdetail += f" {exc.args!r}"
                 p(f"Object: {objstr} {objdetail}")
 
     def _print_skipped(self, p):
