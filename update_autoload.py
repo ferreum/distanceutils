@@ -6,7 +6,7 @@ import os
 
 def main():
     os.environ['DISTANCEUTILS_AUTOLOAD'] = "0"
-    import distance
+    import distance._core
     distance._core.write_autoload_modules()
 
 
