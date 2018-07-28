@@ -568,7 +568,8 @@ def _merged_info(tag, prev, new):
             raise RegisterError(
                 f"Cannot register {new_nover_cls!r} as version-less class for tag"
                 f" {tag!r} because it is already registered for {nover_cls!r}")
-    result['noversion_cls'] = nover_cls
+    if nover_cls is not None:
+        result['noversion_cls'] = nover_cls
 
     if new_vers is not None:
         if vers is None:
