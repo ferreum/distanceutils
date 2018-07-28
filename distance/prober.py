@@ -37,18 +37,12 @@ def fragment_property(tag, name, default=None, doc=None):
     return property(fget, fset, doc=doc)
 
 
-class BytesProber(object):
+class ClassCollector(object):
 
-    def __init__(self, baseclass=BytesModel, key=None, keys=()):
-        self.baseclass = baseclass
-        if key is not None:
-            keys = keys + (key,)
-        self._keys = keys
+    def __init__(self):
         self._sections = {}
         self._autoload_sections = {}
         self._classes = {}
-        self._funcs_by_tag = OrderedDict()
-        self._funcs = self._funcs_by_tag.values()
 
     def add_fragment(self, cls, *args,
                      any_version=False, versions=None, **kw):
@@ -103,9 +97,6 @@ class BytesProber(object):
         self._sections[sec.to_key()] = cls
         self._add_class(cls, type, sec)
 
-    def add_func(self, func, tag):
-        self._funcs_by_tag[tag] = func
-
     def add_info(self, *args, tag=None):
         def decorate(cls):
             nonlocal tag
@@ -134,19 +125,6 @@ class BytesProber(object):
             e.registered = registered
             raise e
         self._sections[key] = cls
-
-    def func(self, tag):
-
-        """Decorator for conveniently adding a function."""
-
-        def decorate(func):
-            self.add_func(func, tag)
-            return func
-
-        if callable(tag):
-            raise ValueError("target passed as tag")
-
-        return decorate
 
     def object(self, *args):
 
@@ -189,16 +167,6 @@ class BytesProber(object):
 
         return decorate
 
-    def extend_from(self, other):
-        self._sections.update(((k, v) for k, v in other._sections.items()
-                               if k not in self._sections))
-        self._funcs_by_tag.update(other._funcs_by_tag)
-        _update_class_info(self._classes, other._classes)
-        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
-                                       if k not in self._autoload_sections)
-        self._keys += tuple(k for k in other._keys
-                            if k not in self._keys)
-
     def _add_class(self, cls, tag, container=None, versions=None):
         if type(tag) is not str:
             raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
@@ -224,6 +192,46 @@ class BytesProber(object):
             info['versions'] = dict.fromkeys(versions, class_spec)
 
         _merge_class_info(self._classes, tag, info)
+
+
+class BytesProber(ClassCollector):
+
+    def __init__(self, *, baseclass=BytesModel, key=None, keys=()):
+        super().__init__()
+        self.baseclass = baseclass
+        if key is not None:
+            keys = keys + (key,)
+        self._keys = keys
+        # We don't have funcs on ClassCollector because they don't need to be
+        # lazy-loaded and there's no use for it yet.
+        self._funcs_by_tag = OrderedDict()
+        self._funcs = self._funcs_by_tag.values()
+
+    def extend_from(self, other):
+        self._sections.update(((k, v) for k, v in other._sections.items()
+                               if k not in self._sections))
+        self._funcs_by_tag.update(other._funcs_by_tag)
+        _update_class_info(self._classes, other._classes)
+        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
+                                       if k not in self._autoload_sections)
+        self._keys += tuple(k for k in other._keys
+                            if k not in self._keys)
+
+    def add_func(self, func, tag):
+        self._funcs_by_tag[tag] = func
+
+    def func(self, tag):
+
+        """Decorator for conveniently adding a function."""
+
+        def decorate(func):
+            self.add_func(func, tag)
+            return func
+
+        if callable(tag):
+            raise ValueError("target passed as tag")
+
+        return decorate
 
     def _get_by_key(self, key):
         cls = self._sections.get(key, None)
@@ -411,7 +419,6 @@ class BytesProber(object):
     def _load_impl(self, prober, update_classes):
         self._sections.update(((k, v) for k, v in prober._sections.items()
                                if k not in self._sections))
-        self._funcs_by_tag.update(prober._funcs_by_tag)
         if update_classes:
             _update_class_info(self._classes, prober._classes)
 
@@ -425,7 +432,7 @@ class ProberGroup(object):
         try:
             return self._probers[name]
         except KeyError:
-            prober = BytesProber()
+            prober = ClassCollector()
             self._probers[name] = prober
             return prober
 

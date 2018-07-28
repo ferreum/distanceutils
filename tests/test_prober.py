@@ -1,7 +1,7 @@
 import unittest
 
 from distance.bytes import DstBytes, Magic, Section
-from distance.prober import BytesProber, RegisterError
+from distance.prober import ClassCollector, BytesProber, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
@@ -134,8 +134,8 @@ class VerifyClassInfo(unittest.TestCase):
         self.assertEqual(obj.emit_index, 17)
 
     def test_registration_version_merge(self):
-        prober1 = BytesProber()
-        prober2 = BytesProber()
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
         base = Section.base(Magic[2], 23)
         frag1 = prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
         frag5 = prober2.fragment(TagFragment('Frag5', 'Test', base_container=base, container_versions=5))
@@ -166,8 +166,8 @@ class VerifyClassInfo(unittest.TestCase):
             del glob['Frag5']
 
     def test_registration_version_conflict(self):
-        prober1 = BytesProber()
-        prober2 = BytesProber()
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
         base = Section.base(Magic[2], 23)
         prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
         prober2.fragment(TagFragment('Frag2', 'Test', base_container=base, container_versions=(1, 2)))
