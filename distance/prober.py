@@ -547,9 +547,6 @@ def _merged_info(tag, prev, new):
     new_fields = new.get('fields')
     new_nover_cls = new.get('noversion_cls')
 
-    if not new_vers and not new_fields and new_nover_cls is None:
-        return prev
-
     base_container = prev.get('base_container')
     nover_cls = prev.get('noversion_cls')
     vers = prev.get('versions')
