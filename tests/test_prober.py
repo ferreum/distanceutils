@@ -176,7 +176,7 @@ class VerifyClassInfo(unittest.TestCase):
         prober._load_impl(prober1, True)
         with self.assertRaises(RegisterError) as cm:
             prober._load_impl(prober2, True)
-        self.assertRegex(str(cm.exception), r'.*already registered for .*Frag1.*')
+        self.assertRegex(str(cm.exception), r'already registered for .*Frag1')
 
     def test_klass_teleporter_exit_version_new(self):
         cls = DefaultProbers.fragments.klass('TeleporterExit', version=1)
