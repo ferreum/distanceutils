@@ -165,7 +165,7 @@ class VerifyClassInfo(unittest.TestCase):
             del glob['Frag23']
             del glob['Frag5']
 
-    def test_registration_version_conflict(self):
+    def test_reg_version_conflict(self):
         prober1 = ClassCollector()
         prober2 = ClassCollector()
         base = Section.base(Magic[2], 23)
@@ -177,6 +177,29 @@ class VerifyClassInfo(unittest.TestCase):
         with self.assertRaises(RegisterError) as cm:
             prober._load_impl(prober2, True)
         self.assertRegex(str(cm.exception), r'already registered for .*Frag1')
+
+    def test_reg_base_container_conflict(self):
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
+        prober1.fragment(TagFragment('Frag1', 'Test', base_container=Section.base(Magic[2], 23), container_versions=1))
+        prober2.fragment(TagFragment('Frag2', 'Test', base_container=Section.base(Magic[2], 34), container_versions=2))
+
+        prober = BytesProber()
+        prober._load_impl(prober1, True)
+        with self.assertRaises(RegisterError) as cm:
+            prober._load_impl(prober2, True)
+        self.assertRegex(str(cm.exception), r'already registered for \(22222222, 23, None\)')
+
+    def test_reg_base_container_merge(self):
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
+        prober1.add_info(TagFragment('Frag1', 'Test'))
+        prober2.fragment(TagFragment('Frag2', 'Test', base_container=Section.base(Magic[2], 34), container_versions=2))
+
+        prober = BytesProber()
+        prober._load_impl(prober1, True)
+        prober._load_impl(prober2, True)
+        self.assertEqual((Magic[2], 34, None), prober.base_container_key('Test'))
 
     def test_klass_teleporter_exit_version_new(self):
         cls = DefaultProbers.fragments.klass('TeleporterExit', version=1)

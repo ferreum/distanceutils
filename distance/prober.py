@@ -542,12 +542,7 @@ def _merge_class_info(classes, tag, info):
 
 
 def _merged_info(tag, prev, new):
-    base_container = prev['base_container']
-    if new['base_container'] != base_container:
-        raise RegisterError(
-            f"Class tag {tag!r} is already registered for base container"
-            f" {base_container!r}, not {new['base_container']!r}")
-
+    new_container = new.get('base_container')
     new_vers = new.get('versions')
     new_fields = new.get('fields')
     new_nover_cls = new.get('noversion_cls')
@@ -555,11 +550,22 @@ def _merged_info(tag, prev, new):
     if not new_vers and not new_fields and new_nover_cls is None:
         return prev
 
+    base_container = prev.get('base_container')
     nover_cls = prev.get('noversion_cls')
     vers = prev.get('versions')
     fields = prev.get('fields')
 
-    result = {'base_container': base_container}
+    result = {}
+
+    if new_container is not None and new_container != base_container:
+        if base_container is None:
+            base_container = new_container
+        else:
+            raise RegisterError(
+                f"Cannot register {new_container!r} as base_container for tag"
+                f" {tag!r} because it is already registered for {base_container!r}")
+    if base_container is not None:
+        result['base_container'] = base_container
 
     if new_nover_cls is not None and new_nover_cls != nover_cls:
         if not nover_cls:
