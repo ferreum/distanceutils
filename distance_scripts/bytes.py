@@ -17,6 +17,8 @@ def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
     parser.add_argument("FILE", nargs='+', help=".bytes filename")
+    parser.add_argument("-F", "--fragment", action='store_true',
+                        help="Expect a fragment instead of an object")
     parser.add_argument("-f", "--flags", action='append',
                         help="Add flags.")
     parser.set_defaults(flags=[])
@@ -38,8 +40,10 @@ def main():
     print_filename = 'filename' in flags or len(args.FILE) > 1
 
     prober = BytesProber(baseclass=Fragment)
-    prober.extend_from(DefaultProbers.file)
-    prober.extend_from(DefaultProbers.fragments)
+    if args.fragment:
+        prober = DefaultProbers.fragment
+    else:
+        prober = DefaultProbers.file
 
     p = PrintContext(flags=flags)
 
