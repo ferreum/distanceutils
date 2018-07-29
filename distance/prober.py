@@ -406,7 +406,7 @@ class BytesProber(ClassCollector):
             return cls.is_interesting
         info = self._autoload_sections.get(sec.to_key(), None)
         if info is not None:
-            modname, classname, is_interesting = info
+            modname, is_interesting = info
             return is_interesting
         return False
 
@@ -416,7 +416,7 @@ class BytesProber(ClassCollector):
 
     def _generate_autoload_content(self):
         return {
-            'sections': {key: (cls.__module__, cls.__name__, getattr(cls, 'is_interesting', False))
+            'sections': {key: (cls.__module__, getattr(cls, 'is_interesting', False))
                          for key, cls in self._sections.items()},
             'classes': dict(self._classes),
         }
@@ -428,7 +428,7 @@ class BytesProber(ClassCollector):
         }
 
     def _autoload_impl_module(self, sec_key, info):
-        impl_module, classname, is_interesting = info
+        impl_module, is_interesting = info
         mod = importlib.import_module(impl_module)
         for key in self._keys:
             prober = getattr(mod.Probers, key)
