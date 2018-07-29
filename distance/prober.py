@@ -333,15 +333,21 @@ class BytesProber(ClassCollector):
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
     def base_container_key(self, tag):
-        info = self._classes[tag]
+        try:
+            info = self._classes[tag]
+        except KeyError:
+            raise KeyError(f"No such tag: {tag!r}")
         try:
             base = info['base_container']
         except KeyError:
-            raise TypeError(f"Class with tag {tag!r} has no container information")
+            raise TypeError(f"No container information for tag {tag!r}")
         return base
 
     def get_tag_impl_info(self, tag):
-        info = self._classes[tag]
+        try:
+            info = self._classes[tag]
+        except KeyError:
+            raise KeyError(f"No such tag: {tag!r}")
         try:
             base = info['base_container']
         except KeyError:
@@ -357,7 +363,10 @@ class BytesProber(ClassCollector):
             from .base import default_fragments
             containers = []
             for tag in tags:
-                info = self._classes[tag]
+                try:
+                    info = self._classes[tag]
+                except KeyError:
+                    raise KeyError(f"No such tag: {tag!r}")
                 try:
                     fields = info['fields']
                 except KeyError:
@@ -377,7 +386,10 @@ class BytesProber(ClassCollector):
         return decorate
 
     def __klass(self, tag, version):
-        info = self._classes[tag]
+        try:
+            info = self._classes[tag]
+        except KeyError:
+            raise KeyError(f"No such tag: {tag!r}")
         (modname, clsname), def_version = _get_klass_def(info, version)
         container = info.get('base_container')
         if container is not None:
