@@ -47,6 +47,14 @@ class BaseLazySequence(Sequence):
                 index += len_
         return self._list[index]
 
+    def __add__(self, items):
+        # We inflate self and create a plain old list, instead of
+        # a lazy sequence, because otherwise error conditions would
+        # get very complicated.
+        res = list(self)
+        res.extend(items)
+        return res
+
 
 class LazySequence(BaseLazySequence):
 

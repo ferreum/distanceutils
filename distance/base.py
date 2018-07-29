@@ -624,6 +624,35 @@ class BaseObject(Fragment):
             i += 1
         raise FragmentKeyError(tag)
 
+    def __setitem__(self, tag, frag):
+        base_key = self.probers.fragments.base_container_key(tag)
+        if frag.container.to_key(noversion=True) != base_key:
+            raise KeyError(f"Invalid fragment container: expected"
+                           f" {base_key!r} but got {frag.container!r}")
+        frags = list(self.fragments)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                frags[i] = frag
+                break
+            i += 1
+        else:
+            frags.append(frag)
+        self.fragments = frags
+
+    def __delitem__(self, tag):
+        base_key = self.probers.fragments.base_container_key(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                frags = list(self.fragments)
+                del frags[i]
+                self.fragments = frags
+                break
+            i += 1
+        else:
+            raise KeyError(f"Fragment with tag {tag!r} is not present")
+
     def __contains__(self, tag):
         "Check whether a fragment with given tag is present and implemented."
         base_key, versions = self.probers.fragments.get_tag_impl_info(tag)

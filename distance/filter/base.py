@@ -32,7 +32,7 @@ def create_replacement_group(orig, objs, animated_only=False):
     group.recenter(pos)
     group.rerotate(rot)
     group.rescale(scale)
-    group.fragments = list(group.fragments) + copied_frags
+    group.fragments += copied_frags
     return group,
 
 

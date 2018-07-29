@@ -397,6 +397,79 @@ class BaseObjectTest(unittest.TestCase):
             obj['Test']
         self.assertEqual(cm.exception.is_present, True)
 
+    def test_setitem_replaces_fragment(self):
+        obj = BaseObject(type='Test')
+        child = BaseObject(type='Child')
+        frag = ObjectFragment(children=[child])
+
+        obj['Object'] = frag
+
+        self.assertEqual(obj.fragments, [frag])
+        self.assertIs(obj['Object'], frag)
+        self.assertEqual(obj.children, [child])
+
+    def test_setitem_adds_fragment(self):
+        obj = BaseObject(type='Test')
+        frag = GoldenSimplesFragment()
+
+        obj['GoldenSimples'] = frag
+
+        self.assertEqual([obj['Object'], frag], list(obj.fragments))
+        self.assertIs(frag, obj['GoldenSimples'])
+
+    def test_setitem_unknown_tag_error(self):
+        obj = BaseObject(type='Test')
+        frag = GoldenSimplesFragment()
+
+        with self.assertRaises(KeyError):
+            obj['TeleporterExit'] = frag
+
+    def test_setitem_checks_fragment_type(self):
+        obj = BaseObject(type='Test')
+        frag = Fragment()
+
+        with self.assertRaises(KeyError):
+            obj['unknown'] = frag
+
+    def test_delitem_removes(self):
+        obj = BaseObject(type='Test')
+
+        del obj['Object']
+
+        self.assertEqual([], obj.fragments)
+        self.assertFalse('Object' in obj)
+
+    def test_delitem_missing(self):
+        obj = BaseObject(type='Test')
+
+        with self.assertRaises(KeyError):
+            del obj['GoldenSimples']
+
+    def test_delitem_unknown_tag_error(self):
+        obj = BaseObject(type='Test')
+
+        with self.assertRaises(KeyError):
+            del obj['unknown']
+
+    def test_fragments_created_add(self):
+        obj = BaseObject(type='Test')
+        objfrag = obj['Object']
+        gsfrag = GoldenSimplesFragment()
+
+        obj.fragments += [gsfrag]
+
+        self.assertEqual(list(obj.fragments), [objfrag, gsfrag])
+
+    def test_fragments_read_add(self):
+        obj = BaseObject('tests/in/customobject/2cubes.bytes')
+        gsfrag = GoldenSimplesFragment()
+
+        obj.fragments += [gsfrag]
+
+        self.assertEqual(len(obj.fragments), 4)
+        self.assertEqual(obj.fragments[-1], gsfrag)
+        self.assertEqual(obj.sections[-1], gsfrag.container)
+
 
 class ConstructorTest(unittest.TestCase):
 
