@@ -26,7 +26,7 @@ class NoDefaultTransformError(TypeError):
 
 
 class FragmentKeyError(KeyError):
-    "A fragment for a tag is present but not implemented for its version."
+    "A fragment for a tag is not present or not implemented for its version."
 
     def __init__(self, tag, version=None):
         if version is None:
