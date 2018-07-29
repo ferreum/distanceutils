@@ -544,17 +544,11 @@ class BaseObject(Fragment):
     def class_tag(cls):
         return getattr(cls, 'type', cls.__name__)
 
-    def _after_init(self):
-        super()._after_init()
-        try:
-            self.container
-        except AttributeError:
-            pass
-        else:
-            try:
-                self.type
-            except AttributeError:
-                self.type = self.container.type
+    def __init__(self, *args, **kw):
+        container = kw.get('container')
+        if container is not None:
+            self.type = container.type
+        super().__init__(*args, **kw)
 
     real_transform = _object_property('real_transform', default=Transform())
 
