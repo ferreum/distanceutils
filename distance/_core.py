@@ -9,16 +9,19 @@ from distance._default_probers import DefaultProbers
 DefaultProbers.create('common', baseclass=Fragment)
 DefaultProbers.create('level_objects', baseclass=LevelObject)
 DefaultProbers.create('level_subobjects', baseclass=SubObject)
+DefaultProbers.create('level_fallback', baseclass=LevelObject)
 DefaultProbers.create('fragments', baseclass=Fragment)
 DefaultProbers.create('base_objects', baseclass=BaseObject)
 DefaultProbers.create('base_fragments', baseclass=Fragment)
 DefaultProbers.create('level', baseclass=Fragment)
 DefaultProbers.create('level_content', baseclass=Fragment)
-DefaultProbers.create('non_level_objects', baseclass=Fragment)
-DefaultProbers.create_mux('level_like', baseclass=LevelObject,
-                          keys=['level', 'level_objects'])
-DefaultProbers.create_mux('file', baseclass=Fragment,
-                          keys=['non_level_objects', 'level', 'level_objects'])
+DefaultProbers.create('non_level_objects', baseclass=BaseObject)
+DefaultProbers.create_mux(
+    'level_like', baseclass=LevelObject,
+    keys=['level', 'level_objects'])
+DefaultProbers.create_mux(
+    'file', baseclass=Fragment,
+    keys=['level_objects', 'level', 'non_level_objects', 'level_fallback'])
 
 
 def _impl_modules():
@@ -53,12 +56,20 @@ _autoload_module = 'distance._autoload._probers'
 DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
 
 
-@DefaultProbers.non_level_objects.func('Replay')
-def _detect_other(section):
+@DefaultProbers.non_level_objects.func('dst._core.nonlevel_fallback')
+def _detect_non_level_objects_other(section):
     if section.magic == Magic[6]:
         from distance.replay import Replay, FTYPE_REPLAY_PREFIX
+        # Replay requires dynamic check.
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
+    return None
+
+
+@DefaultProbers.level_fallback.func('dst._core.level_fallback')
+def _level_fallback(section):
+    if section.magic == Magic[6]:
+        return LevelObject
     return None
 
 

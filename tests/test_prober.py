@@ -75,35 +75,35 @@ class RegisteredTest(unittest.TestCase):
         for ver in range(0, 1):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/workshoplevelinfos/version_{ver}.bytes")
-                self.assertEqual(WorkshopLevelInfos, type(result))
+                self.assertIsInstance(result, WorkshopLevelInfos)
 
     def test_leaderboard(self):
         for ver in range(0, 2):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/leaderboard/version_{ver}.bytes")
-                self.assertIs(Leaderboard, type(result))
+                self.assertIsInstance(result, Leaderboard)
 
     def test_replay(self):
         for ver in range(1, 5):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/replay/version_{ver}.bytes")
-                self.assertIs(Replay, type(result))
+                self.assertIsInstance(result, Replay)
 
     def test_level(self):
         result = DefaultProbers.file.read(f"tests/in/level/test-straightroad.bytes")
-        self.assertIs(Level, type(result))
+        self.assertIsInstance(result, Level)
 
     def test_level_like_level(self):
         result = DefaultProbers.level_like.read(f"tests/in/level/test-straightroad.bytes")
-        self.assertIs(Level, type(result))
+        self.assertIsInstance(result, Level)
 
     def test_level_like_group(self):
         result = DefaultProbers.level_like.read(f"tests/in/customobject/2cubes.bytes")
-        self.assertIs(Group, type(result))
+        self.assertIsInstance(result, Group)
 
     def test_level_like_object(self):
         result = DefaultProbers.level_like.read(f"tests/in/customobject/oldsimple cube.bytes")
-        self.assertIs(OldSimple, type(result))
+        self.assertIsInstance(result, OldSimple)
 
 
 class UnknownObjectFileTest(unittest.TestCase):
@@ -114,10 +114,10 @@ class UnknownObjectFileTest(unittest.TestCase):
             pass
         db.seek(0)
 
-    def test_unknown_object(self):
+    def test_unknown_file(self):
         obj = DefaultProbers.file.read(self.db)
 
-        self.assertEqual(type(obj), BaseObject)
+        self.assertEqual(type(obj), LevelObject)
 
     def test_unknown_level_like(self):
         obj = DefaultProbers.level_like.read(self.db)
