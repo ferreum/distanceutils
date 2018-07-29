@@ -7,7 +7,7 @@ from io import BytesIO
 
 from distance.base import Fragment
 from distance.printing import PrintContext
-from distance.prober import BytesProber
+from distance.prober import ProberMux
 from distance import DefaultProbers
 from ._common import handle_pipeerror
 
@@ -17,8 +17,6 @@ def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
     parser.add_argument("FILE", nargs='+', help=".bytes filename")
-    parser.add_argument("-F", "--fragment", action='store_true',
-                        help="Expect a fragment instead of an object")
     parser.add_argument("-f", "--flags", action='append',
                         help="Add flags.")
     parser.set_defaults(flags=[])
@@ -39,11 +37,12 @@ def main():
 
     print_filename = 'filename' in flags or len(args.FILE) > 1
 
-    prober = BytesProber(baseclass=Fragment)
-    if args.fragment:
-        prober = DefaultProbers.fragment
-    else:
-        prober = DefaultProbers.file
+    prober = ProberMux(
+        probers=[DefaultProbers.fragments,
+                 DefaultProbers.file,
+                 DefaultProbers.level_objects],
+        baseclass=Fragment,
+    )
 
     p = PrintContext(flags=flags)
 
