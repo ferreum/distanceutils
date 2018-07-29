@@ -52,7 +52,8 @@ def fragment_property(tag, name, default=None, doc=None):
 
 class ClassCollector(object):
 
-    def __init__(self):
+    def __init__(self, **kw):
+        super().__init__(**kw)
         self._sections = {}
         self._autoload_sections = {}
         self._classes = {}
@@ -207,71 +208,35 @@ class ClassCollector(object):
         _merge_class_info(self._classes, tag, info)
 
 
-class BytesProber(ClassCollector):
+class BaseProber(object):
+    """Base for probers.
 
-    def __init__(self, *, baseclass=BytesModel, key=None, keys=()):
-        super().__init__()
+    Subclasses need to implement `_probe_section_key` and
+    optionally `_probe_fallback`.
+    """
+
+    def __init__(self, *, baseclass=BytesModel, **kw):
+        super().__init__(**kw)
         self.baseclass = baseclass
-        if key is not None:
-            keys = keys + (key,)
-        self._keys = keys
-        # We don't have funcs on ClassCollector because they don't need to be
-        # lazy-loaded and there's no use for it yet.
-        self._funcs_by_tag = OrderedDict()
-        self._funcs = self._funcs_by_tag.values()
 
-    def extend_from(self, other):
-        self._sections.update(((k, v) for k, v in other._sections.items()
-                               if k not in self._sections))
-        self._funcs_by_tag.update(other._funcs_by_tag)
-        _update_class_info(self._classes, other._classes)
-        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
-                                       if k not in self._autoload_sections)
-        self._keys += tuple(k for k in other._keys
-                            if k not in self._keys)
+    def _probe_section_key(self, key):
+        "Return the class for the given section."
+        raise NotImplementedError
 
-    def add_func(self, func, tag):
-        self._funcs_by_tag[tag] = func
-
-    def func(self, tag):
-
-        """Decorator for conveniently adding a function."""
-
-        def decorate(func):
-            self.add_func(func, tag)
-            return func
-
-        if callable(tag):
-            raise ValueError("target passed as tag")
-
-        return decorate
-
-    def _get_by_key(self, key):
-        cls = self._sections.get(key, None)
-        if cls is not None:
-            return cls
-        info = self._autoload_sections.get(key, None)
-        if info is not None:
-            self._autoload_impl_module(key, info)
-            return self._sections.get(key, None)
-        return None
-
-    def _get_from_funcs(self, sec):
-        for func in self._funcs:
-            cls = func(sec)
-            if cls is not None:
-                return cls
+    def _probe_fallback(self, sec):
         return None
 
     def probe_section(self, sec):
-        cls = self._get_by_key(sec.to_key())
+        key = sec.to_key()
+        cls = self._probe_section_key(key)
         if cls is not None:
             return cls
         if sec.has_version():
-            cls = self._get_by_key(sec.to_key(noversion=True))
+            key = sec.to_key(noversion=True)
+            cls = self._probe_section_key(key)
             if cls is not None:
                 return cls
-        cls = self._get_from_funcs(sec)
+        cls = self._probe_fallback(sec)
         if cls is not None:
             return cls
         return self.baseclass
@@ -338,6 +303,59 @@ class BytesProber(ClassCollector):
         dbytes = DstBytes.from_arg(dbytes)
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
+
+
+class BytesProber(BaseProber, ClassCollector):
+    "Prober for registered classes."
+
+    def __init__(self, *, key=None, keys=(), **kw):
+        super().__init__(**kw)
+        if key is not None:
+            keys = keys + (key,)
+        self._keys = keys
+        # We don't have funcs on ClassCollector because they don't need to be
+        # lazy-loaded and there's no use for it yet.
+        self._funcs_by_tag = OrderedDict()
+        self._funcs = self._funcs_by_tag.values()
+
+    def extend_from(self, other):
+        self._sections.update(((k, v) for k, v in other._sections.items()
+                               if k not in self._sections))
+        self._funcs_by_tag.update(other._funcs_by_tag)
+        _update_class_info(self._classes, other._classes)
+        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
+                                       if k not in self._autoload_sections)
+        self._keys += tuple(k for k in other._keys
+                            if k not in self._keys)
+
+    def add_func(self, func, tag):
+        self._funcs_by_tag[tag] = func
+
+    def func(self, tag):
+        "Decorator for conveniently adding a function."
+        def decorate(func):
+            self.add_func(func, tag)
+            return func
+        if callable(tag):
+            raise TypeError("target passed as tag")
+        return decorate
+
+    def _probe_section_key(self, key):
+        cls = self._sections.get(key, None)
+        if cls is not None:
+            return cls
+        info = self._autoload_sections.get(key, None)
+        if info is not None:
+            self._autoload_impl_module(key, info)
+            return self._sections.get(key, None)
+        return None
+
+    def _probe_fallback(self, sec):
+        for func in self._funcs:
+            cls = func(sec)
+            if cls is not None:
+                return cls
+        return None
 
     def base_container_key(self, tag):
         try:
@@ -458,6 +476,27 @@ class BytesProber(ClassCollector):
                                if k not in self._sections))
         if update_classes:
             _update_class_info(self._classes, prober._classes)
+
+
+class ProberMux(BaseProber):
+
+    def __init__(self, *, probers=None, **kw):
+        super().__init__(**kw)
+        self.probers = [] if probers is None else probers
+
+    def _probe_section_key(self, key):
+        for p in self.probers:
+            cls = p._probe_section_key(key)
+            if cls is not None:
+                return cls
+        return None
+
+    def _probe_fallback(self, sec):
+        for p in self.probers:
+            cls = p._probe_fallback(sec)
+            if cls is not None:
+                return cls
+        return None
 
 
 class ProberGroup(object):
