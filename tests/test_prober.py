@@ -8,6 +8,7 @@ from distance.levelobjects import LevelObject
 from distance import DefaultProbers
 from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
+from .common import write_read
 
 
 class TestObject(BaseObject):
@@ -230,6 +231,19 @@ class VerifyClassInfo(unittest.TestCase):
         self.assertEqual(
             (OldTeleporterExitFragment, Section(Magic[2], 0x3f, 0).to_key()),
             (type(frag), frag.container.to_key()))
+
+    def test_create_sets_container_and_object_type(self):
+        obj = DefaultProbers.level_objects.create('CubeGS')
+        self.assertEqual(obj.type, 'CubeGS')
+        self.assertTrue(obj.container.to_key(), (Magic[6], 'CubeGS'))
+
+    def test_created_object_can_be_written(self):
+        obj = DefaultProbers.level_objects.create('CubeGS')
+
+        res, rdb = write_read(obj)
+
+        self.assertEqual(obj.type, 'CubeGS')
+        self.assertTrue(obj.container.to_key(), (Magic[6], 'CubeGS'))
 
 
 # vim:set sw=4 ts=8 sts=4 et:

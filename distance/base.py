@@ -544,6 +544,18 @@ class BaseObject(Fragment):
     def class_tag(cls):
         return getattr(cls, 'type', cls.__name__)
 
+    def _after_init(self):
+        super()._after_init()
+        try:
+            self.container
+        except AttributeError:
+            pass
+        else:
+            try:
+                self.type
+            except AttributeError:
+                self.type = self.container.type
+
     real_transform = _object_property('real_transform', default=Transform())
 
     children = _object_property('children', default=())
