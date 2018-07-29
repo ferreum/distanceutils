@@ -519,16 +519,34 @@ class ProberGroup(object):
 class ProbersRegistry(object):
 
     def __init__(self):
-        self._autoload_modules = {}
         self._probers = {}
+        self._autoload_modules = {}
+        self._autoload_probers = {}
 
-    def get_or_create(self, name):
+    def create(self, key, *, baseclass=BytesModel):
         try:
-            return self._probers[name]
+            return self._probers[key]
         except KeyError:
-            prober = BytesProber(key=name)
-            self._probers[name] = prober
+            prober = BytesProber(key=key, baseclass=baseclass)
+            self._probers[key] = prober
+            self._autoload_probers[key] = prober
             return prober
+
+    def create_mux(self, key, *, keys=(), **kw):
+        keys = tuple(keys)
+        if key in self._probers:
+            try:
+                okeys = self._probers[key].__keys
+            except AttributeError:
+                raise ValueError(f"Prober already exists: {key!r}")
+            if okeys != keys:
+                raise ValueError(f"Prober {key!r} already exists"
+                                 f" with different keys: {keys!r}")
+        probers = [self._probers[key] for key in keys]
+        prober = ProberMux(probers=probers, **kw)
+        prober.__keys = keys
+        self._probers[key] = prober
+        return prober
 
     def __getattr__(self, name):
         try:
@@ -545,11 +563,11 @@ class ProbersRegistry(object):
         self._autoload_modules[module_name] = impl_modules
         if do_autoload:
             try:
-                _load_autoload_module(self._probers, module_name)
+                _load_autoload_module(self._autoload_probers, module_name)
                 return
             except ImportError:
                 pass
-        _load_impls_to_probers(self._probers, impl_modules)
+        _load_impls_to_probers(self._autoload_probers, impl_modules)
 
     def write_autoload_module(self, module_name):
         try:
@@ -557,11 +575,13 @@ class ProbersRegistry(object):
         except KeyError:
             raise KeyError(f"Autoload module is not defined: {module_name!r}")
         from distance._autoload_gen import write_autoload_module
-        write_autoload_module(module_name, impl_modules, self._probers.keys())
+        write_autoload_module(module_name, impl_modules,
+                              self._autoload_probers.keys())
 
     def _verify_autoload(self, verify_autoload=True):
-        actual_probers = {k: BytesProber(key=k) for k in self._probers}
-        autoload_probers = {k: BytesProber(key=k) for k in self._probers}
+        keys = self._autoload_probers.keys()
+        actual_probers = {k: BytesProber(key=k) for k in keys}
+        autoload_probers = {k: BytesProber(key=k) for k in keys}
         for autoload_module, impl_modules in self._autoload_modules.items():
             _load_impls_to_probers(actual_probers, impl_modules)
             _load_autoload_module(autoload_probers, autoload_module)
@@ -570,7 +590,7 @@ class ProbersRegistry(object):
                 raise Exception(f"Autoload is disabled")
             actual_content = {}
             loaded_content = {}
-            for key in self._probers.keys():
+            for key in keys:
                 actual_content[key] = actual_probers[key]._generate_autoload_content()
                 loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
             return actual_content, loaded_content
@@ -688,7 +708,11 @@ def _load_autoload_module(probers, module_name):
     mod = importlib.import_module(module_name)
     content_map = mod.content_map
     for key, content in content_map.items():
-        probers[key]._load_autoload_content(content)
+        try:
+            prober = probers[key]
+        except KeyError:
+            raise RegisterError(f"Invalid prober key {key!r}")
+        prober._load_autoload_content(content)
 
 
 def _load_impls_to_probers(probers, impl_modules):

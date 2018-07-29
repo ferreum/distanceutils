@@ -9,7 +9,7 @@ from distance import DefaultProbers
 from distance.printing import PrintContext
 
 
-Level = DefaultProbers.file.klass('Level')
+Level = DefaultProbers.level.klass('Level')
 NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
 
 

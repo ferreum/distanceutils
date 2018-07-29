@@ -39,8 +39,7 @@ def main():
 
     prober = ProberMux(
         probers=[DefaultProbers.fragments,
-                 DefaultProbers.file,
-                 DefaultProbers.level_objects],
+                 DefaultProbers.file],
         baseclass=Fragment,
     )
 

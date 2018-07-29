@@ -15,8 +15,7 @@ Probers = ProberGroup()
 fragment_attrs = DefaultProbers.fragments.fragment_attrs
 
 
-@Probers.file.fragment
-@Probers.level_like.fragment
+@Probers.level.fragment
 class Level(Fragment):
 
     class_tag = 'Level'

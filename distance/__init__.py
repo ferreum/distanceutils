@@ -68,7 +68,7 @@ from distance._core import DefaultProbers
 # File prober's baseclass is Fragment. For Magic[6] objects,
 # fall back to BaseObject. We do this here, because it needs to be
 # registered after the replay func.
-@DefaultProbers.file.func('fallback_object')
+@DefaultProbers.non_level_objects.func('fallback_object')
 def _fallback_object(sec):
     from distance.bytes import Magic
     from distance.base import BaseObject

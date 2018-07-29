@@ -6,8 +6,14 @@ from distance.prober import ClassCollector, BytesProber, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
+from distance.level import Level
+from distance.replay import Replay
+from distance.leaderboard import Leaderboard
+from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
+from distance._impl.level_objects.group import Group
+from distance._impl.level_objects.objects import OldSimple
 from .common import write_read
 
 
@@ -69,25 +75,35 @@ class RegisteredTest(unittest.TestCase):
         for ver in range(0, 1):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/workshoplevelinfos/version_{ver}.bytes")
-                self.assertEqual("WorkshopLevelInfos", type(result).__name__)
+                self.assertEqual(WorkshopLevelInfos, type(result))
 
     def test_leaderboard(self):
         for ver in range(0, 2):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/leaderboard/version_{ver}.bytes")
-                self.assertEqual("Leaderboard", type(result).__name__)
+                self.assertIs(Leaderboard, type(result))
 
     def test_replay(self):
         for ver in range(1, 5):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/replay/version_{ver}.bytes")
-                self.assertEqual("Replay", type(result).__name__)
+                self.assertIs(Replay, type(result))
 
     def test_level(self):
-        for levelfile in ("test-straightroad",):
-            with self.subTest(levelfile=levelfile):
-                result = DefaultProbers.file.read(f"tests/in/level/{levelfile}.bytes")
-                self.assertEqual("Level", type(result).__name__)
+        result = DefaultProbers.file.read(f"tests/in/level/test-straightroad.bytes")
+        self.assertIs(Level, type(result))
+
+    def test_level_like_level(self):
+        result = DefaultProbers.level_like.read(f"tests/in/level/test-straightroad.bytes")
+        self.assertIs(Level, type(result))
+
+    def test_level_like_group(self):
+        result = DefaultProbers.level_like.read(f"tests/in/customobject/2cubes.bytes")
+        self.assertIs(Group, type(result))
+
+    def test_level_like_object(self):
+        result = DefaultProbers.level_like.read(f"tests/in/customobject/oldsimple cube.bytes")
+        self.assertIs(OldSimple, type(result))
 
 
 class UnknownObjectFileTest(unittest.TestCase):
@@ -107,6 +123,11 @@ class UnknownObjectFileTest(unittest.TestCase):
         obj = DefaultProbers.level_like.read(self.db)
 
         self.assertEqual(type(obj), LevelObject)
+
+    def test_unknown_non_level_objects(self):
+        obj = DefaultProbers.non_level_objects.read(self.db)
+
+        self.assertEqual(type(obj), BaseObject)
 
 
 class VerifyTest(unittest.TestCase):

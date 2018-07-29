@@ -6,15 +6,19 @@ from distance.levelobjects import LevelObject, SubObject
 from distance._default_probers import DefaultProbers
 
 
-DefaultProbers.get_or_create('file').baseclass = Fragment
-DefaultProbers.get_or_create('level_like').baseclass = LevelObject
-DefaultProbers.get_or_create('level_objects').baseclass = LevelObject
-DefaultProbers.get_or_create('level_subobjects').baseclass = SubObject
-DefaultProbers.get_or_create('level_content').baseclass = Fragment
-DefaultProbers.get_or_create('fragments').baseclass = Fragment
-DefaultProbers.get_or_create('base_objects').baseclass = BaseObject
-DefaultProbers.get_or_create('base_fragments').baseclass = Fragment
-DefaultProbers.get_or_create('common').baseclass = Fragment
+DefaultProbers.create('common', baseclass=Fragment)
+DefaultProbers.create('level_objects', baseclass=LevelObject)
+DefaultProbers.create('level_subobjects', baseclass=SubObject)
+DefaultProbers.create('fragments', baseclass=Fragment)
+DefaultProbers.create('base_objects', baseclass=BaseObject)
+DefaultProbers.create('base_fragments', baseclass=Fragment)
+DefaultProbers.create('level', baseclass=Fragment)
+DefaultProbers.create('level_content', baseclass=Fragment)
+DefaultProbers.create('non_level_objects', baseclass=Fragment)
+DefaultProbers.create_mux('level_like', baseclass=LevelObject,
+                          keys=['level', 'level_objects'])
+DefaultProbers.create_mux('file', baseclass=Fragment,
+                          keys=['non_level_objects', 'level', 'level_objects'])
 
 
 def _impl_modules():
@@ -49,7 +53,7 @@ _autoload_module = 'distance._autoload._probers'
 DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
 
 
-@DefaultProbers.file.func('Replay')
+@DefaultProbers.non_level_objects.func('Replay')
 def _detect_other(section):
     if section.magic == Magic[6]:
         from distance.replay import Replay, FTYPE_REPLAY_PREFIX

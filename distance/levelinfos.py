@@ -12,7 +12,7 @@ Probers = ProberGroup()
 FTYPE_LEVELINFOS = 'LevelInfos'
 
 
-@Probers.file.object
+@Probers.non_level_objects.object
 @DefaultProbers.fragments.fragment_attrs('LevelInfos')
 @require_type
 class LevelInfos(BaseObject):
