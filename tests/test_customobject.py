@@ -25,7 +25,7 @@ from distance._impl.fragments.npfragments import (
 )
 from distance.printing import PrintContext
 from distance.constants import ForceType
-from distance.prober import BytesProber
+from distance.prober import BytesProber, TagError
 from construct import Container
 from distance._common import (
     ModesMapperProperty,
@@ -428,8 +428,9 @@ class BaseObjectTest(unittest.TestCase):
         obj = BaseObject(type='Test')
         frag = Fragment()
 
-        with self.assertRaises(KeyError):
+        with self.assertRaises(LookupError) as cm:
             obj['unknown'] = frag
+        self.assertRegex(str(cm.exception), 'unknown')
 
     def test_delitem_removes(self):
         obj = BaseObject(type='Test')
@@ -448,7 +449,7 @@ class BaseObjectTest(unittest.TestCase):
     def test_delitem_unknown_tag_error(self):
         obj = BaseObject(type='Test')
 
-        with self.assertRaises(KeyError):
+        with self.assertRaises(TagError):
             del obj['unknown']
 
     def test_fragments_created_add(self):

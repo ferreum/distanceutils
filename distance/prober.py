@@ -25,6 +25,13 @@ class AutoloadError(Exception):
     pass
 
 
+class TagError(LookupError):
+    "Given tag not found"
+
+    def __init__(self, tag):
+        LookupError.__init__(self, repr(tag))
+
+
 def fragment_property(tag, name, default=None, doc=None):
     def fget(self):
         try:
@@ -336,7 +343,7 @@ class BytesProber(ClassCollector):
         try:
             info = self._classes[tag]
         except KeyError:
-            raise KeyError(f"No such tag: {tag!r}")
+            raise TagError(tag)
         try:
             base = info['base_container']
         except KeyError:
@@ -347,7 +354,7 @@ class BytesProber(ClassCollector):
         try:
             info = self._classes[tag]
         except KeyError:
-            raise KeyError(f"No such tag: {tag!r}")
+            raise TagError(tag)
         try:
             base = info['base_container']
         except KeyError:
@@ -366,7 +373,7 @@ class BytesProber(ClassCollector):
                 try:
                     info = self._classes[tag]
                 except KeyError:
-                    raise KeyError(f"No such tag: {tag!r}")
+                    raise TagError(tag)
                 try:
                     fields = info['fields']
                 except KeyError:
@@ -389,7 +396,7 @@ class BytesProber(ClassCollector):
         try:
             info = self._classes[tag]
         except KeyError:
-            raise KeyError(f"No such tag: {tag!r}")
+            raise TagError(tag)
         (modname, clsname), def_version = _get_klass_def(info, version)
         container = info.get('base_container')
         if container is not None:
