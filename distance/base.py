@@ -390,7 +390,11 @@ class Fragment(BytesModel):
         if not tag:
             p(f"Fragment: Unknown")
         else:
-            p(f"Fragment: {tag!r}")
+            try:
+                version = self.container.version
+            except AttributeError:
+                version = 'Unknown'
+            p(f"Fragment: {tag!r} version {version!r}")
 
     def _print_data(self, p):
         if 'sections' in p.flags:
