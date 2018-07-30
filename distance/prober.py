@@ -478,7 +478,7 @@ class BytesProber(BaseProber, ClassCollector):
             _update_class_info(self._classes, prober._classes)
 
 
-class ProberMux(BaseProber):
+class CompositeProber(BaseProber):
 
     def __init__(self, *, probers=None, **kw):
         super().__init__(**kw)
@@ -532,7 +532,7 @@ class ProbersRegistry(object):
             self._autoload_probers[key] = prober
             return prober
 
-    def create_mux(self, key, *, keys=(), **kw):
+    def create_composite(self, key, *, keys=(), **kw):
         keys = tuple(keys)
         if key in self._probers:
             try:
@@ -543,7 +543,7 @@ class ProbersRegistry(object):
                 raise ValueError(f"Prober {key!r} already exists"
                                  f" with different keys: {keys!r}")
         probers = [self._probers[key] for key in keys]
-        prober = ProberMux(probers=probers, **kw)
+        prober = CompositeProber(probers=probers, **kw)
         prober.__keys = keys
         self._probers[key] = prober
         return prober

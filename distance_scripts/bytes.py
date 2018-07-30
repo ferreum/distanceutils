@@ -7,7 +7,7 @@ from io import BytesIO
 
 from distance.base import Fragment
 from distance.printing import PrintContext
-from distance.prober import ProberMux
+from distance.prober import CompositeProber
 from distance import DefaultProbers
 from ._common import handle_pipeerror
 
@@ -37,7 +37,7 @@ def main():
 
     print_filename = 'filename' in flags or len(args.FILE) > 1
 
-    prober = ProberMux(
+    prober = CompositeProber(
         probers=[DefaultProbers.fragments,
                  DefaultProbers.file],
         baseclass=Fragment,

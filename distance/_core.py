@@ -16,10 +16,10 @@ DefaultProbers.create('base_fragments', baseclass=Fragment)
 DefaultProbers.create('level', baseclass=Fragment)
 DefaultProbers.create('level_content', baseclass=Fragment)
 DefaultProbers.create('non_level_objects', baseclass=BaseObject)
-DefaultProbers.create_mux(
+DefaultProbers.create_composite(
     'level_like', baseclass=LevelObject,
     keys=['level', 'level_objects'])
-DefaultProbers.create_mux(
+DefaultProbers.create_composite(
     'file', baseclass=Fragment,
     keys=['level_objects', 'level', 'non_level_objects', 'level_fallback'])
 
