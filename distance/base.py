@@ -280,7 +280,7 @@ class Fragment(BytesModel):
     def class_tag(cls):
         name = cls.__name__
         if not name.endswith('Fragment'):
-            raise Exception(f"Could not get class tag for {cls!r}")
+            raise NotImplementedError(f"Could not get class tag for {cls!r}")
         return name[:-8]
 
     def __init__(self, dbytes=None, **kw):
@@ -381,13 +381,16 @@ class Fragment(BytesModel):
         return sio.getvalue()
 
     def _print_type(self, p):
-        name = type(self).__name__
-        if name.endswith('Fragment'):
-            name = name[:-8]
-            if not name and type(self) == Fragment:
-                p(f"Fragment: Unknown")
-            else:
-                p(f"Fragment: {name}")
+        tag = self.class_tag
+        if callable(tag):
+            try:
+                tag = tag()
+            except NotImplementedError:
+                tag = None
+        if not tag:
+            p(f"Fragment: Unknown")
+        else:
+            p(f"Fragment: {tag!r}")
 
     def _print_data(self, p):
         if 'sections' in p.flags:
