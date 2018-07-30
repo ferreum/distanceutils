@@ -6,16 +6,16 @@ from distance.levelobjects import LevelObject, SubObject
 from distance._default_probers import DefaultProbers
 
 
-DefaultProbers.create('common', baseclass=Fragment)
-DefaultProbers.create('level_objects', baseclass=LevelObject)
-DefaultProbers.create('level_subobjects', baseclass=SubObject)
-DefaultProbers.create('level_fallback', baseclass=LevelObject)
-DefaultProbers.create('fragments', baseclass=Fragment)
-DefaultProbers.create('base_objects', baseclass=BaseObject)
-DefaultProbers.create('base_fragments', baseclass=Fragment)
-DefaultProbers.create('level', baseclass=Fragment)
-DefaultProbers.create('level_content', baseclass=Fragment)
-DefaultProbers.create('non_level_objects', baseclass=BaseObject)
+DefaultProbers.create_prober('common', baseclass=Fragment)
+DefaultProbers.create_prober('level_objects', baseclass=LevelObject)
+DefaultProbers.create_prober('level_subobjects', baseclass=SubObject)
+DefaultProbers.create_prober('level_fallback', baseclass=LevelObject)
+DefaultProbers.create_prober('fragments', baseclass=Fragment)
+DefaultProbers.create_prober('base_objects', baseclass=BaseObject)
+DefaultProbers.create_prober('base_fragments', baseclass=Fragment)
+DefaultProbers.create_prober('level', baseclass=Fragment)
+DefaultProbers.create_prober('level_content', baseclass=Fragment)
+DefaultProbers.create_prober('non_level_objects', baseclass=BaseObject)
 DefaultProbers.create_composite(
     'level_like', baseclass=LevelObject,
     keys=['level', 'level_objects'])

@@ -523,7 +523,7 @@ class ProbersRegistry(object):
         self._autoload_modules = {}
         self._autoload_probers = {}
 
-    def create(self, key, *, baseclass=BytesModel):
+    def create_prober(self, key, *, baseclass=BytesModel):
         try:
             return self._probers[key]
         except KeyError:
