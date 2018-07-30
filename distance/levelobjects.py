@@ -1,7 +1,6 @@
 """Level objects."""
 
 
-from .bytes import Magic
 from .base import BaseObject
 
 
@@ -28,10 +27,7 @@ class SubObject(LevelObject):
     __slots__ = ()
 
     def _print_type(self, p):
-        container = self.container
-        if container and container.magic == Magic[6]:
-            type_str = container.type
-            p(f"Subobject type: {type_str!r}")
+        p(f"Subobject type: {self.type!r}")
 
 
 def print_objects(p, gen):

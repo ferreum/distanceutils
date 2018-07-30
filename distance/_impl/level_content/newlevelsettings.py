@@ -16,7 +16,7 @@ class NewLevelSettings(BaseLevelSettings, BaseObject):
     type = 'LevelSettings'
 
     def _print_type(self, p):
-        BaseObject._print_type(self, p)
+        super()._print_type(p)
         if self.version is not None:
             p(f"Object version: {self.version}")
 
