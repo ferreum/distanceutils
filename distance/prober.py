@@ -55,6 +55,7 @@ class ClassCollector(object):
     def __init__(self, **kw):
         super().__init__(**kw)
         self._sections = {}
+        self._interesting_sections = set()
         self._autoload_sections = {}
         self._classes = {}
 
@@ -105,6 +106,8 @@ class ClassCollector(object):
             tag = tag()
         if tag is not None:
             self._add_class(cls, tag, sec, versions)
+        if cls.is_interesting:
+            self._interesting_sections.add(sec.to_key(noversion=True))
 
     def add_object(self, type, cls):
         sec = Section(Magic[6], type)
@@ -341,13 +344,13 @@ class BytesProber(BaseProber, ClassCollector):
         return decorate
 
     def _probe_section_key(self, key):
-        cls = self._sections.get(key, None)
+        cls = self._sections.get(key)
         if cls is not None:
             return cls
-        info = self._autoload_sections.get(key, None)
-        if info is not None:
-            self._autoload_impl_module(key, info)
-            return self._sections.get(key, None)
+        module = self._autoload_sections.get(key)
+        if module is not None:
+            self._autoload_impl_module(key, module)
+            return self._sections.get(key)
         return None
 
     def _probe_fallback(self, sec):
@@ -438,34 +441,29 @@ class BytesProber(BaseProber, ClassCollector):
         return cls(*args, **kw)
 
     def is_section_interesting(self, sec):
-        cls = self._sections.get(sec, None)
-        if cls is not None:
-            return cls.is_interesting
-        info = self._autoload_sections.get(sec.to_key(), None)
-        if info is not None:
-            modname, is_interesting = info
-            return is_interesting
-        return False
+        return sec.to_key(noversion=True) in self._interesting_sections
 
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
+        self._interesting_sections.update(content['interesting'])
         self._classes.update(content['classes'])
 
     def _generate_autoload_content(self):
         return {
-            'sections': {key: (cls.__module__, getattr(cls, 'is_interesting', False))
+            'sections': {key: cls.__module__
                          for key, cls in self._sections.items()},
+            'interesting': set(self._interesting_sections),
             'classes': dict(self._classes),
         }
 
     def _get_current_autoload_content(self):
         return {
             'sections': dict(self._autoload_sections),
+            'interesting': set(self._interesting_sections),
             'classes': dict(self._classes),
         }
 
-    def _autoload_impl_module(self, sec_key, info):
-        impl_module, is_interesting = info
+    def _autoload_impl_module(self, sec_key, impl_module):
         mod = importlib.import_module(impl_module)
         for key in self._keys:
             prober = getattr(mod.Probers, key)
@@ -476,6 +474,7 @@ class BytesProber(BaseProber, ClassCollector):
                                if k not in self._sections))
         if update_classes:
             _update_class_info(self._classes, prober._classes)
+            self._interesting_sections.update(prober._interesting_sections)
 
 
 class CompositeProber(BaseProber):
