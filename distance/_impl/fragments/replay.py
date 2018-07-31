@@ -65,7 +65,6 @@ class ReplayFragment(BaseConstructFragment):
 
     def _print_data(self, p):
         super()._print_data(p)
-        p(f"Version: {self.version}")
         p(f"Player name: {self.player_name!r}")
         p(f"Player name: {self.player_name_2!r}")
         p(f"Player ID: {self.player_id}")

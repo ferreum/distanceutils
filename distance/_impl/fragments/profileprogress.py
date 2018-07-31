@@ -88,7 +88,6 @@ class ProfileProgressFragment(BaseConstructFragment):
 
     def _print_data(self, p):
         super()._print_data(p)
-        p(f"Level progress version: {self.version}")
         levels = self.levels
         p(f"Level count: {len(levels)}")
         with p.tree_children():
@@ -179,7 +178,6 @@ class ProfileStatsFragment(BaseConstructFragment):
 
     def _print_data(self, p):
         super()._print_data(p)
-        p(f"Player stats version: {self.version}")
 
         def ps(stat, name):
             value = getattr(self, stat)
