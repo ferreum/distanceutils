@@ -1,4 +1,5 @@
 
+from operator import attrgetter
 
 from construct import (
     Struct, Computed, Rebuild, If, Default,
@@ -12,6 +13,7 @@ from distance.construct import (
     UInt, DstString, ULong,
 )
 from distance.prober import ProberGroup
+from distance.printing import format_duration
 
 
 NO_REPLAY = 0xffffffff_ffffffff
@@ -24,6 +26,8 @@ Probers = ProberGroup()
 class LeaderboardFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x37)
+
+    is_interesting = True
 
     _construct = Struct(
         version = Computed(this._params.sec.version),
@@ -38,6 +42,23 @@ class LeaderboardFragment(BaseConstructFragment):
             unk_2 = If(this._.version >= 1, Bytes(12))
         )[this.num_entries], ()),
     )
+
+    def _print_data(self, p):
+        super()._print_data(p)
+        p(f"Version: {self.version}")
+        entries = self.entries
+        p(f"Entries: {len(entries)}")
+        if 'nosort' not in p.flags:
+            nones = [e for e in entries if e.time is None]
+            entries = [e for e in entries if e.time is not None]
+            entries.sort(key=attrgetter('time'))
+            entries.extend(nones)
+        unk_str = ""
+        for i, entry in enumerate(entries, 1):
+            rep_str = ""
+            if entry.replay is not None and entry.replay != NO_REPLAY:
+                rep_str = f" Replay: {entry.replay:X}"
+            p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
 
 
 # vim:set sw=4 et:
