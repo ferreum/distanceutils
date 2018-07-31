@@ -5,7 +5,7 @@ from collections import Sequence
 
 from distance.bytes import DstBytes
 from distance.level import Level
-from distance.base import Fragment, BaseObject
+from distance.base import BaseObject
 
 
 def disable_writes(dbytes):
