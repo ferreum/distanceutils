@@ -565,7 +565,7 @@ class ProbersRegistry(object):
                 _load_autoload_module(self._autoload_probers, module_name)
                 return
             except ImportError:
-                pass
+                pass # fall through and load immediately
         _load_impls_to_probers(self._autoload_probers, impl_modules)
 
     def write_autoload_module(self, module_name):
