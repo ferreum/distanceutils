@@ -7,7 +7,7 @@ import collections
 
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
-from .lazy import LazyMappedSequence
+from .lazy import UNSET, LazyMappedSequence
 from .prober import ProberGroup
 from ._default_probers import DefaultProbers
 
@@ -624,18 +624,42 @@ class BaseObject(Fragment):
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
-                if (versions != 'all' and sec.has_version()
-                        and sec.version not in versions):
-                    raise FragmentKeyError(tag, sec.version)
-                return self.fragments[i]
+                break
             i += 1
-        raise FragmentKeyError(tag)
+        else:
+            raise FragmentKeyError(tag)
+
+        fragments = self.fragments
+
+        # We always allow getting the fragment if it has the same tag,
+        # regardless of whether we have a registered implementation.
+        # This allows retrieving it after assignment via __setitem__.
+        peeked = LazyMappedSequence.peek(fragments, i)
+        if peeked is not UNSET:
+            ptag = peeked.class_tag
+            if callable(ptag):
+                ptag = ptag()
+            if ptag != tag:
+                raise FragmentKeyError(tag, sec.version)
+            return peeked
+
+        if (versions != 'all' and sec.has_version()
+                and sec.version not in versions):
+            raise FragmentKeyError(tag, sec.version)
+
+        return fragments[i]
 
     def __setitem__(self, tag, frag):
         base_key = self.probers.fragments.base_container_key(tag)
         if frag.container.to_key(noversion=True) != base_key:
             raise KeyError(f"Invalid fragment container: expected"
                            f" {base_key!r} but got {frag.container!r}")
+        ftag = frag.class_tag
+        if callable(ftag):
+            ftag = ftag()
+        if ftag != tag:
+            raise KeyError(f"Invalid fragment tag: fragment tag is {ftag!r}"
+                           f" but expected {tag!r}")
         frags = list(self.fragments)
         i = 0
         for sec in self.sections:
@@ -663,11 +687,24 @@ class BaseObject(Fragment):
     def __contains__(self, tag):
         "Check whether a fragment with given tag is present and implemented."
         base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
-                return (versions == 'all' or not sec.has_version()
-                        or sec.version in versions)
-        return False
+                break
+            i += 1
+        else:
+            return False
+
+        # Peek operation analogous to __getitem__.
+        peeked = LazyMappedSequence.peek(self.fragments, i)
+        if peeked is not UNSET:
+            ptag = peeked.class_tag
+            if callable(ptag):
+                ptag = ptag()
+            return ptag == tag
+
+        return (versions == 'all' or not sec.has_version()
+                or sec.version in versions)
 
     def __iter__(self):
         "Not iterable. Implemented only to prevent __getitem__ iteration."

@@ -26,6 +26,11 @@ def TagFragment(name, tag, **kw):
     return type(name, (Fragment,), kw)
 
 
+class CustomGSFragment(Fragment):
+    class_tag = 'GoldenSimples'
+    default_container = Section(base=GoldenSimplesFragment.base_container, version=9001)
+
+
 class BaseObjectTest(unittest.TestCase):
 
     def test_getitem_object(self):
@@ -134,6 +139,27 @@ class BaseObjectTest(unittest.TestCase):
         self.assertEqual(len(obj.fragments), 4)
         self.assertEqual(obj.fragments[-1], gsfrag)
         self.assertEqual(obj.sections[-1], gsfrag.container)
+
+    def test_getitem_after_setitem_custom_impl(self):
+        obj = BaseObject()
+        frag = CustomGSFragment()
+
+        obj['GoldenSimples'] = frag
+        result = obj['GoldenSimples']
+        result_any = obj.get_any('GoldenSimples')
+
+        self.assertIs(result, frag)
+        self.assertIs(result_any, frag)
+        self.assertEqual(9001, obj.sections[-1].version)
+
+    def test_contains_after_setitem_custom_impl(self):
+        obj = BaseObject()
+        frag = CustomGSFragment()
+
+        obj['GoldenSimples'] = frag
+
+        self.assertTrue('GoldenSimples' in obj)
+        self.assertTrue(obj.has_any('GoldenSimples'))
 
 
 # vim:set sw=4 et:
