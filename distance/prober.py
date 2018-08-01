@@ -558,7 +558,7 @@ class ProbersRegistry(object):
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
-            raise Exception(f"Autoload of {module_name!r} is already defined")
+            raise ValueError(f"Autoload of {module_name!r} is already defined")
         self._autoload_modules[module_name] = impl_modules
         if do_autoload:
             try:
