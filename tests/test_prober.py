@@ -143,7 +143,7 @@ class VerifyTest(unittest.TestCase):
         self.assertEqual(loaded, actual)
 
 
-class VerifyClassInfo(unittest.TestCase):
+class VerifyClassInfoTest(unittest.TestCase):
 
     def test_create_fragment(self):
         frag = DefaultProbers.fragments.create('Object')
@@ -152,6 +152,10 @@ class VerifyClassInfo(unittest.TestCase):
     def test_create_fragment_autoloaded(self):
         frag = DefaultProbers.fragments.create('GoldenSimples')
         self.assertEqual(type(frag), GoldenSimplesFragment)
+
+    def test_klass_level(self):
+        cls = DefaultProbers.level.klass('Level')
+        self.assertIs(cls, Level)
 
     def test_fragment_attrs(self):
         obj = GoldenSimple(type='CubeGS')
