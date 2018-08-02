@@ -550,7 +550,10 @@ class BaseObject(Fragment):
     @classproperty
     def class_tag(cls):
         "Defaults to the `type` attribute specified by the class."
-        return getattr(cls, 'type', cls.__name__)
+        try:
+            return cls.type
+        except AttributeError:
+            raise NotImplementedError
 
     def __init__(self, *args, **kw):
         container = kw.get('container')
