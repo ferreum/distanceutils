@@ -6,6 +6,10 @@ from collections import Sequence
 from distance.bytes import DstBytes
 from distance.level import Level
 from distance.base import BaseObject
+from distance import DefaultProbers
+
+
+Layer = DefaultProbers.level_content.klass('Layer')
 
 
 def disable_writes(dbytes):
@@ -26,7 +30,7 @@ def check_exceptions(obj):
             check_exceptions(frag)
         for child in obj.children:
             check_exceptions(child)
-    if obj.class_tag == 'Layer':
+    if isinstance(obj, Layer):
         for obj in obj.objects:
             check_exceptions(obj)
 
