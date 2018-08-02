@@ -102,8 +102,6 @@ class ClassCollector(object):
             versions = [sec.version] if sec.has_version() and not any_version else None
             self._add_fragment_for_section(cls, sec, any_version)
         tag = cls.class_tag
-        if callable(tag):
-            tag = tag()
         if tag is not None:
             self._add_class(cls, tag, sec, versions)
         if cls.is_interesting:
@@ -119,8 +117,6 @@ class ClassCollector(object):
             nonlocal tag
             if tag is None:
                 tag = cls.class_tag
-                if callable(tag):
-                    tag = tag()
             self._add_class(cls, tag)
             return cls
         if len(args) == 1:

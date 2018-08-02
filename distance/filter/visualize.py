@@ -3,7 +3,6 @@
 
 from collections import defaultdict
 import math
-from itertools import filterfalse
 
 from distance.bytes import Section, Magic
 from distance.base import Transform, NoDefaultTransformError
@@ -33,17 +32,6 @@ HOLO_VISUAL_DEFAULT = dict(
 
 
 GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
-
-
-def is_tag(frag, wanted):
-    tag = frag.class_tag
-    if callable(tag):
-        tag = tag()
-    return tag == wanted
-
-
-def is_tag_pred(wanted):
-    return lambda frag: is_tag(frag, wanted)
 
 
 class SimpleCreator(object):
@@ -286,11 +274,11 @@ class TeleporterMapper(VisualizeMapper):
         dest, link_id = None, None
         obj = objpath[-1]
         for frag in frags:
-            if is_tag(frag, 'TeleporterEntrance'):
+            if frag.class_tag == 'TeleporterEntrance':
                 if frag.destination is not None:
                     dest = frag.destination
                     self._entrances[dest].append(obj)
-            elif is_tag(frag, 'TeleporterExit'):
+            elif frag.class_tag == 'TeleporterExit':
                 if frag.link_id is not None:
                     link_id = frag.link_id
                     self._exits[link_id].append(obj)
@@ -675,7 +663,10 @@ class GoldenSimplesMapper(VisualizeMapper):
         GoldenSimple.mat_emit.__set__(obj, color)
         for k, v in HOLO_VISUAL_DEFAULT.items():
             setattr(frag, k, v)
-        main.fragments = list(filterfalse(is_tag_pred('TurnLightOnNearCar'), main.fragments))
+        try:
+            del main['TurnLightOnNearCar']
+        except KeyError:
+            pass
 
     def _apply_match(self, main, objpath, frags):
         visualized = False

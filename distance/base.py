@@ -10,6 +10,7 @@ from .printing import format_transform
 from .lazy import UNSET, LazyMappedSequence
 from .prober import ProberGroup
 from ._default_probers import DefaultProbers
+from ._common import classproperty
 
 
 Probers = ProberGroup()
@@ -276,8 +277,9 @@ class Fragment(BytesModel):
 
     is_interesting = False
 
-    @classmethod
+    @classproperty
     def class_tag(cls):
+        "Defaults to the class name with 'Fragment' suffix removed."
         name = cls.__name__
         if not name.endswith('Fragment'):
             raise NotImplementedError(f"Could not get class tag for {cls!r}")
@@ -381,12 +383,10 @@ class Fragment(BytesModel):
         return sio.getvalue()
 
     def _print_type(self, p):
-        tag = self.class_tag
-        if callable(tag):
-            try:
-                tag = tag()
-            except NotImplementedError:
-                tag = None
+        try:
+            tag = self.class_tag
+        except NotImplementedError:
+            tag = None
         if not tag:
             p(f"Fragment: Unknown")
         else:
@@ -547,8 +547,9 @@ class BaseObject(Fragment):
 
     default_transform = None
 
-    @classmethod
+    @classproperty
     def class_tag(cls):
+        "Defaults to the `type` attribute specified by the class."
         return getattr(cls, 'type', cls.__name__)
 
     def __init__(self, *args, **kw):
@@ -636,10 +637,7 @@ class BaseObject(Fragment):
         # This allows retrieving it after assignment via __setitem__.
         peeked = LazyMappedSequence.peek(fragments, i)
         if peeked is not UNSET:
-            ptag = peeked.class_tag
-            if callable(ptag):
-                ptag = ptag()
-            if ptag != tag:
+            if peeked.class_tag != tag:
                 raise FragmentKeyError(tag, sec.version)
             return peeked
 
@@ -655,8 +653,6 @@ class BaseObject(Fragment):
             raise KeyError(f"Invalid fragment container: expected"
                            f" {base_key!r} but got {frag.container!r}")
         ftag = frag.class_tag
-        if callable(ftag):
-            ftag = ftag()
         if ftag != tag:
             raise KeyError(f"Invalid fragment tag: fragment tag is {ftag!r}"
                            f" but expected {tag!r}")
@@ -698,10 +694,7 @@ class BaseObject(Fragment):
         # Peek operation analogous to __getitem__.
         peeked = LazyMappedSequence.peek(self.fragments, i)
         if peeked is not UNSET:
-            ptag = peeked.class_tag
-            if callable(ptag):
-                ptag = ptag()
-            return ptag == tag
+            return peeked.class_tag == tag
 
         return (versions == 'all' or not sec.has_version()
                 or sec.version in versions)

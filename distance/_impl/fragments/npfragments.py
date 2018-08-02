@@ -8,6 +8,7 @@ from distance.bytes import (
 from distance.base import Fragment
 from distance._data import NamedPropertyList
 from distance.prober import ProberGroup, RegisterError
+from distance._common import classproperty
 from . import bases
 
 
@@ -124,9 +125,9 @@ class NamedPropertiesFragment(Fragment):
             result.update(add)
         return result
 
-    @classmethod
+    @classproperty
     def class_tag(cls):
-        tag = super().class_tag()
+        tag = super().class_tag
         if tag == 'NamedProperties':
             return None
         return tag
