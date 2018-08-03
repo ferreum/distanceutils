@@ -261,27 +261,33 @@ def filter_interesting(sec, prober):
     return sec.content_size and prober.is_section_interesting(sec)
 
 
-def get_default_container(frag):
-    if frag.default_container is not None:
-        return frag.default_container
-    if (frag.base_container is not None
-            and frag.container_versions is not None):
-        versions = frag.container_versions
-        if isinstance(versions, numbers.Integral):
-            versions = [versions]
-        return Section(frag.base_container, version=max(versions))
-    return None
-
-
 class Fragment(BytesModel):
 
-    """Represents data within a Section."""
+    """Represents a container Section and its content."""
 
     __slots__ = ('_raw_data', 'container', 'dbytes', 'probers')
 
-    default_container = None
     base_container = None
     container_versions = None
+
+    @classproperty
+    def default_container(cls):
+        """The default container when creating this class.
+
+        Also used for registering the class if `base_contiainer` and
+        `container_versions` are unset.
+
+        Defaults to None, or `base_container` with the highest version in
+        `container_versions` if both are set.
+        """
+        if (cls.base_container is None or cls.container_versions is None):
+            return None
+        versions = cls.container_versions
+        if isinstance(versions, numbers.Integral):
+            version = versions
+        else:
+            version = max(versions)
+        return Section(cls.base_container, version=version)
 
     is_interesting = False
 
@@ -299,7 +305,7 @@ class Fragment(BytesModel):
 
     def _init_defaults(self):
         super()._init_defaults()
-        con = get_default_container(self)
+        con = self.default_container
         if con is not None:
             self.container = con
 
@@ -493,8 +499,9 @@ class default_fragments(object):
     def add_to(cls, target, *classes):
         if not all(callable(c) for c in classes):
             raise TypeError("Not all args are callable")
-        cls.add_sections_to(target, *(con for con in map(get_default_container, classes)
-                                      if con is not None))
+        containers = (con for con in map(attrgetter('default_container'), classes)
+                      if con is not None)
+        cls.add_sections_to(target, *containers)
 
     @staticmethod
     def add_sections_to(target, *sections):
