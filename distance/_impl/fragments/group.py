@@ -14,7 +14,7 @@ class GroupFragment(Fragment):
     base_container = Section.base(Magic[2], 0x1d)
     container_versions = 1
 
-    _fields_map = dict(
+    _fields_ = dict(
         inspect_children = None,
     )
 
@@ -22,7 +22,7 @@ class GroupFragment(Fragment):
 
     def _init_defaults(self):
         super()._init_defaults()
-        for name, value in self._fields_map.items():
+        for name, value in self._fields_.items():
             setattr(self, name, value)
 
     def _read_section_data(self, dbytes, sec):
@@ -51,7 +51,7 @@ class CustomNameFragment(Fragment):
     base_container = Section.base(Magic[2], 0x63)
     container_versions = 0
 
-    _fields_map = dict(custom_name=None)
+    _fields_ = dict(custom_name=None)
 
     is_interesting = True
 

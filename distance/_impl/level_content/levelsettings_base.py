@@ -7,7 +7,7 @@ from distance.printing import format_duration
 
 class BaseLevelSettings(Fragment):
 
-    _fields_map = dict(
+    _fields_ = dict(
         version = None,
         name = None,
         description = None,

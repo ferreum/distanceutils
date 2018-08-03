@@ -113,7 +113,7 @@ class StringNamedProperty(BaseNamedProperty):
 class NamedPropertiesFragment(Fragment):
 
     @classproperty
-    def _fields_map(cls):
+    def _fields_(cls):
         result = {name: value.default
                   for name, value in cls.__dict__.items()
                   if isinstance(value, (BaseNamedProperty, named_property_getter))}
@@ -164,7 +164,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
 
     is_interesting = True
 
-    _fields_map = dict(
+    _fields_ = dict(
         delay_before_broadcast = 0.0,
     )
 

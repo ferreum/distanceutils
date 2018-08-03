@@ -184,7 +184,7 @@ class ClassCollector(object):
         info = {}
 
         try:
-            fields_map = getattr(cls, '_fields_map')
+            fields_map = getattr(cls, '_fields_')
         except AttributeError:
             pass
         else:

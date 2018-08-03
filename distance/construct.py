@@ -88,7 +88,7 @@ class ConstructMeta(type):
             add = getattr(cls, '_add_fields', None)
             if add:
                 attrs.update(add)
-            cls._fields_map = attrs
+            cls._fields_ = attrs
 
             ExposeConstructFields(cls, getattr(cls, '_exposed_fields', None))
 
@@ -157,7 +157,7 @@ def construct_property(cls, name, doc=None):
             return self.data[name]
         except KeyError as e:
             try:
-                return cls._fields_map[name]
+                return cls._fields_[name]
             except KeyError:
                 pass
             raise AttributeError from e
