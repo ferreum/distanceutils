@@ -1,7 +1,7 @@
 """Provides BaseObject."""
 
 
-from operator import itemgetter, attrgetter
+from operator import itemgetter, attrgetter, methodcaller
 import numbers
 import collections
 
@@ -267,22 +267,55 @@ class Fragment(BytesModel):
 
     __slots__ = ('_raw_data', 'container', 'dbytes', 'probers')
 
-    base_container = None
-    container_versions = None
+    default_container = None
 
     @classproperty
-    def default_container(cls):
-        """The default container when creating this class.
+    def base_container(cls):
+        """The base container of this class.
 
-        Also used for registering the class if `base_contiainer` and
-        `container_versions` are unset.
-
-        Defaults to None, or `base_container` with the highest version in
-        `container_versions` if both are set.
+        Defaults to None, or the base section of `default_container` if set.
         """
-        if (cls.base_container is None or cls.container_versions is None):
+        con = cls.default_container
+        if con is None:
             return None
+        if con.has_version():
+            return Section(con, version=None)
+        return con
+
+    @classproperty
+    def container_versions(cls):
+        """The container versions supported by this class.
+
+        Defaults to None, or the version of `default_container` if set and
+        it has a version.
+        """
+        con = cls.default_container
+        if con is None or not con.has_version():
+            return None
+        return con.version
+
+    @classmethod
+    def get_default_container(cls):
+        """Get the default container when creating this class.
+
+        Returns `default_container` if is not None.
+
+        If it is None, returns `base_container`, with the highest version in
+        `container_versions` if the section has a version and both are not
+        None. If it has no version, it is returned as-is. Otherwise, returns
+        None.
+        """
+        defcon = cls.default_container
+        if defcon is not None:
+            return defcon
+        base = cls.base_container
+        if base is None:
+            return None
+        if not base.has_version():
+            return base
         versions = cls.container_versions
+        if versions is None:
+            return None
         if isinstance(versions, numbers.Integral):
             version = versions
         else:
@@ -305,7 +338,7 @@ class Fragment(BytesModel):
 
     def _init_defaults(self):
         super()._init_defaults()
-        con = self.default_container
+        con = self.get_default_container()
         if con is not None:
             self.container = con
 
@@ -340,7 +373,7 @@ class Fragment(BytesModel):
             self._write_section_data(dbytes, sec)
 
     def _get_write_section(self, sec):
-        return sec or self.default_container
+        return sec or self.get_default_container()
 
     @property
     def raw_data(self):
@@ -499,7 +532,7 @@ class default_fragments(object):
     def add_to(cls, target, *classes):
         if not all(callable(c) for c in classes):
             raise TypeError("Not all args are callable")
-        containers = (con for con in map(attrgetter('default_container'), classes)
+        containers = (con for con in map(methodcaller('get_default_container'), classes)
                       if con is not None)
         cls.add_sections_to(target, *containers)
 

@@ -72,8 +72,8 @@ class ClassCollector(object):
         by the `base_container` attribute of `cls`. If `versions` is not
         specified, the versions are instead taken from the `container_versions`
         attribute of `cls`. If the `base_container` attribute is None, the
-        fragment is registered for the section specified by the
-        `default_container` attribute of `cls`.
+        fragment is registered for the section returned by the
+        `get_default_container()` method of `cls`.
 
         If `any_version` is specified, `cls` is registered to match any
         version of the specified section.
@@ -89,7 +89,7 @@ class ClassCollector(object):
                 if not any_version and versions is None:
                     versions = cls.container_versions
             else:
-                sec = cls.default_container
+                sec = cls.get_default_container()
         else:
             sec = Section(*args, any_version=any_version, **kw)
         if versions is not None:
