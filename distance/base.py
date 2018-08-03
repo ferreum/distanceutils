@@ -31,10 +31,18 @@ class FragmentKeyError(KeyError):
 
     def __init__(self, tag, version=None):
         if version is None:
-            super().__init__(tag)
+            self.args = tag,
         else:
-            super().__init__(f"{tag!r} not implemented for version {version}")
+            self.args = tag, version
+        self.tag = tag
         self.version = version
+
+    def __str__(self):
+        version = self.version
+        if version is None:
+            return repr(self.tag)
+        else:
+            return f"{self.tag!r} not implemented for version {version}"
 
     @property
     def is_present(self):
