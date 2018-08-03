@@ -139,32 +139,6 @@ class BytesModel(object):
                 break
 
     @classmethod
-    def iter_maybe(clazz, dbytes, max_pos=None, **kw):
-        """Like `iter_n_maybe()`, but do not limit the number of objects."""
-        dbytes = DstBytes.from_arg(dbytes)
-        while max_pos is None or dbytes.tell() < max_pos:
-            obj = clazz.maybe(dbytes, **kw)
-            yield obj
-            if not obj.sane_end_pos:
-                break
-
-    @classmethod
-    def read_n_maybe(clazz, dbytes, *args, **kw):
-
-        """Read a list of objects from `dbytes` as far as possible.
-
-        If an error occurs, return the partially read list. The exception is
-        stored in the last object's `exception` attribute.
-
-        """
-
-        dbytes = DstBytes.from_arg(dbytes)
-        objs = []
-        for obj in clazz.iter_n_maybe(dbytes, *args, **kw):
-            objs.append(obj)
-        return objs
-
-    @classmethod
     def lazy_n_maybe(clazz, dbytes, n, *args, start_pos=None, **kw):
 
         """Like `read_n_maybe()`, but create a `LazySequence`.

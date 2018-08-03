@@ -278,22 +278,6 @@ class BaseProber(object):
             if not obj.sane_end_pos:
                 break
 
-    def iter_maybe(self, dbytes, *args, max_pos=None, **kw):
-        dbytes = DstBytes.from_arg(dbytes)
-        if 'probe_section' in kw:
-            raise TypeError("probe_section not supported")
-        while max_pos is None or dbytes.tell() < max_pos:
-            obj = self.maybe(dbytes, *args, **kw)
-            yield obj
-            if not obj.sane_end_pos:
-                break
-
-    def read_n_maybe(self, *args, **kw):
-        objs = []
-        for obj in self.iter_n_maybe(*args, **kw):
-            objs.append(obj)
-        return objs
-
     def lazy_n_maybe(self, dbytes, n, *args, start_pos=None, **kw):
         if n <= 0:
             return ()
