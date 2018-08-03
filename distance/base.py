@@ -7,9 +7,10 @@ import collections
 
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
-from .lazy import LazyMappedSequence
+from .lazy import UNSET, LazyMappedSequence
 from .prober import ProberGroup
 from ._default_probers import DefaultProbers
+from ._common import classproperty
 
 
 Probers = ProberGroup()
@@ -23,6 +24,22 @@ class TransformError(ValueError):
 
 class NoDefaultTransformError(TypeError):
     pass
+
+
+class FragmentKeyError(KeyError):
+    "A fragment for a tag is not present or not implemented for its version."
+
+    def __init__(self, tag, version=None):
+        if version is None:
+            super().__init__(tag)
+        else:
+            super().__init__(f"{tag!r} not implemented for version {version}")
+        self.version = version
+
+    @property
+    def is_present(self):
+        "True if the fragment is present but not implemented."
+        return self.version is not None
 
 
 def _isclose(a, b):
@@ -260,11 +277,12 @@ class Fragment(BytesModel):
 
     is_interesting = False
 
-    @classmethod
+    @classproperty
     def class_tag(cls):
+        "Defaults to the class name with 'Fragment' suffix removed."
         name = cls.__name__
         if not name.endswith('Fragment'):
-            raise Exception(f"Could not get class tag for {cls!r}")
+            raise NotImplementedError(f"Could not get class tag for {cls!r}")
         return name[:-8]
 
     def __init__(self, dbytes=None, **kw):
@@ -365,13 +383,18 @@ class Fragment(BytesModel):
         return sio.getvalue()
 
     def _print_type(self, p):
-        name = type(self).__name__
-        if name.endswith('Fragment'):
-            name = name[:-8]
-            if not name and type(self) == Fragment:
-                p(f"Fragment: Unknown")
-            else:
-                p(f"Fragment: {name}")
+        try:
+            tag = self.class_tag
+        except NotImplementedError:
+            tag = None
+        if not tag:
+            p(f"Fragment: Unknown")
+        else:
+            try:
+                version = self.container.version
+            except AttributeError:
+                version = 'Unknown'
+            p(f"Fragment: {tag!r} version {version!r}")
 
     def _print_data(self, p):
         if 'sections' in p.flags:
@@ -524,9 +547,19 @@ class BaseObject(Fragment):
 
     default_transform = None
 
-    @classmethod
+    @classproperty
     def class_tag(cls):
-        return getattr(cls, 'type', cls.__name__)
+        "Defaults to the `type` attribute specified by the class."
+        try:
+            return cls.type
+        except AttributeError:
+            raise NotImplementedError
+
+    def __init__(self, *args, **kw):
+        container = kw.get('container')
+        if container is not None:
+            self.type = container.type
+        super().__init__(*args, **kw)
 
     real_transform = _object_property('real_transform', default=Transform())
 
@@ -573,16 +606,6 @@ class BaseObject(Fragment):
             i += 1
         return None
 
-    def fragment_by_tag(self, tag):
-        base_key = self.probers.fragments.base_container_key(tag)
-        i = 0
-        for sec in self.sections:
-            if sec.to_key(noversion=True) == base_key:
-                frag = self.fragments[i]
-                return frag
-            i += 1
-        return None
-
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
         prober = self.probers.fragments
@@ -591,6 +614,115 @@ class BaseObject(Fragment):
             if type_filter(sec, prober):
                 yield fragments[i]
             i += 1
+
+    def __getitem__(self, tag):
+        """Get fragment with given tag, if implemented.
+
+        Raises
+        ------
+        FragmentKeyError (a KeyError)
+            If fragment is not present or not implemented.
+        """
+
+        base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                break
+            i += 1
+        else:
+            raise FragmentKeyError(tag)
+
+        fragments = self.fragments
+
+        # We always allow getting the fragment if it has the same tag,
+        # regardless of whether we have a registered implementation.
+        # This allows retrieving it after assignment via __setitem__.
+        peeked = LazyMappedSequence.peek(fragments, i)
+        if peeked is not UNSET:
+            if peeked.class_tag != tag:
+                raise FragmentKeyError(tag, sec.version)
+            return peeked
+
+        if (versions != 'all' and sec.has_version()
+                and sec.version not in versions):
+            raise FragmentKeyError(tag, sec.version)
+
+        return fragments[i]
+
+    def __setitem__(self, tag, frag):
+        base_key = self.probers.fragments.base_container_key(tag)
+        if frag.container.to_key(noversion=True) != base_key:
+            raise KeyError(f"Invalid fragment container: expected"
+                           f" {base_key!r} but got {frag.container!r}")
+        ftag = frag.class_tag
+        if ftag != tag:
+            raise KeyError(f"Invalid fragment tag: fragment tag is {ftag!r}"
+                           f" but expected {tag!r}")
+        frags = list(self.fragments)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                frags[i] = frag
+                break
+            i += 1
+        else:
+            frags.append(frag)
+        self.fragments = frags
+
+    def __delitem__(self, tag):
+        base_key = self.probers.fragments.base_container_key(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                frags = list(self.fragments)
+                del frags[i]
+                self.fragments = frags
+                break
+            i += 1
+        else:
+            raise KeyError(f"Fragment with tag {tag!r} is not present")
+
+    def __contains__(self, tag):
+        "Check whether a fragment with given tag is present and implemented."
+        base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                break
+            i += 1
+        else:
+            return False
+
+        # Peek operation analogous to __getitem__.
+        peeked = LazyMappedSequence.peek(self.fragments, i)
+        if peeked is not UNSET:
+            return peeked.class_tag == tag
+
+        return (versions == 'all' or not sec.has_version()
+                or sec.version in versions)
+
+    def __iter__(self):
+        "Not iterable. Implemented only to prevent __getitem__ iteration."
+        raise TypeError(f"{type(self).__name__!r} object is not iterable")
+
+    def get_any(self, tag):
+        "Get fragment with given tag, regardless of implementation."
+        base_key = self.probers.fragments.base_container_key(tag)
+        i = 0
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                return self.fragments[i]
+            i += 1
+        return None
+
+    def has_any(self, tag):
+        "Check whether a fragment with given tag is present."
+        base_key = self.probers.fragments.base_container_key(tag)
+        for sec in self.sections:
+            if sec.to_key(noversion=True) == base_key:
+                return True
+        return False
 
     def _read_section_data(self, dbytes, sec):
         self.type = sec.type

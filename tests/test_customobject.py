@@ -3,7 +3,6 @@ import unittest
 from distance import DefaultProbers
 from distance.base import (
     ObjectFragment,
-    BaseObject,
     Fragment,
 )
 from distance._impl.level_objects.objects import (
@@ -34,6 +33,11 @@ from .common import check_exceptions, write_read
 
 
 PROBER = DefaultProbers.level_objects
+
+
+def TagFragment(name, tag, **kw):
+    kw['class_tag'] = tag
+    return type(name, (Fragment,), kw)
 
 
 class InfoDisplayBoxTest(unittest.TestCase):
@@ -313,7 +317,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
     def test_trigger(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/decodetrigger.bytes")
-        frag = obj.fragment_by_tag('CarScreenTextDecodeTrigger')
+        frag = obj['CarScreenTextDecodeTrigger']
         self.assertEqual(CarScreenTextDecodeTriggerFragment, type(frag))
         p.print_data_of(obj)
         self.assertEqual(obj.text, "Please, help us.")
@@ -322,7 +326,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
     def test_ver0(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/decodetrigger v0.bytes")
-        frag = obj.fragment_by_tag('CarScreenTextDecodeTrigger')
+        frag = obj['CarScreenTextDecodeTrigger']
         self.assertEqual(OldCarScreenTextDecodeTriggerFragment, type(frag))
         p.print_data_of(frag)
         self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
@@ -337,8 +341,8 @@ class SplineRoadTest(unittest.TestCase):
     def test_tracknodes(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/splineroad.bytes")
-        node0 = obj.children[0].fragment_by_tag('TrackNode')
-        node1 = obj.children[1].fragment_by_tag('TrackNode')
+        node0 = obj.children[0]['TrackNode']
+        node1 = obj.children[1]['TrackNode']
         self.assertEqual(79, node0.parent_id)
         self.assertEqual(59, node0.snap_id)
         self.assertEqual(79, node1.parent_id)
@@ -352,17 +356,6 @@ class CubeGsTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/2cubes.bytes")
         self.assertEqual(GoldenSimple, type(obj.children[0]))
         self.assertEqual(GoldenSimple, type(obj.children[1]))
-
-
-class BaseObjectTest(unittest.TestCase):
-
-    def test_empty_fragments(self):
-        obj = BaseObject()
-        obj.fragments = []
-
-        result = obj.fragment_by_tag('Object')
-
-        self.assertIsNone(result)
 
 
 class ConstructorTest(unittest.TestCase):
@@ -381,12 +374,12 @@ class TestFragments(unittest.TestCase):
         old_anim = AnimatorFragment()
         obj = DefaultProbers.level_objects.create('Group')
         obj.fragments = [ObjectFragment(), old_anim]
-        obj.fragment_by_tag('Animator')
+        obj['Animator']
 
         new_anim = AnimatorFragment()
         obj.fragments = [ObjectFragment(), new_anim]
 
-        res = obj.fragment_by_tag('Animator')
+        res = obj['Animator']
         self.assertIs(new_anim, res)
 
 

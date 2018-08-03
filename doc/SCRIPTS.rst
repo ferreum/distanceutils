@@ -37,6 +37,8 @@ to the ``-f`` option:
 
 * track - Print connection reference IDs of track elements
 
+* class - Print the name of implementing classes of objects
+
 Example::
 
   $ dst-bytes -f transform my_level.bytes

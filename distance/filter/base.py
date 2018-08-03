@@ -16,7 +16,7 @@ ANIM_FRAG_SECTIONS = {DefaultProbers.fragments.base_container_key(tag)
                       for tag in _ANIM_FRAG_TAGS}
 
 
-Group = DefaultProbers.level_objects.klass('Group')
+Group = DefaultProbers.common.klass('Group')
 
 
 def create_replacement_group(orig, objs, animated_only=False):
@@ -32,7 +32,7 @@ def create_replacement_group(orig, objs, animated_only=False):
     group.recenter(pos)
     group.rerotate(rot)
     group.rescale(scale)
-    group.fragments = list(group.fragments) + copied_frags
+    group.fragments += copied_frags
     return group,
 
 

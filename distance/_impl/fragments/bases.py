@@ -6,6 +6,8 @@ from distance.base import Fragment
 
 class BaseCarScreenTextDecodeTrigger(Fragment):
 
+    class_tag = 'CarScreenTextDecodeTrigger'
+
     base_container = Section.base(Magic[2], 0x57)
 
     is_interesting = True
@@ -49,6 +51,8 @@ class BaseCarScreenTextDecodeTrigger(Fragment):
 
 class BaseInfoDisplayLogic(Fragment):
 
+    class_tag = 'InfoDisplayLogic'
+
     base_container = Section.base(Magic[2], 0x4a)
 
     is_interesting = True
@@ -76,6 +80,8 @@ class BaseInfoDisplayLogic(Fragment):
 
 class BaseTeleporterEntrance(Fragment):
 
+    class_tag = 'TeleporterEntrance'
+
     base_container = Section.base(Magic[2], 0x3e)
 
     is_interesting = True
@@ -88,6 +94,8 @@ class BaseTeleporterEntrance(Fragment):
 
 class BaseTeleporterExit(Fragment):
 
+    class_tag = 'TeleporterExit'
+
     base_container = Section.base(Magic[2], 0x3f)
 
     is_interesting = True
@@ -99,6 +107,8 @@ class BaseTeleporterExit(Fragment):
 
 
 class BaseInterpolateToPositiononTrigger(Fragment):
+
+    class_tag = 'InterpolateToPositionOnTrigger'
 
     base_container = Section.base(Magic[2], 0x43)
 

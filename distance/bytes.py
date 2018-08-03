@@ -320,6 +320,9 @@ class BytesModel(object):
                 raise TypeError("p must be the single argument")
 
         self._print_type(p)
+        if 'class' in p.flags:
+            cls = type(self)
+            p(f"Class: <{cls.__module__}.{cls.__name__}>")
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
         self._print_data(p)
@@ -454,7 +457,10 @@ class Section(BytesModel):
 
     @classmethod
     def from_key(cls, key):
-        return cls(*key)
+        if isinstance(key, tuple):
+            return cls(*key)
+        else:
+            return cls(key)
 
     def has_version(self):
         return self.magic in (MAGIC_2, MAGIC_3)

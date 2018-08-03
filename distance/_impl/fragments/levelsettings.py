@@ -18,15 +18,18 @@ from distance._common import (
     MedalTimesMapperProperty,
     MedalScoresMapperProperty,
 )
+from distance._impl.level_content.levelsettings_base import BaseLevelSettings
 
 
 Probers = ProberGroup()
 
 
 @Probers.fragments.fragment(any_version=True)
-class LevelSettingsFragment(BaseConstructFragment):
+class LevelSettingsFragment(BaseLevelSettings, BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x52)
+
+    is_interesting = True
 
     def get_unk_2_size(this):
         version = this.version

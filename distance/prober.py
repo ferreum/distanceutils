@@ -25,53 +25,39 @@ class AutoloadError(Exception):
     pass
 
 
+class TagError(LookupError):
+    "Given tag not found"
+
+    def __init__(self, tag):
+        LookupError.__init__(self, repr(tag))
+
+
 def fragment_property(tag, name, default=None, doc=None):
     def fget(self):
-        frag = self.fragment_by_tag(tag)
+        try:
+            frag = self[tag]
+        except KeyError as e:
+            raise AttributeError(name)
         return getattr(frag, name, default)
     def fset(self, value):
-        frag = self.fragment_by_tag(tag)
+        try:
+            frag = self[tag]
+        except KeyError as e:
+            raise AttributeError(name)
         setattr(frag, name, value)
     if doc is None:
         doc = f"property forwarded to {tag!r}"
     return property(fget, fset, doc=doc)
 
 
-class BytesProber(object):
+class ClassCollector(object):
 
-    def __init__(self, baseclass=BytesModel, key=None, keys=()):
-        self.baseclass = baseclass
-        if key is not None:
-            keys = keys + (key,)
-        self._keys = keys
+    def __init__(self, **kw):
+        super().__init__(**kw)
         self._sections = {}
+        self._interesting_sections = set()
         self._autoload_sections = {}
         self._classes = {}
-        self._funcs_by_tag = OrderedDict()
-        self._funcs = self._funcs_by_tag.values()
-
-    def add_type(self, type, cls):
-        sec = Section(Magic[6], type)
-        self._sections[sec.to_key()] = cls
-        self._add_class(cls, type, sec)
-
-    def add_func(self, func, tag):
-        self._funcs_by_tag[tag] = func
-
-    def _add_fragment_for_section(self, cls, sec, any_version):
-        if any_version:
-            key = sec.to_key(noversion=True)
-        else:
-            key = sec.to_key()
-        try:
-            registered = self._sections[key]
-        except KeyError:
-            pass
-        else:
-            e = RegisterError(f"{sec} is already registered")
-            e.registered = registered
-            raise e
-        self._sections[key] = cls
 
     def add_fragment(self, cls, *args,
                      any_version=False, versions=None, **kw):
@@ -94,6 +80,9 @@ class BytesProber(object):
 
         """
 
+        if versions and any_version:
+            raise ValueError("Cannot use parameter 'versions' with 'any_version'")
+
         if not args and not kw:
             sec = cls.base_container
             if sec is not None:
@@ -104,41 +93,59 @@ class BytesProber(object):
         else:
             sec = Section(*args, any_version=any_version, **kw)
         if versions is not None:
-            if any_version:
-                raise ValueError("Cannot use parameter 'versions' with 'any_version'")
             if isinstance(versions, numbers.Integral):
                 versions = [versions]
             for version in versions:
                 s = Section(sec, version=version)
                 self._add_fragment_for_section(cls, s, any_version)
         else:
+            versions = [sec.version] if sec.has_version() and not any_version else None
             self._add_fragment_for_section(cls, sec, any_version)
         tag = cls.class_tag
-        if callable(tag):
-            tag = tag()
         if tag is not None:
             self._add_class(cls, tag, sec, versions)
+        if cls.is_interesting:
+            self._interesting_sections.add(sec.to_key(noversion=True))
 
-    def func(self, tag):
+    def add_object(self, type, cls):
+        sec = Section(Magic[6], type)
+        self._sections[sec.to_key()] = cls
+        self._add_class(cls, type, sec)
 
-        """Decorator for conveniently adding a function."""
+    def add_info(self, *args, tag=None):
+        def decorate(cls):
+            nonlocal tag
+            if tag is None:
+                tag = cls.class_tag
+            self._add_class(cls, tag)
+            return cls
+        if len(args) == 1:
+            return decorate(args[0])
+        else:
+            return decorate
 
-        def decorate(func):
-            self.add_func(func, tag)
-            return func
+    def _add_fragment_for_section(self, cls, sec, any_version):
+        if any_version:
+            key = sec.to_key(noversion=True)
+        else:
+            key = sec.to_key()
+        try:
+            registered = self._sections[key]
+        except KeyError:
+            pass
+        else:
+            e = RegisterError(f"{sec} is already registered")
+            e.registered = registered
+            raise e
+        self._sections[key] = cls
 
-        if callable(tag):
-            raise ValueError("target passed as tag")
-
-        return decorate
-
-    def for_type(self, *args):
+    def object(self, *args):
 
         """Decorator for conveniently adding a class for a type."""
 
         def decorate(cls):
             for t in types:
-                self.add_type(t, cls)
+                self.add_object(t, cls)
             return cls
 
         if len(args) == 1 and callable(args[0]):
@@ -173,84 +180,62 @@ class BytesProber(object):
 
         return decorate
 
-    def add_info(self, *args, tag=None):
-        def decorate(cls):
-            nonlocal tag
-            if tag is None:
-                tag = cls.class_tag
-                if callable(tag):
-                    tag = tag()
-            self._add_class(cls, tag)
-            return cls
-        if len(args) == 1:
-            return decorate(args[0])
-        else:
-            return decorate
-
     def _add_class(self, cls, tag, container=None, versions=None):
-        if type(tag) != str:
+        if type(tag) is not str:
             raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
-        from distance.base import get_default_container
-        versions = versions
-        defcon = get_default_container(cls)
-        fields_map = getattr(cls, '_fields_map', None)
-        base_container_key = None
-        if container is not None:
-            base_container_key = container.to_key(noversion=True)
-        if callable(fields_map):
-            fields_map = fields_map()
-        info = {
-            'cls': (cls.__module__, cls.__name__),
-            'base_container': base_container_key,
-            'default_container': None if defcon is None else defcon.to_key(),
-            'versions': None if versions is None else tuple(versions),
-            'fields': fields_map,
-        }
+
+        info = {}
+
         try:
-            prev = self._classes[tag]
-        except KeyError:
+            fields_map = getattr(cls, '_fields_map')
+        except AttributeError:
             pass
         else:
-            if prev != info:
-                raise RegisterError(f"Duplicate class tag: {tag!r}")
-        self._classes[tag] = info
+            if callable(fields_map):
+                fields_map = fields_map()
+            info['fields'] = fields_map
 
-    def extend_from(self, other):
-        self._sections.update(((k, v) for k, v in other._sections.items()
-                               if k not in self._sections))
-        self._funcs_by_tag.update(other._funcs_by_tag)
-        self._classes.update(other._classes)
-        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
-                                       if k not in self._autoload_sections)
-        self._keys += tuple(k for k in other._keys
-                            if k not in self._keys)
+        if container is not None:
+            info['base_container'] = container.to_key(noversion=True)
 
-    def _get_by_key(self, key):
-        cls = self._sections.get(key, None)
-        if cls is not None:
-            return cls
-        info = self._autoload_sections.get(key, None)
-        if info is not None:
-            self._autoload_impl_module(key, info)
-            return self._sections.get(key, None)
-        return None
+        class_spec = (cls.__module__, cls.__name__)
+        if versions is None:
+            info['noversion_cls'] = class_spec
+        else:
+            info['versions'] = dict.fromkeys(versions, class_spec)
 
-    def _get_from_funcs(self, sec):
-        for func in self._funcs:
-            cls = func(sec)
-            if cls is not None:
-                return cls
+        _merge_class_info(self._classes, tag, info)
+
+
+class BaseProber(object):
+    """Base for probers.
+
+    Subclasses need to implement `_probe_section_key` and
+    optionally `_probe_fallback`.
+    """
+
+    def __init__(self, *, baseclass=BytesModel, **kw):
+        super().__init__(**kw)
+        self.baseclass = baseclass
+
+    def _probe_section_key(self, key):
+        "Return the class for the given section."
+        raise NotImplementedError
+
+    def _probe_fallback(self, sec):
         return None
 
     def probe_section(self, sec):
-        cls = self._get_by_key(sec.to_key())
+        key = sec.to_key()
+        cls = self._probe_section_key(key)
         if cls is not None:
             return cls
         if sec.has_version():
-            cls = self._get_by_key(sec.to_key(noversion=True))
+            key = sec.to_key(noversion=True)
+            cls = self._probe_section_key(key)
             if cls is not None:
                 return cls
-        cls = self._get_from_funcs(sec)
+        cls = self._probe_fallback(sec)
         if cls is not None:
             return cls
         return self.baseclass
@@ -318,69 +303,163 @@ class BytesProber(object):
         gen = self.iter_n_maybe(dbytes, n, *args, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
+
+class BytesProber(BaseProber, ClassCollector):
+    "Prober for registered classes."
+
+    def __init__(self, *, key=None, keys=(), **kw):
+        super().__init__(**kw)
+        if key is not None:
+            keys = keys + (key,)
+        self._keys = keys
+        # We don't have funcs on ClassCollector because they don't need to be
+        # lazy-loaded and there's no use for it yet.
+        self._funcs_by_tag = OrderedDict()
+        self._funcs = self._funcs_by_tag.values()
+
+    def extend_from(self, other):
+        self._sections.update(((k, v) for k, v in other._sections.items()
+                               if k not in self._sections))
+        self._funcs_by_tag.update(other._funcs_by_tag)
+        _update_class_info(self._classes, other._classes)
+        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
+                                       if k not in self._autoload_sections)
+        self._keys += tuple(k for k in other._keys
+                            if k not in self._keys)
+
+    def add_func(self, func, tag):
+        self._funcs_by_tag[tag] = func
+
+    def func(self, tag):
+        "Decorator for conveniently adding a function."
+        def decorate(func):
+            self.add_func(func, tag)
+            return func
+        if callable(tag):
+            raise TypeError("target passed as tag")
+        return decorate
+
+    def _probe_section_key(self, key):
+        cls = self._sections.get(key)
+        if cls is not None:
+            return cls
+        module = self._autoload_sections.get(key)
+        if module is not None:
+            self._autoload_impl_module(key, module)
+            return self._sections.get(key)
+        return None
+
+    def _probe_fallback(self, sec):
+        for func in self._funcs:
+            cls = func(sec)
+            if cls is not None:
+                return cls
+        return None
+
     def base_container_key(self, tag):
-        info = self._classes[tag]
-        base = info.get('base_container', None)
-        if base is None:
-            raise TypeError(f"Class with tag {tag!r} has no container information")
+        try:
+            info = self._classes[tag]
+        except KeyError:
+            raise TagError(tag)
+        try:
+            base = info['base_container']
+        except KeyError:
+            raise TypeError(f"No container information for tag {tag!r}")
         return base
+
+    def get_tag_impl_info(self, tag):
+        try:
+            info = self._classes[tag]
+        except KeyError:
+            raise TagError(tag)
+        try:
+            base = info['base_container']
+        except KeyError:
+            raise TypeError(f"Class with tag {tag!r} has no container information")
+        if info.get('noversion_cls') is not None:
+            versions = 'all'
+        else:
+            versions = info.get('versions').keys()
+        return base, versions
 
     def fragment_attrs(self, *tags):
         def decorate(cls):
             from .base import default_fragments
             containers = []
             for tag in tags:
-                info = self._classes[tag]
-                fields = info['fields']
-                default_container = info['default_container']
-                if default_container is not None:
-                    containers.append(Section.from_key(default_container))
-                if fields is None:
-                    raise TypeError(f"Class with tag {tag!r} has no fields information")
+                try:
+                    info = self._classes[tag]
+                except KeyError:
+                    raise TagError(tag)
+                try:
+                    fields = info['fields']
+                except KeyError:
+                    raise TypeError(f"No field information for tag {tag!r}")
+                container_key = info.get('base_container', None)
+                if container_key is not None:
+                    container = Section.from_key(container_key)
+                    if container.has_version():
+                        versions = info.get('versions', None)
+                        if versions is not None:
+                            container.version = max(versions)
+                    containers.append(container)
                 for name, default in fields.items():
                     setattr(cls, name, fragment_property(tag, name, default))
             default_fragments.add_sections_to(cls, *containers)
             return cls
         return decorate
 
-    def klass(self, tag):
-        info = self._classes[tag]
-        modname, clsname = info['cls']
+    def __klass(self, tag, version):
+        try:
+            info = self._classes[tag]
+        except KeyError:
+            raise TagError(tag)
+        (modname, clsname), def_version = _get_klass_def(info, version)
+        container = info.get('base_container')
+        if container is not None:
+            container = Section.from_key(container)
+            if def_version is not None and container.has_version():
+                container.version = def_version
         mod = importlib.import_module(modname)
-        return getattr(mod, clsname)
+        return getattr(mod, clsname), container
 
-    def create(self, tag, *args, **kw):
-        return self.klass(tag)(*args, **kw)
+    def klass(self, tag, version=None):
+        return self.__klass(tag, version)[0]
+
+    def factory(self, tag, version=None):
+        cls, container = self.__klass(tag, version)
+        return InstanceFactory(cls, container)
+
+    def create(self, tag, **kw):
+        cls, container = self.__klass(tag, None)
+        if 'container' not in kw and 'dbytes' not in kw:
+            kw['container'] = container
+        return cls(**kw)
 
     def is_section_interesting(self, sec):
-        cls = self._sections.get(sec, None)
-        if cls is not None:
-            return cls.is_interesting
-        info = self._autoload_sections.get(sec.to_key())
-        if info is not None:
-            modname, classname, is_interesting = info
-            return is_interesting
-        return False
+        return sec.to_key(noversion=True) in self._interesting_sections
 
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
+        self._interesting_sections.update(content['interesting'])
         self._classes.update(content['classes'])
 
     def _generate_autoload_content(self):
         return {
-            'sections': {key: (cls.__module__, cls.__name__, getattr(cls, 'is_interesting', False))
+            'sections': {key: cls.__module__
                          for key, cls in self._sections.items()},
+            'interesting': set(self._interesting_sections),
             'classes': dict(self._classes),
         }
 
     def _get_current_autoload_content(self):
         return {
             'sections': dict(self._autoload_sections),
+            'interesting': set(self._interesting_sections),
             'classes': dict(self._classes),
         }
 
-    def _autoload_impl_module(self, sec_key, info):
-        impl_module, classname, is_interesting = info
+    def _autoload_impl_module(self, sec_key, impl_module):
         mod = importlib.import_module(impl_module)
         for key in self._keys:
             prober = getattr(mod.Probers, key)
@@ -389,9 +468,30 @@ class BytesProber(object):
     def _load_impl(self, prober, update_classes):
         self._sections.update(((k, v) for k, v in prober._sections.items()
                                if k not in self._sections))
-        self._funcs_by_tag.update(prober._funcs_by_tag)
         if update_classes:
-            self._classes.update(prober._classes)
+            _update_class_info(self._classes, prober._classes)
+            self._interesting_sections.update(prober._interesting_sections)
+
+
+class CompositeProber(BaseProber):
+
+    def __init__(self, *, probers=None, **kw):
+        super().__init__(**kw)
+        self.probers = [] if probers is None else probers
+
+    def _probe_section_key(self, key):
+        for p in self.probers:
+            cls = p._probe_section_key(key)
+            if cls is not None:
+                return cls
+        return None
+
+    def _probe_fallback(self, sec):
+        for p in self.probers:
+            cls = p._probe_fallback(sec)
+            if cls is not None:
+                return cls
+        return None
 
 
 class ProberGroup(object):
@@ -403,7 +503,7 @@ class ProberGroup(object):
         try:
             return self._probers[name]
         except KeyError:
-            prober = BytesProber()
+            prober = ClassCollector()
             self._probers[name] = prober
             return prober
 
@@ -414,16 +514,34 @@ class ProberGroup(object):
 class ProbersRegistry(object):
 
     def __init__(self):
-        self._autoload_modules = {}
         self._probers = {}
+        self._autoload_modules = {}
+        self._autoload_probers = {}
 
-    def get_or_create(self, name):
+    def create_prober(self, key, *, baseclass=BytesModel):
         try:
-            return self._probers[name]
+            return self._probers[key]
         except KeyError:
-            prober = BytesProber(key=name)
-            self._probers[name] = prober
+            prober = BytesProber(key=key, baseclass=baseclass)
+            self._probers[key] = prober
+            self._autoload_probers[key] = prober
             return prober
+
+    def create_composite(self, key, *, keys=(), **kw):
+        keys = tuple(keys)
+        if key in self._probers:
+            try:
+                okeys = self._probers[key].__keys
+            except AttributeError:
+                raise ValueError(f"Prober already exists: {key!r}")
+            if okeys != keys:
+                raise ValueError(f"Prober {key!r} already exists"
+                                 f" with different keys: {keys!r}")
+        probers = [self._probers[key] for key in keys]
+        prober = CompositeProber(probers=probers, **kw)
+        prober.__keys = keys
+        self._probers[key] = prober
+        return prober
 
     def __getattr__(self, name):
         try:
@@ -436,15 +554,15 @@ class ProbersRegistry(object):
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
-            raise Exception(f"Autoload of {module_name!r} is already defined")
+            raise ValueError(f"Autoload of {module_name!r} is already defined")
         self._autoload_modules[module_name] = impl_modules
         if do_autoload:
             try:
-                _load_autoload_module(self._probers, module_name)
+                _load_autoload_module(self._autoload_probers, module_name)
                 return
             except ImportError:
-                pass
-        _load_impls_to_probers(self._probers, impl_modules)
+                pass # fall through and load immediately
+        _load_impls_to_probers(self._autoload_probers, impl_modules)
 
     def write_autoload_module(self, module_name):
         try:
@@ -452,11 +570,13 @@ class ProbersRegistry(object):
         except KeyError:
             raise KeyError(f"Autoload module is not defined: {module_name!r}")
         from distance._autoload_gen import write_autoload_module
-        write_autoload_module(module_name, impl_modules, self._probers.keys())
+        write_autoload_module(module_name, impl_modules,
+                              self._autoload_probers.keys())
 
     def _verify_autoload(self, verify_autoload=True):
-        actual_probers = {k: BytesProber(key=k) for k in self._probers}
-        autoload_probers = {k: BytesProber(key=k) for k in self._probers}
+        keys = self._autoload_probers.keys()
+        actual_probers = {k: BytesProber(key=k) for k in keys}
+        autoload_probers = {k: BytesProber(key=k) for k in keys}
         for autoload_module, impl_modules in self._autoload_modules.items():
             _load_impls_to_probers(actual_probers, impl_modules)
             _load_autoload_module(autoload_probers, autoload_module)
@@ -465,17 +585,129 @@ class ProbersRegistry(object):
                 raise Exception(f"Autoload is disabled")
             actual_content = {}
             loaded_content = {}
-            for key in self._probers.keys():
+            for key in keys:
                 actual_content[key] = actual_probers[key]._generate_autoload_content()
                 loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
             return actual_content, loaded_content
+
+    def copy(self, **overrides):
+        probers = dict(self._probers)
+        probers.update(overrides)
+        res = ProbersRegistry()
+        res._autoload_modules = dict(self._autoload_modules)
+        res._probers = probers
+        return res
+
+
+class InstanceFactory(object):
+
+    def __init__(self, cls, container):
+        self.cls = cls
+        self.container = container
+
+    def __call__(self, **kw):
+        if 'container' not in kw and 'dbytes' not in kw:
+            kw['container'] = self.container
+        return self.cls(**kw)
+
+
+def _get_klass_def(info, version):
+    if version is None:
+        try:
+            return info['noversion_cls'], None
+        except KeyError:
+            versions = info['versions']
+            ver = max(versions)
+            return versions[ver], ver
+    else:
+        try:
+            return info['versions'][version], version
+        except KeyError:
+            return info['noversion_cls'], version
+
+
+def _update_class_info(target, other):
+    for tag, oinfo in other.items():
+        _merge_class_info(target, tag, oinfo)
+
+
+def _merge_class_info(classes, tag, info):
+    try:
+        prev = classes[tag]
+    except KeyError:
+        classes[tag] = info
+    else:
+        classes[tag] = _merged_info(tag, prev, info)
+
+
+def _merged_info(tag, prev, new):
+    new_container = new.get('base_container')
+    new_vers = new.get('versions')
+    new_fields = new.get('fields')
+    new_nover_cls = new.get('noversion_cls')
+
+    base_container = prev.get('base_container')
+    nover_cls = prev.get('noversion_cls')
+    vers = prev.get('versions')
+    fields = prev.get('fields')
+
+    result = {}
+
+    if new_container is not None and new_container != base_container:
+        if base_container is None:
+            base_container = new_container
+        else:
+            raise RegisterError(
+                f"Cannot register {new_container!r} as base_container for tag"
+                f" {tag!r} because it is already registered for {base_container!r}")
+    if base_container is not None:
+        result['base_container'] = base_container
+
+    if new_nover_cls is not None and new_nover_cls != nover_cls:
+        if not nover_cls:
+            nover_cls = new_nover_cls
+        else:
+            raise RegisterError(
+                f"Cannot register {new_nover_cls!r} as version-less class for tag"
+                f" {tag!r} because it is already registered for {nover_cls!r}")
+    if nover_cls is not None:
+        result['noversion_cls'] = nover_cls
+
+    if new_vers is not None:
+        if vers is None:
+            vers = new_vers
+        else:
+            vers = dict(vers)
+            for nver, ncls in new_vers.items():
+                cls = vers.get(nver)
+                if cls is not None and ncls != cls:
+                    raise RegisterError(f"Tag {tag!r} version {nver!r} already"
+                                        f" registered for {cls}")
+                vers[nver] = ncls
+    if vers is not None:
+        result['versions'] = vers
+
+    if new_fields is not None:
+        if fields is None:
+            fields = new_fields
+        else:
+            fields = dict(fields)
+            fields.update(new_fields)
+    if fields is not None:
+        result['fields'] = fields
+
+    return result
 
 
 def _load_autoload_module(probers, module_name):
     mod = importlib.import_module(module_name)
     content_map = mod.content_map
     for key, content in content_map.items():
-        probers[key]._load_autoload_content(content)
+        try:
+            prober = probers[key]
+        except KeyError:
+            raise RegisterError(f"Invalid prober key {key!r}")
+        prober._load_autoload_content(content)
 
 
 def _load_impls_to_probers(probers, impl_modules):

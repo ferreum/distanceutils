@@ -13,7 +13,7 @@ Probers = ProberGroup()
 fragment_attrs = DefaultProbers.fragments.fragment_attrs
 
 
-@Probers.level_objects.for_type(
+@Probers.level_objects.object(
     'Teleporter',
     'TeleporterVirus',
     'TeleporterAndAmbientChangeTrigger',
@@ -24,7 +24,7 @@ class Teleporter(LevelObject):
     default_transform = Transform.fill()
 
 
-@Probers.level_subobjects.for_type
+@Probers.level_subobjects.object
 @fragment_attrs(
     'TeleporterEntrance',
     'TeleporterExit',
@@ -35,35 +35,35 @@ class SubTeleporter(SubObject):
     type = 'Teleporter'
 
 
-@Probers.level_subobjects.for_type
+@Probers.level_subobjects.object
 @fragment_attrs('RaceEndLogic')
 class WinLogic(SubObject):
 
     type = 'WinLogic'
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @fragment_attrs('TextMesh')
 class WorldText(LevelObject):
 
     type = 'WorldText'
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @fragment_attrs('InfoDisplayLogic')
 class InfoDisplayBox(LevelObject):
 
     type = 'InfoDisplayBox'
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @fragment_attrs('CarScreenTextDecodeTrigger')
 class CarScreenTextDecodeTrigger(LevelObject):
 
     type = 'CarScreenTextDecodeTrigger'
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @fragment_attrs('SphereCollider', 'GravityToggle', 'MusicTrigger')
 class GravityTrigger(LevelObject):
 
@@ -71,7 +71,7 @@ class GravityTrigger(LevelObject):
     default_transform = Transform.fill()
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @fragment_attrs('CustomName', 'ForceZone')
 class ForceZoneBox(LevelObject):
 
@@ -79,7 +79,7 @@ class ForceZoneBox(LevelObject):
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 @fragment_attrs('EnableAbilitiesTrigger')
 class EnableAbilitiesBox(LevelObject):
 
@@ -87,97 +87,97 @@ class EnableAbilitiesBox(LevelObject):
     default_transform = Transform.fill(scale=(100, 100, 100))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class EvenTriggerBox(LevelObject):
 
     type = 'EventTriggerBox'
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class EvenTriggerSphere(LevelObject):
 
     type = 'EventTriggerSphere'
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class WingCorruptionZone(LevelObject):
 
     type = 'WingCorruptionZone'
     default_transform = Transform.fill(scale=(100, 100, 100))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class WingCorruptionZoneLarge(LevelObject):
 
     type = 'WingCorruptionZoneLarge'
     default_transform = Transform.fill(scale=(1000, 1000, 1000))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class VirusSpiritSpawner(LevelObject):
 
     type = 'VirusSpiritSpawner'
     default_transform = Transform.fill()
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class KillGridBox(LevelObject):
 
     type = 'KillGridBox'
     default_transform = Transform.fill(scale=(50, 50, 50))
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class KillGridCylinder(LevelObject):
 
     type = 'KillGridCylinder'
     default_transform = Transform.fill(scale=(50, 50, 50))
 
 
-@Probers.level_objects.for_type('CheckpointNoVisual', 'EmpireCheckpoint',
-                                'EmpireCheckpointHalf')
+@Probers.level_objects.object('CheckpointNoVisual', 'EmpireCheckpoint',
+                              'EmpireCheckpointHalf')
 class Checkpoint(LevelObject):
 
     default_transform = Transform.fill(rot=(0, 1, 0, 0), scale=14)
 
 
-@Probers.level_objects.for_type('AbilityCheckpoint', 'AbilityCheckpointOLD')
+@Probers.level_objects.object('AbilityCheckpoint', 'AbilityCheckpointOLD')
 class AbilityCheckpoint(LevelObject):
 
     default_transform = Transform.fill()
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class NitronicCheckpoint(LevelObject):
 
     type = 'NitronicCheckpoint'
     default_transform = Transform.fill(scale=1.097)
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class EmpirePowerFlyingRing(LevelObject):
 
     type = 'EmpirePowerFlyingRing'
     default_transform = Transform.fill(scale=1.5)
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class EmpirePowerRoadRing(LevelObject):
 
     type = 'EmpirePowerRoadRing'
     default_transform = Transform.fill()
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class CooldownTriggerNoVisual(LevelObject):
 
     type = 'CooldownTriggerNoVisual'
     default_transform = Transform.fill()
 
 
-@Probers.level_objects.for_type(
+@Probers.level_objects.object(
     'VirusMazeTowerFat',
     'VirusMazeCeiling001',
     'VirusMazeTowerFat002',
@@ -189,7 +189,7 @@ class VirusMazeBuilding(LevelObject):
     default_transform = Transform.fill()
 
 
-@Probers.level_objects.for_type
+@Probers.level_objects.object
 class PlanetWithSphericalGravity(LevelObject):
 
     type = 'PlanetWithSphericalGravity'
@@ -276,7 +276,7 @@ class GoldenSimple(LevelObject):
 
 
 for name in BASIC_GOLDEN_SIMPLES_NAMES:
-    Probers.level_objects.add_type(name, GoldenSimple)
+    Probers.level_objects.add_object(name, GoldenSimple)
 del name
 
 
@@ -415,10 +415,10 @@ OLD_SIMPLES_SHAPES = (
 )
 
 for shape in OLD_SIMPLES_SHAPES:
-    Probers.level_objects.add_type(shape, OldSimple)
-    Probers.level_objects.add_type('Emissive' + shape, OldSimple)
-    Probers.level_objects.add_type(shape + 'WithCollision', OldSimple)
-    Probers.level_objects.add_type('Emissive' + shape + 'WithCollision', OldSimple)
+    Probers.level_objects.add_object(shape, OldSimple)
+    Probers.level_objects.add_object('Emissive' + shape, OldSimple)
+    Probers.level_objects.add_object(shape + 'WithCollision', OldSimple)
+    Probers.level_objects.add_object('Emissive' + shape + 'WithCollision', OldSimple)
 del shape
 
 

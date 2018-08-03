@@ -9,6 +9,7 @@ from distance.prober import BytesProber, _load_impls_to_probers
 
 value_types = int, float, bytes, str, bool, type(None),
 sequence_types = tuple,
+set_types = set,
 mapping_types = dict,
 
 
@@ -51,6 +52,16 @@ def _generate_source(content, indent):
             yield from _generate_source(v, indent + 1)
             yield ","
         yield ")"
+    elif typ in set_types:
+        if not content:
+            yield "set()"
+        else:
+            yield "{\n"
+            for v in content:
+                yield "    " * (indent + 1)
+                yield from _generate_source(v, indent + 1)
+                yield ",\n"
+            yield "    " * indent + "}"
     elif typ in mapping_types:
         yield "{\n"
         for k, v in content.items():

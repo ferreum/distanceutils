@@ -47,6 +47,14 @@ class BaseLazySequence(Sequence):
                 index += len_
         return self._list[index]
 
+    def __add__(self, items):
+        # We inflate self and create a plain old list, instead of
+        # a lazy sequence, because otherwise error conditions would
+        # get very complicated.
+        res = list(self)
+        res.extend(items)
+        return res
+
 
 class LazySequence(BaseLazySequence):
 
@@ -154,6 +162,19 @@ class LazyMappedSequence(BaseLazySequence):
     """
 
     __slots__ = ('_source', '_func', '_list')
+
+    @staticmethod
+    def peek(obj, index):
+        """Access given sequence without evaluating any additional values.
+
+        If `obj` is a LazyMappedSequence, no new values are evaluated, and
+        `lazy.UNSET` is returned in their place.
+
+        For any other object, this is a regular indexing operation.
+        """
+        if isinstance(obj, LazyMappedSequence):
+            return obj._list[index]
+        return obj[index]
 
     def __init__(self, source, func):
         self._source = source

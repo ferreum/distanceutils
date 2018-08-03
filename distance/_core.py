@@ -6,16 +6,22 @@ from distance.levelobjects import LevelObject, SubObject
 from distance._default_probers import DefaultProbers
 
 
-DefaultProbers.get_or_create('file').baseclass = Fragment
-DefaultProbers.get_or_create('level_like').baseclass = LevelObject
-DefaultProbers.get_or_create('level_objects').baseclass = BaseObject
-DefaultProbers.get_or_create('level_objects').baseclass = LevelObject
-DefaultProbers.get_or_create('level_subobjects').baseclass = SubObject
-DefaultProbers.get_or_create('level_content').baseclass = Fragment
-DefaultProbers.get_or_create('fragments').baseclass = Fragment
-DefaultProbers.get_or_create('base_objects').baseclass = BaseObject
-DefaultProbers.get_or_create('base_fragments').baseclass = Fragment
-DefaultProbers.get_or_create('common').baseclass = Fragment
+DefaultProbers.create_prober('common', baseclass=Fragment)
+DefaultProbers.create_prober('level_objects', baseclass=LevelObject)
+DefaultProbers.create_prober('level_subobjects', baseclass=SubObject)
+DefaultProbers.create_prober('level_fallback', baseclass=LevelObject)
+DefaultProbers.create_prober('fragments', baseclass=Fragment)
+DefaultProbers.create_prober('base_objects', baseclass=BaseObject)
+DefaultProbers.create_prober('base_fragments', baseclass=Fragment)
+DefaultProbers.create_prober('level', baseclass=Fragment)
+DefaultProbers.create_prober('level_content', baseclass=Fragment)
+DefaultProbers.create_prober('non_level_objects', baseclass=BaseObject)
+DefaultProbers.create_composite(
+    'level_like', baseclass=LevelObject,
+    keys=['level', 'level_objects'])
+DefaultProbers.create_composite(
+    'file', baseclass=Fragment,
+    keys=['level_objects', 'level', 'non_level_objects', 'level_fallback'])
 
 
 def _impl_modules():
@@ -50,12 +56,20 @@ _autoload_module = 'distance._autoload._probers'
 DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
 
 
-@DefaultProbers.file.func('Replay')
-def _detect_other(section):
+@DefaultProbers.non_level_objects.func('dst._core.nonlevel_fallback')
+def _detect_non_level_objects_other(section):
     if section.magic == Magic[6]:
         from distance.replay import Replay, FTYPE_REPLAY_PREFIX
+        # Replay requires dynamic check.
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay
+    return None
+
+
+@DefaultProbers.level_fallback.func('dst._core.level_fallback')
+def _level_fallback(section):
+    if section.magic == Magic[6]:
+        return LevelObject
     return None
 
 

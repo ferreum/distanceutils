@@ -12,7 +12,7 @@ Probers = ProberGroup()
 FTYPE_PROFILEPROGRESS = 'ProfileProgress'
 
 
-@Probers.file.for_type
+@Probers.non_level_objects.object
 @DefaultProbers.fragments.fragment_attrs('ProfileProgress')
 @require_type
 class ProfileProgress(BaseObject):
@@ -21,7 +21,10 @@ class ProfileProgress(BaseObject):
 
     @property
     def stats(self):
-        return self.fragment_by_tag('ProfileStats')
+        try:
+            return self['ProfileStats']
+        except KeyError:
+            raise AttributeError("ProfileStats fragment is not present.")
 
 
 # vim:set sw=4 ts=8 sts=4 et:

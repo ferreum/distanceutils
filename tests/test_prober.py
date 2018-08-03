@@ -1,12 +1,20 @@
 import unittest
+from contextlib import contextmanager
 
-from distance.bytes import DstBytes, Magic
-from distance.prober import BytesProber
-from distance.base import BaseObject, ObjectFragment
+from distance.bytes import DstBytes, Magic, Section
+from distance.prober import ClassCollector, BytesProber, RegisterError
+from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultProbers
+from distance.level import Level
+from distance.replay import Replay
+from distance.leaderboard import Leaderboard
+from distance.workshoplevelinfos import WorkshopLevelInfos
 from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
+from distance._impl.level_objects.group import Group
+from distance._impl.level_objects.objects import OldSimple
+from .common import write_read, check_exceptions
 
 
 class TestObject(BaseObject):
@@ -15,10 +23,21 @@ class TestObject(BaseObject):
         self.init_args = kw
 
 
-def TagClass(tag_):
-    class TagClass(BaseObject):
-        tag = tag_
-    return TagClass
+def TagFragment(name, tag, **kw):
+    kw['class_tag'] = tag
+    return type(name, (Fragment,), kw)
+
+
+@contextmanager
+def classes_on_module(*classes):
+    globs = globals()
+    for cls in classes:
+        globs[cls.__name__] = cls
+    try:
+        yield
+    finally:
+        for cls in classes:
+            del globs[cls.__name__]
 
 
 class ProberTest(unittest.TestCase):
@@ -56,25 +75,35 @@ class RegisteredTest(unittest.TestCase):
         for ver in range(0, 1):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/workshoplevelinfos/version_{ver}.bytes")
-                self.assertEqual("WorkshopLevelInfos", type(result).__name__)
+                self.assertIsInstance(result, WorkshopLevelInfos)
 
     def test_leaderboard(self):
         for ver in range(0, 2):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/leaderboard/version_{ver}.bytes")
-                self.assertEqual("Leaderboard", type(result).__name__)
+                self.assertIsInstance(result, Leaderboard)
 
     def test_replay(self):
         for ver in range(1, 5):
             with self.subTest(version=ver):
                 result = DefaultProbers.file.read(f"tests/in/replay/version_{ver}.bytes")
-                self.assertEqual("Replay", type(result).__name__)
+                self.assertIsInstance(result, Replay)
 
     def test_level(self):
-        for levelfile in ("test-straightroad",):
-            with self.subTest(levelfile=levelfile):
-                result = DefaultProbers.file.read(f"tests/in/level/{levelfile}.bytes")
-                self.assertEqual("Level", type(result).__name__)
+        result = DefaultProbers.file.read(f"tests/in/level/test-straightroad.bytes")
+        self.assertIsInstance(result, Level)
+
+    def test_level_like_level(self):
+        result = DefaultProbers.level_like.read(f"tests/in/level/test-straightroad.bytes")
+        self.assertIsInstance(result, Level)
+
+    def test_level_like_group(self):
+        result = DefaultProbers.level_like.read(f"tests/in/customobject/2cubes.bytes")
+        self.assertIsInstance(result, Group)
+
+    def test_level_like_object(self):
+        result = DefaultProbers.level_like.read(f"tests/in/customobject/oldsimple cube.bytes")
+        self.assertIsInstance(result, OldSimple)
 
 
 class UnknownObjectFileTest(unittest.TestCase):
@@ -85,15 +114,20 @@ class UnknownObjectFileTest(unittest.TestCase):
             pass
         db.seek(0)
 
-    def test_unknown_object(self):
+    def test_unknown_file(self):
         obj = DefaultProbers.file.read(self.db)
 
-        self.assertEqual(type(obj), BaseObject)
+        self.assertEqual(type(obj), LevelObject)
 
     def test_unknown_level_like(self):
         obj = DefaultProbers.level_like.read(self.db)
 
         self.assertEqual(type(obj), LevelObject)
+
+    def test_unknown_non_level_objects(self):
+        obj = DefaultProbers.non_level_objects.read(self.db)
+
+        self.assertEqual(type(obj), BaseObject)
 
 
 class VerifyTest(unittest.TestCase):
@@ -109,7 +143,7 @@ class VerifyTest(unittest.TestCase):
         self.assertEqual(loaded, actual)
 
 
-class VerifyClassInfo(unittest.TestCase):
+class VerifyClassInfoTest(unittest.TestCase):
 
     def test_create_fragment(self):
         frag = DefaultProbers.fragments.create('Object')
@@ -119,20 +153,136 @@ class VerifyClassInfo(unittest.TestCase):
         frag = DefaultProbers.fragments.create('GoldenSimples')
         self.assertEqual(type(frag), GoldenSimplesFragment)
 
-    def test_fragment_by_tag_object(self):
-        obj = BaseObject()
-        frag = obj.fragment_by_tag('Object')
-        self.assertEqual(frag, obj.fragments[0])
-
-    def test_fragment_by_tag_goldensimples(self):
-        obj = GoldenSimple(type='CubeGS')
-        frag = obj.fragment_by_tag('GoldenSimples')
-        expect = next(f for f in obj.fragments if isinstance(f, GoldenSimplesFragment))
-        self.assertEqual(frag, expect)
+    def test_klass_level(self):
+        cls = DefaultProbers.level.klass('Level')
+        self.assertIs(cls, Level)
 
     def test_fragment_attrs(self):
         obj = GoldenSimple(type='CubeGS')
         self.assertEqual(obj.emit_index, 17)
+
+    def test_registration_version_merge(self):
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
+        base = Section.base(Magic[2], 23)
+        frag1 = prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
+        frag5 = prober2.fragment(TagFragment('Frag5', 'Test', base_container=base, container_versions=5))
+        frag23 = prober2.fragment(TagFragment('Frag23', 'Test', base_container=base, container_versions=(2, 3)))
+        glob = globals()
+        glob['Frag1'] = frag1
+        glob['Frag23'] = frag23
+        glob['Frag5'] = frag5
+
+        with classes_on_module(frag1, frag23, frag5):
+            prober = BytesProber()
+            prober._load_impl(prober1, True)
+            prober._load_impl(prober2, True)
+
+            def sec(ver):
+                return Section(base=base, version=ver).to_key()
+            def get_klass(*args, **kw):
+                fact = prober.factory(*args, **kw)
+                return fact.cls, fact.container.to_key()
+            self.assertEqual(prober.base_container_key('Test'), base.to_key())
+            self.assertEqual((frag1, sec(1)), get_klass('Test', version=1))
+            self.assertEqual((frag23, sec(2)), get_klass('Test', version=2))
+            self.assertEqual((frag23, sec(3)), get_klass('Test', version=3))
+            self.assertEqual((frag5, sec(5)), get_klass('Test', version=5))
+
+    def test_reg_version_conflict(self):
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
+        base = Section.base(Magic[2], 23)
+        prober1.fragment(TagFragment('Frag1', 'Test', base_container=base, container_versions=1))
+        prober2.fragment(TagFragment('Frag2', 'Test', base_container=base, container_versions=(1, 2)))
+
+        prober = BytesProber()
+        prober._load_impl(prober1, True)
+        with self.assertRaises(RegisterError) as cm:
+            prober._load_impl(prober2, True)
+        self.assertRegex(str(cm.exception), r'already registered for .*Frag1')
+
+    def test_reg_base_container_conflict(self):
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
+        prober1.fragment(TagFragment('Frag1', 'Test', base_container=Section.base(Magic[2], 23), container_versions=1))
+        prober2.fragment(TagFragment('Frag2', 'Test', base_container=Section.base(Magic[2], 34), container_versions=2))
+
+        prober = BytesProber()
+        prober._load_impl(prober1, True)
+        with self.assertRaises(RegisterError) as cm:
+            prober._load_impl(prober2, True)
+        self.assertRegex(str(cm.exception), r'already registered for \(22222222, 23, None\)')
+
+    def test_reg_base_container_merge(self):
+        prober1 = ClassCollector()
+        prober2 = ClassCollector()
+        frag1 = prober1.fragment(TagFragment('Frag1', 'Test', base_container=Section.base(Magic[2], 34), container_versions=2))
+        frag2 = prober2.add_info(TagFragment('Frag2', 'Test'))
+
+        with classes_on_module(frag1, frag2):
+            for one_first in (True, False):
+                with self.subTest(one_first=one_first):
+                    prober = BytesProber()
+                    if one_first:
+                        prober._load_impl(prober1, True)
+                        prober._load_impl(prober2, True)
+                    else:
+                        prober._load_impl(prober2, True)
+                        prober._load_impl(prober1, True)
+                    self.assertEqual((Magic[2], 34, None), prober.base_container_key('Test'))
+                    self.assertEqual(frag2, prober.klass('Test'))
+
+    def test_klass_teleporter_exit_version_new(self):
+        cls = DefaultProbers.fragments.klass('TeleporterExit', version=1)
+        from distance._impl.fragments.levelfragments import TeleporterExitFragment
+        self.assertEqual(TeleporterExitFragment, cls)
+
+    def test_klass_teleporter_exit_version_old(self):
+        cls = DefaultProbers.fragments.klass('TeleporterExit', version=0)
+        from distance._impl.fragments.npfragments import OldTeleporterExitFragment
+        self.assertEqual(OldTeleporterExitFragment, cls)
+
+    def test_create_teleporter_exit_version_new(self):
+        frag = DefaultProbers.fragments.factory('TeleporterExit', version=1)()
+        from distance._impl.fragments.levelfragments import TeleporterExitFragment
+        self.assertEqual(
+            (TeleporterExitFragment, Section(Magic[2], 0x3f, 1).to_key()),
+            (type(frag), frag.container.to_key()))
+
+    def test_create_teleporter_exit_version_old(self):
+        frag = DefaultProbers.fragments.factory('TeleporterExit', version=0)()
+        from distance._impl.fragments.npfragments import OldTeleporterExitFragment
+        self.assertEqual(
+            (OldTeleporterExitFragment, Section(Magic[2], 0x3f, 0).to_key()),
+            (type(frag), frag.container.to_key()))
+
+    def test_create_sets_container_and_object_type(self):
+        obj = DefaultProbers.level_objects.create('CubeGS')
+        self.assertEqual(obj.type, 'CubeGS')
+        self.assertTrue(obj.container.to_key(), (Magic[6], 'CubeGS'))
+
+    def test_created_object_can_be_written(self):
+        obj = DefaultProbers.level_objects.create('CubeGS')
+
+        res, rdb = write_read(obj)
+
+        self.assertEqual(obj.type, 'CubeGS')
+        self.assertTrue(obj.container.to_key(), (Magic[6], 'CubeGS'))
+
+    def test_create_with_dbytes(self):
+        obj = DefaultProbers.level_objects.create('Group', dbytes='tests/in/customobject/2cubes.bytes')
+
+        self.assertEqual(obj.type, 'Group')
+        self.assertEqual(len(obj.children), 2)
+        check_exceptions(obj)
+
+    def test_factory_with_dbytes(self):
+        obj = DefaultProbers.level_objects.factory('Group')(dbytes='tests/in/customobject/2cubes.bytes')
+
+        self.assertEqual(obj.type, 'Group')
+        self.assertEqual(len(obj.children), 2)
+        check_exceptions(obj)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

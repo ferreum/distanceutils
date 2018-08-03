@@ -185,6 +185,11 @@ class LazySequenceIndexTest(unittest.TestCase):
         self.assertEqual([11, 12, 13, 14], list(it))
         self.assertEqual(4, len(self.lazy))
 
+    def test_add(self):
+        res = self.lazy + [100, 200]
+        self.assertEqual([10, 11, 12, 13, 14, 100, 200], res)
+        self.assertEqual([10, 11, 12, 13, 14], list(self.lazy))
+
 
 class LazyMappedSequenceTest(unittest.TestCase):
 
@@ -308,6 +313,11 @@ class LazyMappedSequenceTest(unittest.TestCase):
 
     def test_len(self):
         self.assertEqual(5, len(self.lazy))
+
+    def test_add(self):
+        res = self.lazy + [100, 200]
+        self.assertEqual([20, 21, 22, 23, 24, 100, 200], list(res))
+        self.assertEqual([20, 21, 22, 23, 24], list(self.lazy))
 
 
 # vim:set sw=4 ts=8 sts=4 et:

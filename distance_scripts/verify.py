@@ -1,15 +1,15 @@
 
 
+from io import BytesIO
 import argparse
 from itertools import zip_longest
 
-from distance.bytes import DstBytes
 from distance.base import ObjectFragment
 from distance import DefaultProbers
 from distance.printing import PrintContext
 
 
-Level = DefaultProbers.file.klass('Level')
+Level = DefaultProbers.level.klass('Level')
 NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
 
 
@@ -85,17 +85,16 @@ def main():
     args = parser.parse_args()
 
     with open(args.FILE, 'rb') as f:
-        data = f.read()
+        data_in = f.read()
 
-    db_in = DstBytes.from_data(data)
-    orgobj = DefaultProbers.file.read(db_in)
+    orgobj = DefaultProbers.file.read(BytesIO(data_in))
 
-    db_out = DstBytes.in_memory()
-    orgobj.write(db_out)
+    buf_out = BytesIO(data_in)
+    orgobj.write(buf_out)
 
     is_equal = True
 
-    lendiff = len(db_out.file.getbuffer()) - len(data)
+    lendiff = len(buf_out.getbuffer()) - len(data_in)
     if lendiff > 0:
         print(f"result is {lendiff} bytes longer")
         is_equal = False
@@ -103,20 +102,20 @@ def main():
         print(f"result is {-lendiff} bytes shorter")
         is_equal = False
 
-    if not lendiff and db_out.file.getbuffer() != data:
+    if not lendiff and buf_out.getbuffer() != data_in:
         print("data differs")
         is_equal = False
 
     if args.w is not None:
         with open(args.w, 'wb') as f:
-            n = (f.write(db_out.file.getbuffer()))
+            n = f.write(buf_out.getbuffer())
         print(f"{n} bytes written")
 
     if is_equal:
         print("data matches")
     else:
-        db_out.seek(0)
-        resobj = DefaultProbers.file.read(db_out)
+        buf_out.seek(0)
+        resobj = DefaultProbers.file.read(buf_out)
         listdiffs(orgobj, resobj)
 
     return 0 if is_equal else 1

@@ -47,4 +47,20 @@ def MedalScoresMapperProperty(attr):
     return property(fget, fset)
 
 
+class classproperty(object):
+
+    def __init__(self, func):
+        self.func = func
+        self.__name__ = func.__name__
+        self.__doc__ = func.__doc__
+
+    def __get__(self, obj, objtype=None):
+        if obj is not None:
+            objtype = type(obj)
+        return self.func(objtype)
+
+    def __set__(self, obj, value):
+        raise AttributeError("can't set attribute")
+
+
 # vim:set sw=4 ts=8 sts=4 et:

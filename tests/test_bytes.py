@@ -1,6 +1,6 @@
 import unittest
 
-from distance.bytes import DstBytes, Magic
+from distance.bytes import DstBytes, Magic, Section
 
 
 class DstBytesTest(unittest.TestCase):
@@ -31,6 +31,17 @@ class DstBytesTest(unittest.TestCase):
                 DstBytes.from_arg(f)
             msg = str(cm.exception)
             self.assertTrue("'b' mode" in msg, msg=f"actual message: {msg!r}")
+
+
+class SectionTest(unittest.TestCase):
+
+    def test_from_key_magic9(self):
+        key = Section(Magic[9], 'A Level').to_key()
+
+        sec = Section.from_key(key)
+
+        self.assertEqual(sec.magic, Magic[9])
+        self.assertEqual(sec.name, None)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

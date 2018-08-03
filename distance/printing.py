@@ -243,7 +243,7 @@ def format_color(color):
 
 
 def format_transform(trans):
-    if trans is None:
+    if not trans:
         return 'None'
     def format_floats(floats):
         return ', '.join(format(f, '.3f') for f in floats)
