@@ -430,11 +430,11 @@ class BytesProber(BaseProber, ClassCollector):
         cls, container = self.__klass(tag, version)
         return InstanceFactory(cls, container)
 
-    def create(self, tag, *args, **kw):
+    def create(self, tag, **kw):
         cls, container = self.__klass(tag, None)
-        if 'container' not in kw:
+        if 'container' not in kw and 'dbytes' not in kw:
             kw['container'] = container
-        return cls(*args, **kw)
+        return cls(**kw)
 
     def is_section_interesting(self, sec):
         return sec.to_key(noversion=True) in self._interesting_sections
@@ -605,10 +605,10 @@ class InstanceFactory(object):
         self.cls = cls
         self.container = container
 
-    def __call__(self, *args, **kw):
-        if 'container' not in kw:
+    def __call__(self, **kw):
+        if 'container' not in kw and 'dbytes' not in kw:
             kw['container'] = self.container
-        return self.cls(*args, **kw)
+        return self.cls(**kw)
 
 
 def _get_klass_def(info, version):

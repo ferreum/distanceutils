@@ -14,7 +14,7 @@ from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
 from distance._impl.level_objects.group import Group
 from distance._impl.level_objects.objects import OldSimple
-from .common import write_read
+from .common import write_read, check_exceptions
 
 
 class TestObject(BaseObject):
@@ -269,6 +269,20 @@ class VerifyClassInfoTest(unittest.TestCase):
 
         self.assertEqual(obj.type, 'CubeGS')
         self.assertTrue(obj.container.to_key(), (Magic[6], 'CubeGS'))
+
+    def test_create_with_dbytes(self):
+        obj = DefaultProbers.level_objects.create('Group', dbytes='tests/in/customobject/2cubes.bytes')
+
+        self.assertEqual(obj.type, 'Group')
+        self.assertEqual(len(obj.children), 2)
+        check_exceptions(obj)
+
+    def test_factory_with_dbytes(self):
+        obj = DefaultProbers.level_objects.factory('Group')(dbytes='tests/in/customobject/2cubes.bytes')
+
+        self.assertEqual(obj.type, 'Group')
+        self.assertEqual(len(obj.children), 2)
+        check_exceptions(obj)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
