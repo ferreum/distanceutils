@@ -61,7 +61,7 @@ from distance.constants import (
     ForceType, Mode, Rating
 )
 
-from ._version import __version__
+from distance._version import __version__
 
 from distance._core import DefaultProbers
 
