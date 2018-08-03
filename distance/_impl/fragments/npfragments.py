@@ -118,7 +118,7 @@ class NamedPropertiesFragment(Fragment):
                   for name, value in cls.__dict__.items()
                   if isinstance(value, (BaseNamedProperty, named_property_getter))}
         try:
-            add = getattr(cls, '_add_fields_')
+            add = cls._add_fields_
         except AttributeError:
             pass
         else:
