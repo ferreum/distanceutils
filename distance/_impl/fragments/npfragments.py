@@ -112,11 +112,11 @@ class StringNamedProperty(BaseNamedProperty):
 @Probers.common.add_info(tag='NamedPropertiesFragment')
 class NamedPropertiesFragment(Fragment):
 
-    @classmethod
+    @classproperty
     def _fields_map(cls):
         result = {name: value.default
-                for name, value in cls.__dict__.items()
-                if isinstance(value, (BaseNamedProperty, named_property_getter))}
+                  for name, value in cls.__dict__.items()
+                  if isinstance(value, (BaseNamedProperty, named_property_getter))}
         try:
             add = getattr(cls, '_add_fields')
         except AttributeError:

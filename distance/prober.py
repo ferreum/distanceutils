@@ -188,8 +188,6 @@ class ClassCollector(object):
         except AttributeError:
             pass
         else:
-            if callable(fields_map):
-                fields_map = fields_map()
             info['fields'] = fields_map
 
         if container is not None:
