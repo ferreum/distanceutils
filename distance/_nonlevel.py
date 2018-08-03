@@ -42,15 +42,13 @@ class ProfileProgress(BaseObject):
             raise AttributeError("ProfileStats fragment is not present.")
 
 
-FTYPE_REPLAY_PREFIX = "Replay: "
-
-
 # Registered in distance._core via prober function because of
 # dynamic object name.
 @DefaultProbers.fragments.fragment_attrs('Replay')
-@require_type(func=lambda t: t.startswith(FTYPE_REPLAY_PREFIX))
+@require_type(func=lambda t: t.startswith('Replay: '))
 class Replay(BaseObject):
-    pass
+
+    type_prefix = 'Replay: '
 
 
 @Probers.non_level_objects.object
