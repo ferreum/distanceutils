@@ -238,7 +238,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_single_exposed_field(self):
         class TestFragment(BaseConstructFragment):
-            _exposed_fields = 'a_uint'
+            _exposed_fields_ = 'a_uint'
             _construct_ = Struct(
                 a_uint = UInt,
                 a_string = DstString,
@@ -248,7 +248,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_exposed_fields(self):
         class TestFragment(BaseConstructFragment):
-            _exposed_fields = 'a_uint', 'a_string'
+            _exposed_fields_ = 'a_uint', 'a_string'
             _construct_ = Struct(
                 a_uint = UInt,
                 a_string = DstString,

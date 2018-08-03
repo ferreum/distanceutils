@@ -90,7 +90,7 @@ class ConstructMeta(type):
                 attrs.update(add)
             cls._fields_ = attrs
 
-            ExposeConstructFields(cls, getattr(cls, '_exposed_fields', None))
+            ExposeConstructFields(cls, getattr(cls, '_exposed_fields_', None))
 
 
 class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
