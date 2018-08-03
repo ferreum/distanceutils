@@ -47,7 +47,7 @@ class ReplayFragment(BaseConstructFragment):
         'rem' / Remainder,
     )
 
-    _add_fields = dict(
+    _add_fields_ = dict(
         finish_time = None,
     )
 

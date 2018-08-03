@@ -85,7 +85,7 @@ class ConstructMeta(type):
                     if isinstance(default, Construct):
                         default = None
                     attrs[con.name] = default
-            add = getattr(cls, '_add_fields', None)
+            add = getattr(cls, '_add_fields_', None)
             if add:
                 attrs.update(add)
             cls._fields_ = attrs

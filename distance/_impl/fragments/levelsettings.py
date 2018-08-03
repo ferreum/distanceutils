@@ -73,7 +73,7 @@ class LevelSettingsFragment(BaseLevelSettings, BaseConstructFragment):
         unk_4 = Remainder,
     )
 
-    _add_fields = dict(
+    _add_fields_ = dict(
         modes = (),
         medal_times = None,
         medal_scores = None,

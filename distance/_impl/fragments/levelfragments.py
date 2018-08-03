@@ -270,7 +270,7 @@ class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment
         display_in_arcade = Default(Byte, 0),
     )
 
-    _add_fields = dict(
+    _add_fields_ = dict(
         texts = (),
     )
 
