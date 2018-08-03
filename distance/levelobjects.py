@@ -30,14 +30,4 @@ class SubObject(LevelObject):
         p(f"Subobject type: {self.type!r}")
 
 
-def print_objects(p, gen):
-    counters = p.counters
-    for obj in gen:
-        p.tree_next_child()
-        counters.num_objects += 1
-        if 'numbers' in p.flags:
-            p(f"Level object: {counters.num_objects}")
-        p.print_data_of(obj)
-
-
 # vim:set sw=4 ts=8 sts=4 et:

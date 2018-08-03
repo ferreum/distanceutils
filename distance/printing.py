@@ -180,6 +180,16 @@ def need_counters(p):
     del p.counters
 
 
+def print_objects(p, gen):
+    counters = p.counters
+    for obj in gen:
+        p.tree_next_child()
+        counters.num_objects += 1
+        if 'numbers' in p.flags:
+            p(f"Level object: {counters.num_objects}")
+        p.print_data_of(obj)
+
+
 def format_bytes(data, fmt='02x'):
     if isinstance(data, (tuple, list)):
         return ', '.join(format_bytes(d) for d in data)

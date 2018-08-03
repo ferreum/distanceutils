@@ -3,8 +3,7 @@
 from distance.bytes import Magic, Section
 from distance.base import Fragment
 from distance.constants import LAYER_FLAG_NAMES
-from distance.printing import need_counters
-from distance.levelobjects import print_objects
+from distance.printing import need_counters, print_objects
 from distance.prober import ProberGroup
 
 
@@ -99,7 +98,6 @@ class Layer(Fragment):
                 print_objects(p, self.objects)
             if counters:
                 counters.print_data(p)
-
 
 
 # vim:set sw=4 et:
