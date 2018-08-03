@@ -85,11 +85,8 @@ class ClassCollector(object):
 
         if not args and not kw:
             sec = cls.base_container
-            if sec is not None:
-                if not any_version and versions is None:
-                    versions = cls.container_versions
-            else:
-                sec = cls.get_default_container()
+            if not any_version and versions is None:
+                versions = cls.container_versions
         else:
             sec = Section(*args, any_version=any_version, **kw)
         if versions is not None:
