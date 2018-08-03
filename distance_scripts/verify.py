@@ -5,11 +5,10 @@ import argparse
 from itertools import zip_longest
 
 from distance.base import ObjectFragment
-from distance import DefaultProbers
+from distance import DefaultProbers, Level
 from distance.printing import PrintContext
 
 
-Level = DefaultProbers.level.klass('Level')
 NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
 
 

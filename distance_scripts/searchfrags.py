@@ -4,8 +4,7 @@
 import argparse
 import re
 
-from distance import DefaultProbers
-from distance.level import Level
+from distance import Level, DefaultProbers
 from distance.bytes import DstBytes, Section, Magic
 from distance.printing import PrintContext
 from distance.prober import BytesProber, ProbeError

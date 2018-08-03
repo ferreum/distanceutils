@@ -1,4 +1,4 @@
-"""Level and level object (CustomObject) support."""
+"""Level file support."""
 
 
 from .bytes import Magic, Section

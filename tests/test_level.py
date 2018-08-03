@@ -1,8 +1,7 @@
 import unittest
 
-from distance.level import Level
+from distance import Level, DefaultProbers
 from distance.printing import PrintContext
-from distance import DefaultProbers
 from distance.bytes import ErrorPosition
 from .common import check_exceptions
 

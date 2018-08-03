@@ -8,7 +8,7 @@ from distance._impl.level_objects.objects import (
 from distance.levelfragments import (
     MaterialFragment,
 )
-from distance.level import Level
+from distance import Level
 from distance.base import Fragment
 from distance.prober import BytesProber
 from tests import common

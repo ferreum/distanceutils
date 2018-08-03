@@ -1,4 +1,4 @@
-from distance.level import Level
+from distance import Level
 
 
 class Base(object):

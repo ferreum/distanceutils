@@ -42,7 +42,7 @@ def _impl_modules():
         'distance._impl.level_content.layer',
         'distance._impl.level_content.newlevelsettings',
         'distance._impl.level_content.oldlevelsettings',
-        'distance.level',
+        'distance._level',
         'distance._nonlevel',
     ]
 

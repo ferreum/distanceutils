@@ -69,7 +69,7 @@ from distance._nonlevel import (
     Replay, Leaderboard, LevelInfos,
     ProfileProgress, WorkshopLevelInfos,
 )
-from distance.level import Level
+from distance._level import Level
 
 # suppress warnings
 __version__

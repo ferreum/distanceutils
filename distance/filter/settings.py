@@ -3,7 +3,7 @@
 
 from collections import OrderedDict
 
-from distance.level import Level
+from distance import Level
 from distance.filter.base import ObjectFilter
 from distance.constants import AbilityToggle as Ability, Mode
 

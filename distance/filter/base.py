@@ -1,8 +1,8 @@
 """Base classes for filters."""
 
 
+from distance import Level
 from distance.base import Transform, TransformError
-from distance.level import Level
 from distance._default_probers import DefaultProbers
 
 

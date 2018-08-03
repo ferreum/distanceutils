@@ -1,8 +1,8 @@
 import unittest
 import math
 
-from distance.level import Level, need_counters
-from distance.printing import PrintContext
+from distance import Level
+from distance.printing import PrintContext, need_counters
 from tests.common import check_exceptions
 
 

@@ -3,10 +3,9 @@ from io import BytesIO
 from contextlib import contextmanager
 from collections import Sequence
 
+from distance import Level, DefaultProbers
 from distance.bytes import DstBytes
-from distance.level import Level
 from distance.base import BaseObject
-from distance import DefaultProbers
 
 
 Layer = DefaultProbers.level_content.klass('Layer')

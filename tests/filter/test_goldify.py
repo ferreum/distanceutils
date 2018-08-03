@@ -1,10 +1,10 @@
 from argparse import Namespace
 import unittest
 
-from distance.level import Level
+from distance import Level
+from distance.filter import GoldifyFilter
 from distance._impl.level_objects.objects import OldSimple
 from distance._impl.fragments.levelfragments import AnimatorFragment
-from distance.filter import GoldifyFilter
 from tests.common import ExtraAssertMixin
 
 

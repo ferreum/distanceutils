@@ -7,7 +7,7 @@ import argparse
 import re
 
 from distance import DefaultProbers
-from distance.level import Level
+from distance import Level
 from distance.printing import PrintContext
 
 

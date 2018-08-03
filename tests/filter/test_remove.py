@@ -1,7 +1,7 @@
 from argparse import Namespace
 import unittest
 
-from distance.level import Level
+from distance import Level
 from distance.filter import RemoveFilter
 
 
