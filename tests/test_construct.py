@@ -19,7 +19,7 @@ class TestFragment(BaseConstructFragment):
 
     default_container = test_section
 
-    _construct = Struct(
+    _construct_ = Struct(
         first_string = Default(DstString, "default_str"),
         second_uint = Default(UInt, 12),
     )
@@ -29,7 +29,7 @@ class NondefaultFragment(BaseConstructFragment):
 
     default_container = test_section
 
-    _construct = Struct(
+    _construct_ = Struct(
         first_string = DstString,
         second_uint = UInt,
     )
@@ -39,7 +39,7 @@ class ComplexFragment(BaseConstructFragment):
 
     default_container = test_section
 
-    _construct = Struct(
+    _construct_ = Struct(
         type = Byte,
         value = Con.IfThenElse(Con.this.type == 0, Byte, DstString)
     )
@@ -49,7 +49,7 @@ class OptionalFragment(BaseConstructFragment):
 
     default_container = test_section
 
-    _construct = Struct(
+    _construct_ = Struct(
         value = DstOptional(DstString)
     )
 
@@ -58,7 +58,7 @@ class RemainderFragment(BaseConstructFragment):
 
     default_container = test_section
 
-    _construct = Struct(
+    _construct_ = Struct(
         value = DstString,
         rem = Remainder,
     )
@@ -239,7 +239,7 @@ class TestFragment2Test(unittest.TestCase):
     def test_single_exposed_field(self):
         class TestFragment(BaseConstructFragment):
             _exposed_fields = 'a_uint'
-            _construct = Struct(
+            _construct_ = Struct(
                 a_uint = UInt,
                 a_string = DstString,
             )
@@ -249,7 +249,7 @@ class TestFragment2Test(unittest.TestCase):
     def test_exposed_fields(self):
         class TestFragment(BaseConstructFragment):
             _exposed_fields = 'a_uint', 'a_string'
-            _construct = Struct(
+            _construct_ = Struct(
                 a_uint = UInt,
                 a_string = DstString,
                 a_long = ULong,
@@ -260,7 +260,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_compiled(self):
         class TestFragment(BaseConstructFragment):
-            _construct = 'my_struct' / Struct(
+            _construct_ = 'my_struct' / Struct(
                 uint = UInt,
             ).compile()
         db = DstBytes.in_memory()
@@ -274,7 +274,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_subcon_called_value(self):
         class TestFragment(BaseConstructFragment):
-            _construct = Struct(
+            _construct_ = Struct(
                 nest = Struct(
                     value = UInt,
                 ),
@@ -293,7 +293,7 @@ class TestFragment2Test(unittest.TestCase):
             base_container = Section.base(Magic[2], 0x1337)
             container_versions = 4
 
-            _construct = Struct(
+            _construct_ = Struct(
                 uint = UInt,
             )
         res, rdb = write_read(TestFragment(uint=3))
@@ -302,7 +302,7 @@ class TestFragment2Test(unittest.TestCase):
 
     def test_doc_on_property(self):
         class TestFragment(BaseConstructFragment):
-            _construct = Struct(
+            _construct_ = Struct(
                 value = Default(UInt, 0) * "a uint value",
             )
         self.assertEqual(TestFragment.value.__doc__, "a uint value")

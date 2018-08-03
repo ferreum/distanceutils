@@ -25,7 +25,7 @@ class CarScreenTextDecodeTriggerFragment(bases.BaseCarScreenTextDecodeTrigger, B
 
     container_versions = 1
 
-    _construct = Struct(
+    _construct_ = Struct(
         text = Default(DstString, ""),
         per_char_speed = Default(Float, 0),
         clear_on_finish = Default(Byte, 0),
@@ -44,7 +44,7 @@ class GoldenSimplesFragment(BaseConstructFragment):
     base_container = Section.base(Magic[2], 0x83)
     container_versions = 3
 
-    _construct = Struct(
+    _construct_ = Struct(
         image_index = Default(UInt, 17),
         emit_index = Default(UInt, 17),
         preset = Default(UInt, 0),
@@ -68,7 +68,7 @@ class TeleporterEntranceFragment(bases.BaseTeleporterEntrance, BaseConstructFrag
 
     container_versions = 1, 2, 3
 
-    _construct = Struct(
+    _construct_ = Struct(
         destination = Default(UInt, 0),
         rem = Remainder,
     )
@@ -79,7 +79,7 @@ class TeleporterExitFragment(bases.BaseTeleporterExit, BaseConstructFragment):
 
     container_versions = 1
 
-    _construct = Struct(
+    _construct_ = Struct(
         link_id = Default(UInt, 0),
     )
 
@@ -90,7 +90,7 @@ class TeleporterExitCheckpointFragment(BaseConstructFragment):
     base_container = Section.base(Magic[2], 0x51)
     container_versions = 0
 
-    _construct = Struct(
+    _construct_ = Struct(
         trigger_checkpoint = Default(Byte, 1),
     )
 
@@ -106,7 +106,7 @@ class SphereColliderFragment(BaseConstructFragment):
     base_container = Section.base(Magic[3], 0x0e)
     container_versions = 1
 
-    _construct = Struct(
+    _construct_ = Struct(
         trigger_center = Default(DstOptional(Float[3]), None),
         trigger_radius = Default(DstOptional(Float), None),
     )
@@ -118,7 +118,7 @@ class BoxColliderFragment(BaseConstructFragment):
     base_container = Section.base(Magic[3], 0xf)
     container_versions = 2
 
-    _construct = Struct(
+    _construct_ = Struct(
         trigger_center = Default(DstOptional(Float[3]), None),
         trigger_size = Default(DstOptional(Float[3]), None),
     )
@@ -132,7 +132,7 @@ class GravityToggleFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         disable_gravity = Default(Byte, 1),
         drag_scale = Default(Float, 1.0),
         drag_scale_angular = Default(Float, 1.0),
@@ -156,7 +156,7 @@ class MusicTriggerFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         music_id = Default(UInt, 19),
         one_time_trigger = Default(Byte, 1),
         reset_before_trigger = Default(Byte, 0),
@@ -183,7 +183,7 @@ class ForceZoneFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         force_direction = Default(DstOptional(Float[3], (0.0, 0.0, 1.0)), (0.0, 0.0, 1.0)),
         global_force = Default(Byte, 0),
         force_type = Default(UInt, ForceType.WIND),
@@ -219,7 +219,7 @@ class TextMeshFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         text = Default(DstOptional(DstString), None),
         font_style = Default(DstOptional(UInt), None),
         font = If(this._params.sec.version >= 2, Default(DstOptional(UInt), None)),
@@ -237,7 +237,7 @@ class TrackNodeFragment(BaseConstructFragment):
     base_container = Section.base(Magic[2], 0x16)
     container_versions = 2
 
-    _construct = Struct(
+    _construct_ = Struct(
         parent_id = Default(UInt, 0),
         snap_id = Default(UInt, 0),
         conn_id = Default(UInt, 0),
@@ -258,7 +258,7 @@ class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment
 
     container_versions = 2
 
-    _construct = Struct(
+    _construct_ = Struct(
         fadeout_time = Default(Float, 1.0),
         entries = Struct(
             delay = Float,
@@ -290,7 +290,7 @@ class AnimatorFragment(BaseConstructFragment):
     base_container = Section.base(Magic[2], 0x9a)
     container_versions = 7
 
-    _construct = Struct(
+    _construct_ = Struct(
         # 2: hinge
         motion_mode = Default(UInt, 2),
         do_scale = Default(Byte, 0),
@@ -340,7 +340,7 @@ class InterpolateToPositionOnTriggerFragment(
 
     container_versions = 1, 2
 
-    _construct = Struct(
+    _construct_ = Struct(
         actually_interpolate = Default(Byte, 0),
         relative = Default(Byte, 1),
         interp_end_pos = Default(DstOptional(Float[3]), None),
@@ -355,7 +355,7 @@ class RigidbodyAxisRotationLogicFragment(BaseConstructFragment):
     base_container = Section.base(Magic[2], 0x17)
     container_versions = 1
 
-    _construct = Struct(
+    _construct_ = Struct(
         angular_speed = Float,
         rotation_axis = UInt,
         limit_rotation = Byte,

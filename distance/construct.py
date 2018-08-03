@@ -73,9 +73,9 @@ class ConstructMeta(type):
 
     def __init__(cls, name, bases, dct):
         super().__init__(name, bases, dct)
-        if cls._construct is not None:
+        if cls._construct_ is not None:
             attrs = {}
-            for con in _get_subcons(cls._construct):
+            for con in _get_subcons(cls._construct_):
                 if con.name:
                     default = getattr(con, 'value', None)
                     # The Default construct provides the default value via its
@@ -97,7 +97,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
 
     """Baseclass for fragments defined by construct Structs.
 
-    Subclasses need to override the `_construct` attribute with the Struct that
+    Subclasses need to override the `_construct_` attribute with the Struct that
     defines the fragment.
 
     """
@@ -105,7 +105,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     __slots__ = ('data',)
 
     # to be overridden by subclasses
-    _construct = None
+    _construct_ = None
 
     def _init_defaults(self):
         super()._init_defaults()
@@ -117,7 +117,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _read_section_data(self, dbytes, sec):
         if sec.content_size:
             try:
-                self.data = self._construct.parse_stream(dbytes.file, sec=sec)
+                self.data = self._construct_.parse_stream(dbytes.file, sec=sec)
             except ConstructError as e:
                 self.data = Container()
                 raise ValueError from e
@@ -131,7 +131,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _write_section_data(self, dbytes, sec):
         # If data is empty, game falls back to defaults.
         if self.data:
-            self._construct.build_stream(self.data, dbytes.file, sec=sec)
+            self._construct_.build_stream(self.data, dbytes.file, sec=sec)
 
     def _print_data(self, p):
         super()._print_data(p)
@@ -176,7 +176,7 @@ def ExposeConstructFields(target=None, only=None):
     """Decorator to expose construct fields as attributes."""
 
     def decorate(target):
-        subcons = _get_subcons(target._construct)
+        subcons = _get_subcons(target._construct_)
         if only is None:
             cons = (c for c in subcons if isinstance(c.name, str))
             names = ()

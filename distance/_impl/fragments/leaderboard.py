@@ -29,7 +29,7 @@ class LeaderboardFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         version = Computed(this._params.sec.version),
         num_entries = Rebuild(UInt, len_(this.entries)),
         unk_1 = Bytes(4),

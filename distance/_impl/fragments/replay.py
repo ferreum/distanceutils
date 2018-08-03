@@ -24,7 +24,7 @@ class ReplayFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         'version' / Computed(this._params.sec.version),
         'player_name' / DstString,
         'player_id' / If(this.version >= 2, ULong),

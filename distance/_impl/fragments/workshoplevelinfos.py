@@ -31,7 +31,7 @@ class WorkshopLevelInfosFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         'num_entries' / Rebuild(UInt, len_(this.levels)),
         'unk_0' / UInt, # entry version?
         'levels' / Default(Struct(

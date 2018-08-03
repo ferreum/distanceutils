@@ -46,7 +46,7 @@ class LevelSettingsFragment(BaseLevelSettings, BaseConstructFragment):
             # confirmed for v25..v26
             return 231
 
-    _construct = Struct(
+    _construct_ = Struct(
         version = Computed(this._params.sec.version),
         unk_0 = Bytes(8),
         name = DstString,

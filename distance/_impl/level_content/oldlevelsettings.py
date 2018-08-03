@@ -36,7 +36,7 @@ class OldLevelSettings(BaseLevelSettings, BaseConstructFragment):
     abilities = ()
     difficulty = None
 
-    _construct = Struct(
+    _construct_ = Struct(
         unk_0 = Bytes(4),
         skybox_name = DstString,
         unk_1 = Bytes(143),

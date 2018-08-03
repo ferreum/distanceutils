@@ -57,7 +57,7 @@ class ProfileProgressFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         'version' / Computed(this._params.sec.version),
         'num_levels' / Rebuild(UInt, len_(this.levels)),
         'unk_0' / UInt,
@@ -125,7 +125,7 @@ class ProfileStatsFragment(BaseConstructFragment):
 
     is_interesting = True
 
-    _construct = Struct(
+    _construct_ = Struct(
         'version' / Computed(this._params.sec.version),
         'unk_0' / Bytes(4),
         'deaths' / Long,
