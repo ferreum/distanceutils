@@ -320,7 +320,7 @@ class Fragment(BytesModel):
             version = versions
         else:
             version = max(versions)
-        return Section(cls.base_container, version=version)
+        return Section(base, version=version)
 
     is_interesting = False
 
