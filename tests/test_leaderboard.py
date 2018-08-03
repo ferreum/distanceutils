@@ -1,6 +1,6 @@
 import unittest
 
-from distance.leaderboard import Leaderboard
+from distance import Leaderboard
 from distance.printing import PrintContext
 from .common import check_exceptions, write_read
 

@@ -4,7 +4,7 @@
 import argparse
 import sqlite3
 
-from distance.workshoplevelinfos import WorkshopLevelInfos
+from distance import WorkshopLevelInfos
 from ._common import get_cache_filename, get_profile_filename
 
 

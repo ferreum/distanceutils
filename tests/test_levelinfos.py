@@ -1,6 +1,6 @@
 import unittest
 
-from distance.levelinfos import LevelInfos
+from distance import LevelInfos
 from distance.printing import PrintContext
 from distance._common import modes_to_map
 from . import common

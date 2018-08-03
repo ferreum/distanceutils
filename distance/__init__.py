@@ -65,6 +65,11 @@ from distance._version import __version__
 
 from distance._core import DefaultProbers
 
+from distance._nonlevel import (
+    Replay, Leaderboard, LevelInfos,
+    ProfileProgress, WorkshopLevelInfos,
+)
+from distance.level import Level
 
 # suppress warnings
 __version__

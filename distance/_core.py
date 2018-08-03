@@ -27,6 +27,7 @@ DefaultProbers.create_composite(
 def _impl_modules():
     return [
         'distance.base',
+        'distance.levelfragments',
         'distance._impl.fragments.group',
         'distance._impl.fragments.levelfragments',
         'distance._impl.fragments.npfragments',
@@ -42,11 +43,7 @@ def _impl_modules():
         'distance._impl.level_content.newlevelsettings',
         'distance._impl.level_content.oldlevelsettings',
         'distance.level',
-        'distance.leaderboard',
-        'distance.levelinfos',
-        'distance.profileprogress',
-        'distance.workshoplevelinfos',
-        'distance.levelfragments',
+        'distance._nonlevel',
     ]
 
 
@@ -59,7 +56,7 @@ DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
 @DefaultProbers.non_level_objects.func('dst._core.nonlevel_fallback')
 def _detect_non_level_objects_other(section):
     if section.magic == Magic[6]:
-        from distance.replay import Replay, FTYPE_REPLAY_PREFIX
+        from distance._nonlevel import Replay, FTYPE_REPLAY_PREFIX
         # Replay requires dynamic check.
         if section.type.startswith(FTYPE_REPLAY_PREFIX):
             return Replay

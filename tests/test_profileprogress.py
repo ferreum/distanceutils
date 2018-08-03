@@ -1,6 +1,6 @@
 import unittest
 
-from distance.profileprogress import ProfileProgress
+from distance import ProfileProgress
 from distance.printing import PrintContext
 from distance.constants import Completion, Mode
 from distance import DefaultProbers

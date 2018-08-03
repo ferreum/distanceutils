@@ -1,6 +1,6 @@
 import unittest
 
-from distance.replay import Replay
+from distance import Replay
 from distance.printing import PrintContext
 from distance import DefaultProbers
 from . import common

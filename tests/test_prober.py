@@ -5,11 +5,7 @@ from distance.bytes import DstBytes, Magic, Section
 from distance.prober import ClassCollector, BytesProber, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
-from distance import DefaultProbers
-from distance.level import Level
-from distance.replay import Replay
-from distance.leaderboard import Leaderboard
-from distance.workshoplevelinfos import WorkshopLevelInfos
+from distance import DefaultProbers, Level, Replay, Leaderboard, WorkshopLevelInfos
 from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
 from distance._impl.level_objects.group import Group

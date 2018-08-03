@@ -1,6 +1,6 @@
 import unittest
 
-from distance.workshoplevelinfos import WorkshopLevelInfos
+from distance import WorkshopLevelInfos
 from distance.printing import PrintContext
 from . import common
 from .common import check_exceptions
