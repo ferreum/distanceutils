@@ -80,6 +80,9 @@ class Level(Fragment):
             return f" {self.name!r}{supstr}"
         return supstr
 
+    def _print_type(self, p):
+        p(f"Level: {self.name!r} version {self.version}")
+
     def _print_data(self, p):
         super()._print_data(p)
         p(f"Level name: {self.name!r}")
