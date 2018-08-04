@@ -9,20 +9,13 @@ from distance.levelfragments import (
     MaterialFragment,
 )
 from distance import Level
-from distance.base import Fragment
+from distance.base import Fragment, ObjectFragment
 from distance.prober import BytesProber
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 
 Group = DefaultProbers.common.klass('Group')
-
-
-UNK_PROBER = BytesProber()
-UNK_FRAG_PROBER = BytesProber()
-UNK_FRAG_PROBER.extend_from(DefaultProbers.base_fragments)
-
-LEVEL_PROBER = DefaultProbers.level_objects
 
 
 class UnknownObject(LevelObject):
@@ -33,8 +26,9 @@ class UnknownFragment(Fragment):
     pass
 
 
-UNK_FRAG_PROBER.baseclass = UnknownFragment
-UNK_PROBER.baseclass = UnknownObject
+UNK_PROBER = BytesProber(baseclass=UnknownObject)
+UNK_FRAG_PROBER = BytesProber(baseclass=UnknownFragment)
+UNK_FRAG_PROBER.add_fragment(ObjectFragment)
 
 
 class UnknownProbers(object):
@@ -230,7 +224,7 @@ class UnknownTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/infodisplaybox 1.bytes"
     def read_obj_pre(self, db, **kw):
-        return LEVEL_PROBER.read(db, probers=UnknownProbers(), **kw)
+        return DefaultProbers.level_objects.read(db, probers=UnknownProbers(), **kw)
     read_obj = InfoDisplayBox
 
     def verify_obj(self, obj):
@@ -241,8 +235,8 @@ class UnknownSubobjectsTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/endzone delay.bytes"
     def read_obj_pre(self, db, **kw):
-        return LEVEL_PROBER.read(db, probers=UnknownProbers(), **kw)
-    read_obj = LEVEL_PROBER.read
+        return DefaultProbers.level_objects.read(db, probers=UnknownProbers(), **kw)
+    read_obj = DefaultProbers.level_objects.read
 
     def verify_obj(self, obj):
         win_logic = next(obj.iter_children(ty=WinLogic))
@@ -253,8 +247,8 @@ class UnknownSection32Test(common.WriteReadTest):
 
     filename = "tests/in/customobject/gravtrigger old.bytes"
     def read_obj_pre(self, db, **kw):
-        return LEVEL_PROBER.read(db, probers=UnknownProbers(), **kw)
-    read_obj = LEVEL_PROBER.read
+        return DefaultProbers.level_objects.read(db, probers=UnknownProbers(), **kw)
+    read_obj = DefaultProbers.level_objects.read
 
     def verify_obj(self, obj):
         check_exceptions(obj)
