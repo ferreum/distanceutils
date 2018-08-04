@@ -434,14 +434,38 @@ class Fragment(BytesModel):
             tag = self.class_tag
         except AttributeError:
             tag = None
-        if not tag:
-            p(f"Fragment: Unknown")
+        if tag is None:
+            type_str = 'Unknown'
+            implemented = False
+        else:
+            type_str = repr(tag)
+            implemented = True
+
+        actual_str = ''
+        ver_str = ''
+        try:
+            container = self.container
+        except AttributeError:
+            pass
         else:
             try:
+                con_tag = self.probers.fragments.get_tag(container)
+            except KeyError:
+                con_tag = None
+            if con_tag is None:
+                implemented = False
+            elif tag is None:
+                type_str = repr(con_tag)
+            elif con_tag != tag:
+                actual_str = f" (actual {con_tag!r})"
+                implemented = False
+
+            if container.has_version():
                 version = self.container.version
-            except AttributeError:
-                version = 'Unknown'
-            p(f"Fragment: {tag!r} version {version!r}")
+                ver_str = f" version {version}"
+
+        dummy_str = '' if implemented else ' [dummy]'
+        p(f"Fragment: {type_str}{actual_str}{ver_str}{dummy_str}")
 
     def _print_data(self, p):
         if 'sections' in p.flags:
