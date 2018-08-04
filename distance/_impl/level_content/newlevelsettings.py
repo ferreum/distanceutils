@@ -5,10 +5,10 @@ from distance.classes import CollectorGroup
 from distance._default_classes import DefaultClasses
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.level_content.object
+@Classes.level_content.object
 @DefaultClasses.fragments.fragment_attrs('LevelSettings')
 class NewLevelSettings(BaseObject):
 

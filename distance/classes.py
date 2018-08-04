@@ -446,7 +446,7 @@ class ClassCollection(BaseProber, ClassCollector):
     def _autoload_impl_module(self, sec_key, impl_module):
         mod = importlib.import_module(impl_module)
         for key in self._keys:
-            coll = getattr(mod.Probers, key)
+            coll = getattr(mod.Classes, key)
             self._load_impl(coll, False)
 
     def _load_impl(self, coll, update_classes):
@@ -701,7 +701,7 @@ def _load_impls_to_colls(colls, impl_modules):
     for name in impl_modules:
         mod = importlib.import_module(name)
         try:
-            for key, coll in mod.Probers._colls.items():
+            for key, coll in mod.Classes._colls.items():
                 try:
                     dest = colls[key]
                 except KeyError as e:

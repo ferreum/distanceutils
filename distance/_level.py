@@ -9,13 +9,13 @@ from .classes import CollectorGroup
 from ._default_classes import DefaultClasses
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
 fragment_attrs = DefaultClasses.fragments.fragment_attrs
 
 
-@Probers.level.fragment
+@Classes.level.fragment
 class Level(Fragment):
 
     class_tag = 'Level'

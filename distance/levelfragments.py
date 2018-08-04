@@ -7,10 +7,10 @@ from ._data import MaterialSet
 from .classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class MaterialFragment(Fragment):
 
     base_container = Section.base(Magic[3], 0x3)

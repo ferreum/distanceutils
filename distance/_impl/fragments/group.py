@@ -5,10 +5,10 @@ from distance.base import Fragment
 from distance.classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class GroupFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x1d)
@@ -45,7 +45,7 @@ class GroupFragment(Fragment):
             dbytes.write_bytes(self.raw_data)
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class CustomNameFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x63)

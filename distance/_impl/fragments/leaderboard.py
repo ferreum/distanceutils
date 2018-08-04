@@ -19,10 +19,10 @@ from distance.printing import format_duration
 NO_REPLAY = 0xffffffff_ffffffff
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment(any_version=True)
+@Classes.fragments.fragment(any_version=True)
 class LeaderboardFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x37)

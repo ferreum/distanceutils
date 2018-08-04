@@ -17,10 +17,10 @@ from distance.constants import ForceType
 from . import bases
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class CarScreenTextDecodeTriggerFragment(bases.BaseCarScreenTextDecodeTrigger, BaseConstructFragment):
 
     container_versions = 1
@@ -38,7 +38,7 @@ class CarScreenTextDecodeTriggerFragment(bases.BaseCarScreenTextDecodeTrigger, B
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class GoldenSimplesFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x83)
@@ -63,7 +63,7 @@ class GoldenSimplesFragment(BaseConstructFragment):
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TeleporterEntranceFragment(bases.BaseTeleporterEntrance, BaseConstructFragment):
 
     container_versions = 1, 2, 3
@@ -74,7 +74,7 @@ class TeleporterEntranceFragment(bases.BaseTeleporterEntrance, BaseConstructFrag
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TeleporterExitFragment(bases.BaseTeleporterExit, BaseConstructFragment):
 
     container_versions = 1
@@ -84,7 +84,7 @@ class TeleporterExitFragment(bases.BaseTeleporterExit, BaseConstructFragment):
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TeleporterExitCheckpointFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x51)
@@ -100,7 +100,7 @@ class TeleporterExitCheckpointFragment(BaseConstructFragment):
             p(f"Trigger checkpoint: {self.trigger_checkpoint}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class SphereColliderFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[3], 0x0e)
@@ -112,7 +112,7 @@ class SphereColliderFragment(BaseConstructFragment):
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class BoxColliderFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[3], 0xf)
@@ -124,7 +124,7 @@ class BoxColliderFragment(BaseConstructFragment):
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class GravityToggleFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x45)
@@ -148,7 +148,7 @@ class GravityToggleFragment(BaseConstructFragment):
             p(f"Angular drag scale: {self.drag_scale_angular}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class MusicTriggerFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x4b)
@@ -175,7 +175,7 @@ class MusicTriggerFragment(BaseConstructFragment):
             p(f"Disable music trigger: {self.disable_music_trigger and 'yes' or 'no'}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class ForceZoneFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0xa0)
@@ -211,7 +211,7 @@ class ForceZoneFragment(BaseConstructFragment):
             p(f"Drag multiplier: {self.drag_multiplier}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TextMeshFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[3], 0x7)
@@ -231,7 +231,7 @@ class TextMeshFragment(BaseConstructFragment):
         p(f"World text: {self.text!r}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TrackNodeFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x16)
@@ -253,7 +253,7 @@ class TrackNodeFragment(BaseConstructFragment):
             p(f"Primary: {self.primary and 'yes' or 'no'}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment):
 
     container_versions = 2
@@ -284,7 +284,7 @@ class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment
                         for e, t in zip(self.entries, value)]
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class AnimatorFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x9a)
@@ -334,7 +334,7 @@ class AnimatorFragment(BaseConstructFragment):
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class InterpolateToPositionOnTriggerFragment(
         bases.BaseInterpolateToPositiononTrigger, BaseConstructFragment):
 
@@ -349,7 +349,7 @@ class InterpolateToPositionOnTriggerFragment(
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class RigidbodyAxisRotationLogicFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x17)
@@ -364,21 +364,21 @@ class RigidbodyAxisRotationLogicFragment(BaseConstructFragment):
     )
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class EventListenerFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x8a)
     container_versions = 0, 1
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TrackAttachmentFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x68)
     container_versions = 0
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class TurnLightOnNearCarFragment(Fragment):
 
     base_container = Section.base(Magic[2], 0x70)

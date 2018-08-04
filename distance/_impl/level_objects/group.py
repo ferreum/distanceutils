@@ -7,11 +7,11 @@ from distance.printing import need_counters, print_objects
 from distance._default_classes import DefaultClasses
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.level_objects.object
-@Probers.common.object
+@Classes.level_objects.object
+@Classes.common.object
 @DefaultClasses.fragments.fragment_attrs('Group', 'CustomName')
 class Group(LevelObject):
 

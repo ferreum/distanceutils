@@ -14,10 +14,10 @@ from distance.printing import format_duration, format_color
 from distance.classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment(any_version=True)
+@Classes.fragments.fragment(any_version=True)
 class ReplayFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x7f)

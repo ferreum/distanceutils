@@ -14,10 +14,10 @@ from distance.classes import CollectorGroup
 from .levelsettings_base import BaseLevelSettings
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.level_content.fragment
+@Classes.level_content.fragment
 class OldLevelSettings(BaseLevelSettings, BaseConstructFragment):
 
     """Special settings section only found in very old maps."""

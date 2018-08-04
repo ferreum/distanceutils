@@ -12,7 +12,7 @@ from distance._common import classproperty
 from . import bases
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
 class named_property_getter(property):
@@ -109,7 +109,7 @@ class StringNamedProperty(BaseNamedProperty):
         return db.file.getvalue()
 
 
-@Probers.common.add_info(tag='NamedPropertiesFragment')
+@Classes.common.add_info(tag='NamedPropertiesFragment')
 class NamedPropertiesFragment(Fragment):
 
     @classproperty
@@ -156,7 +156,7 @@ class NamedPropertiesFragment(Fragment):
             self.props.print_data(p)
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class RaceEndLogicFragment(NamedPropertiesFragment):
 
     base_container = Section.base(Magic[2], 0x5d)
@@ -177,7 +177,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
             p(f"Delay before broadcast: {delay}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
 
     base_container = Section.base(Magic[2], 0x5e)
@@ -227,7 +227,7 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
             p(f"Bloom out: {self.bloom_out}")
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class OldCarScreenTextDecodeTriggerFragment(bases.BaseCarScreenTextDecodeTrigger, NamedPropertiesFragment):
 
     container_versions = 0
@@ -249,7 +249,7 @@ class OldCarScreenTextDecodeTriggerFragment(bases.BaseCarScreenTextDecodeTrigger
     announcer_action = StructNamedProperty('AnnouncerAction', S_UINT)
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class OldInfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, NamedPropertiesFragment):
 
     container_versions = 0
@@ -274,7 +274,7 @@ class OldInfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, NamedPropertiesFra
     destroy_on_trigger_exit = ByteNamedProperty('DestroyOnTriggerExit')
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class OldTeleporterEntranceFragment(bases.BaseTeleporterEntrance, NamedPropertiesFragment):
 
     container_versions = 0
@@ -283,7 +283,7 @@ class OldTeleporterEntranceFragment(bases.BaseTeleporterEntrance, NamedPropertie
     destination = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class OldTeleporterExitFragment(bases.BaseTeleporterExit, NamedPropertiesFragment):
 
     container_versions = 0
@@ -292,7 +292,7 @@ class OldTeleporterExitFragment(bases.BaseTeleporterExit, NamedPropertiesFragmen
     link_id = StructNamedProperty('LinkID', S_UINT, default=0)
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class OldInterpolateToPositionOnTriggerFragment(
         bases.BaseInterpolateToPositiononTrigger, NamedPropertiesFragment):
 
@@ -424,7 +424,7 @@ def add_property_fragments_to_collector(coll):
 
 
 _create_property_fragment_classes()
-add_property_fragments_to_collector(Probers.fragments)
+add_property_fragments_to_collector(Classes.fragments)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

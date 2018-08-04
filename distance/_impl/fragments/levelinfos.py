@@ -18,10 +18,10 @@ from distance.constants import Mode
 from distance.classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class LevelInfosFragment(BaseConstructFragment):
 
     default_container = Section(Magic[2], 0x97, 0)

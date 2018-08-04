@@ -5,13 +5,13 @@ from .classes import CollectorGroup
 from ._default_classes import DefaultClasses
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
 NO_REPLAY = 0xffffffff_ffffffff
 
 
-@Probers.non_level_objects.object
+@Classes.non_level_objects.object
 @DefaultClasses.fragments.fragment_attrs('Leaderboard')
 @require_type
 class Leaderboard(BaseObject):
@@ -19,7 +19,7 @@ class Leaderboard(BaseObject):
     type = 'LocalLeaderboard'
 
 
-@Probers.non_level_objects.object
+@Classes.non_level_objects.object
 @DefaultClasses.fragments.fragment_attrs('LevelInfos')
 @require_type
 class LevelInfos(BaseObject):
@@ -27,7 +27,7 @@ class LevelInfos(BaseObject):
     type = 'LevelInfos'
 
 
-@Probers.non_level_objects.object
+@Classes.non_level_objects.object
 @DefaultClasses.fragments.fragment_attrs('ProfileProgress')
 @require_type
 class ProfileProgress(BaseObject):
@@ -51,7 +51,7 @@ class Replay(BaseObject):
     type_prefix = 'Replay: '
 
 
-@Probers.non_level_objects.object
+@Classes.non_level_objects.object
 @require_type
 @DefaultClasses.fragments.fragment_attrs('WorkshopLevelInfos')
 class WorkshopLevelInfos(BaseObject):

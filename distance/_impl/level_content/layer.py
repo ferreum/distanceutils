@@ -7,7 +7,7 @@ from distance.printing import need_counters, print_objects
 from distance.classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
 def format_layer_flags(gen):
@@ -17,7 +17,7 @@ def format_layer_flags(gen):
             yield name
 
 
-@Probers.level_content.fragment
+@Classes.level_content.fragment
 class Layer(Fragment):
 
     class_tag = 'Layer'

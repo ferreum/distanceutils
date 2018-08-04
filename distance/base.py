@@ -13,7 +13,7 @@ from ._default_classes import DefaultClasses
 from ._common import classproperty
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 TRANSFORM_MIN_SIZE = 12
 
@@ -479,8 +479,8 @@ class Fragment(BytesModel):
                     p.print_data_of(container)
 
 
-@Probers.base_fragments.fragment
-@Probers.fragments.fragment
+@Classes.base_fragments.fragment
+@Classes.fragments.fragment
 class ObjectFragment(Fragment):
 
     __slots__ = ('real_transform', 'has_children', 'children',

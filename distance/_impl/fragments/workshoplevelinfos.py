@@ -14,7 +14,7 @@ from distance.constants import Rating
 from distance.classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
 def format_date(date):
@@ -24,7 +24,7 @@ def format_date(date):
     return str(datetime.fromtimestamp(date))
 
 
-@Probers.fragments.fragment
+@Classes.fragments.fragment
 class WorkshopLevelInfosFragment(BaseConstructFragment):
 
     default_container = Section(Magic[2], 0x6d, 0)

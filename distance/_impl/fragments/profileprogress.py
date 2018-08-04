@@ -18,7 +18,7 @@ from distance.constants import Completion, Mode, TIMED_MODES
 from distance.classes import CollectorGroup
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
 def _print_stringentries(p, title, prefix, entries, num_per_row=1):
@@ -50,7 +50,7 @@ def format_score(mode, score, comp):
     return f"{mode_str} {type_str}: {score_str} ({comp_str})"
 
 
-@Probers.fragments.fragment(any_version=True)
+@Classes.fragments.fragment(any_version=True)
 class ProfileProgressFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x6a)
@@ -118,7 +118,7 @@ class ProfileProgressFragment(BaseConstructFragment):
 
 
 
-@Probers.fragments.fragment(any_version=True)
+@Classes.fragments.fragment(any_version=True)
 class ProfileStatsFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x8e)

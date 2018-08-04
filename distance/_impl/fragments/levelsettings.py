@@ -21,10 +21,10 @@ from distance._common import (
 from distance._impl.level_content.levelsettings_base import BaseLevelSettings
 
 
-Probers = CollectorGroup()
+Classes = CollectorGroup()
 
 
-@Probers.fragments.fragment(any_version=True)
+@Classes.fragments.fragment(any_version=True)
 class LevelSettingsFragment(BaseLevelSettings, BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x52)
