@@ -48,7 +48,7 @@ def _impl_modules():
     ]
 
 
-_autoload_module = 'distance._autoload._probers'
+_autoload_module = 'distance._autoload._classes'
 
 
 DefaultClasses.autoload_modules(_autoload_module, _impl_modules)
