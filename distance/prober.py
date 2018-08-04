@@ -184,11 +184,11 @@ class ClassCollector(object):
         info = {}
 
         try:
-            fields_map = getattr(cls, '_fields_')
+            fields = cls._fields_
         except AttributeError:
             pass
         else:
-            info['fields'] = fields_map
+            info['fields'] = fields
 
         if container is not None:
             info['base_container'] = container.to_key(noversion=True)
