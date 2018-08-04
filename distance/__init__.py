@@ -53,9 +53,6 @@ This lazy-loading changes the seek position of the file.
 """
 
 
-# Import public classes, and ensure these modules are always loaded
-# so they register their objects in our probers.
-
 from distance.constants import (
     AbilityToggle, Completion, Difficulty,
     ForceType, Mode, Rating
