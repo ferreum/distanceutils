@@ -304,16 +304,6 @@ class BytesProber(BaseProber, ClassCollector):
         self._funcs_by_tag = OrderedDict()
         self._funcs = self._funcs_by_tag.values()
 
-    def extend_from(self, other):
-        self._sections.update(((k, v) for k, v in other._sections.items()
-                               if k not in self._sections))
-        self._funcs_by_tag.update(other._funcs_by_tag)
-        _update_class_info(self._classes, other._classes)
-        self._autoload_sections.update((k, v) for k, v in other._autoload_sections.items()
-                                       if k not in self._autoload_sections)
-        self._keys += tuple(k for k in other._keys
-                            if k not in self._keys)
-
     def add_func(self, func, tag):
         self._funcs_by_tag[tag] = func
 
