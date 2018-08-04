@@ -3,7 +3,7 @@
 from distance.bytes import Magic
 from distance.base import BaseObject, Fragment
 from distance.levelobjects import LevelObject, SubObject
-from distance._default_probers import DefaultClasses
+from distance._default_classes import DefaultClasses
 
 
 DefaultClasses.create_category('common', baseclass=Fragment)

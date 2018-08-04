@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 from distance.base import Transform
-from distance._default_probers import DefaultClasses
+from distance._default_classes import DefaultClasses
 from .base import ObjectFilter, ObjectMapper, DoNotApply, create_replacement_group, TransformError
 
 

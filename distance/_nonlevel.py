@@ -2,7 +2,7 @@
 
 from .base import BaseObject, require_type
 from .prober import CollectorGroup
-from ._default_probers import DefaultClasses
+from ._default_classes import DefaultClasses
 
 
 Probers = CollectorGroup()

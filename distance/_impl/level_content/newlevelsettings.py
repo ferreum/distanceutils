@@ -2,7 +2,7 @@
 
 from distance.base import BaseObject
 from distance.prober import CollectorGroup
-from distance._default_probers import DefaultClasses
+from distance._default_classes import DefaultClasses
 
 
 Probers = CollectorGroup()

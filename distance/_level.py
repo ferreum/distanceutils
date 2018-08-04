@@ -6,7 +6,7 @@ from .base import Fragment
 from .lazy import LazySequence
 from .printing import need_counters
 from .prober import CollectorGroup
-from ._default_probers import DefaultClasses
+from ._default_classes import DefaultClasses
 
 
 Probers = CollectorGroup()

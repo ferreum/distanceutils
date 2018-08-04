@@ -3,7 +3,7 @@
 
 import numpy as np, quaternion
 
-from distance._default_probers import DefaultClasses
+from distance._default_classes import DefaultClasses
 
 
 quaternion # suppress warning
