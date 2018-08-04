@@ -121,6 +121,9 @@ class ClassCollector(object):
         else:
             return decorate
 
+    def add_tag(self, tag, *args, **kw):
+        self._add_class(None, tag, Section.base(*args, **kw))
+
     def _add_fragment_for_section(self, cls, sec, any_version):
         if any_version:
             key = sec.to_key(noversion=True)
@@ -183,21 +186,23 @@ class ClassCollector(object):
 
         info = {}
 
-        try:
-            fields = cls._fields_
-        except AttributeError:
-            pass
-        else:
-            info['fields'] = fields
+        if cls is not None:
+            try:
+                fields = cls._fields_
+            except AttributeError:
+                pass
+            else:
+                info['fields'] = fields
 
         if container is not None:
             info['base_container'] = container.to_key(noversion=True)
 
-        class_spec = (cls.__module__, cls.__name__)
-        if versions is None:
-            info['noversion_cls'] = class_spec
-        else:
-            info['versions'] = dict.fromkeys(versions, class_spec)
+        if cls is not None:
+            class_spec = (cls.__module__, cls.__name__)
+            if versions is None:
+                info['noversion_cls'] = class_spec
+            else:
+                info['versions'] = dict.fromkeys(versions, class_spec)
 
         _merge_class_info(self._classes, tag, info)
 

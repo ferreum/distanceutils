@@ -229,6 +229,15 @@ class VerifyClassInfoTest(unittest.TestCase):
                     self.assertEqual((Magic[2], 34, None), prober.base_container_key('Test'))
                     self.assertEqual(frag2, prober.klass('Test'))
 
+    def test_add_tag(self):
+        coll = ClassCollector()
+        coll.add_tag('Test', Magic[2], 0x9001)
+
+        prober = BytesProber()
+        prober._load_impl(coll, True)
+
+        self.assertEqual(prober.base_container_key('Test'), (Magic[2], 0x9001, None))
+
     def test_klass_teleporter_exit_version_new(self):
         cls = DefaultProbers.fragments.klass('TeleporterExit', version=1)
         from distance._impl.fragments.levelfragments import TeleporterExitFragment
