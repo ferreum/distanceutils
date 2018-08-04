@@ -329,7 +329,7 @@ class Fragment(BytesModel):
         "Defaults to the class name with 'Fragment' suffix removed."
         name = cls.__name__
         if not name.endswith('Fragment') or name == 'Fragment':
-            raise NotImplementedError(f"Could not get class tag for {cls!r}")
+            raise AttributeError(f"Could not get class tag for {cls!r}")
         return name[:-8]
 
     def __init__(self, dbytes=None, **kw):
@@ -432,7 +432,7 @@ class Fragment(BytesModel):
     def _print_type(self, p):
         try:
             tag = self.class_tag
-        except NotImplementedError:
+        except AttributeError:
             tag = None
         if not tag:
             p(f"Fragment: Unknown")
@@ -598,10 +598,7 @@ class BaseObject(Fragment):
     @classproperty
     def class_tag(cls):
         "Defaults to the `type` attribute specified by the class."
-        try:
-            return cls.type
-        except AttributeError:
-            raise NotImplementedError
+        return cls.type
 
     def __init__(self, *args, **kw):
         container = kw.get('container')
@@ -688,11 +685,7 @@ class BaseObject(Fragment):
         # This allows retrieving it after assignment via __setitem__.
         peeked = LazyMappedSequence.peek(fragments, i)
         if peeked is not UNSET:
-            try:
-                ptag = peeked.class_tag
-            except NotImplementedError:
-                ptag = None
-            if ptag != tag:
+            if getattr(peeked, 'class_tag', None) != tag:
                 raise FragmentKeyError(tag, sec.version)
             return peeked
 
