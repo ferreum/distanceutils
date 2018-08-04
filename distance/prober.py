@@ -518,9 +518,9 @@ class ClassesRegistry(object):
             try:
                 okeys = self._colls[key].__keys
             except AttributeError:
-                raise ValueError(f"Prober already exists: {key!r}")
+                raise ValueError(f"Category already exists: {key!r}")
             if okeys != keys:
-                raise ValueError(f"Prober {key!r} already exists"
+                raise ValueError(f"Composite {key!r} already exists"
                                  f" with different keys: {keys!r}")
         colls = [self._colls[key] for key in keys]
         prober = CompositeProber(probers=colls, **kw)
