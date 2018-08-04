@@ -198,12 +198,16 @@ def format_bytes(data, fmt='02x'):
         return ' '.join(format(b, fmt) for b in data)
 
 
-def format_bytes_multiline(data, width=16, fmt="02x"):
+def format_bytes_multiline(data, width=16, fmt="02x", maxlines=128):
     if not data:
         return ["<empty>"]
-    return [' '.join(format(b, fmt)
+    maxlen = maxlines * width
+    lines = [' '.join(format(b, fmt)
                      for b in islice(data, row, row + width))
-            for row in range(0, len(data), width)]
+            for row in range(0, min(len(data), maxlen), width)]
+    if len(data) > maxlen:
+        lines.append(f"<{len(data) - maxlen} of {len(data)} bytes omitted>")
+    return lines
 
 
 def format_duration(msec):
