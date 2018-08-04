@@ -333,7 +333,7 @@ class ClassCollection(BaseProber, ClassCollector):
                 return cls
         return None
 
-    def base_container_key(self, tag):
+    def get_base_key(self, tag):
         try:
             info = self._classes[tag]
         except KeyError:

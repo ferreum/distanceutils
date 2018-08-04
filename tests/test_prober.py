@@ -179,7 +179,7 @@ class VerifyClassInfoTest(unittest.TestCase):
             def get_klass(*args, **kw):
                 fact = coll.factory(*args, **kw)
                 return fact.cls, fact.container.to_key()
-            self.assertEqual(coll.base_container_key('Test'), base.to_key())
+            self.assertEqual(coll.get_base_key('Test'), base.to_key())
             self.assertEqual((frag1, sec(1)), get_klass('Test', version=1))
             self.assertEqual((frag23, sec(2)), get_klass('Test', version=2))
             self.assertEqual((frag23, sec(3)), get_klass('Test', version=3))
@@ -226,7 +226,7 @@ class VerifyClassInfoTest(unittest.TestCase):
                     else:
                         coll._load_impl(src2, True)
                         coll._load_impl(src1, True)
-                    self.assertEqual((Magic[2], 34, None), coll.base_container_key('Test'))
+                    self.assertEqual((Magic[2], 34, None), coll.get_base_key('Test'))
                     self.assertEqual(frag2, coll.klass('Test'))
 
     def test_add_tag(self):
@@ -236,7 +236,7 @@ class VerifyClassInfoTest(unittest.TestCase):
         coll = ClassCollection()
         coll._load_impl(src, True)
 
-        self.assertEqual(coll.base_container_key('Test'), (Magic[2], 0x9001, None))
+        self.assertEqual(coll.get_base_key('Test'), (Magic[2], 0x9001, None))
 
     def test_get_tag(self):
         src = ClassCollector()

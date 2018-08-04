@@ -12,7 +12,7 @@ _ANIM_FRAG_TAGS = (
     'TrackAttachment',
 )
 
-ANIM_FRAG_SECTIONS = {DefaultClasses.fragments.base_container_key(tag)
+ANIM_FRAG_SECTIONS = {DefaultClasses.fragments.get_base_key(tag)
                       for tag in _ANIM_FRAG_TAGS}
 
 

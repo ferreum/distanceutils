@@ -720,7 +720,7 @@ class BaseObject(Fragment):
         return fragments[i]
 
     def __setitem__(self, tag, frag):
-        base_key = self.classes.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.get_base_key(tag)
         if frag.container.to_key(noversion=True) != base_key:
             raise KeyError(f"Invalid fragment container: expected"
                            f" {base_key!r} but got {frag.container!r}")
@@ -740,7 +740,7 @@ class BaseObject(Fragment):
         self.fragments = frags
 
     def __delitem__(self, tag):
-        base_key = self.classes.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.get_base_key(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -777,7 +777,7 @@ class BaseObject(Fragment):
 
     def get_any(self, tag):
         "Get fragment with given tag, regardless of implementation."
-        base_key = self.classes.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.get_base_key(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -787,7 +787,7 @@ class BaseObject(Fragment):
 
     def has_any(self, tag):
         "Check whether a fragment with given tag is present."
-        base_key = self.classes.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.get_base_key(tag)
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
                 return True

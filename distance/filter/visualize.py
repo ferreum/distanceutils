@@ -694,7 +694,7 @@ class VisualizeFilter(ObjectFilter):
         frag_classes = DefaultClasses.fragments
         for mapper in mappers:
             for tag in mapper.match_tags:
-                key = frag_classes.base_container_key(tag)
+                key = frag_classes.get_base_key(tag)
                 bysection[key].append(mapper)
             for type in mapper.match_types:
                 bytype[type].append(mapper)
