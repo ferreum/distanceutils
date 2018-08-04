@@ -328,7 +328,7 @@ class Fragment(BytesModel):
     def class_tag(cls):
         "Defaults to the class name with 'Fragment' suffix removed."
         name = cls.__name__
-        if not name.endswith('Fragment'):
+        if not name.endswith('Fragment') or name == 'Fragment':
             raise NotImplementedError(f"Could not get class tag for {cls!r}")
         return name[:-8]
 
@@ -688,7 +688,11 @@ class BaseObject(Fragment):
         # This allows retrieving it after assignment via __setitem__.
         peeked = LazyMappedSequence.peek(fragments, i)
         if peeked is not UNSET:
-            if peeked.class_tag != tag:
+            try:
+                ptag = peeked.class_tag
+            except NotImplementedError:
+                ptag = None
+            if ptag != tag:
                 raise FragmentKeyError(tag, sec.version)
             return peeked
 
