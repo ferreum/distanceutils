@@ -54,7 +54,7 @@ class BaseObjectTest(unittest.TestCase):
 
     def test_getitem_unimplemented_version(self):
         prober = BytesProber()
-        prober.extend_from(DefaultProbers.fragments)
+        prober.add_fragment(ObjectFragment)
         prober.fragment(TagFragment('Frag1', 'Test', default_container=Section(Magic[2], 20, 1)))
         probers = DefaultProbers.copy(fragments=prober)
         probers.fragments = prober
