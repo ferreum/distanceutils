@@ -7,7 +7,7 @@ import re
 from distance import Level, DefaultProbers
 from distance.bytes import DstBytes, Section, Magic
 from distance.printing import PrintContext
-from distance.prober import BytesProber, ProbeError
+from distance.prober import ProbeError
 from distance.base import Fragment, ObjectFragment
 
 
@@ -36,14 +36,6 @@ KNOWN_GOOD_SECTIONS = [
 
 
 KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
-
-
-def setup_prober(args):
-    prober = BytesProber()
-    prober.add_fragment(Level, Magic[9])
-    prober.extend_from(DefaultProbers.level_objects)
-
-    return prober
 
 
 def iter_objects(source, recurse=-1):
@@ -154,11 +146,9 @@ def main():
                         help="Level .bytes filename.")
     args = parser.parse_args()
 
-    prober = setup_prober(args)
-
     matcher = FragmentMatcher(DefaultProbers.fragments, args)
 
-    content = prober.read(args.IN)
+    content = DefaultProbers.level_like.read(args.IN)
     if isinstance(content, Level):
         object_source = iter_objects(content.iter_objects())
     else:
