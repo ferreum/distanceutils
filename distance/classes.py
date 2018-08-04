@@ -294,11 +294,9 @@ class BaseProber(object):
 class ClassCollection(BaseProber, ClassCollector):
     "Collection and Prober of registered classes."
 
-    def __init__(self, *, key=None, keys=(), **kw):
+    def __init__(self, *, key=None, **kw):
         super().__init__(**kw)
-        if key is not None:
-            keys = keys + (key,)
-        self._keys = keys
+        self.key = key
         # We don't have funcs on ClassCollector because they don't need to be
         # lazy-loaded and there's no use for it yet.
         self._funcs_by_tag = OrderedDict()
@@ -445,9 +443,8 @@ class ClassCollection(BaseProber, ClassCollector):
 
     def _autoload_impl_module(self, sec_key, impl_module):
         mod = importlib.import_module(impl_module)
-        for key in self._keys:
-            coll = getattr(mod.Classes, key)
-            self._load_impl(coll, False)
+        coll = getattr(mod.Classes, self.key)
+        self._load_impl(coll, False)
 
     def _load_impl(self, coll, update_classes):
         self._sections.update(((k, v) for k, v in coll._sections.items()
