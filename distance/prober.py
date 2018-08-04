@@ -58,6 +58,7 @@ class ClassCollector(object):
         self._interesting_sections = set()
         self._autoload_sections = {}
         self._classes = {}
+        self._tags_by_base_key = {}
 
     def add_fragment(self, cls, *args,
                      any_version=False, versions=None, **kw):
@@ -195,7 +196,9 @@ class ClassCollector(object):
                 info['fields'] = fields
 
         if container is not None:
-            info['base_container'] = container.to_key(noversion=True)
+            base_key = container.to_key(noversion=True)
+            info['base_container'] = base_key
+            self._tags_by_base_key[base_key] = tag
 
         if cls is not None:
             class_spec = (cls.__module__, cls.__name__)
@@ -351,6 +354,10 @@ class BytesProber(BaseProber, ClassCollector):
             raise TypeError(f"No container information for tag {tag!r}")
         return base
 
+    def get_tag(self, section):
+        key = section.to_key(noversion=True)
+        return self._tags_by_base_key[key]
+
     def get_tag_impl_info(self, tag):
         try:
             info = self._classes[tag]
@@ -427,6 +434,7 @@ class BytesProber(BaseProber, ClassCollector):
         self._autoload_sections.update(content['sections'])
         self._interesting_sections.update(content['interesting'])
         self._classes.update(content['classes'])
+        self._tags_by_base_key.update(content['key_tags'])
 
     def _generate_autoload_content(self):
         return {
@@ -434,6 +442,7 @@ class BytesProber(BaseProber, ClassCollector):
                          for key, cls in self._sections.items()},
             'interesting': set(self._interesting_sections),
             'classes': dict(self._classes),
+            'key_tags': dict(self._tags_by_base_key),
         }
 
     def _get_current_autoload_content(self):
@@ -441,6 +450,7 @@ class BytesProber(BaseProber, ClassCollector):
             'sections': dict(self._autoload_sections),
             'interesting': set(self._interesting_sections),
             'classes': dict(self._classes),
+            'key_tags': dict(self._tags_by_base_key),
         }
 
     def _autoload_impl_module(self, sec_key, impl_module):
@@ -455,6 +465,7 @@ class BytesProber(BaseProber, ClassCollector):
         if update_classes:
             _update_class_info(self._classes, prober._classes)
             self._interesting_sections.update(prober._interesting_sections)
+            self._tags_by_base_key.update(prober._tags_by_base_key)
 
 
 class CompositeProber(BaseProber):
