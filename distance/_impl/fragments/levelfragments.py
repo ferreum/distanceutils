@@ -12,12 +12,12 @@ from distance.construct import (
     Byte, UInt, Float, DstString,
     Struct, Default, DstOptional, Remainder,
 )
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 from distance.constants import ForceType
 from . import bases
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.fragments.fragment

@@ -8,12 +8,12 @@ import collections
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
 from .lazy import UNSET, LazyMappedSequence
-from .prober import ProberGroup
-from ._default_probers import DefaultProbers
+from .prober import CollectorGroup
+from ._default_probers import DefaultClasses
 from ._common import classproperty
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 TRANSFORM_MIN_SIZE = 12
 
@@ -257,8 +257,8 @@ class Transform(tuple):
             dbytes.write_bytes(SKIP_BYTES)
 
 
-def filter_interesting(sec, prober):
-    return sec.content_size and prober.is_section_interesting(sec)
+def filter_interesting(sec, classes):
+    return sec.content_size and classes.is_section_interesting(sec)
 
 
 class Fragment(BytesModel):
@@ -333,7 +333,7 @@ class Fragment(BytesModel):
         return name[:-8]
 
     def __init__(self, dbytes=None, **kw):
-        self.probers = kw.pop('probers', DefaultProbers)
+        self.probers = kw.pop('probers', DefaultClasses)
         super().__init__(dbytes=dbytes, **kw)
 
     def _init_defaults(self):
@@ -613,7 +613,7 @@ class BaseObject(Fragment):
 
     __slots__ = ('type', '_sections', '_fragments')
 
-    child_prober_name = 'base_objects'
+    child_classes_name = 'base_objects'
     is_object_group = False
     has_children = False
 
@@ -677,10 +677,10 @@ class BaseObject(Fragment):
 
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
-        prober = self.probers.fragments
+        classes = self.probers.fragments
         i = 0
         for sec in self._sections:
-            if type_filter(sec, prober):
+            if type_filter(sec, classes):
                 yield fragments[i]
             i += 1
 
@@ -805,11 +805,11 @@ class BaseObject(Fragment):
             return Fragment(exception=sec.exception)
         dbytes = self.dbytes
         dbytes.seek(sec.content_start)
-        probers = self.probers
-        return probers.fragments.maybe(
+        classes = self.probers
+        return classes.fragments.maybe(
             dbytes, probe_section=sec,
-            child_prober=self.child_prober_name,
-            probers=probers)
+            child_prober=self.child_classes_name,
+            probers=classes)
 
     def _get_write_section(self, sec):
         try:

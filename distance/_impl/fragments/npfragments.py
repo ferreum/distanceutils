@@ -7,12 +7,12 @@ from distance.bytes import (
 )
 from distance.base import Fragment
 from distance._data import NamedPropertyList
-from distance.prober import ProberGroup, RegisterError
+from distance.prober import CollectorGroup, RegisterError
 from distance._common import classproperty
 from . import bases
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 class named_property_getter(property):
@@ -407,7 +407,7 @@ def _create_property_fragment_classes():
             created.add(name)
 
 
-def add_property_fragments_to_prober(prober):
+def add_property_fragments_to_collector(coll):
     globs = globals()
     for sec, name in PROPERTY_FRAGS:
         if name:
@@ -416,7 +416,7 @@ def add_property_fragments_to_prober(prober):
             typename = "NamedPropertiesFragment"
         cls = globs[typename]
         try:
-            prober.add_fragment(cls, sec)
+            coll.add_fragment(cls, sec)
         except RegisterError as e:
             if not issubclass(e.registered, NamedPropertiesFragment):
                 raise ValueError(f"Fragment registered for section {sec} has"
@@ -424,7 +424,7 @@ def add_property_fragments_to_prober(prober):
 
 
 _create_property_fragment_classes()
-add_property_fragments_to_prober(Probers.fragments)
+add_property_fragments_to_collector(Probers.fragments)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

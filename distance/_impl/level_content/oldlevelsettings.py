@@ -10,11 +10,11 @@ from distance.construct import (
     Bytes,
     DstString, Remainder,
 )
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 from .levelsettings_base import BaseLevelSettings
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.level_content.fragment

@@ -1,15 +1,15 @@
 
 
 from distance.base import BaseObject
-from distance.prober import ProberGroup
-from distance._default_probers import DefaultProbers
+from distance.prober import CollectorGroup
+from distance._default_probers import DefaultClasses
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.level_content.object
-@DefaultProbers.fragments.fragment_attrs('LevelSettings')
+@DefaultClasses.fragments.fragment_attrs('LevelSettings')
 class NewLevelSettings(BaseObject):
 
     type = 'LevelSettings'

@@ -1,6 +1,6 @@
 import unittest
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 from distance.base import (
     ObjectFragment,
     Fragment,
@@ -32,7 +32,7 @@ from . import common
 from .common import check_exceptions, write_read
 
 
-PROBER = DefaultProbers.level_objects
+PROBER = DefaultClasses.level_objects
 
 
 def TagFragment(name, tag, **kw):
@@ -372,7 +372,7 @@ class TestFragments(unittest.TestCase):
 
     def test_getbytype_after_assign(self):
         old_anim = AnimatorFragment()
-        obj = DefaultProbers.level_objects.create('Group')
+        obj = DefaultClasses.level_objects.create('Group')
         obj.fragments = [ObjectFragment(), old_anim]
         obj['Animator']
 

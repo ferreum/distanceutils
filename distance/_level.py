@@ -5,14 +5,14 @@ from .bytes import Magic, Section
 from .base import Fragment
 from .lazy import LazySequence
 from .printing import need_counters
-from .prober import ProberGroup
-from ._default_probers import DefaultProbers
+from .prober import CollectorGroup
+from ._default_probers import DefaultClasses
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
-fragment_attrs = DefaultProbers.fragments.fragment_attrs
+fragment_attrs = DefaultClasses.fragments.fragment_attrs
 
 
 @Probers.level.fragment

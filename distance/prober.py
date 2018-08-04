@@ -291,8 +291,8 @@ class BaseProber(object):
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
 
-class BytesProber(BaseProber, ClassCollector):
-    "Prober for registered classes."
+class ClassCollection(BaseProber, ClassCollector):
+    "Collection and Prober of registered classes."
 
     def __init__(self, *, key=None, keys=(), **kw):
         super().__init__(**kw)
@@ -446,16 +446,16 @@ class BytesProber(BaseProber, ClassCollector):
     def _autoload_impl_module(self, sec_key, impl_module):
         mod = importlib.import_module(impl_module)
         for key in self._keys:
-            prober = getattr(mod.Probers, key)
-            self._load_impl(prober, False)
+            coll = getattr(mod.Probers, key)
+            self._load_impl(coll, False)
 
-    def _load_impl(self, prober, update_classes):
-        self._sections.update(((k, v) for k, v in prober._sections.items()
+    def _load_impl(self, coll, update_classes):
+        self._sections.update(((k, v) for k, v in coll._sections.items()
                                if k not in self._sections))
         if update_classes:
-            _update_class_info(self._classes, prober._classes)
-            self._interesting_sections.update(prober._interesting_sections)
-            self._tags_by_base_key.update(prober._tags_by_base_key)
+            _update_class_info(self._classes, coll._classes)
+            self._interesting_sections.update(coll._interesting_sections)
+            self._tags_by_base_key.update(coll._tags_by_base_key)
 
 
 class CompositeProber(BaseProber):
@@ -479,63 +479,63 @@ class CompositeProber(BaseProber):
         return None
 
 
-class ProberGroup(object):
+class CollectorGroup(object):
 
     def __init__(self):
-        self._probers = {}
+        self._colls = {}
 
     def __getattr__(self, name):
         try:
-            return self._probers[name]
+            return self._colls[name]
         except KeyError:
-            prober = ClassCollector()
-            self._probers[name] = prober
-            return prober
+            coll = ClassCollector()
+            self._colls[name] = coll
+            return coll
 
     def __dir__(self):
-        return super().__dir__() + list(self._probers.keys())
+        return super().__dir__() + list(self._colls.keys())
 
 
-class ProbersRegistry(object):
+class ClassesRegistry(object):
 
     def __init__(self):
-        self._probers = {}
+        self._colls = {}
         self._autoload_modules = {}
-        self._autoload_probers = {}
+        self._autoload_colls = {}
 
-    def create_prober(self, key, *, baseclass=BytesModel):
+    def create_category(self, key, *, baseclass=BytesModel):
         try:
-            return self._probers[key]
+            return self._colls[key]
         except KeyError:
-            prober = BytesProber(key=key, baseclass=baseclass)
-            self._probers[key] = prober
-            self._autoload_probers[key] = prober
-            return prober
+            coll = ClassCollection(key=key, baseclass=baseclass)
+            self._colls[key] = coll
+            self._autoload_colls[key] = coll
+            return coll
 
     def create_composite(self, key, *, keys=(), **kw):
         keys = tuple(keys)
-        if key in self._probers:
+        if key in self._colls:
             try:
-                okeys = self._probers[key].__keys
+                okeys = self._colls[key].__keys
             except AttributeError:
                 raise ValueError(f"Prober already exists: {key!r}")
             if okeys != keys:
                 raise ValueError(f"Prober {key!r} already exists"
                                  f" with different keys: {keys!r}")
-        probers = [self._probers[key] for key in keys]
-        prober = CompositeProber(probers=probers, **kw)
+        colls = [self._colls[key] for key in keys]
+        prober = CompositeProber(probers=colls, **kw)
         prober.__keys = keys
-        self._probers[key] = prober
-        return prober
+        self._colls[key] = prober
+        return colls
 
     def __getattr__(self, name):
         try:
-            return self._probers[name]
+            return self._colls[name]
         except KeyError:
-            raise AttributeError(f"No such prober: {name!r}")
+            raise AttributeError(f"No such category: {name!r}")
 
     def __dir__(self):
-        return super().__dir__() + list(self._probers.keys())
+        return super().__dir__() + list(self._colls.keys())
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
@@ -543,11 +543,11 @@ class ProbersRegistry(object):
         self._autoload_modules[module_name] = impl_modules
         if do_autoload:
             try:
-                _load_autoload_module(self._autoload_probers, module_name)
+                _load_autoload_module(self._autoload_colls, module_name)
                 return
             except ImportError:
                 pass # fall through and load immediately
-        _load_impls_to_probers(self._autoload_probers, impl_modules)
+        _load_impls_to_colls(self._autoload_colls, impl_modules)
 
     def write_autoload_module(self, module_name):
         try:
@@ -556,31 +556,31 @@ class ProbersRegistry(object):
             raise KeyError(f"Autoload module is not defined: {module_name!r}")
         from distance._autoload_gen import write_autoload_module
         write_autoload_module(module_name, impl_modules,
-                              self._autoload_probers.keys())
+                              self._autoload_colls.keys())
 
     def _verify_autoload(self, verify_autoload=True):
-        keys = self._autoload_probers.keys()
-        actual_probers = {k: BytesProber(key=k) for k in keys}
-        autoload_probers = {k: BytesProber(key=k) for k in keys}
+        keys = self._autoload_colls.keys()
+        actual_colls = {k: ClassCollection(key=k) for k in keys}
+        autoload_colls = {k: ClassCollection(key=k) for k in keys}
         for autoload_module, impl_modules in self._autoload_modules.items():
-            _load_impls_to_probers(actual_probers, impl_modules)
-            _load_autoload_module(autoload_probers, autoload_module)
+            _load_impls_to_colls(actual_colls, impl_modules)
+            _load_autoload_module(autoload_colls, autoload_module)
         if verify_autoload:
             if not do_autoload:
                 raise Exception(f"Autoload is disabled")
             actual_content = {}
             loaded_content = {}
             for key in keys:
-                actual_content[key] = actual_probers[key]._generate_autoload_content()
-                loaded_content[key] = autoload_probers[key]._get_current_autoload_content()
+                actual_content[key] = actual_colls[key]._generate_autoload_content()
+                loaded_content[key] = autoload_colls[key]._get_current_autoload_content()
             return actual_content, loaded_content
 
     def copy(self, **overrides):
-        probers = dict(self._probers)
-        probers.update(overrides)
-        res = ProbersRegistry()
+        colls = dict(self._colls)
+        colls.update(overrides)
+        res = ClassesRegistry()
         res._autoload_modules = dict(self._autoload_modules)
-        res._probers = probers
+        res._colls = colls
         return res
 
 
@@ -684,33 +684,33 @@ def _merged_info(tag, prev, new):
     return result
 
 
-def _load_autoload_module(probers, module_name):
+def _load_autoload_module(colls, module_name):
     mod = importlib.import_module(module_name)
     content_map = mod.content_map
     for key, content in content_map.items():
         try:
-            prober = probers[key]
+            coll = colls[key]
         except KeyError:
-            raise RegisterError(f"Invalid prober key {key!r}")
-        prober._load_autoload_content(content)
+            raise RegisterError(f"Invalid category key {key!r}")
+        coll._load_autoload_content(content)
 
 
-def _load_impls_to_probers(probers, impl_modules):
+def _load_impls_to_colls(colls, impl_modules):
     if callable(impl_modules):
         impl_modules = impl_modules()
     for name in impl_modules:
         mod = importlib.import_module(name)
         try:
-            for key, prober in mod.Probers._probers.items():
+            for key, coll in mod.Probers._colls.items():
                 try:
-                    dest = probers[key]
+                    dest = colls[key]
                 except KeyError as e:
-                    raise AutoloadError(f"Prober in module {name!r} does not exist: {key!r}") from e
-                dest._load_impl(prober, True)
+                    raise AutoloadError(f"Category in module {name!r} does not exist: {key!r}") from e
+                dest._load_impl(coll, True)
         except AutoloadError:
             raise
         except Exception as e:
-            raise AutoloadError(f"Failed to load probers of module {name!r}") from e
+            raise AutoloadError(f"Failed to load classes of module {name!r}") from e
 
 
 # vim:set sw=4 ts=8 sts=4 et:

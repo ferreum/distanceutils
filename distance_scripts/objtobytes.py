@@ -4,10 +4,10 @@
 import sys
 import argparse
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 
 
-Group = DefaultProbers.common.klass('Group')
+Group = DefaultClasses.common.klass('Group')
 
 
 def read_floats(s):

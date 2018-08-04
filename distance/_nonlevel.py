@@ -1,18 +1,18 @@
 
 
 from .base import BaseObject, require_type
-from .prober import ProberGroup
-from ._default_probers import DefaultProbers
+from .prober import CollectorGroup
+from ._default_probers import DefaultClasses
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 NO_REPLAY = 0xffffffff_ffffffff
 
 
 @Probers.non_level_objects.object
-@DefaultProbers.fragments.fragment_attrs('Leaderboard')
+@DefaultClasses.fragments.fragment_attrs('Leaderboard')
 @require_type
 class Leaderboard(BaseObject):
 
@@ -20,7 +20,7 @@ class Leaderboard(BaseObject):
 
 
 @Probers.non_level_objects.object
-@DefaultProbers.fragments.fragment_attrs('LevelInfos')
+@DefaultClasses.fragments.fragment_attrs('LevelInfos')
 @require_type
 class LevelInfos(BaseObject):
 
@@ -28,7 +28,7 @@ class LevelInfos(BaseObject):
 
 
 @Probers.non_level_objects.object
-@DefaultProbers.fragments.fragment_attrs('ProfileProgress')
+@DefaultClasses.fragments.fragment_attrs('ProfileProgress')
 @require_type
 class ProfileProgress(BaseObject):
 
@@ -44,7 +44,7 @@ class ProfileProgress(BaseObject):
 
 # Registered in distance._core via prober function because of
 # dynamic object name.
-@DefaultProbers.fragments.fragment_attrs('Replay')
+@DefaultClasses.fragments.fragment_attrs('Replay')
 @require_type(func=lambda t: t.startswith('Replay: '))
 class Replay(BaseObject):
 
@@ -53,7 +53,7 @@ class Replay(BaseObject):
 
 @Probers.non_level_objects.object
 @require_type
-@DefaultProbers.fragments.fragment_attrs('WorkshopLevelInfos')
+@DefaultClasses.fragments.fragment_attrs('WorkshopLevelInfos')
 class WorkshopLevelInfos(BaseObject):
 
     type = 'WorkshopLevelInfos'

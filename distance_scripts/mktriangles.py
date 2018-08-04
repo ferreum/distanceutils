@@ -3,11 +3,11 @@
 
 import argparse
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 
 
-Group = DefaultProbers.common.klass('Group')
-GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
+Group = DefaultClasses.common.klass('Group')
+GoldenSimple = DefaultClasses.common.klass('GoldenSimple')
 
 
 def main():

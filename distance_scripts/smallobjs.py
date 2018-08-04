@@ -3,7 +3,7 @@
 
 import argparse
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 
 
 def main():
@@ -12,7 +12,7 @@ def main():
     parser.add_argument("FILE", help=".bytes CustomObject filename")
     args = parser.parse_args()
 
-    obj = DefaultProbers.level_objects.read(args.FILE)
+    obj = DefaultClasses.level_objects.read(args.FILE)
 
     def get_objs(o):
         yield o

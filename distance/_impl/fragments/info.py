@@ -1,9 +1,9 @@
 
 from distance.bytes import Magic
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 register = Probers.fragments.add_tag

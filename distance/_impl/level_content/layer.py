@@ -4,10 +4,10 @@ from distance.bytes import Magic, Section
 from distance.base import Fragment
 from distance.constants import LAYER_FLAG_NAMES
 from distance.printing import need_counters, print_objects
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 def format_layer_flags(gen):

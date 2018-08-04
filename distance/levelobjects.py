@@ -8,7 +8,7 @@ class LevelObject(BaseObject):
 
     __slots__ = ()
 
-    child_prober_name = 'level_subobjects'
+    child_classes_name = 'level_subobjects'
 
     has_children = True
 

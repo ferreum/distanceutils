@@ -3,14 +3,14 @@
 from distance.levelobjects import LevelObject, SubObject
 from distance.bytes import Section, Magic
 from distance.base import Transform, Fragment
-from distance.prober import ProberGroup
-from distance._default_probers import DefaultProbers
+from distance.prober import CollectorGroup
+from distance._default_probers import DefaultClasses
 from distance.levelfragments import material_attrs
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
-fragment_attrs = DefaultProbers.fragments.fragment_attrs
+fragment_attrs = DefaultClasses.fragments.fragment_attrs
 
 
 @Probers.level_objects.object(

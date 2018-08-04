@@ -1,21 +1,21 @@
 
 
 from distance.levelobjects import LevelObject
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 from distance.base import Transform
 from distance.printing import need_counters, print_objects
-from distance._default_probers import DefaultProbers
+from distance._default_probers import DefaultClasses
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.level_objects.object
 @Probers.common.object
-@DefaultProbers.fragments.fragment_attrs('Group', 'CustomName')
+@DefaultClasses.fragments.fragment_attrs('Group', 'CustomName')
 class Group(LevelObject):
 
-    child_prober_name = 'level_objects'
+    child_classes_name = 'level_objects'
     is_object_group = True
     type = 'Group'
 

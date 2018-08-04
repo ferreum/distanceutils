@@ -12,14 +12,14 @@ from distance.construct import (
     BaseConstructFragment,
     UInt, DstString, ULong,
 )
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 from distance.printing import format_duration
 
 
 NO_REPLAY = 0xffffffff_ffffffff
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.fragments.fragment(any_version=True)

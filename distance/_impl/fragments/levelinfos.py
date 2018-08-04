@@ -15,10 +15,10 @@ from distance.construct import (
 )
 from distance.printing import format_duration
 from distance.constants import Mode
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.fragments.fragment

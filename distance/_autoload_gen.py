@@ -4,7 +4,7 @@
 import os
 import importlib
 
-from distance.prober import BytesProber, _load_impls_to_probers
+from distance.prober import ClassCollection, _load_impls_to_colls
 
 
 value_types = int, float, bytes, str, bool, type(None),
@@ -31,10 +31,10 @@ def _generate_autoload_content(module_name, impl_modules, keys):
         "\n",
         "content_map = ",
     ]
-    probers = {k: BytesProber(key=k) for k in keys}
-    _load_impls_to_probers(probers, impl_modules)
+    colls = {k: ClassCollection(key=k) for k in keys}
+    _load_impls_to_colls(colls, impl_modules)
     content = {k: p._generate_autoload_content()
-               for k, p in probers.items()}
+               for k, p in colls.items()}
     text.extend(_generate_source(content, 0))
     text.append("\n")
     return ''.join(text)

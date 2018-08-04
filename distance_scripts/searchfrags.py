@@ -4,15 +4,15 @@
 import argparse
 import re
 
-from distance import Level, DefaultProbers
+from distance import Level, DefaultClasses
 from distance.bytes import DstBytes, Section, Magic
 from distance.printing import PrintContext
 from distance.prober import ProbeError
 from distance.base import Fragment, ObjectFragment
 
 
-NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
-MaterialFragment = DefaultProbers.fragments.klass('Material')
+NamedPropertiesFragment = DefaultClasses.common.klass('NamedPropertiesFragment')
+MaterialFragment = DefaultClasses.fragments.klass('Material')
 
 
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
@@ -146,9 +146,9 @@ def main():
                         help="Level .bytes filename.")
     args = parser.parse_args()
 
-    matcher = FragmentMatcher(DefaultProbers.fragments, args)
+    matcher = FragmentMatcher(DefaultClasses.fragments, args)
 
-    content = DefaultProbers.level_like.read(args.IN)
+    content = DefaultClasses.level_like.read(args.IN)
     if isinstance(content, Level):
         object_source = iter_objects(content.iter_objects())
     else:

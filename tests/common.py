@@ -3,12 +3,12 @@ from io import BytesIO
 from contextlib import contextmanager
 from collections import Sequence
 
-from distance import Level, DefaultProbers
+from distance import Level, DefaultClasses
 from distance.bytes import DstBytes
 from distance.base import BaseObject
 
 
-Layer = DefaultProbers.level_content.klass('Layer')
+Layer = DefaultClasses.level_content.klass('Layer')
 
 
 def disable_writes(dbytes):

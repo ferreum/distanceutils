@@ -3,23 +3,23 @@
 from distance.bytes import Magic
 from distance.base import BaseObject, Fragment
 from distance.levelobjects import LevelObject, SubObject
-from distance._default_probers import DefaultProbers
+from distance._default_probers import DefaultClasses
 
 
-DefaultProbers.create_prober('common', baseclass=Fragment)
-DefaultProbers.create_prober('level_objects', baseclass=LevelObject)
-DefaultProbers.create_prober('level_subobjects', baseclass=SubObject)
-DefaultProbers.create_prober('level_fallback', baseclass=LevelObject)
-DefaultProbers.create_prober('fragments', baseclass=Fragment)
-DefaultProbers.create_prober('base_objects', baseclass=BaseObject)
-DefaultProbers.create_prober('base_fragments', baseclass=Fragment)
-DefaultProbers.create_prober('level', baseclass=Fragment)
-DefaultProbers.create_prober('level_content', baseclass=Fragment)
-DefaultProbers.create_prober('non_level_objects', baseclass=BaseObject)
-DefaultProbers.create_composite(
+DefaultClasses.create_category('common', baseclass=Fragment)
+DefaultClasses.create_category('level_objects', baseclass=LevelObject)
+DefaultClasses.create_category('level_subobjects', baseclass=SubObject)
+DefaultClasses.create_category('level_fallback', baseclass=LevelObject)
+DefaultClasses.create_category('fragments', baseclass=Fragment)
+DefaultClasses.create_category('base_objects', baseclass=BaseObject)
+DefaultClasses.create_category('base_fragments', baseclass=Fragment)
+DefaultClasses.create_category('level', baseclass=Fragment)
+DefaultClasses.create_category('level_content', baseclass=Fragment)
+DefaultClasses.create_category('non_level_objects', baseclass=BaseObject)
+DefaultClasses.create_composite(
     'level_like', baseclass=LevelObject,
     keys=['level', 'level_objects'])
-DefaultProbers.create_composite(
+DefaultClasses.create_composite(
     'file', baseclass=Fragment,
     keys=['level_objects', 'level', 'non_level_objects', 'level_fallback'])
 
@@ -51,10 +51,10 @@ def _impl_modules():
 _autoload_module = 'distance._autoload._probers'
 
 
-DefaultProbers.autoload_modules(_autoload_module, _impl_modules)
+DefaultClasses.autoload_modules(_autoload_module, _impl_modules)
 
 
-@DefaultProbers.non_level_objects.func('dst._core.nonlevel_fallback')
+@DefaultClasses.non_level_objects.func('dst._core.nonlevel_fallback')
 def _detect_non_level_objects_other(section):
     if section.magic == Magic[6]:
         # Replay requires dynamic check.
@@ -64,7 +64,7 @@ def _detect_non_level_objects_other(section):
     return None
 
 
-@DefaultProbers.level_fallback.func('dst._core.level_fallback')
+@DefaultClasses.level_fallback.func('dst._core.level_fallback')
 def _level_fallback(section):
     if section.magic == Magic[6]:
         return LevelObject
@@ -72,7 +72,7 @@ def _level_fallback(section):
 
 
 def write_autoload_modules():
-    DefaultProbers.write_autoload_module(_autoload_module)
+    DefaultClasses.write_autoload_module(_autoload_module)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

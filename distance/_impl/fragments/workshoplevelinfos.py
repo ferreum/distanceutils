@@ -11,10 +11,10 @@ from distance.construct import (
     UInt, ULong, DstString
 )
 from distance.constants import Rating
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 def format_date(date):

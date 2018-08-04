@@ -2,7 +2,7 @@
 
 import unittest
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 from distance.bytes import Magic, Section
 from distance.base import (
     ObjectFragment,
@@ -15,10 +15,7 @@ from distance._impl.level_objects.objects import (
 from distance._impl.fragments.levelfragments import (
     GoldenSimplesFragment,
 )
-from distance.prober import BytesProber, TagError
-
-
-PROBER = DefaultProbers.level_objects
+from distance.prober import ClassCollection, TagError
 
 
 def TagFragment(name, tag, **kw):
@@ -53,13 +50,12 @@ class BaseObjectTest(unittest.TestCase):
         self.assertEqual(cm.exception.is_present, False)
 
     def test_getitem_unimplemented_version(self):
-        prober = BytesProber()
-        prober.add_fragment(ObjectFragment)
-        prober.fragment(TagFragment('Frag1', 'Test', default_container=Section(Magic[2], 20, 1)))
-        probers = DefaultProbers.copy(fragments=prober)
-        probers.fragments = prober
+        coll = ClassCollection()
+        coll.add_fragment(ObjectFragment)
+        coll.fragment(TagFragment('Frag1', 'Test', default_container=Section(Magic[2], 20, 1)))
+        classes = DefaultClasses.copy(fragments=coll)
 
-        obj = BaseObject(probers=probers)
+        obj = BaseObject(probers=classes)
         obj.fragments = [ObjectFragment(), Fragment(container=Section(Magic[2], 20, 10))]
 
         with self.assertRaises(KeyError) as cm:

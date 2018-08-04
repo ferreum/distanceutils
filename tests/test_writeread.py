@@ -1,6 +1,6 @@
 import unittest
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 from distance._impl.level_objects.objects import (
     LevelObject, GoldenSimple, InfoDisplayBox, WinLogic,
     OldSimple, WorldText,
@@ -10,12 +10,12 @@ from distance.levelfragments import (
 )
 from distance import Level
 from distance.base import Fragment, ObjectFragment
-from distance.prober import BytesProber
+from distance.prober import ClassCollection
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
 
-Group = DefaultProbers.common.klass('Group')
+Group = DefaultClasses.common.klass('Group')
 
 
 class UnknownObject(LevelObject):
@@ -26,8 +26,8 @@ class UnknownFragment(Fragment):
     pass
 
 
-UNK_PROBER = BytesProber(baseclass=UnknownObject)
-UNK_FRAG_PROBER = BytesProber(baseclass=UnknownFragment)
+UNK_PROBER = ClassCollection(baseclass=UnknownObject)
+UNK_FRAG_PROBER = ClassCollection(baseclass=UnknownFragment)
 UNK_FRAG_PROBER.add_fragment(ObjectFragment)
 
 
@@ -224,7 +224,7 @@ class UnknownTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/infodisplaybox 1.bytes"
     def read_obj_pre(self, db, **kw):
-        return DefaultProbers.level_objects.read(db, probers=UnknownProbers(), **kw)
+        return DefaultClasses.level_objects.read(db, probers=UnknownProbers(), **kw)
     read_obj = InfoDisplayBox
 
     def verify_obj(self, obj):
@@ -235,8 +235,8 @@ class UnknownSubobjectsTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/endzone delay.bytes"
     def read_obj_pre(self, db, **kw):
-        return DefaultProbers.level_objects.read(db, probers=UnknownProbers(), **kw)
-    read_obj = DefaultProbers.level_objects.read
+        return DefaultClasses.level_objects.read(db, probers=UnknownProbers(), **kw)
+    read_obj = DefaultClasses.level_objects.read
 
     def verify_obj(self, obj):
         win_logic = next(obj.iter_children(ty=WinLogic))
@@ -247,8 +247,8 @@ class UnknownSection32Test(common.WriteReadTest):
 
     filename = "tests/in/customobject/gravtrigger old.bytes"
     def read_obj_pre(self, db, **kw):
-        return DefaultProbers.level_objects.read(db, probers=UnknownProbers(), **kw)
-    read_obj = DefaultProbers.level_objects.read
+        return DefaultClasses.level_objects.read(db, probers=UnknownProbers(), **kw)
+    read_obj = DefaultClasses.level_objects.read
 
     def verify_obj(self, obj):
         check_exceptions(obj)

@@ -15,10 +15,10 @@ from distance.construct import (
 )
 from distance.printing import format_duration, format_duration_dhms, format_distance
 from distance.constants import Completion, Mode, TIMED_MODES
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 def _print_stringentries(p, title, prefix, entries, num_per_row=1):

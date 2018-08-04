@@ -11,10 +11,10 @@ from distance.construct import (
     UInt, ULong, Float, DstString, Remainder, MagicConst,
 )
 from distance.printing import format_duration, format_color
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.fragments.fragment(any_version=True)

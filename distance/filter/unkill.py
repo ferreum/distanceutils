@@ -1,7 +1,7 @@
 """Filter for replacing kill grids."""
 
 
-from distance._default_probers import DefaultProbers
+from distance._default_probers import DefaultClasses
 from .base import (
     ObjectFilter, ObjectMapper, DoNotApply,
     create_replacement_group,
@@ -15,7 +15,7 @@ class KillgridMapper(ObjectMapper):
         self.type = type
 
     def create_result(self, old, transform, collision=True, copy_color=True):
-        gs = DefaultProbers.level_objects.create(self.type, type=self.type, transform=transform)
+        gs = DefaultClasses.level_objects.create(self.type, type=self.type, transform=transform)
         color = (.302, 0, 0, .471)
         if copy_color:
             try:

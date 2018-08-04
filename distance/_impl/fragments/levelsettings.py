@@ -12,7 +12,7 @@ from distance.construct import (
     Int, UInt, Bytes, Byte, Float,
     DstString, Remainder,
 )
-from distance.prober import ProberGroup
+from distance.prober import CollectorGroup
 from distance._common import (
     ModesMapperProperty,
     MedalTimesMapperProperty,
@@ -21,7 +21,7 @@ from distance._common import (
 from distance._impl.level_content.levelsettings_base import BaseLevelSettings
 
 
-Probers = ProberGroup()
+Probers = CollectorGroup()
 
 
 @Probers.fragments.fragment(any_version=True)

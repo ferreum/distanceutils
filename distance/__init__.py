@@ -63,7 +63,7 @@ from distance.constants import (
 
 from distance._version import __version__
 
-from distance._core import DefaultProbers
+from distance._core import DefaultClasses
 
 from distance._nonlevel import (
     Replay, Leaderboard, LevelInfos,
@@ -82,11 +82,11 @@ __all__ = [
     'AbilityToggle', 'Completion', 'Difficulty',
     'ForceType', 'Mode', 'Rating',
 
-    'DefaultProbers',
+    'DefaultClasses',
 ]
 
 
-PROBER = DefaultProbers.file
+PROBER = DefaultClasses.file
 
 
 # vim:set sw=4 ts=8 sts=4 et:

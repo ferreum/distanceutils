@@ -3,7 +3,7 @@ import unittest
 from distance import ProfileProgress
 from distance.printing import PrintContext
 from distance.constants import Completion, Mode
-from distance import DefaultProbers
+from distance import DefaultClasses
 from . import common
 from .common import check_exceptions, write_read
 
@@ -11,7 +11,7 @@ from .common import check_exceptions, write_read
 class ProfileProgressTest(unittest.TestCase):
 
     def test_probe(self):
-        obj = DefaultProbers.file.read("tests/in/profileprogress/new profile.bytes")
+        obj = DefaultClasses.file.read("tests/in/profileprogress/new profile.bytes")
         self.assertEqual(type(obj), ProfileProgress)
 
     def test_read_new(self):

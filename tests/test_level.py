@@ -1,6 +1,6 @@
 import unittest
 
-from distance import Level, DefaultProbers
+from distance import Level, DefaultClasses
 from distance.printing import PrintContext
 from distance.bytes import ErrorPosition
 from .common import check_exceptions
@@ -9,7 +9,7 @@ from .common import check_exceptions
 class LevelTest(unittest.TestCase):
 
     def test_probe(self):
-        obj = DefaultProbers.file.read("tests/in/level/test-straightroad.bytes")
+        obj = DefaultClasses.file.read("tests/in/level/test-straightroad.bytes")
         self.assertEqual(type(obj), Level)
 
     def test_level(self):

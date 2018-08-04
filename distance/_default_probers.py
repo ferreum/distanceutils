@@ -1,10 +1,10 @@
-"""Provides probers that are used internally."""
+"""Provides the default class registry."""
 
 
-from .prober import ProbersRegistry
+from .prober import ClassesRegistry
 
 
-DefaultProbers = ProbersRegistry()
+DefaultClasses = ClassesRegistry()
 
 
 # vim:set sw=4 ts=8 sts=4 et:

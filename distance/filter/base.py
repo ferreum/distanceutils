@@ -3,7 +3,7 @@
 
 from distance import Level
 from distance.base import Transform, TransformError
-from distance._default_probers import DefaultProbers
+from distance._default_probers import DefaultClasses
 
 
 _ANIM_FRAG_TAGS = (
@@ -12,11 +12,11 @@ _ANIM_FRAG_TAGS = (
     'TrackAttachment',
 )
 
-ANIM_FRAG_SECTIONS = {DefaultProbers.fragments.base_container_key(tag)
+ANIM_FRAG_SECTIONS = {DefaultClasses.fragments.base_container_key(tag)
                       for tag in _ANIM_FRAG_TAGS}
 
 
-Group = DefaultProbers.common.klass('Group')
+Group = DefaultClasses.common.klass('Group')
 
 
 def create_replacement_group(orig, objs, animated_only=False):

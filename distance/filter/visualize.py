@@ -5,7 +5,7 @@ from collections import defaultdict
 import math
 
 from distance.base import Transform, NoDefaultTransformError
-from distance._default_probers import DefaultProbers
+from distance._default_probers import DefaultClasses
 from .base import ObjectFilter, DoNotApply, create_replacement_group
 
 
@@ -30,7 +30,7 @@ HOLO_VISUAL_DEFAULT = dict(
 )
 
 
-GoldenSimple = DefaultProbers.common.klass('GoldenSimple')
+GoldenSimple = DefaultClasses.common.klass('GoldenSimple')
 
 
 class SimpleCreator(object):
@@ -529,11 +529,11 @@ class CooldownTriggerMapper(VisualizeMapper):
             # static ring
             return objs
 
-        grp = DefaultProbers.level_objects.create('Group', children=objs)
+        grp = DefaultClasses.level_objects.create('Group', children=objs)
         grp.recenter(main.transform.pos)
         grp.rerotate(main.transform.rot)
 
-        anim = DefaultProbers.fragments.create('Animator')
+        anim = DefaultClasses.fragments.create('Animator')
         anim.motion_mode = 5 # advanced
 
         if rotLogic.limit_rotation:
@@ -691,10 +691,10 @@ class VisualizeFilter(ObjectFilter):
         bysection = defaultdict(list)
         bytype = defaultdict(list)
         bysubtype = defaultdict(list)
-        prober = DefaultProbers.fragments
+        frag_classes = DefaultClasses.fragments
         for mapper in mappers:
             for tag in mapper.match_tags:
-                key = prober.base_container_key(tag)
+                key = frag_classes.base_container_key(tag)
                 bysection[key].append(mapper)
             for type in mapper.match_types:
                 bytype[type].append(mapper)

@@ -6,13 +6,13 @@ import sys
 import argparse
 from contextlib import contextmanager
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 from distance.levelobjects import LevelObject
 from distance.filter import getfilter
 from distance.printing import PrintContext
 
 
-level_objects = DefaultProbers.level_objects
+level_objects = DefaultClasses.level_objects
 
 
 def filterlevel_getfilter(name):
@@ -162,12 +162,12 @@ def main():
         srcarg = BytesIO(sys.stdin.buffer.read())
     else:
         srcarg = args.IN
-    content = DefaultProbers.level_like.read(srcarg)
+    content = DefaultClasses.level_like.read(srcarg)
 
     is_wrapped = False
     if isinstance(content, LevelObject) and content.type != 'Group':
         is_wrapped = True
-        content = DefaultProbers.level_objects.create('Group', children=[content])
+        content = DefaultClasses.level_objects.create('Group', children=[content])
 
     p = PrintContext(file=sys.stderr, flags=('groups', 'subobjects'))
 

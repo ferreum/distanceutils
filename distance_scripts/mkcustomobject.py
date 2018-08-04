@@ -6,7 +6,7 @@ import sys
 import argparse
 import re
 
-from distance import DefaultProbers
+from distance import DefaultClasses
 from distance import Level
 from distance.printing import PrintContext
 
@@ -81,7 +81,7 @@ def main():
         srcarg = BytesIO(sys.stdin.buffer.read())
     else:
         srcarg = args.IN
-    content = DefaultProbers.level_like.read(srcarg)
+    content = DefaultClasses.level_like.read(srcarg)
     if isinstance(content, Level):
         object_source = content.iter_objects()
     else:

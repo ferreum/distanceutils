@@ -3,7 +3,7 @@
 
 import numpy as np, quaternion
 
-from distance._default_probers import DefaultProbers
+from distance._default_probers import DefaultClasses
 
 
 quaternion # suppress warning
@@ -13,7 +13,7 @@ SIMPLE_SIZE = 64
 WEDGE_DEF_ROT = np.quaternion(np.cos(np.pi/4), 0, np.sin(np.pi/4), 0)
 
 
-_mkwedge = DefaultProbers.level_objects.factory('WedgeGS')
+_mkwedge = DefaultClasses.level_objects.factory('WedgeGS')
 
 
 def convquat(quat):

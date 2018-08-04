@@ -2,7 +2,7 @@ import unittest
 
 from distance import Replay
 from distance.printing import PrintContext
-from distance import DefaultProbers
+from distance import DefaultClasses
 from . import common
 from .common import check_exceptions
 
@@ -18,7 +18,7 @@ def assertColor(first, second):
 class ProbeTest(unittest.TestCase):
 
     def test_probe(self):
-        obj = DefaultProbers.file.read("tests/in/replay/version_1.bytes")
+        obj = DefaultClasses.file.read("tests/in/replay/version_1.bytes")
         self.assertEqual(type(obj), Replay)
 
 

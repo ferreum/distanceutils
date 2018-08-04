@@ -5,11 +5,11 @@ import argparse
 from itertools import zip_longest
 
 from distance.base import ObjectFragment
-from distance import DefaultProbers, Level
+from distance import DefaultClasses, Level
 from distance.printing import PrintContext
 
 
-NamedPropertiesFragment = DefaultProbers.common.klass('NamedPropertiesFragment')
+NamedPropertiesFragment = DefaultClasses.common.klass('NamedPropertiesFragment')
 
 
 def rec_iter_fragments(orglist, reslist, path):
@@ -86,7 +86,7 @@ def main():
     with open(args.FILE, 'rb') as f:
         data_in = f.read()
 
-    orgobj = DefaultProbers.file.read(BytesIO(data_in))
+    orgobj = DefaultClasses.file.read(BytesIO(data_in))
 
     buf_out = BytesIO(data_in)
     orgobj.write(buf_out)
@@ -114,7 +114,7 @@ def main():
         print("data matches")
     else:
         buf_out.seek(0)
-        resobj = DefaultProbers.file.read(buf_out)
+        resobj = DefaultClasses.file.read(buf_out)
         listdiffs(orgobj, resobj)
 
     return 0 if is_equal else 1

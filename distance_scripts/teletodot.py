@@ -3,10 +3,10 @@
 
 import argparse
 
-from distance import Level, DefaultProbers
+from distance import Level, DefaultClasses
 
 
-SubTeleporter = DefaultProbers.level_subobjects.klass('Teleporter')
+SubTeleporter = DefaultClasses.level_subobjects.klass('Teleporter')
 
 
 def main():
