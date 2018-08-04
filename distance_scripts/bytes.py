@@ -7,7 +7,7 @@ from io import BytesIO
 
 from distance.base import Fragment
 from distance.printing import PrintContext
-from distance.prober import CompositeProber
+from distance.classes import CompositeProber
 from distance import DefaultClasses
 from ._common import handle_pipeerror
 

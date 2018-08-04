@@ -10,7 +10,7 @@ from distance.construct import (
     Bytes,
     DstString, Remainder,
 )
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 from .levelsettings_base import BaseLevelSettings
 
 

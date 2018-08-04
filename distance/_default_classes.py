@@ -1,7 +1,7 @@
 """Provides the default class registry."""
 
 
-from .prober import ClassesRegistry
+from .classes import ClassesRegistry
 
 
 DefaultClasses = ClassesRegistry()

@@ -1,7 +1,7 @@
 
 
 from distance.base import BaseObject
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 from distance._default_classes import DefaultClasses
 
 

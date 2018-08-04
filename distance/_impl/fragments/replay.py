@@ -11,7 +11,7 @@ from distance.construct import (
     UInt, ULong, Float, DstString, Remainder, MagicConst,
 )
 from distance.printing import format_duration, format_color
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 
 
 Probers = CollectorGroup()

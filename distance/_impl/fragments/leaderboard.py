@@ -12,7 +12,7 @@ from distance.construct import (
     BaseConstructFragment,
     UInt, DstString, ULong,
 )
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 from distance.printing import format_duration
 
 

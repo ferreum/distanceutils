@@ -7,7 +7,7 @@ import re
 from distance import Level, DefaultClasses
 from distance.bytes import DstBytes, Section, Magic
 from distance.printing import PrintContext
-from distance.prober import ProbeError
+from distance.classes import ProbeError
 from distance.base import Fragment, ObjectFragment
 
 

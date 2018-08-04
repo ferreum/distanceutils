@@ -7,7 +7,7 @@ from distance.bytes import (
 )
 from distance.base import Fragment
 from distance._data import NamedPropertyList
-from distance.prober import CollectorGroup, RegisterError
+from distance.classes import CollectorGroup, RegisterError
 from distance._common import classproperty
 from . import bases
 

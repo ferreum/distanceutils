@@ -12,7 +12,7 @@ from distance.construct import (
     Int, UInt, Bytes, Byte, Float,
     DstString, Remainder,
 )
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 from distance._common import (
     ModesMapperProperty,
     MedalTimesMapperProperty,

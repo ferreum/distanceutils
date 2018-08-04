@@ -12,7 +12,7 @@ from distance.construct import (
     Byte, UInt, Float, DstString,
     Struct, Default, DstOptional, Remainder,
 )
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 from distance.constants import ForceType
 from . import bases
 

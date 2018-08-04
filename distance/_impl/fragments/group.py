@@ -2,7 +2,7 @@
 
 from distance.bytes import Section, Magic
 from distance.base import Fragment
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 
 
 Probers = CollectorGroup()

@@ -2,7 +2,7 @@ import unittest
 from contextlib import contextmanager
 
 from distance.bytes import DstBytes, Magic, Section
-from distance.prober import ClassCollector, ClassCollection, RegisterError
+from distance.classes import ClassCollector, ClassCollection, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultClasses, Level, Replay, Leaderboard, WorkshopLevelInfos
@@ -132,8 +132,8 @@ class VerifyTest(unittest.TestCase):
         DefaultClasses._verify_autoload(verify_autoload=False)
 
     def test_verify_autoload(self):
-        import distance
-        if not distance.prober.do_autoload:
+        import distance.classes
+        if not distance.classes.do_autoload:
             self.skipTest("Autoload is disabled")
         actual, loaded = DefaultClasses._verify_autoload(verify_autoload=True)
         self.assertEqual(loaded, actual)

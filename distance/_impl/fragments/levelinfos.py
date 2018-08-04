@@ -15,7 +15,7 @@ from distance.construct import (
 )
 from distance.printing import format_duration
 from distance.constants import Mode
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 
 
 Probers = CollectorGroup()

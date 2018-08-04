@@ -1,7 +1,7 @@
 
 
 from .base import BaseObject, require_type
-from .prober import CollectorGroup
+from .classes import CollectorGroup
 from ._default_classes import DefaultClasses
 
 

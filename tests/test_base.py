@@ -15,7 +15,7 @@ from distance._impl.level_objects.objects import (
 from distance._impl.fragments.levelfragments import (
     GoldenSimplesFragment,
 )
-from distance.prober import ClassCollection, TagError
+from distance.classes import ClassCollection, TagError
 
 
 def TagFragment(name, tag, **kw):

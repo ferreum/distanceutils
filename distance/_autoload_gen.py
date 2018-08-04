@@ -4,7 +4,7 @@
 import os
 import importlib
 
-from distance.prober import ClassCollection, _load_impls_to_colls
+from distance.classes import ClassCollection, _load_impls_to_colls
 
 
 value_types = int, float, bytes, str, bool, type(None),

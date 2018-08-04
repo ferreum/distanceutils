@@ -1,6 +1,6 @@
 
 from distance.bytes import Magic
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 
 
 Probers = CollectorGroup()

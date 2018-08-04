@@ -11,7 +11,7 @@ from distance.construct import (
     UInt, ULong, DstString
 )
 from distance.constants import Rating
-from distance.prober import CollectorGroup
+from distance.classes import CollectorGroup
 
 
 Probers = CollectorGroup()

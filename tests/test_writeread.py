@@ -10,7 +10,7 @@ from distance.levelfragments import (
 )
 from distance import Level
 from distance.base import Fragment, ObjectFragment
-from distance.prober import ClassCollection
+from distance.classes import ClassCollection
 from tests import common
 from tests.common import check_exceptions, write_read, ExtraAssertMixin
 
