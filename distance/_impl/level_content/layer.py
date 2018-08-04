@@ -54,7 +54,7 @@ class Layer(Fragment):
         else:
             self.has_layer_flags = False
             obj_start = sec.content_start
-        self.objects = self.probers.level_objects.lazy_n_maybe(
+        self.objects = self.classes.level_objects.lazy_n_maybe(
             dbytes, sec.count, start_pos=obj_start)
 
     def _write_section_data(self, dbytes, sec):

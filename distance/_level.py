@@ -33,7 +33,7 @@ class Level(Fragment):
 
         num_layers = sec.count
 
-        self.content = self.probers.level_content.lazy_n_maybe(
+        self.content = self.classes.level_content.lazy_n_maybe(
             dbytes, num_layers + 1)
         if num_layers:
             self.layers = LazySequence(

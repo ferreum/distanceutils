@@ -55,7 +55,7 @@ class BaseObjectTest(unittest.TestCase):
         coll.fragment(TagFragment('Frag1', 'Test', default_container=Section(Magic[2], 20, 1)))
         classes = DefaultClasses.copy(fragments=coll)
 
-        obj = BaseObject(probers=classes)
+        obj = BaseObject(classes=classes)
         obj.fragments = [ObjectFragment(), Fragment(container=Section(Magic[2], 20, 10))]
 
         with self.assertRaises(KeyError) as cm:

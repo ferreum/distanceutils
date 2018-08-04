@@ -265,7 +265,7 @@ class Fragment(BytesModel):
 
     """Represents a container Section and its content."""
 
-    __slots__ = ('_raw_data', 'container', 'dbytes', 'probers')
+    __slots__ = ('_raw_data', 'container', 'dbytes', 'classes')
 
     default_container = None
 
@@ -333,7 +333,7 @@ class Fragment(BytesModel):
         return name[:-8]
 
     def __init__(self, dbytes=None, **kw):
-        self.probers = kw.pop('probers', DefaultClasses)
+        self.classes = kw.pop('classes', DefaultClasses)
         super().__init__(dbytes=dbytes, **kw)
 
     def _init_defaults(self):
@@ -342,7 +342,7 @@ class Fragment(BytesModel):
         if con is not None:
             self.container = con
 
-    def _read(self, dbytes, container=None, probers=None, child_prober=None):
+    def _read(self, dbytes, container=None, classes=None, child_prober=None):
 
         """Read data of the Fragment.
 
@@ -350,7 +350,7 @@ class Fragment(BytesModel):
                          be positioned at content_start of the section if set.
                          If omitted, it is read from dbytes before reading the
                          Fragment.
-        `probers`      - If not None, sets the probers used by this Fragment.
+        `classes`      - If not None, sets the classes used by this Fragment.
         `child_prober` - Specifies the child object prober name for
                          ObjectFragment. Only accepted here to
                          allow passing it without checking for its type.
@@ -358,8 +358,8 @@ class Fragment(BytesModel):
         """
 
         self.dbytes = dbytes
-        if probers is not None:
-            self.probers = probers
+        if classes is not None:
+            self.classes = classes
         if container is None:
             container = Section(dbytes, seek_end=False)
         self.container = container
@@ -449,7 +449,7 @@ class Fragment(BytesModel):
             pass
         else:
             try:
-                con_tag = self.probers.fragments.get_tag(container)
+                con_tag = self.classes.fragments.get_tag(container)
             except KeyError:
                 con_tag = None
             if con_tag is None:
@@ -496,7 +496,7 @@ class ObjectFragment(Fragment):
         self.children = ()
 
     def _read(self, dbytes, *args, **kw):
-        self._child_prober = getattr(self.probers, kw['child_prober'])
+        self._child_prober = getattr(self.classes, kw['child_prober'])
         Fragment._read(self, dbytes, *args, **kw)
 
     def _read_section_data(self, dbytes, sec):
@@ -666,7 +666,7 @@ class BaseObject(Fragment):
                              " (read-only view of fragments*.container)"))
 
     def fragment_by_type(self, typ):
-        probe = self.probers.fragments.probe_section
+        probe = self.classes.fragments.probe_section
         i = 0
         for sec in self.sections:
             sec_typ = probe(sec)
@@ -677,7 +677,7 @@ class BaseObject(Fragment):
 
     def filtered_fragments(self, type_filter):
         fragments = self._fragments
-        classes = self.probers.fragments
+        classes = self.classes.fragments
         i = 0
         for sec in self._sections:
             if type_filter(sec, classes):
@@ -693,7 +693,7 @@ class BaseObject(Fragment):
             If fragment is not present or not implemented.
         """
 
-        base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        base_key, versions = self.classes.fragments.get_tag_impl_info(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -720,7 +720,7 @@ class BaseObject(Fragment):
         return fragments[i]
 
     def __setitem__(self, tag, frag):
-        base_key = self.probers.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.base_container_key(tag)
         if frag.container.to_key(noversion=True) != base_key:
             raise KeyError(f"Invalid fragment container: expected"
                            f" {base_key!r} but got {frag.container!r}")
@@ -740,7 +740,7 @@ class BaseObject(Fragment):
         self.fragments = frags
 
     def __delitem__(self, tag):
-        base_key = self.probers.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.base_container_key(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -754,7 +754,7 @@ class BaseObject(Fragment):
 
     def __contains__(self, tag):
         "Check whether a fragment with given tag is present and implemented."
-        base_key, versions = self.probers.fragments.get_tag_impl_info(tag)
+        base_key, versions = self.classes.fragments.get_tag_impl_info(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -777,7 +777,7 @@ class BaseObject(Fragment):
 
     def get_any(self, tag):
         "Get fragment with given tag, regardless of implementation."
-        base_key = self.probers.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.base_container_key(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -787,7 +787,7 @@ class BaseObject(Fragment):
 
     def has_any(self, tag):
         "Check whether a fragment with given tag is present."
-        base_key = self.probers.fragments.base_container_key(tag)
+        base_key = self.classes.fragments.base_container_key(tag)
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
                 return True
@@ -805,11 +805,11 @@ class BaseObject(Fragment):
             return Fragment(exception=sec.exception)
         dbytes = self.dbytes
         dbytes.seek(sec.content_start)
-        classes = self.probers
+        classes = self.classes
         return classes.fragments.maybe(
             dbytes, probe_section=sec,
             child_prober=self.child_classes_name,
-            probers=classes)
+            classes=classes)
 
     def _get_write_section(self, sec):
         try:
@@ -828,7 +828,7 @@ class BaseObject(Fragment):
                     if sec is not None]
         fragments = []
         for sec in sections:
-            cls = self.probers.fragments.probe_section(sec)
+            cls = self.classes.fragments.probe_section(sec)
             frag = cls(container=sec)
             if cls is ObjectFragment:
                 frag.has_children = self.has_children

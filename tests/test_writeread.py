@@ -224,7 +224,7 @@ class UnknownTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/infodisplaybox 1.bytes"
     def read_obj_pre(self, db, **kw):
-        return DefaultClasses.level_objects.read(db, probers=UnknownProbers(), **kw)
+        return DefaultClasses.level_objects.read(db, classes=UnknownProbers(), **kw)
     read_obj = InfoDisplayBox
 
     def verify_obj(self, obj):
@@ -235,7 +235,7 @@ class UnknownSubobjectsTest(common.WriteReadTest):
 
     filename = "tests/in/customobject/endzone delay.bytes"
     def read_obj_pre(self, db, **kw):
-        return DefaultClasses.level_objects.read(db, probers=UnknownProbers(), **kw)
+        return DefaultClasses.level_objects.read(db, classes=UnknownProbers(), **kw)
     read_obj = DefaultClasses.level_objects.read
 
     def verify_obj(self, obj):
@@ -247,7 +247,7 @@ class UnknownSection32Test(common.WriteReadTest):
 
     filename = "tests/in/customobject/gravtrigger old.bytes"
     def read_obj_pre(self, db, **kw):
-        return DefaultClasses.level_objects.read(db, probers=UnknownProbers(), **kw)
+        return DefaultClasses.level_objects.read(db, classes=UnknownProbers(), **kw)
     read_obj = DefaultClasses.level_objects.read
 
     def verify_obj(self, obj):
