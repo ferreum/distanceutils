@@ -23,6 +23,7 @@ from construct import (
 
 from distance.base import Fragment
 from distance.bytes import Magic, SKIP_BYTES
+from distance.printing import format_bytes_multiline
 
 __all__ = [
     'BaseConstructFragment',
@@ -138,15 +139,21 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
         if 'allprops' in p.flags:
             p(f"Fields: {len(self.data)}")
             with p.tree_children():
+                indent = "        "
                 for name, value in self.data.items():
                     if name != '_io': # construct internal?
                         p.tree_next_child()
-                        prefix = f"Field: {name} = "
-                        indent = " " * len(prefix)
-                        it = iter(str(value).splitlines() or [""])
-                        p(prefix + next(it))
-                        for line in it:
-                            p(indent + line)
+                        if isinstance(value, bytes):
+                            lines = format_bytes_multiline(value)
+                        else:
+                            lines = str(value).splitlines()
+                        lines = lines or ["<empty>"]
+                        if len(lines) > 1:
+                            p(f"Field: {name} =")
+                            for line in lines:
+                                p(indent + line)
+                        else:
+                            p(f"Field: {name} = " + lines[0])
 
 
 def construct_property(cls, name, doc=None):

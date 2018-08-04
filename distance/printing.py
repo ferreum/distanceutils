@@ -4,6 +4,7 @@
 import sys
 import traceback
 import math
+from itertools import islice
 from contextlib import contextmanager
 
 
@@ -195,6 +196,14 @@ def format_bytes(data, fmt='02x'):
         return ', '.join(format_bytes(d) for d in data)
     else:
         return ' '.join(format(b, fmt) for b in data)
+
+
+def format_bytes_multiline(data, width=16, fmt="02x"):
+    if not data:
+        return ["<empty>"]
+    return [' '.join(format(b, fmt)
+                     for b in islice(data, row, row + width))
+            for row in range(0, len(data), width)]
 
 
 def format_duration(msec):
