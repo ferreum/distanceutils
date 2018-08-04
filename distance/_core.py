@@ -37,6 +37,7 @@ def _impl_modules():
         'distance._impl.fragments.levelinfos',
         'distance._impl.fragments.profileprogress',
         'distance._impl.fragments.workshoplevelinfos',
+        'distance._impl.fragments.info',
         'distance._impl.level_objects.group',
         'distance._impl.level_objects.objects',
         'distance._impl.level_content.layer',

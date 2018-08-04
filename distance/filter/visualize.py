@@ -4,7 +4,6 @@
 from collections import defaultdict
 import math
 
-from distance.bytes import Section, Magic
 from distance.base import Transform, NoDefaultTransformError
 from distance._default_probers import DefaultProbers
 from .base import ObjectFilter, DoNotApply, create_replacement_group
@@ -189,7 +188,7 @@ class SphereVisualizer(Visualizer):
 
 class VisualizeMapper(object):
 
-    match_sections = ()
+    match_tags = ()
     match_types = ()
     match_subtypes = ()
 
@@ -222,9 +221,7 @@ class VisualizeMapper(object):
 
 class GravityTriggerMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x45),
-    )
+    match_tags = 'GravityToggle',
 
     vis = SphereVisualizer(
         color = (.82, .44, 0),
@@ -238,12 +235,7 @@ class GravityTriggerMapper(VisualizeMapper):
 
 class TeleporterMapper(VisualizeMapper):
 
-    match_sections = (
-        # tele entrance
-        Section.base(Magic[2], 0x3e),
-        # tele exit
-        Section.base(Magic[2], 0x3f),
-    )
+    match_tags = 'TeleporterEntrance', 'TeleporterExit',
 
     vis = SphereVisualizer(
         color = (0, .482, 1),
@@ -340,9 +332,7 @@ class TeleporterMapper(VisualizeMapper):
 
 class VirusSpiritSpawnerMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x3a),
-    )
+    match_tags = 'VirusSpiritSpawner',
 
     vis = SphereVisualizer(
         color = (.878, .184, .184),
@@ -356,9 +346,7 @@ class VirusSpiritSpawnerMapper(VisualizeMapper):
 
 class EventTriggerMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x89),
-    )
+    match_tags = 'EventTrigger',
 
     color = (0, .4, 0)
 
@@ -376,9 +364,7 @@ class EventTriggerMapper(VisualizeMapper):
 
 class EnableAbilitiesTriggerMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x5e),
-    )
+    match_tags = 'EnableAbilitiesTrigger',
 
     vis = BoxVisualizer(
         color = (.686, .686, .686),
@@ -391,9 +377,7 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
 
 class ForceZoneMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0xa0),
-    )
+    match_tags = 'ForceZone',
 
     vis = BoxVisualizer(
         color = (.9134, .345, 1),
@@ -406,9 +390,7 @@ class ForceZoneMapper(VisualizeMapper):
 
 class WingCorruptionZoneMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x53),
-    )
+    match_tags = 'WingCorruptionZone',
 
     vis_box = BoxVisualizer(
         color = (.545, .545, 0),
@@ -432,9 +414,7 @@ class WingCorruptionZoneMapper(VisualizeMapper):
 
 class VirusMazeMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x43),
-    )
+    match_tags = 'InterpolateToPositionOnTrigger',
 
     _opts = dict(
         color = (.355, .077, 0),
@@ -479,9 +459,7 @@ class VirusMazeMapper(VisualizeMapper):
 
 class CheckpointMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x19),
-    )
+    match_tags = 'CheckpointLogic',
 
     _opts = dict(
         color = (0, .733, .498),
@@ -599,9 +577,7 @@ class CooldownTriggerMapper(VisualizeMapper):
 
 class PlanetWithSphericalGravityMapper(VisualizeMapper):
 
-    match_sections = (
-        Section.base(Magic[2], 0x5f),
-    )
+    match_tags = 'SphericalGravity',
 
     vis = SphereVisualizer(
         color = (.341, 0, .694),
@@ -615,9 +591,7 @@ class PlanetWithSphericalGravityMapper(VisualizeMapper):
 
 class GoldenSimplesMapper(VisualizeMapper):
 
-    match_sections = (
-        Section(Magic[2], 0x83, 3),
-    )
+    match_tags = 'GoldenSimples',
 
     _dark_textures = {0, 1, 2, 3, 4, 5, 7, 8, 11, 12, 13, 14, 15, 16, 17,
                       18, 19, 20, 21, 22, 23, 25, 27, 29, 30, 31, 32, 33,
@@ -717,9 +691,11 @@ class VisualizeFilter(ObjectFilter):
         bysection = defaultdict(list)
         bytype = defaultdict(list)
         bysubtype = defaultdict(list)
+        prober = DefaultProbers.fragments
         for mapper in mappers:
-            for sec in mapper.match_sections:
-                bysection[sec.to_key()].append(mapper)
+            for tag in mapper.match_tags:
+                key = prober.base_container_key(tag)
+                bysection[key].append(mapper)
             for type in mapper.match_types:
                 bytype[type].append(mapper)
             for subtype in mapper.match_subtypes:
