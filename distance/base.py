@@ -843,10 +843,17 @@ class BaseObject(Fragment):
 
     def _repr_detail(self):
         supstr = super()._repr_detail()
-        return f" type={self.type!r}{supstr}"
+        try:
+            return f" type={self.type!r}{supstr}"
+        except AttributeError:
+            return supstr
 
     def _print_type(self, p):
-        p(f"Object type: {self.type!r}")
+        try:
+            text = repr(self.type)
+        except AttributeError:
+            text = "Unknown"
+        p(f"Object type: {text}")
 
     def _print_data(self, p):
         Fragment._print_data(self, p)

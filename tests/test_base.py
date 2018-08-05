@@ -4,6 +4,7 @@ import unittest
 
 from distance import DefaultClasses
 from distance.bytes import Magic, Section
+from distance.printing import PrintContext
 from distance.base import (
     ObjectFragment,
     BaseObject,
@@ -29,6 +30,12 @@ class CustomGSFragment(Fragment):
 
 
 class BaseObjectTest(unittest.TestCase):
+
+    def test_new_print(self):
+        obj = BaseObject()
+        p = PrintContext.for_test()
+        p.print_data_of(obj)
+        repr(obj)
 
     def test_getitem_object(self):
         obj = BaseObject()
