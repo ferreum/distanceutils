@@ -85,6 +85,11 @@ class RegisteredTest(unittest.TestCase):
                 result = DefaultClasses.file.read(f"tests/in/replay/version_{ver}.bytes")
                 self.assertIsInstance(result, Replay)
 
+    def test_create_replay(self):
+        obj = DefaultClasses.common.create('Replay', type='Replay: Test')
+        self.assertIsInstance(obj, Replay)
+        self.assertEqual(obj.type, 'Replay: Test')
+
     def test_level(self):
         result = DefaultClasses.file.read(f"tests/in/level/test-straightroad.bytes")
         self.assertIsInstance(result, Level)

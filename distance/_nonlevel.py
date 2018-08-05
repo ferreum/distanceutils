@@ -44,6 +44,7 @@ class ProfileProgress(BaseObject):
 
 # Registered in distance._core via prober function because of
 # dynamic object name.
+@Classes.common.add_info(tag='Replay')
 @DefaultClasses.fragments.fragment_attrs('Replay')
 @require_type(func=lambda t: t.startswith('Replay: '))
 class Replay(BaseObject):
