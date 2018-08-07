@@ -210,7 +210,7 @@ class ClassCollector(object):
         _merge_class_info(self._classes, tag, info)
 
 
-class BaseProber(object):
+class _BaseProber(object):
     """Base for probers.
 
     Subclasses need to implement `_probe_section_key` and
@@ -291,7 +291,7 @@ class BaseProber(object):
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
 
-class ClassCollection(BaseProber, ClassCollector):
+class ClassCollection(_BaseProber, ClassCollector):
     "Collection and Prober of registered classes."
 
     def __init__(self, *, key=None, **kw):
@@ -455,7 +455,7 @@ class ClassCollection(BaseProber, ClassCollector):
             self._tags_by_base_key.update(coll._tags_by_base_key)
 
 
-class CompositeProber(BaseProber):
+class CompositeProber(_BaseProber):
 
     def __init__(self, *, probers=None, **kw):
         super().__init__(**kw)
