@@ -82,8 +82,7 @@ class PrintContext(object):
             prefix = "│  "
         for line in it:
             push_line(prefix + line)
-        count = remain[level]
-        if count is not None and level > 0:
+        if level > 0 and remain[level - 1] is not None:
             # In unbuffered mode (with 'count' passed to tree_children)
             # we push everyting up to root immediately.
             self.tree_push_up(level - 1, upbuffer, remain[level - 1] <= 1)

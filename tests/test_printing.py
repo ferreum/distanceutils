@@ -190,5 +190,19 @@ class TreeTest(BaseTest):
            First 2
         """)
 
+    def test_buffered_within_unbuffered(self):
+        p = self.p
+        p("Root")
+        with p.tree_children(1):
+            p(f"Child 0")
+            with p.tree_children():
+                p(f"Child 0-0")
+
+        self.assertResult("""
+        Root
+        └─ Child 0
+           └─ Child 0-0
+        """)
+
 
 # vim:set sw=4 ts=8 sts=4 et:
