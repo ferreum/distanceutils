@@ -342,7 +342,7 @@ class Fragment(BytesModel):
         if con is not None:
             self.container = con
 
-    def _read(self, dbytes, container=None, classes=None, child_prober=None):
+    def _read(self, dbytes, *, container=None, classes=None, child_prober=None):
 
         """Read data of the Fragment.
 
@@ -835,7 +835,7 @@ class BaseObject(Fragment):
             fragments.append(frag)
         self.fragments = fragments
 
-    def iter_children(self, ty=None, name=None):
+    def iter_children(self, *, ty=None, name=None):
         for obj in self.children:
             if ty is None or isinstance(obj, ty):
                 if name is None or obj.type == name:

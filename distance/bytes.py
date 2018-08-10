@@ -139,7 +139,7 @@ class BytesModel(object):
                 break
 
     @classmethod
-    def lazy_n_maybe(clazz, dbytes, n, *args, start_pos=None, **kw):
+    def lazy_n_maybe(clazz, dbytes, n, *, start_pos=None, **kw):
 
         """Like `read_n_maybe()`, but create a `LazySequence`.
 
@@ -154,7 +154,7 @@ class BytesModel(object):
         # stable_iter seeks for us
         kw['seek_end'] = False
         dbytes = DstBytes.from_arg(dbytes)
-        gen = clazz.iter_n_maybe(dbytes, n, *args, **kw)
+        gen = clazz.iter_n_maybe(dbytes, n, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
     def __init__(self, dbytes=None, **kw):
@@ -185,7 +185,7 @@ class BytesModel(object):
             if not plain:
                 self._after_init()
 
-    def read(self, dbytes, seek_end=True, **kw):
+    def read(self, dbytes, *, seek_end=True, **kw):
 
         """Read data of this object from `dbytes`.
 
@@ -747,7 +747,7 @@ class DstBytes(object):
             self.section_counter = id_
         self.write_int(4, id_)
 
-    def stable_iter(self, source, start_pos=None):
+    def stable_iter(self, source, *, start_pos=None):
 
         """Wrap the BytesModel-yielding `source` for safe iteration.
 

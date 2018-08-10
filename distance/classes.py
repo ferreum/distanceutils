@@ -243,7 +243,7 @@ class _BaseProber(object):
             return cls
         return self.baseclass
 
-    def probe(self, dbytes, probe_section=None):
+    def probe(self, dbytes, *, probe_section=None):
         if probe_section is None:
             sec = Section(dbytes, seek_end=False)
         else:
@@ -251,14 +251,14 @@ class _BaseProber(object):
         cls = self.probe_section(sec)
         return cls, sec
 
-    def read(self, dbytes, probe_section=None, **kw):
+    def read(self, dbytes, *, probe_section=None, **kw):
         dbytes = DstBytes.from_arg(dbytes)
         cls, con = self.probe(dbytes, probe_section=probe_section)
         obj = cls(plain=True)
         obj.read(dbytes, container=con, **kw)
         return obj
 
-    def maybe(self, dbytes, probe_section=None, **kw):
+    def maybe(self, dbytes, *, probe_section=None, **kw):
         dbytes = DstBytes.from_arg(dbytes)
         try:
             cls, con = self.probe(dbytes, probe_section=probe_section)
@@ -271,23 +271,23 @@ class _BaseProber(object):
             return ins
         return cls.maybe(dbytes, container=con, **kw)
 
-    def iter_n_maybe(self, dbytes, n, *args, **kw):
+    def iter_n_maybe(self, dbytes, n, **kw):
         dbytes = DstBytes.from_arg(dbytes)
         if 'probe_section' in kw:
             raise TypeError("probe_section not supported")
         for _ in range(n):
-            obj = self.maybe(dbytes, *args, **kw)
+            obj = self.maybe(dbytes, **kw)
             yield obj
             if not obj.sane_end_pos:
                 break
 
-    def lazy_n_maybe(self, dbytes, n, *args, start_pos=None, **kw):
+    def lazy_n_maybe(self, dbytes, n, *, start_pos=None, **kw):
         if n <= 0:
             return ()
         # stable_iter seeks for us
         kw['seek_end'] = False
         dbytes = DstBytes.from_arg(dbytes)
-        gen = self.iter_n_maybe(dbytes, n, *args, **kw)
+        gen = self.iter_n_maybe(dbytes, n, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
 
@@ -402,10 +402,10 @@ class ClassCollection(_BaseProber, ClassCollector):
         mod = importlib.import_module(modname)
         return getattr(mod, clsname), container
 
-    def klass(self, tag, version=None):
+    def klass(self, tag, *, version=None):
         return self.__klass(tag, version)[0]
 
-    def factory(self, tag, version=None):
+    def factory(self, tag, *, version=None):
         cls, container = self.__klass(tag, version)
         return InstanceFactory(cls, container)
 

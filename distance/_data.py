@@ -11,7 +11,7 @@ class NamedPropertyList(OrderedDict):
 
     old_format = False
 
-    def read(self, dbytes, max_pos=None, detect_old=True):
+    def read(self, dbytes, *, max_pos=None, detect_old=True):
         num_props = dbytes.read_uint4()
         for _ in range(num_props):
             propname, value = self._read_property(
