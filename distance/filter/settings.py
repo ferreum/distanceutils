@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from distance import Level
 from distance.filter.base import ObjectFilter
-from distance.constants import AbilityToggle as Ability, Mode
+from distance.constants import AbilityOption as Ability, Mode
 
 
 MODE_NAMES = {

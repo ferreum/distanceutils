@@ -81,7 +81,7 @@ class Difficulty(FancyEnum):
     }
 
 
-class AbilityToggle(FancyEnum):
+class AbilityOption(FancyEnum):
 
     INF_COOLDOWN = 0
     NO_WINGS = 1
@@ -105,6 +105,9 @@ class AbilityToggle(FancyEnum):
         except KeyError:
             pass
         return f"Unknown({toggle}, {value})"
+
+
+AbilityToggle = AbilityOption
 
 
 class Rating(FancyEnum):

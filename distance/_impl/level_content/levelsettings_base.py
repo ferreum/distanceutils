@@ -1,7 +1,7 @@
 
 
 from distance.base import Fragment
-from distance.constants import Difficulty, Mode, AbilityToggle
+from distance.constants import Difficulty, Mode, AbilityOption
 from distance.printing import format_duration
 
 
@@ -41,7 +41,7 @@ class BaseLevelSettings(Fragment):
                                   if value)
             p(f"Level modes: {modes_str or 'None'}")
         if self.abilities:
-            ab_str = ', '.join(AbilityToggle.to_name_for_value(toggle, value)
+            ab_str = ', '.join(AbilityOption.to_name_for_value(toggle, value)
                                for toggle, value in enumerate(self.abilities)
                                if value != 0)
             if not ab_str:
