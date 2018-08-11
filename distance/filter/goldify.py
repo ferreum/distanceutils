@@ -19,7 +19,7 @@ class OldToGsMapper(ObjectMapper):
         if self.collision_only and not old.with_collision:
             raise DoNotApply('unmatched')
 
-        gs = DefaultClasses.level_objects.create(self.type, type=self.type, transform=transform)
+        gs = DefaultClasses.level_objects.create(self.type, transform=transform)
         if old.emissive:
             gs.mat_emit = getattr(old, 'color_emit', (1, 0.74, 0.216, 1))
             gs.emit_index = 42
