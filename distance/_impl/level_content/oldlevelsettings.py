@@ -37,11 +37,11 @@ class OldLevelSettings(BaseLevelSettings, BaseConstructFragment):
     difficulty = None
 
     _construct_ = Struct(
-        unk_0 = Bytes(4),
-        skybox_name = DstString,
-        unk_1 = Bytes(143),
-        name = DstString,
-        unk_2 = Remainder,
+        'unk_0' / Bytes(4),
+        'skybox_name' / DstString,
+        'unk_1' / Bytes(143),
+        'name' / DstString,
+        'unk_2' / Remainder,
     )
 
     def _print_type(self, p):
