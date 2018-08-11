@@ -509,7 +509,7 @@ class ClassesRegistry(object):
             self._autoload_colls[key] = coll
             return coll
 
-    def create_composite(self, key, *, keys=(), **kw):
+    def create_composite(self, key, keys, **kw):
         keys = tuple(keys)
         if key in self._colls:
             try:

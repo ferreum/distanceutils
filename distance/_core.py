@@ -17,11 +17,11 @@ DefaultClasses.create_category('level', baseclass=Fragment)
 DefaultClasses.create_category('level_content', baseclass=Fragment)
 DefaultClasses.create_category('non_level_objects', baseclass=BaseObject)
 DefaultClasses.create_composite(
-    'level_like', baseclass=LevelObject,
-    keys=['level', 'level_objects'])
+    'level_like', ['level', 'level_objects'],
+    baseclass=LevelObject)
 DefaultClasses.create_composite(
-    'file', baseclass=Fragment,
-    keys=['level_objects', 'level', 'non_level_objects', 'level_fallback'])
+    'file', ['level_objects', 'level', 'non_level_objects', 'level_fallback'],
+    baseclass=Fragment)
 
 
 def _impl_modules():
