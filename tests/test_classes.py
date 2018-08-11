@@ -10,7 +10,7 @@ from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
 from distance._impl.level_objects.group import Group
 from distance._impl.level_objects.objects import OldSimple
-from .common import write_read, check_exceptions
+from .common import write_read, check_exceptions, assertLargeDictEqual
 
 
 class TestObject(BaseObject):
@@ -133,15 +133,13 @@ class UnknownObjectFileTest(unittest.TestCase):
 
 class VerifyTest(unittest.TestCase):
 
-    def test_verify(self):
-        DefaultClasses._verify_autoload(verify_autoload=False)
+    def test_classes_validity(self):
+        DefaultClasses._verify_autoload()
 
-    def test_verify_autoload(self):
-        import distance.classes
-        if not distance.classes.do_autoload:
-            self.skipTest("Autoload is disabled")
-        actual, loaded = DefaultClasses._verify_autoload(verify_autoload=True)
-        self.assertEqual(loaded, actual)
+    def test_autoload_is_uptodate(self):
+        actual, loaded = DefaultClasses._verify_autoload()
+        assertLargeDictEqual(self, actual, loaded,
+                             msg="autoload module is outdated")
 
 
 class VerifyClassInfoTest(unittest.TestCase):

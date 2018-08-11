@@ -555,22 +555,19 @@ class ClassesRegistry(object):
         write_autoload_module(module_name, impl_modules,
                               self._autoload_colls.keys())
 
-    def _verify_autoload(self, verify_autoload=True):
+    def _verify_autoload(self):
         keys = self._autoload_colls.keys()
         actual_colls = {k: ClassCollection(key=k) for k in keys}
         autoload_colls = {k: ClassCollection(key=k) for k in keys}
         for autoload_module, impl_modules in self._autoload_modules.items():
             _load_impls_to_colls(actual_colls, impl_modules)
             _load_autoload_module(autoload_colls, autoload_module)
-        if verify_autoload:
-            if not do_autoload:
-                raise Exception(f"Autoload is disabled")
-            actual_content = {}
-            loaded_content = {}
-            for key in keys:
-                actual_content[key] = actual_colls[key]._generate_autoload_content()
-                loaded_content[key] = autoload_colls[key]._get_current_autoload_content()
-            return actual_content, loaded_content
+        actual_content = {}
+        loaded_content = {}
+        for key in keys:
+            actual_content[key] = actual_colls[key]._generate_autoload_content()
+            loaded_content[key] = autoload_colls[key]._get_current_autoload_content()
+        return actual_content, loaded_content
 
     def copy(self, **overrides):
         colls = dict(self._colls)

@@ -144,4 +144,21 @@ class ExtraAssertMixin(object):
                 self.assertAlmostEqual(va, vb, msg=f"\nindex={i}\na={a}\nb={b}{msg}", **kw)
 
 
+def assertLargeDictEqual(test, first, second, *, msg="", path=()):
+    def assertEqual(f, s, path):
+        if f != s:
+            pstr = '/'.join(map(repr, path))
+            test.assertEqual(f, s, msg=f"\n{msg}{msg and '; '}path of first difference: {pstr}")
+            # something went really wrong
+            raise AssertionError(f"objects differed, but not anymore")
+    if isinstance(first, dict) and isinstance(second, dict):
+        assertEqual(first.keys(), second.keys(), path)
+        for key in first:
+            assertLargeDictEqual(test, first[key], second[key], msg=msg,
+                                 path=path + (key,))
+        test.assertEqual(first, second, msg=f"dicts were equal, but not anymore")
+    else:
+        assertEqual(first, second, path)
+
+
 # vim:set sw=4 ts=8 sts=4 et:
