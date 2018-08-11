@@ -140,6 +140,34 @@ class ClassCollector(object):
             raise e
         self._sections[key] = cls
 
+    def _add_info(self, cls, tag, container=None, versions=None):
+        if type(tag) is not str:
+            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
+
+        info = {}
+
+        if cls is not None:
+            try:
+                fields = cls._fields_
+            except AttributeError:
+                pass
+            else:
+                info['fields'] = fields
+
+        if container is not None:
+            base_key = container.to_key(noversion=True)
+            info['base_container'] = base_key
+            self._tags_by_base_key[base_key] = tag
+
+        if cls is not None:
+            class_spec = (cls.__module__, cls.__name__)
+            if versions is None:
+                info['noversion_cls'] = class_spec
+            else:
+                info['versions'] = dict.fromkeys(versions, class_spec)
+
+        _merge_class_info(self._classes, tag, info)
+
     def object(self, *args):
 
         """Decorator for conveniently adding a class for a type."""
@@ -180,34 +208,6 @@ class ClassCollector(object):
             return cls
 
         return decorate
-
-    def _add_info(self, cls, tag, container=None, versions=None):
-        if type(tag) is not str:
-            raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
-
-        info = {}
-
-        if cls is not None:
-            try:
-                fields = cls._fields_
-            except AttributeError:
-                pass
-            else:
-                info['fields'] = fields
-
-        if container is not None:
-            base_key = container.to_key(noversion=True)
-            info['base_container'] = base_key
-            self._tags_by_base_key[base_key] = tag
-
-        if cls is not None:
-            class_spec = (cls.__module__, cls.__name__)
-            if versions is None:
-                info['noversion_cls'] = class_spec
-            else:
-                info['versions'] = dict.fromkeys(versions, class_spec)
-
-        _merge_class_info(self._classes, tag, info)
 
 
 class _BaseProber(object):
