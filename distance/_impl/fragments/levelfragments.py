@@ -6,7 +6,6 @@ from construct import (
 )
 
 from distance.bytes import Section, Magic
-from distance.base import Fragment
 from distance.construct import (
     BaseConstructFragment,
     Byte, UInt, Float, DstString,
@@ -362,27 +361,6 @@ class RigidbodyAxisRotationLogicFragment(BaseConstructFragment):
         'rotation_bounds' / Float,
         'starting_angle_offset' / Float,
     )
-
-
-@Classes.fragments.fragment
-class EventListenerFragment(Fragment):
-
-    base_container = Section.base(Magic[2], 0x8a)
-    container_versions = 0, 1
-
-
-@Classes.fragments.fragment
-class TrackAttachmentFragment(Fragment):
-
-    base_container = Section.base(Magic[2], 0x68)
-    container_versions = 0
-
-
-@Classes.fragments.fragment
-class TurnLightOnNearCarFragment(Fragment):
-
-    base_container = Section.base(Magic[2], 0x70)
-    container_versions = 1, 2, 3
 
 
 # vim:set sw=4 ts=8 sts=4 et:

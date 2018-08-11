@@ -12,6 +12,9 @@ register('EventTrigger', Magic[2], 0x89)
 register('WingCorruptionZone', Magic[2], 0x53)
 register('CheckpointLogic', Magic[2], 0x19)
 register('SphericalGravity', Magic[2], 0x5f)
+register('EventListener', Magic[2], 0x8a)
+register('TrackAttachment', Magic[2], 0x68)
+register('TurnLightOnNearCar', Magic[2], 0x70)
 
 
 # vim:set sw=4 et:
