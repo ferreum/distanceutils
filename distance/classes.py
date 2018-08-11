@@ -101,21 +101,21 @@ class ClassCollector(object):
             self._add_fragment_for_section(cls, sec, any_version)
         tag = cls.class_tag
         if tag is not None:
-            self._add_info(cls, tag, sec, versions)
+            self._add_info(tag, cls=cls, container=sec, versions=versions)
         if cls.is_interesting:
             self._interesting_sections.add(sec.to_key(noversion=True))
 
     def add_object(self, type, cls):
         sec = Section(Magic[6], type)
         self._sections[sec.to_key()] = cls
-        self._add_info(cls, type, sec)
+        self._add_info(type, cls=cls, container=sec)
 
     def add_info(self, *args, tag=None):
         def decorate(cls):
             nonlocal tag
             if tag is None:
                 tag = cls.class_tag
-            self._add_info(cls, tag)
+            self._add_info(tag, cls=cls)
             return cls
         if len(args) == 1:
             return decorate(args[0])
@@ -123,7 +123,7 @@ class ClassCollector(object):
             return decorate
 
     def add_tag(self, tag, *args, **kw):
-        self._add_info(None, tag, Section.base(*args, **kw))
+        self._add_info(tag, container=Section.base(*args, **kw))
 
     def _add_fragment_for_section(self, cls, sec, any_version):
         if any_version:
@@ -140,7 +140,7 @@ class ClassCollector(object):
             raise e
         self._sections[key] = cls
 
-    def _add_info(self, cls, tag, container=None, versions=None):
+    def _add_info(self, tag, cls=None, container=None, versions=None):
         if type(tag) is not str:
             raise ValueError(f"type of tag has to be exactly builtins.str, not {type(tag)!r}")
 
