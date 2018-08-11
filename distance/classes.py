@@ -36,13 +36,13 @@ def fragment_property(tag, name, default=None, doc=None):
     def fget(self):
         try:
             frag = self[tag]
-        except KeyError as e:
+        except KeyError:
             raise AttributeError(name)
         return getattr(frag, name, default)
     def fset(self, value):
         try:
             frag = self[tag]
-        except KeyError as e:
+        except KeyError:
             raise AttributeError(name)
         setattr(frag, name, value)
     if doc is None:
