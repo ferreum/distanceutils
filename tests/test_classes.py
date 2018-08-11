@@ -10,7 +10,7 @@ from distance._impl.fragments.levelfragments import GoldenSimplesFragment
 from distance._impl.level_objects.objects import GoldenSimple
 from distance._impl.level_objects.group import Group
 from distance._impl.level_objects.objects import OldSimple
-from .common import write_read, check_exceptions, assertLargeDictEqual
+from .common import write_read, check_exceptions, assertLargeEqual
 
 
 class TestObject(BaseObject):
@@ -138,7 +138,7 @@ class VerifyTest(unittest.TestCase):
 
     def test_autoload_is_uptodate(self):
         actual, loaded = DefaultClasses._verify_autoload()
-        assertLargeDictEqual(self, actual, loaded,
+        assertLargeEqual(self, actual, loaded,
                              msg="autoload module is outdated")
 
 

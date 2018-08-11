@@ -2,6 +2,7 @@ import unittest
 from io import BytesIO
 from contextlib import contextmanager
 from collections import Sequence
+from collections.abc import Set, Mapping
 
 from distance import Level, DefaultClasses
 from distance.bytes import DstBytes
@@ -144,21 +145,19 @@ class ExtraAssertMixin(object):
                 self.assertAlmostEqual(va, vb, msg=f"\nindex={i}\na={a}\nb={b}{msg}", **kw)
 
 
-def assertLargeDictEqual(test, first, second, *, msg="", path=()):
-    def assertEqual(f, s, path):
-        if f != s:
-            pstr = '/'.join(map(repr, path))
-            test.assertEqual(f, s, msg=f"\n{msg}{msg and '; '}path of first difference: {pstr}")
-            # something went really wrong
-            raise AssertionError(f"objects differed, but not anymore")
-    if isinstance(first, dict) and isinstance(second, dict):
-        assertEqual(first.keys(), second.keys(), path)
+def assertLargeEqual(test, first, second, *, msg="", path="<obj>"):
+    if isinstance(first, Set) and isinstance(second, Set):
+        test.assertSetEqual(set(first), set(second), path)
+        test.assertEqual(first, second, msg=f"set contents equal, but not the set objects")
+    elif isinstance(first, Mapping) and isinstance(second, Mapping):
+        assertLargeEqual(test, first.keys(), second.keys(), msg=msg,
+                         path=path + ".keys()")
         for key in first:
-            assertLargeDictEqual(test, first[key], second[key], msg=msg,
-                                 path=path + (key,))
-        test.assertEqual(first, second, msg=f"dicts were equal, but not anymore")
+            assertLargeEqual(test, first[key], second[key], msg=msg,
+                             path=path + f"[{key!r}]")
+        test.assertEqual(first, second, msg=f"dict contents equal, but not the dict objects")
     else:
-        assertEqual(first, second, path)
+        test.assertEqual(first, second, msg=f"\n{msg}{msg and '; '}path of first difference: {path}")
 
 
 # vim:set sw=4 ts=8 sts=4 et:
