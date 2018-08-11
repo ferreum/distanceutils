@@ -150,7 +150,14 @@ class LazySequence(BaseLazySequence):
         return current
 
 
-UNSET = object()
+class _Unset(object):
+    "Placeholder for uninflated values in a lazy collections."
+
+    def __repr__(self):
+        return "lazy.UNSET"
+
+
+UNSET = _Unset()
 
 
 class LazyMappedSequence(BaseLazySequence):
