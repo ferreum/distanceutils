@@ -15,6 +15,9 @@ NamedPropertiesFragment = DefaultClasses.common.klass('NamedPropertiesFragment')
 MaterialFragment = DefaultClasses.fragments.klass('Material')
 
 
+frag_prober = DefaultClasses.fragments
+
+
 STR_EXCLUDE_PATTERN = re.compile(r"[^ -~]")
 
 
@@ -101,10 +104,11 @@ class FragmentMatcher(object):
             pos += 1
         return matches
 
-    def filter_fragments(self, sec, prober):
+    def filter_fragments(self, sec):
         if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
             return False
-        if issubclass(prober.probe_section(sec), (ObjectFragment, NamedPropertiesFragment, MaterialFragment)):
+        cls = frag_prober.probe_section(sec)
+        if issubclass(cls, (ObjectFragment, NamedPropertiesFragment, MaterialFragment)):
             return False
         return True
 

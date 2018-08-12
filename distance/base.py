@@ -257,10 +257,6 @@ class Transform(tuple):
             dbytes.write_bytes(SKIP_BYTES)
 
 
-def filter_interesting(sec, classes):
-    return sec.content_size and classes.is_section_interesting(sec)
-
-
 class Fragment(BytesModel):
 
     """Represents a container Section and its content."""
@@ -675,12 +671,11 @@ class BaseObject(Fragment):
             i += 1
         return None
 
-    def filtered_fragments(self, type_filter):
+    def filtered_fragments(self, sec_pred):
         fragments = self._fragments
-        classes = self.classes.fragments
         i = 0
         for sec in self._sections:
-            if type_filter(sec, classes):
+            if sec_pred(sec):
                 yield fragments[i]
             i += 1
 
@@ -861,7 +856,8 @@ class BaseObject(Fragment):
                         p.tree_next_child()
                         p.print_data_of(frag)
             else:
-                frags = self.filtered_fragments(filter_interesting)
+                pred = self.classes.fragments.is_section_interesting
+                frags = self.filtered_fragments(pred)
                 try:
                     frag = next(frags)
                 except StopIteration:
