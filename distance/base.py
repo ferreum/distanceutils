@@ -835,12 +835,6 @@ class BaseObject(Fragment):
             fragments.append(frag)
         self.fragments = fragments
 
-    def iter_children(self, *, ty=None, name=None):
-        for obj in self.children:
-            if ty is None or isinstance(obj, ty):
-                if name is None or obj.type == name:
-                    yield obj
-
     def _repr_detail(self):
         supstr = super()._repr_detail()
         try:
