@@ -239,7 +239,7 @@ class UnknownSubobjectsTest(common.WriteReadTest):
     read_obj = DefaultClasses.level_objects.read
 
     def verify_obj(self, obj):
-        win_logic = next(obj.iter_children(ty=WinLogic))
+        win_logic = next(obj for obj in obj.children if obj.type == 'WinLogic')
         self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
 
 

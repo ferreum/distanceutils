@@ -109,19 +109,19 @@ class TeleExitTest(unittest.TestCase):
 
     def test_link_id(self):
         obj = PROBER.read("tests/in/customobject/tele exit checkpoint.bytes")
-        tele = next(obj.iter_children(name='Teleporter'))
+        tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(tele.link_id, 334)
 
     def test_with_checkpoint(self):
         obj = PROBER.read("tests/in/customobject/tele exit checkpoint.bytes")
-        tele = next(obj.iter_children(name='Teleporter'))
+        tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(tele.trigger_checkpoint, 1)
 
     def test_without_checkpoint(self):
         obj = PROBER.read("tests/in/customobject/tele exit nocheckpoint.bytes")
-        tele = next(obj.iter_children(name='Teleporter'))
+        tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(tele.trigger_checkpoint, 0)
 
@@ -132,7 +132,7 @@ class TeleExitTest(unittest.TestCase):
     def test_virusspiritspawner(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/virusspiritspawner.bytes")
-        tele = next(obj.iter_children(name='Teleporter'))
+        tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(tele.destination, 6666)
         p.print_data_of(obj)
@@ -144,7 +144,7 @@ class OldTeleporterTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/tele v0.bytes")
         p.print_data_of(obj)
-        tele = next(obj.iter_children(name='Teleporter'))
+        tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(0, tele.link_id)
         self.assertEqual(0, tele.destination)
@@ -291,7 +291,7 @@ class EmpireEndZoneTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/endzone.bytes")
         self.assertEqual(len(obj.children), 9)
-        win_logic = next(obj.iter_children(name='WinLogic'))
+        win_logic = next(obj for obj in obj.children if obj.type == 'WinLogic')
         self.assertEqual(WinLogic, type(win_logic))
         self.assertIsNone(win_logic.delay_before_broadcast)
         p.print_data_of(obj)
@@ -300,7 +300,7 @@ class EmpireEndZoneTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/endzone delay.bytes")
         self.assertEqual(len(obj.children), 9)
-        win_logic = next(obj.iter_children(name='WinLogic'))
+        win_logic = next(obj for obj in obj.children if obj.type == 'WinLogic')
         self.assertEqual(WinLogic, type(win_logic))
         self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
         p.print_data_of(obj)
