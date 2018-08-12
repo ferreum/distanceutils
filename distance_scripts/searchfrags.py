@@ -104,7 +104,7 @@ class FragmentMatcher(object):
             pos += 1
         return matches
 
-    def filter_fragments(self, sec):
+    def fragment_pred(self, sec):
         if not self.all and sec.to_key() in KNOWN_GOOD_SECTIONS:
             return False
         cls = frag_prober.probe_section(sec)
@@ -114,7 +114,7 @@ class FragmentMatcher(object):
 
     def visit_object(self, obj, p):
         frags = []
-        for frag in obj.filtered_fragments(self.filter_fragments):
+        for frag in obj.filter_fragments(self.fragment_pred):
             matches = self.find_matches(frag)
             if matches:
                 frags.append((frag, matches))

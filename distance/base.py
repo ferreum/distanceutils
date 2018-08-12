@@ -671,7 +671,7 @@ class BaseObject(Fragment):
             i += 1
         return None
 
-    def filtered_fragments(self, sec_pred):
+    def filter_fragments(self, sec_pred):
         fragments = self._fragments
         i = 0
         for sec in self._sections:
@@ -857,7 +857,7 @@ class BaseObject(Fragment):
                         p.print_data_of(frag)
             else:
                 pred = self.classes.fragments.is_section_interesting
-                frags = self.filtered_fragments(pred)
+                frags = self.filter_fragments(pred)
                 try:
                     frag = next(frags)
                 except StopIteration:
