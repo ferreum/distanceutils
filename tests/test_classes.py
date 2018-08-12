@@ -156,9 +156,26 @@ class VerifyClassInfoTest(unittest.TestCase):
         cls = DefaultClasses.level.klass('Level')
         self.assertIs(cls, Level)
 
-    def test_fragment_attrs(self):
+    def test_fragment_attrs_get(self):
         obj = GoldenSimple(type='CubeGS')
         self.assertEqual(obj.emit_index, 17)
+
+    def test_fragment_attrs_get_with_missing_fragment(self):
+        obj = GoldenSimple(type='CubeGS')
+        del obj['GoldenSimples']
+        with self.assertRaises(AttributeError):
+            obj.emit_index
+
+    def test_fragment_attrs_set(self):
+        obj = GoldenSimple(type='CubeGS')
+        obj.emit_index = 23
+        self.assertEqual(obj.emit_index, 23)
+
+    def test_fragment_attrs_set_with_missing_fragment(self):
+        obj = GoldenSimple(type='CubeGS')
+        del obj['GoldenSimples']
+        with self.assertRaises(AttributeError):
+            obj.emit_index = 23
 
     def test_registration_version_merge(self):
         src1 = ClassCollector()
