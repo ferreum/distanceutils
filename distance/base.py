@@ -672,9 +672,9 @@ class BaseObject(Fragment):
         return None
 
     def filter_fragments(self, sec_pred):
-        fragments = self._fragments
+        fragments = self.fragments
         i = 0
-        for sec in self._sections:
+        for sec in self.sections:
             if sec_pred(sec):
                 yield fragments[i]
             i += 1
