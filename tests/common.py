@@ -35,6 +35,18 @@ def check_exceptions(obj):
             check_exceptions(obj)
 
 
+def iter_objects(objects, with_groups=False):
+    for obj in objects:
+        yield obj
+        if with_groups and obj.is_object_group:
+            yield from iter_objects(obj.children)
+
+
+def iter_level_objects(level, with_groups=False):
+    for layer in level.layers:
+        yield from iter_objects(layer.objects, with_groups=with_groups)
+
+
 def write_read(obj, read_func=None):
     if read_func is None:
         read_func = type(obj)

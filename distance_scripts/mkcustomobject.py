@@ -83,7 +83,8 @@ def main():
         srcarg = args.IN
     content = DefaultClasses.level_like.read(srcarg)
     if isinstance(content, Level):
-        object_source = content.iter_objects()
+        object_source = (obj for layer in content.layers
+                         for obj in layer.objects)
     else:
         # CustomObject
         object_source = [content]

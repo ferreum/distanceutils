@@ -18,7 +18,7 @@ def main():
 
     def get_teleporters(gen):
         for obj in gen:
-            teles = [o for o in obj.iter_children(ty=SubTeleporter)
+            teles = [o for o in obj.children
                      if o.has_any('TeleporterEntrance') or
                      o.has_any('TeleporterExit')]
             if teles:
@@ -41,7 +41,8 @@ def main():
             l.append(value)
 
     for i, (obj, teles) in enumerate(
-            get_teleporters(level.iter_objects())):
+            get_teleporters(obj for l in level.layers
+                            for obj in l.objects)):
         for tele in teles:
             sub_to_main[tele] = obj
             parts = [obj.type]

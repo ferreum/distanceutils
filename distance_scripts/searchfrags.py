@@ -38,11 +38,15 @@ KNOWN_GOOD_SECTIONS = [
 KNOWN_GOOD_SECTIONS = {s.to_key() for s in KNOWN_GOOD_SECTIONS}
 
 
-def iter_objects(source, recurse=-1):
+def iter_objects(source):
     for obj in source:
         yield obj
-        if recurse != 0:
-            yield from iter_objects(obj.children, recurse=recurse-1)
+        yield from iter_objects(obj.children)
+
+
+def iter_level_objects(level):
+    for l in level.layers:
+        yield from iter_objects(l.objects)
 
 
 class FragmentMatcher(object):
@@ -136,8 +140,6 @@ class FragmentMatcher(object):
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__)
-    parser.add_argument("-l", "--maxrecurse", type=int, default=-1,
-                        help="Maximum of recursions. 0 only lists layer objects.")
     parser.add_argument("-a", "--all", action='store_true',
                         help="Also include known fragments.")
     parser.add_argument("--noversion", action='store_true',
@@ -150,7 +152,7 @@ def main():
 
     content = DefaultClasses.level_like.read(args.IN)
     if isinstance(content, Level):
-        object_source = iter_objects(content.iter_objects())
+        object_source = iter_level_objects(content)
     else:
         # CustomObject
         object_source = iter_objects([content])
