@@ -67,13 +67,6 @@ class Level(Fragment):
     def settings(self, s):
         self._settings = s
 
-    def iter_objects(self, with_layers=False, with_objects=True):
-        for layer in self.layers:
-            if with_layers:
-                yield layer
-            if with_objects:
-                yield from layer.objects
-
     def _repr_detail(self):
         supstr = super()._repr_detail()
         if self.name:
