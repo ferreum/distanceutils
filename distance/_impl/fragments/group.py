@@ -66,7 +66,7 @@ class CustomNameFragment(Fragment):
             dbytes.write_str(self.custom_name)
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.custom_name is not None:
             p(f"Custom name: {self.custom_name!r}")
 

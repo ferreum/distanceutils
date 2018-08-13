@@ -54,7 +54,7 @@ class WorkshopLevelInfosFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         p(f"Levelinfos: {len(self.levels)}")
         with p.tree_children():
             for level in self.levels:

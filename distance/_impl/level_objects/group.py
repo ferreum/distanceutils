@@ -29,7 +29,7 @@ class Group(LevelObject):
                 if 'groups' in p.flags:
                     p.counters.grouped_objects += num
                     with p.tree_children():
-                        print_objects(p, self.children)
+                        yield print_objects(p, self.children)
             if counters:
                 counters.print_data(p)
 

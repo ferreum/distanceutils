@@ -184,10 +184,11 @@ def print_objects(p, gen):
     counters = p.counters
     for obj in gen:
         p.tree_next_child()
-        counters.num_objects += 1
+        if counters is not None:
+            counters.num_objects += 1
         if 'numbers' in p.flags:
             p(f"Level object: {counters.num_objects}")
-        p.print_data_of(obj)
+        yield obj._visit_print_data(p)
 
 
 def format_bytes(data, fmt='02x'):

@@ -39,7 +39,7 @@ class MaterialFragment(Fragment):
             self.materials.write(dbytes)
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if 'allprops' in p.flags and self.materials:
             self.materials.print_data(p)
 

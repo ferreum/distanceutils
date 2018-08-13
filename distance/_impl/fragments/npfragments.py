@@ -149,7 +149,7 @@ class NamedPropertiesFragment(Fragment):
             self.props.write(dbytes)
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.props.old_format:
             p(f"Old properties format")
         if 'allprops' in p.flags and self.props:
@@ -171,7 +171,7 @@ class RaceEndLogicFragment(NamedPropertiesFragment):
     delay_before_broadcast = StructNamedProperty('DelayBeforeBroadcast', S_FLOAT)
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         delay = self.delay_before_broadcast
         if delay:
             p(f"Delay before broadcast: {delay}")
@@ -218,7 +218,7 @@ class EnableAbilitiesTriggerFragment(NamedPropertiesFragment):
     bloom_out = ByteNamedProperty('BloomOut', default=1)
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         ab_str = ', '.join(k for k, v in self.abilities.items() if v)
         if not ab_str:
             ab_str = "None"

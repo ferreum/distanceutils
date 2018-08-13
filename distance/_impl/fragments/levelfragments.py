@@ -94,7 +94,7 @@ class TeleporterExitCheckpointFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.trigger_checkpoint is not None:
             p(f"Trigger checkpoint: {self.trigger_checkpoint}")
 
@@ -138,7 +138,7 @@ class GravityToggleFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.disable_gravity is not None:
             p(f"Disable gravity: {self.disable_gravity and 'yes' or 'no'}")
         if self.drag_scale is not None:
@@ -163,7 +163,7 @@ class MusicTriggerFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.music_id is not None:
             p(f"Music ID: {self.music_id}")
         if self.one_time_trigger is not None:
@@ -193,7 +193,7 @@ class ForceZoneFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.force_direction:
             dir_str = ', '.join(str(v) for v in self.force_direction)
             p(f"Force direction: {dir_str}")
@@ -226,7 +226,7 @@ class TextMeshFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         p(f"World text: {self.text!r}")
 
 
@@ -244,7 +244,7 @@ class TrackNodeFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if 'sections' in p.flags or 'track' in p.flags:
             p(f"Parent ID: {self.parent_id}")
             p(f"Snapped to: {self.snap_id}")

@@ -44,7 +44,7 @@ class LeaderboardFragment(BaseConstructFragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         entries = self.entries
         p(f"Entries: {len(entries)}")
         if 'nosort' not in p.flags:

@@ -22,7 +22,7 @@ class BaseLevelSettings(Fragment):
     )
 
     def _print_data(self, p):
-        super()._print_data(p)
+        yield super()._print_data(p)
         if self.name is not None:
             p(f"Level name: {self.name!r}")
         if self.skybox_name is not None:

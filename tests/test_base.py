@@ -1,6 +1,8 @@
 
 
 import unittest
+import sys
+from io import StringIO
 
 from distance import DefaultClasses
 from distance.bytes import Magic, Section
@@ -36,6 +38,27 @@ class BaseObjectTest(unittest.TestCase):
         p = PrintContext.for_test()
         p.print_data_of(obj)
         repr(obj)
+
+    def test_print_deeply_nested(self):
+        output = StringIO()
+        p = PrintContext.for_test(file=output, flags=())
+        # create deeply nested objects
+        obj = BaseObject()
+        for _ in range(100):
+            obj = BaseObject(children=[obj])
+
+        # reduce recursion limit so we don't need to
+        # use so much time and memory
+        saved_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(50)
+        try:
+            p.print_data_of(obj)
+        finally:
+            sys.setrecursionlimit(saved_limit)
+
+        lines = output.getvalue().splitlines()
+        self.assertEqual(len(lines), 201)
+        self.assertEqual(lines[-1], ("   " * 99) + "└─ Object type: Unknown")
 
     def test_getitem_object(self):
         obj = BaseObject()

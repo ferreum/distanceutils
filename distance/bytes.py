@@ -10,6 +10,7 @@ from collections import namedtuple
 from .printing import PrintContext
 from ._argtaker import ArgTaker
 from .lazy import LazySequence
+from ._trampoline import trampoline
 
 import codecs
 
@@ -292,15 +293,17 @@ class BytesModel(object):
         else:
             if file or flags:
                 raise TypeError("p must be the single argument")
+        trampoline(self._visit_print_data(p))
 
+    def _visit_print_data(self, p):
         self._print_type(p)
         if 'class' in p.flags:
             cls = type(self)
             p(f"Class: <{cls.__module__}.{cls.__name__}>")
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
-        self._print_data(p)
-        self._print_children(p)
+        yield self._print_data(p)
+        yield self._print_children(p)
         if self.exception:
             p(f"Exception occurred:")
             p.print_exception(self.exception)
@@ -321,10 +324,12 @@ class BytesModel(object):
             p(f"Data size: 0x{end - start:x} bytes")
 
     def _print_data(self, p):
-        pass
+        return
+        yield
 
     def _print_children(self, p):
-        pass
+        return
+        yield
 
 
 # section magic (I) + size (Q)

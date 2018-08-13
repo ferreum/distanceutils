@@ -472,7 +472,7 @@ class Fragment(BytesModel):
             else:
                 p(f"Container:")
                 with p.tree_children():
-                    p.print_data_of(container)
+                    yield container._visit_print_data(p)
 
 
 @Classes.base_fragments.fragment
@@ -845,7 +845,7 @@ class BaseObject(Fragment):
         p(f"Object type: {text}")
 
     def _print_data(self, p):
-        Fragment._print_data(self, p)
+        yield super()._print_data(p)
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.real_transform)}")
         if 'fragments' in p.flags and self._fragments:
@@ -854,7 +854,7 @@ class BaseObject(Fragment):
                 with p.tree_children():
                     for frag in self._fragments:
                         p.tree_next_child()
-                        p.print_data_of(frag)
+                        yield frag._visit_print_data(p)
             else:
                 pred = self.classes.fragments.is_section_interesting
                 frags = self.filter_fragments(pred)
@@ -866,10 +866,10 @@ class BaseObject(Fragment):
                     p(f"Fragments: {len(self._fragments)} <filtered>")
                     with p.tree_children():
                         p.tree_next_child()
-                        p.print_data_of(frag)
+                        yield frag._visit_print_data(p)
                         for frag in frags:
                             p.tree_next_child()
-                            p.print_data_of(frag)
+                            yield frag._visit_print_data(p)
 
     def _print_children(self, p):
         if self.children:
@@ -878,7 +878,7 @@ class BaseObject(Fragment):
             with p.tree_children():
                 for obj in self.children:
                     p.tree_next_child()
-                    p.print_data_of(obj)
+                    yield obj._visit_print_data(p)
 
 
 def require_type(*args, func=None):
