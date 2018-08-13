@@ -2,7 +2,7 @@ import unittest
 from contextlib import contextmanager
 
 from distance.bytes import DstBytes, Magic, Section
-from distance.classes import ClassCollector, ClassCollection, RegisterError
+from distance.classes import TagError, ClassCollector, ClassCollection, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultClasses, Level, Replay, Leaderboard, WorkshopLevelInfos
@@ -148,9 +148,22 @@ class VerifyClassInfoTest(unittest.TestCase):
         frag = DefaultClasses.fragments.create('Object')
         self.assertEqual(type(frag), ObjectFragment)
 
+    def test_create_fragment_unknown_no_fallback(self):
+        with self.assertRaises(TagError):
+            DefaultClasses.fragments.create('SomeComponent')
+
     def test_create_fragment_autoloaded(self):
         frag = DefaultClasses.fragments.create('GoldenSimples')
         self.assertEqual(type(frag), GoldenSimplesFragment)
+
+    def test_create_object_unknown_fallback(self):
+        obj = DefaultClasses.level_objects.create('SomeThing')
+        self.assertIsInstance(obj, LevelObject)
+        self.assertEqual(obj.type, 'SomeThing')
+
+    def test_create_object_unknown_disabled_fallback(self):
+        with self.assertRaises(TagError):
+            DefaultClasses.level_objects.create('SomeThing', fallback=False)
 
     def test_klass_level(self):
         cls = DefaultClasses.level.klass('Level')

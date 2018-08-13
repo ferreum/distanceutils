@@ -294,9 +294,10 @@ class _BaseProber(object):
 class ClassCollection(_BaseProber, ClassCollector):
     "Collection and Prober of registered classes."
 
-    def __init__(self, *, key=None, **kw):
+    def __init__(self, *, key=None, get_fallback_container=None, **kw):
         super().__init__(**kw)
         self.key = key
+        self.get_fallback_container = get_fallback_container
         # We don't have funcs on ClassCollector because they don't need to be
         # lazy-loaded and there's no use for it yet.
         self._funcs_by_tag = OrderedDict()
@@ -388,11 +389,19 @@ class ClassCollection(_BaseProber, ClassCollector):
             return cls
         return decorate
 
-    def __klass(self, tag, version):
+    def __klass(self, tag, version, fallback):
+        if fallback is None:
+            fallback = self.get_fallback_container is not None
+        elif fallback and self.get_fallback_container is None:
+            raise ValueError("Fallback not defined for this collection")
+
         try:
             info = self._classes[tag]
         except KeyError:
-            raise TagError(tag)
+            if not fallback:
+                raise TagError(tag)
+            return self.baseclass, self.get_fallback_container(tag)
+
         (modname, clsname), def_version = _get_klass_def(info, version)
         container = info.get('base_container')
         if container is not None:
@@ -403,14 +412,14 @@ class ClassCollection(_BaseProber, ClassCollector):
         return getattr(mod, clsname), container
 
     def klass(self, tag, *, version=None):
-        return self.__klass(tag, version)[0]
+        return self.__klass(tag, version, False)[0]
 
-    def factory(self, tag, *, version=None):
-        cls, container = self.__klass(tag, version)
+    def factory(self, tag, *, version=None, fallback=None):
+        cls, container = self.__klass(tag, version, fallback)
         return InstanceFactory(cls, container)
 
-    def create(self, tag, **kw):
-        cls, container = self.__klass(tag, None)
+    def create(self, tag, *, fallback=None, **kw):
+        cls, container = self.__klass(tag, None, fallback)
         if 'container' not in kw and 'dbytes' not in kw:
             kw['container'] = container
         return cls(**kw)
@@ -500,11 +509,11 @@ class ClassesRegistry(object):
         self._autoload_modules = {}
         self._autoload_colls = {}
 
-    def create_category(self, key, *, baseclass=BytesModel):
+    def create_category(self, key, **kw):
         try:
             return self._colls[key]
         except KeyError:
-            coll = ClassCollection(key=key, baseclass=baseclass)
+            coll = ClassCollection(key=key, **kw)
             self._colls[key] = coll
             self._autoload_colls[key] = coll
             return coll

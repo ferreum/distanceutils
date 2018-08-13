@@ -1,14 +1,20 @@
 
 
-from distance.bytes import Magic
+from distance.bytes import Magic, Section
 from distance.base import BaseObject, Fragment
 from distance.levelobjects import LevelObject, SubObject
 from distance._default_classes import DefaultClasses
 
 
+def _fallback_obj_container(tag):
+    return Section(Magic[6], tag)
+
+
 DefaultClasses.create_category('common', baseclass=Fragment)
-DefaultClasses.create_category('level_objects', baseclass=LevelObject)
-DefaultClasses.create_category('level_subobjects', baseclass=SubObject)
+DefaultClasses.create_category('level_objects', baseclass=LevelObject,
+                               get_fallback_container=_fallback_obj_container)
+DefaultClasses.create_category('level_subobjects', baseclass=SubObject,
+                               get_fallback_container=_fallback_obj_container)
 DefaultClasses.create_category('level_fallback', baseclass=LevelObject)
 DefaultClasses.create_category('fragments', baseclass=Fragment)
 DefaultClasses.create_category('base_objects', baseclass=BaseObject)
