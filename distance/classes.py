@@ -509,7 +509,7 @@ class ClassesRegistry(object):
         self._autoload_modules = {}
         self._autoload_colls = {}
 
-    def create_category(self, key, **kw):
+    def init_category(self, key, **kw):
         try:
             return self._colls[key]
         except KeyError:
@@ -518,16 +518,10 @@ class ClassesRegistry(object):
             self._autoload_colls[key] = coll
             return coll
 
-    def create_composite(self, key, keys, **kw):
+    def init_composite(self, key, keys, **kw):
         keys = tuple(keys)
         if key in self._colls:
-            try:
-                okeys = self._colls[key].__keys
-            except AttributeError:
-                raise ValueError(f"Category already exists: {key!r}")
-            if okeys != keys:
-                raise ValueError(f"Composite {key!r} already exists"
-                                 f" with different keys: {keys!r}")
+            raise ValueError(f"Category already exists: {key!r}")
         colls = [self._colls[key] for key in keys]
         prober = CompositeProber(probers=colls, **kw)
         prober.__keys = keys

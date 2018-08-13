@@ -10,22 +10,22 @@ def _fallback_obj_container(tag):
     return Section(Magic[6], tag)
 
 
-DefaultClasses.create_category('common', baseclass=Fragment)
-DefaultClasses.create_category('level_objects', baseclass=LevelObject,
+DefaultClasses.init_category('common', baseclass=Fragment)
+DefaultClasses.init_category('level_objects', baseclass=LevelObject,
                                get_fallback_container=_fallback_obj_container)
-DefaultClasses.create_category('level_subobjects', baseclass=SubObject,
+DefaultClasses.init_category('level_subobjects', baseclass=SubObject,
                                get_fallback_container=_fallback_obj_container)
-DefaultClasses.create_category('level_fallback', baseclass=LevelObject)
-DefaultClasses.create_category('fragments', baseclass=Fragment)
-DefaultClasses.create_category('base_objects', baseclass=BaseObject)
-DefaultClasses.create_category('base_fragments', baseclass=Fragment)
-DefaultClasses.create_category('level', baseclass=Fragment)
-DefaultClasses.create_category('level_content', baseclass=Fragment)
-DefaultClasses.create_category('non_level_objects', baseclass=BaseObject)
-DefaultClasses.create_composite(
+DefaultClasses.init_category('level_fallback', baseclass=LevelObject)
+DefaultClasses.init_category('fragments', baseclass=Fragment)
+DefaultClasses.init_category('base_objects', baseclass=BaseObject)
+DefaultClasses.init_category('base_fragments', baseclass=Fragment)
+DefaultClasses.init_category('level', baseclass=Fragment)
+DefaultClasses.init_category('level_content', baseclass=Fragment)
+DefaultClasses.init_category('non_level_objects', baseclass=BaseObject)
+DefaultClasses.init_composite(
     'level_like', ['level', 'level_objects'],
     baseclass=LevelObject)
-DefaultClasses.create_composite(
+DefaultClasses.init_composite(
     'file', ['level_objects', 'level', 'non_level_objects', 'level_fallback'],
     baseclass=Fragment)
 
