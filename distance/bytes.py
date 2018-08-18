@@ -266,14 +266,19 @@ class BytesModel(object):
 
         """Write this object to `dbytes`.
 
-        Subclasses need to implement `_visit_write()` for this to work.
+        Subclasses need to implement `visit_write()` for this to work.
 
         """
 
         return trampoline(DstBytes._write_arg(self, dbytes, **kw))
 
-    def _visit_write(self, dbytes):
-        "Write this object (trampolined)."
+    def visit_write(self, dbytes):
+        """Write this object (trampolined).
+
+        Arguments
+        ---------
+        dbytes - The DstBytes to write to.
+        """
         raise NotImplementedError(
             "Subclass needs to override write(self, dbytes)")
 
@@ -644,10 +649,10 @@ class DstBytes(object):
     @classmethod
     def _write_arg(cls, obj, arg, write_mode='wb'):
         if isinstance(arg, cls):
-            return (yield obj._visit_write(arg))
+            return (yield obj.visit_write(arg))
         if isinstance(arg, (str, bytes)):
             tmpdb = DstBytes.in_memory()
-            yield obj._visit_write(tmpdb)
+            yield obj.visit_write(tmpdb)
             with open(arg, write_mode) as f:
                 return f.write(tmpdb.file.getbuffer())
         try:
@@ -658,7 +663,7 @@ class DstBytes(object):
             if not 'b' in file_mode:
                 raise IOError(f"File needs to be opened with 'b' mode.")
         tmpdb = DstBytes.in_memory()
-        yield obj._visit_write(tmpdb)
+        yield obj.visit_write(tmpdb)
         return arg.write(tmpdb.file.getbuffer())
 
     def __enter__(self):

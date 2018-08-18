@@ -47,7 +47,7 @@ class Level(Fragment):
         if sec.magic != Magic[9]:
             raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
-            yield obj._visit_write(dbytes)
+            yield obj.visit_write(dbytes)
 
     @property
     def settings(self):

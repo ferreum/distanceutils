@@ -362,7 +362,7 @@ class Fragment(BytesModel):
         self.end_pos = container.end_pos
         self._read_section_data(dbytes, container)
 
-    def _visit_write(self, dbytes):
+    def visit_write(self, dbytes):
         con = getattr(self, 'container', None)
         sec = self._get_write_section(con)
         with dbytes.write_section(sec):
@@ -530,7 +530,7 @@ class ObjectFragment(Fragment):
         if has_children:
             with dbytes.write_section(Magic[5]):
                 for obj in children:
-                    yield obj._visit_write(dbytes)
+                    yield obj.visit_write(dbytes)
 
 
 def _object_property(name, default=None, doc=None):
@@ -825,7 +825,7 @@ class BaseObject(Fragment):
 
     def _visit_write_section_data(self, dbytes, sec):
         for frag in self._fragments:
-            yield frag._visit_write(dbytes)
+            yield frag.visit_write(dbytes)
 
     def _init_defaults(self):
         super()._init_defaults()
