@@ -19,7 +19,7 @@ class LevelObject(BaseObject):
             with p.tree_children():
                 for obj in self.children:
                     p.tree_next_child()
-                    yield obj._visit_print_data(p)
+                    yield obj.visit_print(p)
 
 
 class SubObject(LevelObject):

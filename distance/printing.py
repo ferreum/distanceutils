@@ -188,7 +188,7 @@ def print_objects(p, gen):
             counters.num_objects += 1
         if 'numbers' in p.flags:
             p(f"Level object: {counters.num_objects}")
-        yield obj._visit_print_data(p)
+        yield obj.visit_print(p)
 
 
 def format_bytes(data, fmt='02x'):

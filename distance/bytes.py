@@ -294,9 +294,9 @@ class BytesModel(object):
         else:
             if file or flags:
                 raise TypeError("p must be the single argument")
-        trampoline(self._visit_print_data(p))
+        trampoline(self.visit_print(p))
 
-    def _visit_print_data(self, p):
+    def visit_print(self, p):
         self._print_type(p)
         if 'class' in p.flags:
             cls = type(self)

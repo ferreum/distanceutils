@@ -82,9 +82,9 @@ class Layer(Fragment):
     def _print_type(self, p):
         p(f"Layer: {self.layer_name!r}")
 
-    def _visit_print_data(self, p):
+    def visit_print(self, p):
         with need_counters(p) as counters:
-            yield super()._visit_print_data(p)
+            yield super().visit_print(p)
             if counters:
                 counters.print(p)
 

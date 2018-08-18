@@ -73,9 +73,9 @@ class Level(Fragment):
             return f" {self.name!r}{supstr}"
         return supstr
 
-    def _visit_print_data(self, p):
+    def visit_print(self, p):
         with need_counters(p) as counters:
-            yield super()._visit_print_data(p)
+            yield super().visit_print(p)
             if counters:
                 counters.print(p)
 
@@ -89,9 +89,9 @@ class Level(Fragment):
     def _print_children(self, p):
         if self.settings is not None:
             with p.tree_children():
-                yield self.settings._visit_print_data(p)
+                yield self.settings.visit_print(p)
         for layer in self.layers:
-            yield layer._visit_print_data(p)
+            yield layer.visit_print(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et:
