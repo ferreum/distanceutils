@@ -473,7 +473,7 @@ class Fragment(BytesModel):
         dummy_str = '' if implemented else ' [dummy]'
         p(f"Fragment: {type_str}{actual_str}{ver_str}{dummy_str}")
 
-    def _print_data(self, p):
+    def _visit_print_data(self, p):
         if 'sections' in p.flags:
             try:
                 container = self.container
@@ -854,8 +854,8 @@ class BaseObject(Fragment):
             text = "Unknown"
         p(f"Object type: {text}")
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.real_transform)}")
         if 'fragments' in p.flags and self._fragments:

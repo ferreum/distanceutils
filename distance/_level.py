@@ -82,8 +82,8 @@ class Level(Fragment):
     def _print_type(self, p):
         p(f"Level: {self.name!r} version {self.version}")
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         p(f"Level name: {self.name!r}")
 
     def _print_children(self, p):

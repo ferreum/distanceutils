@@ -134,8 +134,8 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
         if self.data:
             self._construct_.build_stream(self.data, dbytes.file, sec=sec)
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if 'allprops' in p.flags:
             p(f"Fields: {len(self.data)}")
             with p.tree_children():

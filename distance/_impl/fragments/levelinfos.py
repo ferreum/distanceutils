@@ -53,8 +53,8 @@ class LevelInfosFragment(BaseConstructFragment):
         )[this.num_entries], ()),
     )
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         with p.tree_children():
             for level in self.levels:
                 p.tree_next_child()

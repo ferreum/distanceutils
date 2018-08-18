@@ -86,8 +86,8 @@ class ProfileProgressFragment(BaseConstructFragment):
         'unk_4' / Remainder,
     )
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         levels = self.levels
         p(f"Level count: {len(levels)}")
         with p.tree_children():
@@ -176,8 +176,8 @@ class ProfileStatsFragment(BaseConstructFragment):
         'trackmogrify_mods' / Default(PrefixedArray(UInt, DstString), ()),
     )
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
 
         def ps(stat, name):
             value = getattr(self, stat)

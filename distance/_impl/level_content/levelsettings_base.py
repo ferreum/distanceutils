@@ -21,8 +21,8 @@ class BaseLevelSettings(Fragment):
         difficulty = None,
     )
 
-    def _print_data(self, p):
-        yield super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if self.name is not None:
             p(f"Level name: {self.name!r}")
         if self.skybox_name is not None:
