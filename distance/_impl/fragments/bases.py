@@ -19,7 +19,6 @@ class BaseCarScreenTextDecodeTrigger(Fragment):
     static_time_text = None
     delay = None
     announcer_action = None
-    announcer_phrases = ()
 
     def _visit_print_data(self, p):
         yield super()._visit_print_data(p)
@@ -41,12 +40,6 @@ class BaseCarScreenTextDecodeTrigger(Fragment):
             p(f"Delay: {self.delay}")
         if self.announcer_action is not None:
             p(f"Announcer action: {self.announcer_action}")
-        if self.announcer_phrases:
-            p(f"Announcer phrases: {len(self.announcer_phrases)}")
-            with p.tree_children():
-                for phrase in self.announcer_phrases:
-                    p.tree_next_child()
-                    p(f"Phrase: {phrase!r}")
 
 
 class BaseInfoDisplayLogic(Fragment):
