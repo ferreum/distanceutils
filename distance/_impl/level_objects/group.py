@@ -21,7 +21,7 @@ class Group(LevelObject):
 
     default_transform = Transform.fill()
 
-    def _print_children(self, p):
+    def _visit_print_children(self, p):
         with need_counters(p) as counters:
             num = len(self.children)
             if num:

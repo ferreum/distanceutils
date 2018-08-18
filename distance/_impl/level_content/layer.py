@@ -100,8 +100,8 @@ class Layer(Fragment):
         p.counters.num_layers += 1
         p.counters.layer_objects += len(self.objects)
 
-    def _print_children(self, p):
-        yield super()._print_children(p)
+    def _visit_print_children(self, p):
+        yield super()._visit_print_children(p)
         with p.tree_children():
             yield print_objects(p, self.objects)
 

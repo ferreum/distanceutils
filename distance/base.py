@@ -881,7 +881,7 @@ class BaseObject(Fragment):
                             p.tree_next_child()
                             yield frag.visit_print(p)
 
-    def _print_children(self, p):
+    def _visit_print_children(self, p):
         if self.children:
             num = len(self.children)
             p(f"Children: {num}")

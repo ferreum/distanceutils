@@ -86,7 +86,7 @@ class Level(Fragment):
         yield super()._visit_print_data(p)
         p(f"Level name: {self.name!r}")
 
-    def _print_children(self, p):
+    def _visit_print_children(self, p):
         if self.settings is not None:
             with p.tree_children():
                 yield self.settings.visit_print(p)

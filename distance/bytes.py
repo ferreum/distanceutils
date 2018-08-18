@@ -304,7 +304,7 @@ class BytesModel(object):
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
         yield self._visit_print_data(p)
-        yield self._print_children(p)
+        yield self._visit_print_children(p)
         if self.exception:
             p(f"Exception occurred:")
             p.print_exception(self.exception)
@@ -328,7 +328,7 @@ class BytesModel(object):
         return
         yield
 
-    def _print_children(self, p):
+    def _visit_print_children(self, p):
         return
         yield
 

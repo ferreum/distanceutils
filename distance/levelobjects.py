@@ -12,7 +12,7 @@ class LevelObject(BaseObject):
 
     has_children = True
 
-    def _print_children(self, p):
+    def _visit_print_children(self, p):
         if 'subobjects' in p.flags and self.children:
             num = len(self.children)
             p(f"Subobjects: {num}")
