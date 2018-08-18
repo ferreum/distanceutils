@@ -41,11 +41,11 @@ class PrintContext(object):
         if buf:
             count = remain[-1]
             if count is not None:
-                self.tree_push_up(len(buf) - 1, [text], count <= 1)
+                self._tree_push_up(len(buf) - 1, [text], count <= 1)
             else:
                 lines = buf[-1]
                 if ended[-1]:
-                    self.tree_push_up(len(buf) - 1, lines, False)
+                    self._tree_push_up(len(buf) - 1, lines, False)
                     lines.clear()
                 lines.extend(text.split('\n'))
         else:
@@ -53,7 +53,7 @@ class PrintContext(object):
             if f is not None:
                 print(text, file=f)
 
-    def tree_push_up(self, level, lines, last):
+    def _tree_push_up(self, level, lines, last):
         if not lines:
             return
         buf, ended, remain = self._tree_data
@@ -85,7 +85,7 @@ class PrintContext(object):
         if level > 0 and remain[level - 1] is not None:
             # In unbuffered mode (with 'count' passed to tree_children)
             # we push everyting up to root immediately.
-            self.tree_push_up(level - 1, upbuffer, remain[level - 1] <= 1)
+            self._tree_push_up(level - 1, upbuffer, remain[level - 1] <= 1)
             upbuffer.clear()
 
     @contextmanager
@@ -111,7 +111,7 @@ class PrintContext(object):
         finally:
             ended[level] = True
             if not broken and count is None:
-                self.tree_push_up(level, lines, True)
+                self._tree_push_up(level, lines, True)
             buf.pop()
             ended.pop()
             remain.pop()
