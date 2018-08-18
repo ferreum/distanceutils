@@ -41,7 +41,7 @@ class MaterialFragment(Fragment):
     def _print_data(self, p):
         yield super()._print_data(p)
         if 'allprops' in p.flags and self.materials:
-            self.materials.print_data(p)
+            self.materials.print(p)
 
 
 def material_property(matname, colname):

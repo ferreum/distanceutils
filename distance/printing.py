@@ -131,7 +131,7 @@ class PrintContext(object):
                 ended[-1] = True
 
     def print_data_of(self, obj):
-        obj.print_data(p=self)
+        obj.print(p=self)
 
     def print_exception(self, exc):
         exc_str = traceback.format_exception(type(exc), exc, exc.__traceback__)
@@ -154,7 +154,7 @@ class Counters(object):
     layer_objects = 0
     grouped_objects = 0
 
-    def print_data(self, p):
+    def print(self, p):
         if self.num_layers:
             p(f"Total layers: {self.num_layers}")
         if self.layer_objects:

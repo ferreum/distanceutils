@@ -77,7 +77,7 @@ class Level(Fragment):
         with need_counters(p) as counters:
             yield super()._visit_print_data(p)
             if counters:
-                counters.print_data(p)
+                counters.print(p)
 
     def _print_type(self, p):
         p(f"Level: {self.name!r} version {self.version}")

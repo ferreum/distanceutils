@@ -432,7 +432,7 @@ class Fragment(BytesModel):
         sio = StringIO()
         flags = ('allprops', 'sections', 'transform', 'offset',
                  'objects', 'subobjects', 'groups', 'fragments')
-        self.print_data(file=sio, flags=flags)
+        self.print(file=sio, flags=flags)
         return sio.getvalue()
 
     def _print_type(self, p):

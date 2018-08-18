@@ -63,7 +63,7 @@ class InfoDisplayBoxTest(unittest.TestCase):
         self.assertAlmostEqual(obj.per_char_speed, 0.02)
         p.print_data_of(obj)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(PROBER.read("tests/in/customobject/infodisplaybox 1.bytes"))
 
@@ -95,7 +95,7 @@ class WorldTextTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/worldtext weird.bytes")
         self.assertEqual(obj.text, "Zero-G")
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(PROBER.read("tests/in/customobject/worldtext helloworld.bytes"))
 

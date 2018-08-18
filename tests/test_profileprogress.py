@@ -35,7 +35,7 @@ class ProfileProgressTest(unittest.TestCase):
         check_exceptions(stats)
         self.assertEqual(13, stats.impacts)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         obj = ProfileProgress("tests/in/profileprogress/diamond acclivity.bytes")
         p.print_data_of(obj)

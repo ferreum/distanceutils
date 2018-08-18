@@ -286,7 +286,7 @@ class BytesModel(object):
         except AttributeError:
             return ""
 
-    def print_data(self, file=None, flags=(), p=None):
+    def print(self, file=None, flags=(), p=None):
         if p is None:
             if file is None:
                 file = sys.stdout

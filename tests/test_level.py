@@ -17,7 +17,7 @@ class LevelTest(unittest.TestCase):
         self.assertEqual(level.name, "Test-straightroad")
         check_exceptions(level)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Level("tests/in/level/test-straightroad.bytes"))
 

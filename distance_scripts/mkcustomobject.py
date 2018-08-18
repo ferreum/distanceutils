@@ -101,7 +101,7 @@ def main():
     if tosave is None:
         return 1
 
-    tosave.print_data(file=sys.stderr, flags=('groups', 'subobjects'))
+    tosave.print(file=sys.stderr, flags=('groups', 'subobjects'))
 
     if args.OUT == '-':
         destarg = sys.stdout.buffer

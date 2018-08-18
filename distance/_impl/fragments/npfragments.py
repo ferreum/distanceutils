@@ -153,7 +153,7 @@ class NamedPropertiesFragment(Fragment):
         if self.props.old_format:
             p(f"Old properties format")
         if 'allprops' in p.flags and self.props:
-            self.props.print_data(p)
+            self.props.print(p)
 
 
 @Classes.fragments.fragment

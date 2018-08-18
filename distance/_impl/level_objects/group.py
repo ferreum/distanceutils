@@ -31,7 +31,7 @@ class Group(LevelObject):
                     with p.tree_children():
                         yield print_objects(p, self.children)
             if counters:
-                counters.print_data(p)
+                counters.print(p)
 
     def recenter(self, center):
         import numpy as np, quaternion
