@@ -43,11 +43,11 @@ class Level(Fragment):
     def _get_write_section(self, sec):
         return Section(Magic[9], self.name, len(self.layers), self.version)
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
         if sec.magic != Magic[9]:
             raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
-            obj.write(dbytes)
+            yield obj._visit_write(dbytes)
 
     @property
     def settings(self):

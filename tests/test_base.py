@@ -2,7 +2,7 @@
 
 import unittest
 import sys
-from io import StringIO
+from io import StringIO, BytesIO
 
 from distance import DefaultClasses
 from distance.bytes import Magic, Section
@@ -19,6 +19,7 @@ from distance._impl.fragments.levelfragments import (
     GoldenSimplesFragment,
 )
 from distance.classes import ClassCollection, TagError
+from .common import write_read, check_exceptions
 
 
 def TagFragment(name, tag, **kw):
@@ -59,6 +60,38 @@ class BaseObjectTest(unittest.TestCase):
         lines = output.getvalue().splitlines()
         self.assertEqual(len(lines), 201)
         self.assertEqual(lines[-1], ("   " * 99) + "└─ Object type: Unknown")
+
+    def test_write_deeply_nested(self):
+        # create deeply nested objects
+        obj = BaseObject(type='First')
+        for _ in range(100):
+            obj = BaseObject(type='Test', children=[obj])
+
+        # same as printing test
+        saved_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(50)
+        try:
+            result, rdb = write_read(obj, do_check_exceptions=False)
+        finally:
+            sys.setrecursionlimit(saved_limit)
+
+        r = result
+        count = 0
+        while r.children:
+            count += 1
+            r = r.children[0]
+
+        self.assertEqual(count, 100)
+
+    def test_write_and_read_stream(self):
+        buf = BytesIO()
+
+        BaseObject(type='Test').write(buf)
+        buf.seek(0)
+        result = BaseObject(buf)
+
+        self.assertEqual(result.type, 'Test')
+        check_exceptions(result)
 
     def test_getitem_object(self):
         obj = BaseObject()

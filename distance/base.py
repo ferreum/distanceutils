@@ -362,11 +362,11 @@ class Fragment(BytesModel):
         self.end_pos = container.end_pos
         self._read_section_data(dbytes, container)
 
-    def _write(self, dbytes):
+    def _visit_write(self, dbytes):
         con = getattr(self, 'container', None)
         sec = self._get_write_section(con)
         with dbytes.write_section(sec):
-            self._write_section_data(dbytes, sec)
+            yield self._visit_write_section_data(dbytes, sec)
 
     def _get_write_section(self, sec):
         return sec or self.get_default_container()
@@ -407,9 +407,19 @@ class Fragment(BytesModel):
         """Read data of the given section."""
         pass
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
+        """Write data of the given section (trampolined).
 
-        """Write data of the given section.
+        Default implementation delegates to `_write_section_data()`.
+
+        """
+
+        self._write_section_data(dbytes, sec)
+        return
+        yield
+
+    def _write_section_data(self, dbytes, sec):
+        """Non-trampolined version of `_write_section_data()`.
 
         The default implementation just writes this object's raw_data.
 
@@ -511,7 +521,7 @@ class ObjectFragment(Fragment):
         self.has_children = has_children
         self.children = children
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
         transform = self.real_transform
         children = self.children
         has_children = self.has_children or children
@@ -520,7 +530,7 @@ class ObjectFragment(Fragment):
         if has_children:
             with dbytes.write_section(Magic[5]):
                 for obj in children:
-                    obj.write(dbytes)
+                    yield obj._visit_write(dbytes)
 
 
 def _object_property(name, default=None, doc=None):
@@ -813,9 +823,9 @@ class BaseObject(Fragment):
             cid = None
         return Section(Magic[6], self.type, id=cid)
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
         for frag in self._fragments:
-            frag.write(dbytes)
+            yield frag._visit_write(dbytes)
 
     def _init_defaults(self):
         super()._init_defaults()

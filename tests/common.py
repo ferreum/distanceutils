@@ -47,7 +47,7 @@ def iter_level_objects(level, with_groups=False):
         yield from iter_objects(layer.objects, with_groups=with_groups)
 
 
-def write_read(obj, read_func=None):
+def write_read(obj, read_func=None, do_check_exceptions=True):
     if read_func is None:
         read_func = type(obj)
 
@@ -58,7 +58,8 @@ def write_read(obj, read_func=None):
     disable_writes(dbytes)
     result = read_func(dbytes)
 
-    check_exceptions(result)
+    if do_check_exceptions:
+        check_exceptions(result)
 
     return result, dbytes.file
 
