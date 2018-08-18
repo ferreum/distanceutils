@@ -70,6 +70,7 @@ class InfoDisplayBoxTest(unittest.TestCase):
     def test_quarantinetrigger(self):
         obj = PROBER.read("tests/in/customobject/quarantinetrigger empty infodisplaylogic.bytes")
         check_exceptions(obj)
+        PrintContext.for_test().print_data_of(obj)
 
 
 class InfoDisplayBoxV2WriteReadTest(common.WriteReadTest):

@@ -275,7 +275,7 @@ class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment
 
     @property
     def texts(self):
-        return [e.text for e in self.entries]
+        return [e.text for e in (self.entries or ())]
 
     @texts.setter
     def texts(self, value):
