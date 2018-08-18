@@ -102,8 +102,7 @@ class Layer(Fragment):
 
     def _visit_print_children(self, p):
         yield super()._visit_print_children(p)
-        with p.tree_children(len(self.objects)):
-            yield print_objects(p, self.objects)
+        yield print_objects(p, self.objects)
 
 
 # vim:set sw=4 et:

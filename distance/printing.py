@@ -187,15 +187,16 @@ def need_counters(p):
     del p.counters
 
 
-def print_objects(p, gen):
+def print_objects(p, children):
     counters = p.counters
-    for obj in gen:
-        p.tree_next_child()
-        if counters is not None:
-            counters.num_objects += 1
-        if 'numbers' in p.flags:
-            p(f"Level object: {counters.num_objects}")
-        yield obj.visit_print(p)
+    with p.tree_children(len(children)):
+        for obj in children:
+            p.tree_next_child()
+            if counters is not None:
+                counters.num_objects += 1
+            if 'numbers' in p.flags:
+                p(f"Level object: {counters.num_objects}")
+            yield obj.visit_print(p)
 
 
 def format_bytes(data, fmt='02x'):

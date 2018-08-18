@@ -28,8 +28,7 @@ class Group(LevelObject):
                 p(f"Grouped objects: {num}")
                 if 'groups' in p.flags:
                     p.counters.grouped_objects += num
-                    with p.tree_children(len(self.children)):
-                        yield print_objects(p, self.children)
+                    yield print_objects(p, self.children)
             if counters:
                 counters.print(p)
 
