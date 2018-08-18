@@ -54,39 +54,46 @@ class PrintContext(object):
                 print(text, file=f)
 
     def _tree_push_up(self, level, lines, last):
-        if not lines:
-            return
-        buf, ended, remain = self._tree_data
-        if level < 0:
-            raise IndexError
-        was_ended = ended[level]
-        ended[level] = False
-        if level > 0:
-            upbuffer = buf[level - 1]
-            push_line = upbuffer.append
-        else:
-            f = self.file
-            def push_line(line):
-                if f is not None:
-                    print(line, file=f)
-        it = iter(lines)
-        if was_ended:
-            if last:
-                prefix = "└─ "
+        while True:
+            if not lines:
+                return
+            buf, ended, remain = self._tree_data
+            if level < 0:
+                raise IndexError
+            was_ended = ended[level]
+            ended[level] = False
+            if level > 0:
+                upbuffer = buf[level - 1]
+                push_line = upbuffer.append
             else:
-                prefix = "├─ "
-            push_line(prefix + next(it))
-        if last:
-            prefix = "   "
-        else:
-            prefix = "│  "
-        for line in it:
-            push_line(prefix + line)
-        if level > 0 and remain[level - 1] is not None:
-            # In unbuffered mode (with 'count' passed to tree_children)
-            # we push everyting up to root immediately.
-            self._tree_push_up(level - 1, upbuffer, remain[level - 1] <= 1)
-            upbuffer.clear()
+                f = self.file
+                def push_line(line):
+                    if f is not None:
+                        print(line, file=f)
+            it = iter(lines)
+            if was_ended:
+                if last:
+                    prefix = "└─ "
+                else:
+                    prefix = "├─ "
+                push_line(prefix + next(it))
+            if last:
+                prefix = "   "
+            else:
+                prefix = "│  "
+            for line in it:
+                push_line(prefix + line)
+
+            if remain is not None:
+                lines.clear()
+            if level > 0 and remain[level - 1] is not None:
+                # In unbuffered mode (with 'count' passed to tree_children)
+                # we iterate up to the root and print everyting immediately.
+                level -= 1
+                lines = upbuffer
+                last = remain[level] <= 1
+            else:
+                return
 
     @contextmanager
     def tree_children(self, count=None):

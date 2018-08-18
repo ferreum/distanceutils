@@ -1,8 +1,6 @@
 
 
 import unittest
-import sys
-import inspect
 from io import StringIO, BytesIO
 
 from distance import DefaultClasses
@@ -20,7 +18,7 @@ from distance._impl.fragments.levelfragments import (
     GoldenSimplesFragment,
 )
 from distance.classes import ClassCollection, TagError
-from .common import write_read, check_exceptions
+from .common import write_read, check_exceptions, small_stack
 
 
 def TagFragment(name, tag, **kw):
@@ -51,12 +49,8 @@ class BaseObjectTest(unittest.TestCase):
 
         # reduce recursion limit so we don't need to
         # use so much time and memory
-        saved_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(50 + len(inspect.stack()))
-        try:
+        with small_stack(50):
             p.print_data_of(obj)
-        finally:
-            sys.setrecursionlimit(saved_limit)
 
         lines = output.getvalue().splitlines()
         self.assertEqual(len(lines), 201)
@@ -68,13 +62,8 @@ class BaseObjectTest(unittest.TestCase):
         for _ in range(100):
             obj = BaseObject(type='Test', children=[obj])
 
-        # same as printing test
-        saved_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(50 + len(inspect.stack()))
-        try:
+        with small_stack(50):
             result, rdb = write_read(obj, do_check_exceptions=False)
-        finally:
-            sys.setrecursionlimit(saved_limit)
 
         r = result
         count = 0

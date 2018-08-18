@@ -1,4 +1,6 @@
 import unittest
+import sys
+import inspect
 from io import BytesIO
 from contextlib import contextmanager
 from collections import Sequence
@@ -171,6 +173,16 @@ def assertLargeEqual(test, first, second, *, msg="", path="<obj>"):
         test.assertEqual(first, second, msg=f"dict contents equal, but not the dict objects")
     else:
         test.assertEqual(first, second, msg=f"\n{msg}{msg and '; '}path of first difference: {path}")
+
+
+@contextmanager
+def small_stack(size):
+    saved_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(size + len(inspect.stack()))
+    try:
+        yield
+    finally:
+        sys.setrecursionlimit(saved_limit)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

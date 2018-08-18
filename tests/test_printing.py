@@ -2,7 +2,26 @@ import unittest
 from io import StringIO
 from textwrap import dedent
 
+from trampoline import trampoline
+
 from distance.printing import PrintContext
+from .common import small_stack
+
+
+class Node(object):
+
+    def __init__(self, name, children=()):
+        self.name = name
+        self.children = children
+
+    def print(self, p, unbuffered):
+        trampoline(self.visit_print(p, unbuffered))
+
+    def visit_print(self, p, unbuffered):
+        with p.tree_children(count=len(self.children) if unbuffered else None):
+            p(self.name)
+            for child in self.children:
+                yield child.visit_print(p, unbuffered)
 
 
 class BaseTest(unittest.TestCase):
@@ -203,6 +222,20 @@ class TreeTest(BaseTest):
         └─ Child 0
            └─ Child 0-0
         """)
+
+    def test_deeply_nested(self):
+        p = self.p
+        node = Node("Last")
+        for i in range(100):
+            node = Node(f"Node {99 - i}", children=[node])
+
+        for unbuffered in (True, False):
+            with self.subTest(unbuffered=unbuffered):
+                with small_stack(50):
+                    node.print(p, unbuffered)
+
+                lines = self.out.getvalue().splitlines()
+                self.assertEqual(lines[-1], "   " * 100 + "└─ Last")
 
 
 # vim:set sw=4 ts=8 sts=4 et:
