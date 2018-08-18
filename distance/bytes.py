@@ -287,6 +287,16 @@ class BytesModel(object):
             return ""
 
     def print(self, file=None, flags=(), p=None):
+        """Print this object.
+
+        Arguments
+        ---------
+        file - The file to write to. If None, sys.stdout is used.
+        flags - List of options to customize output.
+        p - PrintContext. Created from file and flags if omitted.
+            If non-None, file and flags need to be omitted.
+
+        """
         if p is None:
             if file is None:
                 file = sys.stdout
@@ -297,6 +307,7 @@ class BytesModel(object):
         trampoline(self.visit_print(p))
 
     def visit_print(self, p):
+        "Print this object using the given PrintContext (trampolined)."
         self._print_type(p)
         if 'class' in p.flags:
             cls = type(self)
@@ -325,10 +336,12 @@ class BytesModel(object):
             p(f"Data size: 0x{end - start:x} bytes")
 
     def _visit_print_data(self, p):
+        "Print data of this object (trampolined)."
         return
         yield
 
     def _visit_print_children(self, p):
+        "Print children of this object (trampolined)."
         return
         yield
 
