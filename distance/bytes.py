@@ -10,7 +10,7 @@ from collections import namedtuple
 from .printing import PrintContext
 from ._argtaker import ArgTaker
 from .lazy import LazySequence
-from ._trampoline import trampoline
+from trampoline import trampoline
 
 import codecs
 
