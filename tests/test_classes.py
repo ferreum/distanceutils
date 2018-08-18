@@ -13,12 +13,6 @@ from distance._impl.level_objects.objects import OldSimple
 from .common import write_read, check_exceptions, assertLargeEqual
 
 
-class TestObject(BaseObject):
-
-    def __init__(self, **kw):
-        self.init_args = kw
-
-
 def TagFragment(name, tag, **kw):
     kw['class_tag'] = tag
     return type(name, (Fragment,), kw)
@@ -38,15 +32,23 @@ def classes_on_module(*classes):
 
 class ProberTest(unittest.TestCase):
 
+    def fallback_func(self, *args):
+        class TestObject(BaseObject):
+
+            def __init__(self, **kw):
+                self.init_args = kw
+        return TestObject
+
+
     def test_read_creates_plain_object(self):
         coll = ClassCollection()
-        coll.add_func(lambda *_: TestObject, 'fallback')
+        coll.add_func(self.fallback_func, 'fallback')
         obj = coll.read("tests/in/customobject/2cubes.bytes")
         self.assertEqual(True, obj.init_args['plain'])
 
     def test_maybe_catches_exception(self):
         coll = ClassCollection()
-        coll.add_func(lambda *_: TestObject, 'fallback')
+        coll.add_func(self.fallback_func, 'fallback')
         dbytes = DstBytes.in_memory()
         dbytes.write_int(4, Magic[6])
         dbytes.seek(0)
@@ -55,7 +57,7 @@ class ProberTest(unittest.TestCase):
 
     def test_maybe_propagates_io_exception(self):
         coll = ClassCollection()
-        coll.add_func(lambda *_: TestObject, 'fallback')
+        coll.add_func(self.fallback_func, 'fallback')
         dbytes = DstBytes.in_memory()
         dbytes.write_int(4, Magic[6])
         dbytes.seek(0)

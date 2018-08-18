@@ -2,6 +2,7 @@
 
 import unittest
 import sys
+import inspect
 from io import StringIO, BytesIO
 
 from distance import DefaultClasses
@@ -51,7 +52,7 @@ class BaseObjectTest(unittest.TestCase):
         # reduce recursion limit so we don't need to
         # use so much time and memory
         saved_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(50)
+        sys.setrecursionlimit(50 + len(inspect.stack()))
         try:
             p.print_data_of(obj)
         finally:
@@ -69,7 +70,7 @@ class BaseObjectTest(unittest.TestCase):
 
         # same as printing test
         saved_limit = sys.getrecursionlimit()
-        sys.setrecursionlimit(50)
+        sys.setrecursionlimit(50 + len(inspect.stack()))
         try:
             result, rdb = write_read(obj, do_check_exceptions=False)
         finally:
