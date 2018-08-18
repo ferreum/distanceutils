@@ -138,7 +138,7 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
         yield super()._visit_print_data(p)
         if 'allprops' in p.flags:
             p(f"Fields: {len(self.data)}")
-            with p.tree_children():
+            with p.tree_children(len(self.data)):
                 indent = "        "
                 for name, value in self.data.items():
                     if name != '_io': # construct internal?

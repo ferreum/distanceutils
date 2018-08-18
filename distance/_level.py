@@ -88,7 +88,7 @@ class Level(Fragment):
 
     def _visit_print_children(self, p):
         if self.settings is not None:
-            with p.tree_children():
+            with p.tree_children(1):
                 yield self.settings.visit_print(p)
         for layer in self.layers:
             yield layer.visit_print(p)

@@ -69,7 +69,7 @@ class NamedPropertyList(OrderedDict):
 
     def print(self, p):
         p(f"Properties: {len(self)}")
-        with p.tree_children():
+        with p.tree_children(len(self)):
             for k, v in self.items():
                 p.tree_next_child()
                 p(f"Property: {k!r} = {format_bytes(v)}")
@@ -102,7 +102,7 @@ class ColorSet(OrderedDict):
 
     def print(self, p):
         p(f"Colors: {len(self)}")
-        with p.tree_children():
+        with p.tree_children(len(self)):
             for colname, color in self.items():
                 p.tree_next_child()
                 cstr = ", ".join(format(v, ".3f") for v in color)
@@ -145,7 +145,7 @@ class MaterialSet(OrderedDict):
 
     def print(self, p):
         p(f"Materials: {len(self)}")
-        with p.tree_children():
+        with p.tree_children(len(self)):
             for matname, colors in self.items():
                 p.tree_next_child()
                 p(f"Material: {matname!r}")

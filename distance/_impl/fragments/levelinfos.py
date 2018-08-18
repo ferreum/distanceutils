@@ -55,7 +55,7 @@ class LevelInfosFragment(BaseConstructFragment):
 
     def _visit_print_data(self, p):
         yield super()._visit_print_data(p)
-        with p.tree_children():
+        with p.tree_children(len(self.levels)):
             for level in self.levels:
                 p.tree_next_child()
                 p(f"Level name: {level.level_name!r}")

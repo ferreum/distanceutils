@@ -481,7 +481,7 @@ class Fragment(BytesModel):
                 pass
             else:
                 p(f"Container:")
-                with p.tree_children():
+                with p.tree_children(1):
                     yield container.visit_print(p)
 
 
@@ -861,7 +861,7 @@ class BaseObject(Fragment):
         if 'fragments' in p.flags and self._fragments:
             if 'allprops' in p.flags:
                 p(f"Fragments: {len(self._fragments)}")
-                with p.tree_children():
+                with p.tree_children(len(self._fragments)):
                     for frag in self._fragments:
                         p.tree_next_child()
                         yield frag.visit_print(p)
@@ -882,10 +882,10 @@ class BaseObject(Fragment):
                             yield frag.visit_print(p)
 
     def _visit_print_children(self, p):
-        if self.children:
-            num = len(self.children)
+        num = len(self.children)
+        if num:
             p(f"Children: {num}")
-            with p.tree_children():
+            with p.tree_children(num):
                 for obj in self.children:
                     p.tree_next_child()
                     yield obj.visit_print(p)

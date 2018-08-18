@@ -124,7 +124,7 @@ class FragmentMatcher(object):
             p(f"Object: {obj.type!r}")
             p(f"Offset: 0x{obj.start_pos:08x}")
             p(f"Candidates: {len(frags)}")
-            with p.tree_children():
+            with p.tree_children(len(frags)):
                 for frag, matches in frags:
                     p.tree_next_child()
                     p(f"Section: {frag.container}")
@@ -134,7 +134,7 @@ class FragmentMatcher(object):
                     p(f"Offset: 0x{start:08x} to 0x{end:08x}"
                       f" (0x{end - start:x} bytes, content 0x{sec.content_size:x} bytes)")
                     p(f"Matches: {len(matches)}")
-                    with p.tree_children():
+                    with p.tree_children(len(matches)):
                         for name, offset, text in matches:
                             p.tree_next_child()
                             offset = "" if offset is None else f"0x{offset:x} "
@@ -165,7 +165,7 @@ def main():
         matcher.visit_object(obj, p)
     if matcher.sections:
         p(f"Unique sections: {len(matcher.sections)}")
-        with p.tree_children():
+        with p.tree_children(len(matcher.sections)):
             for sec in matcher.sections.values():
                 p.tree_next_child()
                 p(f"Section: {sec}")

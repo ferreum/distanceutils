@@ -16,7 +16,7 @@ class LevelObject(BaseObject):
         if 'subobjects' in p.flags and self.children:
             num = len(self.children)
             p(f"Subobjects: {num}")
-            with p.tree_children():
+            with p.tree_children(num):
                 for obj in self.children:
                     p.tree_next_child()
                     yield obj.visit_print(p)
