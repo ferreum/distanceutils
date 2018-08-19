@@ -18,6 +18,17 @@ class AnimatorDowngrader(object):
         return False
 
 
+class EventListenerDowngrader(object):
+
+    _tags_ = ['EventListener']
+
+    def apply(self, obj, sec, index):
+        if sec.version > 1:
+            obj['EventListener'].container.version = 1
+            return True
+        return False
+
+
 class DowngradeFilter(ObjectFilter):
 
     @classmethod
@@ -29,7 +40,7 @@ class DowngradeFilter(ObjectFilter):
 
     def __init__(self, args):
         super().__init__(args)
-        downgraders = [AnimatorDowngrader()]
+        downgraders = [AnimatorDowngrader(), EventListenerDowngrader()]
         by_key = defaultdict(list)
         for d in downgraders:
             for tag in d._tags_:
