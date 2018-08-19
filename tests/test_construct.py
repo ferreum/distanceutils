@@ -15,7 +15,7 @@ from tests.common import write_read, check_exceptions
 test_section = Section(Magic[2], 0x1337, 42)
 
 
-class TestFragment(BaseConstructFragment):
+class SimpleFragment(BaseConstructFragment):
 
     default_container = test_section
 
@@ -79,20 +79,20 @@ class TestFragmentTest(unittest.TestCase):
         db.seek(0)
 
     def test_read(self):
-        frag = TestFragment(self.dbytes)
+        frag = SimpleFragment(self.dbytes)
         self.assertEqual(frag.first_string, "a string")
         self.assertEqual(frag.second_uint, 64)
         check_exceptions(frag)
 
     def test_write_read(self):
-        frag = TestFragment(self.dbytes)
+        frag = SimpleFragment(self.dbytes)
         res, rdb = write_read(frag)
         self.assertEqual(res.first_string, "a string")
         self.assertEqual(res.second_uint, 64)
         check_exceptions(res)
 
     def test_write_read_changed(self):
-        frag = TestFragment(self.dbytes)
+        frag = SimpleFragment(self.dbytes)
         frag.first_string = "new string"
         res, rdb = write_read(frag)
         self.assertEqual(frag.first_string, "new string")
@@ -100,13 +100,13 @@ class TestFragmentTest(unittest.TestCase):
         check_exceptions(frag)
 
     def test_clone(self):
-        frag = TestFragment(self.dbytes)
+        frag = SimpleFragment(self.dbytes)
         res = frag.clone()
         self.assertEqual(res.first_string, "a string")
         self.assertEqual(res.second_uint, 64)
 
     def test_read_empty(self):
-        frag = TestFragment(self.dbytes_empty)
+        frag = SimpleFragment(self.dbytes_empty)
         self.assertEqual(frag.first_string, "default_str")
         self.assertEqual(frag.second_uint, 12)
         check_exceptions(frag)
@@ -156,29 +156,29 @@ class TestFragmentTest(unittest.TestCase):
 class TestFragment2Test(unittest.TestCase):
 
     def test_create_defaults(self):
-        frag = TestFragment()
+        frag = SimpleFragment()
         self.assertEqual(frag.first_string, "default_str")
         self.assertEqual(frag.second_uint, 12)
 
     def test_create_partial_default(self):
-        frag = TestFragment(second_uint=23)
+        frag = SimpleFragment(second_uint=23)
         self.assertEqual(frag.first_string, "default_str")
         self.assertEqual(frag.second_uint, 23)
 
     def test_write_partial_default(self):
-        frag = TestFragment(second_uint=23)
+        frag = SimpleFragment(second_uint=23)
         res, db = write_read(frag)
         self.assertEqual(res.first_string, "default_str")
         self.assertEqual(res.second_uint, 23)
         check_exceptions(res)
 
     def test_create(self):
-        frag = TestFragment(first_string="created", second_uint=32)
+        frag = SimpleFragment(first_string="created", second_uint=32)
         self.assertEqual(frag.first_string, "created")
         self.assertEqual(frag.second_uint, 32)
 
     def test_clone_created(self):
-        orig = TestFragment(first_string="text", second_uint=23)
+        orig = SimpleFragment(first_string="text", second_uint=23)
         res = orig.clone()
         self.assertEqual(res.first_string, "text")
         self.assertEqual(res.second_uint, 23)
@@ -189,7 +189,7 @@ class TestFragment2Test(unittest.TestCase):
             db.write_str("the string")
         db.seek(0)
 
-        frag = TestFragment.maybe(db)
+        frag = SimpleFragment.maybe(db)
 
         self.assertIsInstance(frag.exception, ValueError)
         self.assertIsInstance(frag.exception.__cause__, ConstructError)

@@ -10,6 +10,7 @@ from collections import namedtuple
 from .printing import PrintContext
 from ._argtaker import ArgTaker
 from .lazy import LazySequence
+from trampoline import trampoline
 
 import codecs
 
@@ -265,13 +266,19 @@ class BytesModel(object):
 
         """Write this object to `dbytes`.
 
-        Subclasses need to implement _write() for this to work.
+        Subclasses need to implement `visit_write()` for this to work.
 
         """
 
-        return DstBytes._write_arg(self, dbytes, **kw)
+        return trampoline(DstBytes._write_arg(self, dbytes, **kw))
 
-    def _write(self, dbytes):
+    def visit_write(self, dbytes):
+        """Write this object (trampolined).
+
+        Arguments
+        ---------
+        dbytes - The DstBytes to write to.
+        """
         raise NotImplementedError(
             "Subclass needs to override write(self, dbytes)")
 
@@ -284,7 +291,17 @@ class BytesModel(object):
         except AttributeError:
             return ""
 
-    def print_data(self, file=None, flags=(), p=None):
+    def print(self, file=None, flags=(), p=None):
+        """Print this object.
+
+        Arguments
+        ---------
+        file - The file to write to. If None, sys.stdout is used.
+        flags - List of options to customize output.
+        p - PrintContext. Created from file and flags if omitted.
+            If non-None, file and flags need to be omitted.
+
+        """
         if p is None:
             if file is None:
                 file = sys.stdout
@@ -292,15 +309,18 @@ class BytesModel(object):
         else:
             if file or flags:
                 raise TypeError("p must be the single argument")
+        trampoline(self.visit_print(p))
 
+    def visit_print(self, p):
+        "Print this object using the given PrintContext (trampolined)."
         self._print_type(p)
         if 'class' in p.flags:
             cls = type(self)
             p(f"Class: <{cls.__module__}.{cls.__name__}>")
         if 'offset' in p.flags or 'size' in p.flags:
             self._print_offset(p)
-        self._print_data(p)
-        self._print_children(p)
+        yield self._visit_print_data(p)
+        yield self._visit_print_children(p)
         if self.exception:
             p(f"Exception occurred:")
             p.print_exception(self.exception)
@@ -320,11 +340,15 @@ class BytesModel(object):
         else:
             p(f"Data size: 0x{end - start:x} bytes")
 
-    def _print_data(self, p):
-        pass
+    def _visit_print_data(self, p):
+        "Print data of this object (trampolined)."
+        return
+        yield
 
-    def _print_children(self, p):
-        pass
+    def _visit_print_children(self, p):
+        "Print children of this object (trampolined)."
+        return
+        yield
 
 
 # section magic (I) + size (Q)
@@ -625,10 +649,10 @@ class DstBytes(object):
     @classmethod
     def _write_arg(cls, obj, arg, write_mode='wb'):
         if isinstance(arg, cls):
-            return obj._write(arg)
+            return (yield obj.visit_write(arg))
         if isinstance(arg, (str, bytes)):
             tmpdb = DstBytes.in_memory()
-            obj._write(tmpdb)
+            yield obj.visit_write(tmpdb)
             with open(arg, write_mode) as f:
                 return f.write(tmpdb.file.getbuffer())
         try:
@@ -639,7 +663,7 @@ class DstBytes(object):
             if not 'b' in file_mode:
                 raise IOError(f"File needs to be opened with 'b' mode.")
         tmpdb = DstBytes.in_memory()
-        obj._write(tmpdb)
+        yield obj.visit_write(tmpdb)
         return arg.write(tmpdb.file.getbuffer())
 
     def __enter__(self):

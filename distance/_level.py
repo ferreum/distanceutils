@@ -43,11 +43,11 @@ class Level(Fragment):
     def _get_write_section(self, sec):
         return Section(Magic[9], self.name, len(self.layers), self.version)
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
         if sec.magic != Magic[9]:
             raise ValueError(f"Unexpected section: {sec.magic}")
         for obj in self.content:
-            obj.write(dbytes)
+            yield obj.visit_write(dbytes)
 
     @property
     def settings(self):
@@ -73,20 +73,25 @@ class Level(Fragment):
             return f" {self.name!r}{supstr}"
         return supstr
 
+    def visit_print(self, p):
+        with need_counters(p) as counters:
+            yield super().visit_print(p)
+            if counters:
+                counters.print(p)
+
     def _print_type(self, p):
         p(f"Level: {self.name!r} version {self.version}")
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         p(f"Level name: {self.name!r}")
-        settings = self.settings
-        with p.tree_children():
-            p.print_data_of(settings)
-        with need_counters(p) as counters:
-            for layer in self.layers:
-                p.print_data_of(layer)
-            if counters:
-                counters.print_data(p)
+
+    def _visit_print_children(self, p):
+        if self.settings is not None:
+            with p.tree_children(1):
+                yield self.settings.visit_print(p)
+        for layer in self.layers:
+            yield layer.visit_print(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

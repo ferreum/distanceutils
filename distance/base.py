@@ -362,11 +362,11 @@ class Fragment(BytesModel):
         self.end_pos = container.end_pos
         self._read_section_data(dbytes, container)
 
-    def _write(self, dbytes):
+    def visit_write(self, dbytes):
         con = getattr(self, 'container', None)
         sec = self._get_write_section(con)
         with dbytes.write_section(sec):
-            self._write_section_data(dbytes, sec)
+            yield self._visit_write_section_data(dbytes, sec)
 
     def _get_write_section(self, sec):
         return sec or self.get_default_container()
@@ -407,9 +407,19 @@ class Fragment(BytesModel):
         """Read data of the given section."""
         pass
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
+        """Write data of the given section (trampolined).
 
-        """Write data of the given section.
+        Default implementation delegates to `_write_section_data()`.
+
+        """
+
+        self._write_section_data(dbytes, sec)
+        return
+        yield
+
+    def _write_section_data(self, dbytes, sec):
+        """Non-trampolined version of `_write_section_data()`.
 
         The default implementation just writes this object's raw_data.
 
@@ -422,7 +432,7 @@ class Fragment(BytesModel):
         sio = StringIO()
         flags = ('allprops', 'sections', 'transform', 'offset',
                  'objects', 'subobjects', 'groups', 'fragments')
-        self.print_data(file=sio, flags=flags)
+        self.print(file=sio, flags=flags)
         return sio.getvalue()
 
     def _print_type(self, p):
@@ -463,7 +473,7 @@ class Fragment(BytesModel):
         dummy_str = '' if implemented else ' [dummy]'
         p(f"Fragment: {type_str}{actual_str}{ver_str}{dummy_str}")
 
-    def _print_data(self, p):
+    def _visit_print_data(self, p):
         if 'sections' in p.flags:
             try:
                 container = self.container
@@ -471,8 +481,8 @@ class Fragment(BytesModel):
                 pass
             else:
                 p(f"Container:")
-                with p.tree_children():
-                    p.print_data_of(container)
+                with p.tree_children(1):
+                    yield container.visit_print(p)
 
 
 @Classes.base_fragments.fragment
@@ -511,7 +521,7 @@ class ObjectFragment(Fragment):
         self.has_children = has_children
         self.children = children
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
         transform = self.real_transform
         children = self.children
         has_children = self.has_children or children
@@ -520,7 +530,7 @@ class ObjectFragment(Fragment):
         if has_children:
             with dbytes.write_section(Magic[5]):
                 for obj in children:
-                    obj.write(dbytes)
+                    yield obj.visit_write(dbytes)
 
 
 def _object_property(name, default=None, doc=None):
@@ -813,9 +823,9 @@ class BaseObject(Fragment):
             cid = None
         return Section(Magic[6], self.type, id=cid)
 
-    def _write_section_data(self, dbytes, sec):
+    def _visit_write_section_data(self, dbytes, sec):
         for frag in self._fragments:
-            frag.write(dbytes)
+            yield frag.visit_write(dbytes)
 
     def _init_defaults(self):
         super()._init_defaults()
@@ -844,17 +854,17 @@ class BaseObject(Fragment):
             text = "Unknown"
         p(f"Object type: {text}")
 
-    def _print_data(self, p):
-        Fragment._print_data(self, p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.real_transform)}")
         if 'fragments' in p.flags and self._fragments:
             if 'allprops' in p.flags:
                 p(f"Fragments: {len(self._fragments)}")
-                with p.tree_children():
+                with p.tree_children(len(self._fragments)):
                     for frag in self._fragments:
                         p.tree_next_child()
-                        p.print_data_of(frag)
+                        yield frag.visit_print(p)
             else:
                 pred = self.classes.fragments.is_section_interesting
                 frags = self.filter_fragments(pred)
@@ -866,19 +876,19 @@ class BaseObject(Fragment):
                     p(f"Fragments: {len(self._fragments)} <filtered>")
                     with p.tree_children():
                         p.tree_next_child()
-                        p.print_data_of(frag)
+                        yield frag.visit_print(p)
                         for frag in frags:
                             p.tree_next_child()
-                            p.print_data_of(frag)
+                            yield frag.visit_print(p)
 
-    def _print_children(self, p):
-        if self.children:
-            num = len(self.children)
+    def _visit_print_children(self, p):
+        num = len(self.children)
+        if num:
             p(f"Children: {num}")
-            with p.tree_children():
+            with p.tree_children(num):
                 for obj in self.children:
                     p.tree_next_child()
-                    p.print_data_of(obj)
+                    yield obj.visit_print(p)
 
 
 def require_type(*args, func=None):

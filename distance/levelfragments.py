@@ -38,10 +38,10 @@ class MaterialFragment(Fragment):
         if self.materials or self.have_content:
             self.materials.write(dbytes)
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if 'allprops' in p.flags and self.materials:
-            self.materials.print_data(p)
+            self.materials.print(p)
 
 
 def material_property(matname, colname):

@@ -1,4 +1,6 @@
 import unittest
+import sys
+import inspect
 from io import BytesIO
 from contextlib import contextmanager
 from collections import Sequence
@@ -47,7 +49,7 @@ def iter_level_objects(level, with_groups=False):
         yield from iter_objects(layer.objects, with_groups=with_groups)
 
 
-def write_read(obj, read_func=None):
+def write_read(obj, read_func=None, do_check_exceptions=True):
     if read_func is None:
         read_func = type(obj)
 
@@ -58,7 +60,8 @@ def write_read(obj, read_func=None):
     disable_writes(dbytes)
     result = read_func(dbytes)
 
-    check_exceptions(result)
+    if do_check_exceptions:
+        check_exceptions(result)
 
     return result, dbytes.file
 
@@ -170,6 +173,16 @@ def assertLargeEqual(test, first, second, *, msg="", path="<obj>"):
         test.assertEqual(first, second, msg=f"dict contents equal, but not the dict objects")
     else:
         test.assertEqual(first, second, msg=f"\n{msg}{msg and '; '}path of first difference: {path}")
+
+
+@contextmanager
+def small_stack(size):
+    saved_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(size + len(inspect.stack()))
+    try:
+        yield
+    finally:
+        sys.setrecursionlimit(saved_limit)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

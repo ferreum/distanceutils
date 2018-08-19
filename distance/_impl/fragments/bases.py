@@ -19,10 +19,9 @@ class BaseCarScreenTextDecodeTrigger(Fragment):
     static_time_text = None
     delay = None
     announcer_action = None
-    announcer_phrases = ()
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if self.text is not None:
             p(f"Text: {self.text!r}")
         if self.per_char_speed is not None:
@@ -41,12 +40,6 @@ class BaseCarScreenTextDecodeTrigger(Fragment):
             p(f"Delay: {self.delay}")
         if self.announcer_action is not None:
             p(f"Announcer action: {self.announcer_action}")
-        if self.announcer_phrases:
-            p(f"Announcer phrases: {len(self.announcer_phrases)}")
-            with p.tree_children():
-                for phrase in self.announcer_phrases:
-                    p.tree_next_child()
-                    p(f"Phrase: {phrase!r}")
 
 
 class BaseInfoDisplayLogic(Fragment):
@@ -63,8 +56,8 @@ class BaseInfoDisplayLogic(Fragment):
     destroy_on_trigger_exit = None
     random_char_count = None
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         for i, text in enumerate(self.texts):
             if text:
                 p(f"Text {i}: {text!r}")
@@ -86,8 +79,8 @@ class BaseTeleporterEntrance(Fragment):
 
     is_interesting = True
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if self.destination is not None:
             p(f"Teleports to: {self.destination}")
 
@@ -100,8 +93,8 @@ class BaseTeleporterExit(Fragment):
 
     is_interesting = True
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         if self.link_id is not None:
             p(f"Link ID: {self.link_id}")
 

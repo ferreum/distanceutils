@@ -41,11 +41,11 @@ class PrintContext(object):
         if buf:
             count = remain[-1]
             if count is not None:
-                self.tree_push_up(len(buf) - 1, [text], count <= 1)
+                self._tree_push_up(len(buf) - 1, [text], count <= 1)
             else:
                 lines = buf[-1]
                 if ended[-1]:
-                    self.tree_push_up(len(buf) - 1, lines, False)
+                    self._tree_push_up(len(buf) - 1, lines, False)
                     lines.clear()
                 lines.extend(text.split('\n'))
         else:
@@ -53,40 +53,47 @@ class PrintContext(object):
             if f is not None:
                 print(text, file=f)
 
-    def tree_push_up(self, level, lines, last):
-        if not lines:
-            return
-        buf, ended, remain = self._tree_data
-        if level < 0:
-            raise IndexError
-        was_ended = ended[level]
-        ended[level] = False
-        if level > 0:
-            upbuffer = buf[level - 1]
-            push_line = upbuffer.append
-        else:
-            f = self.file
-            def push_line(line):
-                if f is not None:
-                    print(line, file=f)
-        it = iter(lines)
-        if was_ended:
-            if last:
-                prefix = "└─ "
+    def _tree_push_up(self, level, lines, last):
+        while True:
+            if not lines:
+                return
+            buf, ended, remain = self._tree_data
+            if level < 0:
+                raise IndexError
+            was_ended = ended[level]
+            ended[level] = False
+            if level > 0:
+                upbuffer = buf[level - 1]
+                push_line = upbuffer.append
             else:
-                prefix = "├─ "
-            push_line(prefix + next(it))
-        if last:
-            prefix = "   "
-        else:
-            prefix = "│  "
-        for line in it:
-            push_line(prefix + line)
-        if level > 0 and remain[level - 1] is not None:
-            # In unbuffered mode (with 'count' passed to tree_children)
-            # we push everyting up to root immediately.
-            self.tree_push_up(level - 1, upbuffer, remain[level - 1] <= 1)
-            upbuffer.clear()
+                f = self.file
+                def push_line(line):
+                    if f is not None:
+                        print(line, file=f)
+            it = iter(lines)
+            if was_ended:
+                if last:
+                    prefix = "└─ "
+                else:
+                    prefix = "├─ "
+                push_line(prefix + next(it))
+            if last:
+                prefix = "   "
+            else:
+                prefix = "│  "
+            for line in it:
+                push_line(prefix + line)
+
+            if remain is not None:
+                lines.clear()
+            if level > 0 and remain[level - 1] is not None:
+                # In unbuffered mode (with 'count' passed to tree_children)
+                # we iterate up to the root and print everyting immediately.
+                level -= 1
+                lines = upbuffer
+                last = remain[level] <= 1
+            else:
+                return
 
     @contextmanager
     def tree_children(self, count=None):
@@ -111,7 +118,7 @@ class PrintContext(object):
         finally:
             ended[level] = True
             if not broken and count is None:
-                self.tree_push_up(level, lines, True)
+                self._tree_push_up(level, lines, True)
             buf.pop()
             ended.pop()
             remain.pop()
@@ -131,7 +138,7 @@ class PrintContext(object):
                 ended[-1] = True
 
     def print_data_of(self, obj):
-        obj.print_data(p=self)
+        obj.print(p=self)
 
     def print_exception(self, exc):
         exc_str = traceback.format_exception(type(exc), exc, exc.__traceback__)
@@ -154,7 +161,7 @@ class Counters(object):
     layer_objects = 0
     grouped_objects = 0
 
-    def print_data(self, p):
+    def print(self, p):
         if self.num_layers:
             p(f"Total layers: {self.num_layers}")
         if self.layer_objects:
@@ -180,14 +187,16 @@ def need_counters(p):
     del p.counters
 
 
-def print_objects(p, gen):
+def print_objects(p, children):
     counters = p.counters
-    for obj in gen:
-        p.tree_next_child()
-        counters.num_objects += 1
-        if 'numbers' in p.flags:
-            p(f"Level object: {counters.num_objects}")
-        p.print_data_of(obj)
+    with p.tree_children(len(children)):
+        for obj in children:
+            p.tree_next_child()
+            if counters is not None:
+                counters.num_objects += 1
+            if 'numbers' in p.flags:
+                p(f"Level object: {counters.num_objects}")
+            yield obj.visit_print(p)
 
 
 def format_bytes(data, fmt='02x'):

@@ -67,9 +67,9 @@ class NamedPropertyList(OrderedDict):
             # only 4b values are found.
             dbytes.write_bytes(value)
 
-    def print_data(self, p):
+    def print(self, p):
         p(f"Properties: {len(self)}")
-        with p.tree_children():
+        with p.tree_children(len(self)):
             for k, v in self.items():
                 p.tree_next_child()
                 p(f"Property: {k!r} = {format_bytes(v)}")
@@ -100,9 +100,9 @@ class ColorSet(OrderedDict):
         dbytes.write_str(colname)
         dbytes.write_bytes(S_FLOAT4.pack(*color))
 
-    def print_data(self, p):
+    def print(self, p):
         p(f"Colors: {len(self)}")
-        with p.tree_children():
+        with p.tree_children(len(self)):
             for colname, color in self.items():
                 p.tree_next_child()
                 cstr = ", ".join(format(v, ".3f") for v in color)
@@ -143,13 +143,13 @@ class MaterialSet(OrderedDict):
         dbytes.write_str(matname)
         colors.write(dbytes)
 
-    def print_data(self, p):
+    def print(self, p):
         p(f"Materials: {len(self)}")
-        with p.tree_children():
+        with p.tree_children(len(self)):
             for matname, colors in self.items():
                 p.tree_next_child()
                 p(f"Material: {matname!r}")
-                colors.print_data(p)
+                colors.print(p)
 
 
 # vim:set sw=4 ts=8 sts=4 et:

@@ -18,7 +18,7 @@ class Version0Test(unittest.TestCase):
                          + ['Ferreus'])
         self.assertEqual(lb.version, 0)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Leaderboard("tests/in/leaderboard/version_0.bytes"))
 
@@ -54,7 +54,7 @@ class Version1Test(unittest.TestCase):
         lb = Leaderboard.maybe("tests/in/leaderboard/version_1_truncated_2.bytes")
         self.assertRaises(EOFError, check_exceptions, lb)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Leaderboard("tests/in/leaderboard/version_1.bytes"))
 

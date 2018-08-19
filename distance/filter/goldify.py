@@ -195,7 +195,7 @@ class GoldifyFilter(ObjectFilter):
         if skipped:
             num_retained = sum(skipped.values())
             p(f"Retained simples: {num_retained}")
-            with p.tree_children():
+            with p.tree_children(len(skipped)):
                 for reason, num in skipped.items():
                     r_str = REASON_TITLES.get(reason, reason)
                     p(f"{r_str}: {num}")

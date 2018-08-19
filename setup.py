@@ -29,6 +29,7 @@ setup(
         'construct>=2.9,<3.0',
         'numpy>=1.13.3,<2.0',
         'numpy-quaternion>=2017.10.19',
+        'trampoline',
     ],
     keywords='distance game bytes file level map read edit modify',
     packages=['distance', 'distance.filter', 'distance_scripts'],

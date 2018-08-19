@@ -67,13 +67,13 @@ def listdiffs(orig, result):
         p(f"Original path: {pstr}")
         pstr = '/'.join(repr(res) for org, res in path)
         p(f"Result path:   {pstr}")
-        with p.tree_children():
+        with p.tree_children(2):
             p("Original:")
-            with p.tree_children():
+            with p.tree_children(1):
                 p.print_data_of(org)
             p.tree_next_child()
             p("Result:")
-            with p.tree_children():
+            with p.tree_children(1):
                 p.print_data_of(res)
 
 

@@ -82,22 +82,27 @@ class Layer(Fragment):
     def _print_type(self, p):
         p(f"Layer: {self.layer_name!r}")
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def visit_print(self, p):
         with need_counters(p) as counters:
-            p(f"Layer object count: {len(self.objects)}")
-            if self.layer_flags:
-                flag_str = ', '.join(
-                    format_layer_flags(zip(self.layer_flags, LAYER_FLAG_NAMES)))
-                if not flag_str:
-                    flag_str = "None"
-                p(f"Layer flags: {flag_str}")
-            p.counters.num_layers += 1
-            p.counters.layer_objects += len(self.objects)
-            with p.tree_children():
-                print_objects(p, self.objects)
+            yield super().visit_print(p)
             if counters:
-                counters.print_data(p)
+                counters.print(p)
+
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
+        p(f"Layer object count: {len(self.objects)}")
+        if self.layer_flags:
+            flag_str = ', '.join(
+                format_layer_flags(zip(self.layer_flags, LAYER_FLAG_NAMES)))
+            if not flag_str:
+                flag_str = "None"
+            p(f"Layer flags: {flag_str}")
+        p.counters.num_layers += 1
+        p.counters.layer_objects += len(self.objects)
+
+    def _visit_print_children(self, p):
+        yield super()._visit_print_children(p)
+        yield print_objects(p, self.objects)
 
 
 # vim:set sw=4 et:

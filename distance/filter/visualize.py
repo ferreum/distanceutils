@@ -791,7 +791,7 @@ class VisualizeFilter(ObjectFilter):
         return True
 
     def _print_objects(self, p, objs):
-        with p.tree_children():
+        with p.tree_children(len(objs)):
             for objpath, exc in objs:
                 p.tree_next_child()
                 main = objpath[0]
@@ -806,7 +806,7 @@ class VisualizeFilter(ObjectFilter):
 
     def _print_skipped(self, p):
         p(f"Skipped objects: {self._num_skipped}")
-        with p.tree_children():
+        with p.tree_children(len(self._skipped_by_reason)):
             for reason, objs in sorted(self._skipped_by_reason.items()):
                 p.tree_next_child()
                 label, verbosity = SKIP_REASONS.get(reason, (reason, 1))

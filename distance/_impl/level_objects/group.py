@@ -21,17 +21,16 @@ class Group(LevelObject):
 
     default_transform = Transform.fill()
 
-    def _print_children(self, p):
+    def _visit_print_children(self, p):
         with need_counters(p) as counters:
             num = len(self.children)
             if num:
                 p(f"Grouped objects: {num}")
                 if 'groups' in p.flags:
                     p.counters.grouped_objects += num
-                    with p.tree_children():
-                        print_objects(p, self.children)
+                    yield print_objects(p, self.children)
             if counters:
-                counters.print_data(p)
+                counters.print(p)
 
     def recenter(self, center):
         import numpy as np, quaternion

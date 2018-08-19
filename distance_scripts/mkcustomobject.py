@@ -43,7 +43,7 @@ def select_candidates(source, args):
 def print_candidates(candidates):
     p = PrintContext(file=sys.stderr, flags=('groups', 'subobjects'))
     p(f"Candidates: {len(candidates)}")
-    with p.tree_children():
+    with p.tree_children(len(candidates)):
         for i, obj in enumerate(candidates):
             p.tree_next_child()
             p(f"Candidate: {i}")
@@ -101,7 +101,7 @@ def main():
     if tosave is None:
         return 1
 
-    tosave.print_data(file=sys.stderr, flags=('groups', 'subobjects'))
+    tosave.print(file=sys.stderr, flags=('groups', 'subobjects'))
 
     if args.OUT == '-':
         destarg = sys.stdout.buffer

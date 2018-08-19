@@ -24,9 +24,10 @@ Classes = CollectorGroup()
 def _print_stringentries(p, title, prefix, entries, num_per_row=1):
     if entries:
         p(f"{title}: {len(entries)}")
-        with p.tree_children():
-            it = iter(entries)
-            for _ in range(0, len(entries), num_per_row):
+        rangeobj = range(0, len(entries), num_per_row)
+        it = iter(entries)
+        with p.tree_children(len(rangeobj)):
+            for _ in rangeobj:
                 p.tree_next_child()
                 t_str = ', '.join(map(repr, islice(it, num_per_row)))
                 p(f"{prefix}: {t_str}")
@@ -86,11 +87,11 @@ class ProfileProgressFragment(BaseConstructFragment):
         'unk_4' / Remainder,
     )
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
         levels = self.levels
         p(f"Level count: {len(levels)}")
-        with p.tree_children():
+        with p.tree_children(len(levels)):
             for level in levels:
                 p.tree_next_child()
                 p(f"Level path: {level.level_path!r}")
@@ -111,7 +112,7 @@ class ProfileProgressFragment(BaseConstructFragment):
                         total += comp + 1
                         comps[comp] += 1
             p(f"Medal points: {total}")
-            with p.tree_children():
+            with p.tree_children(len(comps)):
                 for comp, num in enumerate(comps, Completion.BRONZE):
                     p.tree_next_child()
                     p(f"{Completion.to_name(comp)} medals: {num}")
@@ -176,8 +177,8 @@ class ProfileStatsFragment(BaseConstructFragment):
         'trackmogrify_mods' / Default(PrefixedArray(UInt, DstString), ()),
     )
 
-    def _print_data(self, p):
-        super()._print_data(p)
+    def _visit_print_data(self, p):
+        yield super()._visit_print_data(p)
 
         def ps(stat, name):
             value = getattr(self, stat)
@@ -270,8 +271,9 @@ class ProfileStatsFragment(BaseConstructFragment):
         mods = self.trackmogrify_mods
         if mods:
             p(f"Found trackmogrify mods: {len(mods)}")
-            with p.tree_children():
-                for i in range(0, len(mods), 5):
+            rangeobj = range(0, len(mods), 5)
+            with p.tree_children(len(rangeobj)):
+                for i in rangeobj:
                     mods_str = ', '.join(repr(m) for m in islice(mods, i, i + 5))
                     p.tree_next_child()
                     p(f"Found: {mods_str}")

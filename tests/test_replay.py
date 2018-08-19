@@ -38,7 +38,7 @@ class Version1Test(unittest.TestCase):
         assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
         self.assertEqual(replay.version, 1)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Replay("tests/in/replay/version_1.bytes"))
 
@@ -59,7 +59,7 @@ class Version2Test(unittest.TestCase):
         assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
         self.assertEqual(replay.version, 2)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Replay("tests/in/replay/version_2.bytes"))
 
@@ -80,7 +80,7 @@ class Version3Test(unittest.TestCase):
         assertColor(replay.car_color_sparkle, (1, 0, 0.6303446, 1))
         self.assertEqual(replay.version, 3)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Replay("tests/in/replay/version_3.bytes"))
 
@@ -109,7 +109,7 @@ class Version4Test(unittest.TestCase):
         replay = Replay.maybe("tests/in/replay/version_4_truncated_2.bytes")
         self.assertRaises(EOFError, check_exceptions, replay)
 
-    def test_print_data(self):
+    def test_print(self):
         p = PrintContext.for_test()
         p.print_data_of(Replay("tests/in/replay/version_4.bytes"))
 
