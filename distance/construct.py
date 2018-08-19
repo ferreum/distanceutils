@@ -137,10 +137,11 @@ class BaseConstructFragment(Fragment, metaclass=ConstructMeta):
     def _visit_print_data(self, p):
         yield super()._visit_print_data(p)
         if 'allprops' in p.flags:
-            p(f"Fields: {len(self.data)}")
-            with p.tree_children(len(self.data)):
+            items = [(k, v) for k, v in self.data.items() if k != '_io']
+            p(f"Fields: {len(items)}")
+            with p.tree_children(len(items)):
                 indent = "        "
-                for name, value in self.data.items():
+                for name, value in items:
                     if name != '_io': # construct internal?
                         p.tree_next_child()
                         if isinstance(value, bytes):
