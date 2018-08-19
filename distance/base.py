@@ -436,19 +436,19 @@ class Fragment(BytesModel):
         return sio.getvalue()
 
     def _print_type(self, p):
+        hint = ''
         try:
             tag = self.class_tag
         except AttributeError:
             tag = None
         if tag is None:
             type_str = 'Unknown'
-            implemented = False
         else:
             type_str = repr(tag)
-            implemented = True
 
         actual_str = ''
         ver_str = ''
+        overridden = False
         try:
             container = self.container
         except AttributeError:
@@ -459,19 +459,25 @@ class Fragment(BytesModel):
             except KeyError:
                 con_tag = None
             if con_tag is None:
-                implemented = False
+                overridden = True
             elif tag is None:
                 type_str = repr(con_tag)
             elif con_tag != tag:
                 actual_str = f" (actual {con_tag!r})"
-                implemented = False
+                overridden = True
 
             if container.has_version():
                 version = self.container.version
-                ver_str = f" version {version}"
+                ver_str = f" version {version!r}"
 
-        dummy_str = '' if implemented else ' [dummy]'
-        p(f"Fragment: {type_str}{actual_str}{ver_str}{dummy_str}")
+        if overridden:
+            hint = ' [overridden]'
+        elif tag is None:
+            hint = ' [dummy]'
+        else:
+            hint = ''
+
+        p(f"Fragment: {type_str}{actual_str}{ver_str}{hint}")
 
     def _visit_print_data(self, p):
         if 'sections' in p.flags:
