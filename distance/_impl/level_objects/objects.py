@@ -88,6 +88,7 @@ class EnableAbilitiesBox(LevelObject):
 
 
 @Classes.level_objects.object('EventTriggerBox', 'EventTriggerSphere')
+@fragment_attrs('EventTrigger')
 class EventTrigger(LevelObject):
 
     default_transform = Transform.fill(scale=(35, 35, 35))
