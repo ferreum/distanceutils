@@ -359,7 +359,7 @@ class ClassCollection(_BaseProber, ClassCollector):
         if info.get('noversion_cls') is not None:
             versions = 'all'
         else:
-            versions = info.get('versions').keys()
+            versions = info.get('versions')
         return base, versions
 
     def fragment_attrs(self, *tags):
