@@ -287,7 +287,7 @@ class InfoDisplayLogicFragment(bases.BaseInfoDisplayLogic, BaseConstructFragment
 class AnimatorFragment(BaseConstructFragment):
 
     base_container = Section.base(Magic[2], 0x9a)
-    container_versions = 7
+    container_versions = 7, 10, 11
 
     _construct_ = Struct(
         # 2: hinge
@@ -303,13 +303,17 @@ class AnimatorFragment(BaseConstructFragment):
         'translate_type' / Default(UInt, 0),
         'translate_vector' / Default(Float[3], (0, 10, 0)),
         'follow_track_distance' / Default(Float, 25),
+        'double_pivot_distance' / Default(If(this._params.sec.version >= 11, Float), 0.0),
+        'follow_percent_of_track' / Default(If(this._params.sec.version >= 10, Byte), 1),
+        'wrap_around' / Default(If(this._params.sec.version >= 10, Byte), 1),
         'projectile_gravity' / Default(Float[3], (0, -25, 0)),
         'delay' / Default(Float, 1),
         'duration' / Default(Float, 1),
         'time_offset' / Default(Float, 0),
         'do_loop' / Default(Byte, 1),
         # 1: pingpong
-        'extrapolation_type' / Default(UInt, 1),
+        'extrapolation_type' / Default(If(this._params.sec.version <= 7, UInt), 1),
+        'do_extend' / Default(If(this._params.sec.version >= 10, Byte), 0),
         # 3: ease in out
         'curve_type' / Default(UInt, 3),
         'editor_anim_time' / Default(Float, 0),

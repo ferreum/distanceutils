@@ -533,7 +533,7 @@ class CooldownTriggerMapper(VisualizeMapper):
         grp.recenter(main.transform.pos)
         grp.rerotate(main.transform.rot)
 
-        anim = DefaultClasses.fragments.create('Animator')
+        anim = DefaultClasses.fragments.factory('Animator', version=7)()
         anim.motion_mode = 5 # advanced
 
         if rotLogic.limit_rotation:

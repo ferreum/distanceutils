@@ -137,13 +137,14 @@ class ObjectSpawnCircleTest(Base.WriteReadTest):
         self.assertEqual(6, len(props))
 
 
-class AnimatorFragmentTest(ExtraAssertMixin, Base.WriteReadTest):
+class AnimatorFragmentV7Test(ExtraAssertMixin, Base.WriteReadTest):
 
-    filename = "tests/in/fragment/animator withtrigger.frag"
+    filename = "tests/in/fragment/animator v7.frag"
 
     read_obj = AnimatorFragment
 
     def verify_obj(self, frag):
+        self.assertEqual(7, frag.container.version)
         self.assertEqual(5, frag.motion_mode)
         self.assertEqual(1, frag.do_scale)
         self.assertSeqAlmostEqual((0.601, 0.602, 0.603), frag.scale_exponents)
@@ -155,6 +156,9 @@ class AnimatorFragmentTest(ExtraAssertMixin, Base.WriteReadTest):
         self.assertEqual(4, frag.translate_type)
         self.assertSeqAlmostEqual((0.456, 0.457, 0.458), frag.translate_vector)
         self.assertAlmostEqual(0.801, frag.follow_track_distance)
+        self.assertAlmostEqual(None, frag.double_pivot_distance)
+        self.assertEqual(None, frag.follow_percent_of_track)
+        self.assertEqual(None, frag.wrap_around)
         self.assertSeqAlmostEqual((0.901, 0.902, 0.903), frag.projectile_gravity)
         self.assertAlmostEqual(0.701, frag.delay)
         self.assertAlmostEqual(0.702, frag.duration)
@@ -170,6 +174,98 @@ class AnimatorFragmentTest(ExtraAssertMixin, Base.WriteReadTest):
         self.assertEqual(1, frag.anim_physics)
         self.assertEqual(0, frag.always_animate)
         self.assertEqual(2, frag.trigger_default_action)
+        self.assertEqual(3, frag.trigger_on_action)
+        self.assertEqual(1, frag.trigger_wait_for_anim_finish)
+        self.assertEqual(1, frag.trigger_on_reset)
+        self.assertEqual(3, frag.trigger_off_action)
+        self.assertEqual(1, frag.trigger_off_wait_for_anim_finish)
+        self.assertEqual(1, frag.trigger_off_reset)
+
+
+class AnimatorFragmentV10Test(ExtraAssertMixin, Base.WriteReadTest):
+
+    filename = "tests/in/fragment/animator v10.frag"
+
+    read_obj = AnimatorFragment
+
+    def verify_obj(self, frag):
+        self.assertEqual(10, frag.container.version)
+        self.assertEqual(5, frag.motion_mode)
+        self.assertEqual(1, frag.do_scale)
+        self.assertSeqAlmostEqual((0.601, 0.602, 0.603), frag.scale_exponents)
+        self.assertEqual(1, frag.do_rotate)
+        self.assertSeqAlmostEqual((0.501, 0.502, 0.503), frag.rotate_axis)
+        self.assertEqual(0, frag.rotate_global)
+        self.assertAlmostEqual(0.504, frag.rotate_magnitude)
+        self.assertSeqAlmostEqual((0.105, 0.106, 0.107), frag.centerpoint)
+        self.assertEqual(4, frag.translate_type)
+        self.assertSeqAlmostEqual((0.456, 0.457, 0.458), frag.translate_vector)
+        self.assertAlmostEqual(0.801, frag.follow_track_distance)
+        self.assertAlmostEqual(None, frag.double_pivot_distance)
+        self.assertEqual(0, frag.follow_percent_of_track)
+        self.assertEqual(1, frag.wrap_around)
+        self.assertSeqAlmostEqual((0.901, 0.902, 0.903), frag.projectile_gravity)
+        self.assertAlmostEqual(0.701, frag.delay)
+        self.assertAlmostEqual(0.702, frag.duration)
+        self.assertAlmostEqual(0.703, frag.time_offset)
+        self.assertEqual(1, frag.do_loop)
+        self.assertEqual(None, frag.extrapolation_type)
+        self.assertEqual(0, frag.do_extend)
+        self.assertEqual(6, frag.curve_type)
+        self.assertAlmostEqual(0.704, frag.editor_anim_time)
+        self.assertEqual(1, frag.use_custom_pong_values)
+        self.assertAlmostEqual(0.721, frag.pong_delay)
+        self.assertAlmostEqual(0.722, frag.pong_duration)
+        self.assertEqual(6, frag.pong_curve_type)
+        self.assertEqual(1, frag.anim_physics)
+        self.assertEqual(0, frag.always_animate)
+        self.assertEqual(4, frag.trigger_default_action)
+        self.assertEqual(3, frag.trigger_on_action)
+        self.assertEqual(1, frag.trigger_wait_for_anim_finish)
+        self.assertEqual(1, frag.trigger_on_reset)
+        self.assertEqual(3, frag.trigger_off_action)
+        self.assertEqual(1, frag.trigger_off_wait_for_anim_finish)
+        self.assertEqual(1, frag.trigger_off_reset)
+
+
+class AnimatorFragmentV11Test(ExtraAssertMixin, Base.WriteReadTest):
+
+    filename = "tests/in/fragment/animator v11.frag"
+
+    read_obj = AnimatorFragment
+
+    def verify_obj(self, frag):
+        self.assertEqual(11, frag.container.version)
+        self.assertEqual(5, frag.motion_mode)
+        self.assertEqual(1, frag.do_scale)
+        self.assertSeqAlmostEqual((0.601, 0.602, 0.603), frag.scale_exponents)
+        self.assertEqual(1, frag.do_rotate)
+        self.assertSeqAlmostEqual((0.501, 0.502, 0.503), frag.rotate_axis)
+        self.assertEqual(0, frag.rotate_global)
+        self.assertAlmostEqual(0.504, frag.rotate_magnitude)
+        self.assertSeqAlmostEqual((0.105, 0.106, 0.107), frag.centerpoint)
+        self.assertEqual(4, frag.translate_type)
+        self.assertSeqAlmostEqual((0.456, 0.457, 0.458), frag.translate_vector)
+        self.assertAlmostEqual(0.801, frag.follow_track_distance)
+        self.assertAlmostEqual(1.802, frag.double_pivot_distance)
+        self.assertEqual(0, frag.follow_percent_of_track)
+        self.assertEqual(1, frag.wrap_around)
+        self.assertSeqAlmostEqual((0.901, 0.902, 0.903), frag.projectile_gravity)
+        self.assertAlmostEqual(0.701, frag.delay)
+        self.assertAlmostEqual(0.702, frag.duration)
+        self.assertAlmostEqual(0.703, frag.time_offset)
+        self.assertEqual(1, frag.do_loop)
+        self.assertEqual(None, frag.extrapolation_type)
+        self.assertEqual(0, frag.do_extend)
+        self.assertEqual(6, frag.curve_type)
+        self.assertAlmostEqual(0.704, frag.editor_anim_time)
+        self.assertEqual(1, frag.use_custom_pong_values)
+        self.assertAlmostEqual(0.721, frag.pong_delay)
+        self.assertAlmostEqual(0.722, frag.pong_duration)
+        self.assertEqual(6, frag.pong_curve_type)
+        self.assertEqual(1, frag.anim_physics)
+        self.assertEqual(0, frag.always_animate)
+        self.assertEqual(4, frag.trigger_default_action)
         self.assertEqual(3, frag.trigger_on_action)
         self.assertEqual(1, frag.trigger_wait_for_anim_finish)
         self.assertEqual(1, frag.trigger_on_reset)
