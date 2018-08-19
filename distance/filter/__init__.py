@@ -5,6 +5,7 @@ from distance.filter.remove import RemoveFilter
 from distance.filter.unkill import UnkillFilter
 from distance.filter.visualize import VisualizeFilter
 from distance.filter.settings import SettingsFilter
+from distance.filter.downgrade import DowngradeFilter
 
 
 __all__ = [
@@ -18,6 +19,7 @@ _filters = {
     'unkill' : UnkillFilter,
     'vis' : VisualizeFilter,
     'settings' : SettingsFilter,
+    'downgrade' : DowngradeFilter,
 }
 
 
