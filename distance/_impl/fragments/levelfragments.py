@@ -338,6 +338,18 @@ class AnimatorFragment(BaseConstructFragment):
 
 
 @Classes.fragments.fragment
+class EventListenerFragment(BaseConstructFragment):
+
+    base_container = Section.base(Magic[2], 0x8a)
+    container_versions = 1, 2
+
+    _construct_ = Struct(
+        'event_name' / Default(DstString, "Event 0"),
+        'delay' / If(this._params.sec.version >= 2, Default(Float, 0.0)),
+    )
+
+
+@Classes.fragments.fragment
 class InterpolateToPositionOnTriggerFragment(
         bases.BaseInterpolateToPositiononTrigger, BaseConstructFragment):
 

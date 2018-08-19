@@ -6,6 +6,7 @@ from distance.levelfragments import MaterialFragment
 from distance._impl.fragments.levelfragments import (
     TrackNodeFragment,
     AnimatorFragment,
+    EventListenerFragment,
 )
 from distance._impl.fragments.npfragments import (
     NamedPropertiesFragment,
@@ -272,6 +273,28 @@ class AnimatorFragmentV11Test(ExtraAssertMixin, Base.WriteReadTest):
         self.assertEqual(3, frag.trigger_off_action)
         self.assertEqual(1, frag.trigger_off_wait_for_anim_finish)
         self.assertEqual(1, frag.trigger_off_reset)
+
+
+class EventListenerV1Test(Base.WriteReadTest):
+
+    filename = 'tests/in/fragment/eventlistener v1.frag'
+
+    read_obj = EventListenerFragment
+
+    def verify_obj(self, frag):
+        self.assertEqual(frag.event_name, "Test Event")
+        self.assertEqual(None, frag.delay)
+
+
+class EventListenerV2Test(Base.WriteReadTest):
+
+    filename = 'tests/in/fragment/eventlistener v2.frag'
+
+    read_obj = EventListenerFragment
+
+    def verify_obj(self, frag):
+        self.assertEqual(frag.event_name, "Test Event")
+        self.assertAlmostEqual(frag.delay, 9.99, places=5)
 
 
 class AnimatorFragmentCreateTest(unittest.TestCase):
