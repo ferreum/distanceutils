@@ -14,6 +14,7 @@ from distance._impl.fragments.npfragments import (
     ObjectSpawnCircleFragment,
     StructNamedProperty,
 )
+from distance._impl.level_objects.objects import EventTrigger
 from distance.bytes import SKIP_BYTES, DstBytes, Section, Magic, S_UINT
 from tests import common
 from tests.common import ExtraAssertMixin, write_read
@@ -22,6 +23,8 @@ from tests.common import ExtraAssertMixin, write_read
 class Base(object):
 
     class WriteReadTest(common.WriteReadTest):
+
+        prober = DefaultClasses.fragments
 
         def test_clone(self):
             obj = self.read_obj_pre(self.filename)
@@ -33,7 +36,7 @@ class Base(object):
             self.verify_obj(res)
 
         def test_probe(self):
-            res = DefaultClasses.fragments.read(self.filename)
+            res = self.prober.read(self.filename)
             res = self.modify_obj(res)
 
             self.assertEqual(self.read_obj, type(res))
@@ -305,6 +308,21 @@ class AnimatorFragmentCreateTest(unittest.TestCase):
         res, rdb = write_read(frag)
 
         self.assertEqual(res.motion_mode, 4)
+
+
+class EventTriggerFragmentTest(Base.WriteReadTest):
+
+    filename = 'tests/in/customobject/eventtriggerbox.bytes'
+    read_obj = EventTrigger
+    prober = DefaultClasses.level_objects
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.type, 'EventTriggerBox')
+        self.assertEqual(obj['EventTrigger'].event_name, "Test Event")
+        self.assertEqual(obj['EventTrigger'].one_shot, 0)
+
+    def test_clone(self):
+        "cannot clone"
 
 
 class TypedNamedPropertyTest(unittest.TestCase):

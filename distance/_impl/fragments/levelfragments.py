@@ -350,6 +350,19 @@ class EventListenerFragment(BaseConstructFragment):
 
 
 @Classes.fragments.fragment
+class EventTriggerFragment(BaseConstructFragment):
+
+    base_container = Section.base(Magic[2], 0x89)
+    container_versions = 2
+    is_interesting = True
+
+    _construct_ = Struct(
+        'event_name' / Default(DstString, "Event 0"),
+        'one_shot' / Default(Byte, 0),
+    )
+
+
+@Classes.fragments.fragment
 class InterpolateToPositionOnTriggerFragment(
         bases.BaseInterpolateToPositiononTrigger, BaseConstructFragment):
 

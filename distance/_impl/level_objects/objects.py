@@ -87,17 +87,9 @@ class EnableAbilitiesBox(LevelObject):
     default_transform = Transform.fill(scale=(100, 100, 100))
 
 
-@Classes.level_objects.object
-class EvenTriggerBox(LevelObject):
+@Classes.level_objects.object('EventTriggerBox', 'EventTriggerSphere')
+class EventTrigger(LevelObject):
 
-    type = 'EventTriggerBox'
-    default_transform = Transform.fill(scale=(35, 35, 35))
-
-
-@Classes.level_objects.object
-class EvenTriggerSphere(LevelObject):
-
-    type = 'EventTriggerSphere'
     default_transform = Transform.fill(scale=(35, 35, 35))
 
 

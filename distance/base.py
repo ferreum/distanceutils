@@ -642,6 +642,9 @@ class BaseObject(Fragment):
             self.type = container.type
         super().__init__(*args, **kw)
 
+    def clone(self):
+        raise NotImplementedError("Cannot clone object")
+
     real_transform = _object_property('real_transform', default=Transform())
 
     children = _object_property('children', default=())
