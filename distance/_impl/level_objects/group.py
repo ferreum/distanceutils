@@ -1,10 +1,9 @@
 
 
 from distance.levelobjects import LevelObject
-from distance.classes import CollectorGroup
+from distance.classes import CollectorGroup, DefaultClasses
 from distance.base import Transform
 from distance.printing import need_counters, print_objects
-from distance.classes import DefaultClasses
 
 
 Classes = CollectorGroup()

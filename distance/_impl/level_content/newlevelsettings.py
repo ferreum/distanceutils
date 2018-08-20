@@ -1,8 +1,7 @@
 
 
 from distance.base import BaseObject
-from distance.classes import CollectorGroup
-from distance.classes import DefaultClasses
+from distance.classes import CollectorGroup, DefaultClasses
 
 
 Classes = CollectorGroup()

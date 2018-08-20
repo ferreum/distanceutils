@@ -1,8 +1,7 @@
 
 
 from .base import BaseObject, require_type
-from .classes import CollectorGroup
-from .classes import DefaultClasses
+from .classes import CollectorGroup, DefaultClasses
 
 
 Classes = CollectorGroup()

@@ -5,8 +5,7 @@ from .bytes import Magic, Section
 from .base import Fragment
 from .lazy import LazySequence
 from .printing import need_counters
-from .classes import CollectorGroup
-from .classes import DefaultClasses
+from .classes import CollectorGroup, DefaultClasses
 
 
 Classes = CollectorGroup()

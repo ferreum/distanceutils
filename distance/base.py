@@ -8,8 +8,7 @@ import collections
 from .bytes import BytesModel, Section, Magic, SKIP_BYTES, S_FLOAT3, S_FLOAT4
 from .printing import format_transform
 from .lazy import UNSET, LazyMappedSequence
-from .classes import CollectorGroup
-from .classes import DefaultClasses
+from .classes import CollectorGroup, DefaultClasses
 from ._common import classproperty
 
 
