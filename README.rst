@@ -14,8 +14,8 @@ For example, using pip::
   $ pip install --user numpy
   $ pip install --user distanceutils
 
-Due to a problem with ``numpy-quaternion``, ``numpy`` needs to be installed
-first with a separate command.
+Due to a problem with another dependency (``numpy-quaternion``), ``numpy``
+needs to be installed first with a separate command.
 
 _`Module usage`
 ===============
