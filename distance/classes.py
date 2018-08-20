@@ -706,4 +706,7 @@ def _load_impls_to_colls(colls, impl_modules):
             raise AutoloadError(f"Failed to load classes of module {name!r}") from e
 
 
+DefaultClasses = ClassesRegistry()
+
+
 # vim:set sw=4 ts=8 sts=4 et:

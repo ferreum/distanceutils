@@ -1,7 +1,7 @@
 """Filter for replacing kill grids."""
 
 
-from distance._default_classes import DefaultClasses
+from distance.classes import DefaultClasses
 from .base import (
     ObjectFilter, ObjectMapper, DoNotApply,
     create_replacement_group,

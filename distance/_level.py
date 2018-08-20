@@ -6,7 +6,7 @@ from .base import Fragment
 from .lazy import LazySequence
 from .printing import need_counters
 from .classes import CollectorGroup
-from ._default_classes import DefaultClasses
+from .classes import DefaultClasses
 
 
 Classes = CollectorGroup()

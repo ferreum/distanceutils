@@ -3,7 +3,7 @@
 
 from distance import Level
 from distance.base import Transform, TransformError
-from distance._default_classes import DefaultClasses
+from distance.classes import DefaultClasses
 
 
 _ANIM_FRAG_TAGS = (

@@ -3,7 +3,7 @@
 from distance.bytes import Magic, Section
 from distance.base import BaseObject, Fragment
 from distance.levelobjects import LevelObject, SubObject
-from distance._default_classes import DefaultClasses
+from distance.classes import DefaultClasses
 
 
 def _fallback_obj_container(tag):

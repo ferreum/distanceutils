@@ -2,7 +2,7 @@
 
 from .base import BaseObject, require_type
 from .classes import CollectorGroup
-from ._default_classes import DefaultClasses
+from .classes import DefaultClasses
 
 
 Classes = CollectorGroup()
