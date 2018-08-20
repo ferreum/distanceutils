@@ -24,13 +24,13 @@ class PrintContext(object):
         self._tree_data = [], [], []
 
     @classmethod
-    def for_test(clazz, file=None, flags=None):
+    def for_test(cls, file=None, flags=None):
         if flags is None:
             class ContainsEverything:
                 def __contains__(self, obj):
                     return True
             flags = ContainsEverything()
-        p = PrintContext(file=file, flags=flags)
+        p = cls(file=file, flags=flags)
         def print_exc(e):
             raise e
         p.print_exception = print_exc

@@ -65,8 +65,9 @@ class ClassCollector(object):
 
         """Register a fragment.
 
-        If additional arguments are specified, `cls` is registered for the
-        `Section` specified by these arguments and the `any_version` argument.
+        If additional parameters are specified, `cls` is registered for the
+        `Section` specified by these parameters and the `any_version`
+        parameters.
 
         If there are no additional arguments and `versions` is specified,
         `cls` is registered for the given versions of the section specified
@@ -76,8 +77,19 @@ class ClassCollector(object):
         fragment is registered for the section returned by the
         `get_default_container()` method of `cls`.
 
-        If `any_version` is specified, `cls` is registered to match any
-        version of the specified section.
+        If the class's `class_tag` is non-None, the tag info is also updated.
+
+        Parameters
+        ----------
+        any_version : bool
+            Whether the class should be registered as the fallback
+            implementation for the base of the specified section.
+        versions : list of ints
+            The versions to register the fragment for. Cannot be specified
+            with `any_version=True`.
+
+        Additional arguments specify the section to use instead of the section
+        specified by the given `cls`.
 
         """
 
@@ -106,11 +118,43 @@ class ClassCollector(object):
             self._interesting_sections.add(sec.to_key(noversion=True))
 
     def add_object(self, type, cls):
+
+        """Register an object class for a type.
+
+        The `type` is also used as the tag to register the class for.
+
+        Parameters
+        ----------
+        type : str
+            The object type and the tag.
+        cls : BaseObject
+            The class to register.
+
+        """
+
         sec = Section(Magic[6], type)
         self._sections[sec.to_key()] = cls
         self._add_info(type, cls=cls, container=sec)
 
     def add_info(self, *args, tag=None):
+
+        """Decorator for registering a class for a tag.
+
+        This registers a class without container information, meaning it is not
+        registered for probing.
+
+        The class can later be accessed with tag query methods.
+
+        Can be used as decorator with or without braces.
+
+        Parameters
+        ----------
+        tag : str
+            If non-None, uses it as the tag instead of using the class's
+            class_tag.
+
+        """
+
         def decorate(cls):
             nonlocal tag
             if tag is None:
@@ -123,6 +167,22 @@ class ClassCollector(object):
             return decorate
 
     def add_tag(self, tag, *args, **kw):
+
+        """Register the given tag for a base section.
+
+        This information can later be queried e.g. by using the `get_tag` and
+        `get_base_key` methods.
+
+        Parameters
+        ----------
+        tag : str
+            The tag to register.
+
+        Any other parameters are passed to the `Section.base` classmethod to
+        retrieve the base section to register.
+
+        """
+
         self._add_info(tag, container=Section.base(*args, **kw))
 
     def _add_fragment_for_section(self, cls, sec, any_version):
@@ -169,8 +229,7 @@ class ClassCollector(object):
         _merge_class_info(self._classes, tag, info)
 
     def object(self, *args):
-
-        """Decorator for conveniently adding a class for a type."""
+        """Decorator style method for `add_object`."""
 
         def decorate(cls):
             for t in types:
@@ -211,10 +270,12 @@ class ClassCollector(object):
 
 
 class _BaseProber(object):
+
     """Base for probers.
 
     Subclasses need to implement `_probe_section_key` and
     optionally `_probe_fallback`.
+
     """
 
     def __init__(self, *, baseclass=BytesModel, **kw):
@@ -229,6 +290,21 @@ class _BaseProber(object):
         return None
 
     def probe_section(self, sec):
+
+        """Find the class that is registered for a section.
+
+        Parameters
+        ----------
+        sec : Section
+            The section for which to find the registered class.
+
+        Returns
+        -------
+        The class that is registered for the given section. Falls back to the
+        `baseclass` if none is registered.
+
+        """
+
         key = sec.to_key()
         cls = self._probe_section_key(key)
         if cls is not None:
@@ -244,6 +320,23 @@ class _BaseProber(object):
         return self.baseclass
 
     def probe(self, dbytes, *, probe_section=None):
+
+        """Find the class that is registered for a section.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read the section from.
+        probe_section : Section
+            The section. If None, the section is read from given `dbytes`
+            first.
+
+        Returns
+        -------
+        A tuple containing the class and the probed section.
+
+        """
+
         if probe_section is None:
             sec = Section(dbytes, seek_end=False)
         else:
@@ -252,6 +345,28 @@ class _BaseProber(object):
         return cls, sec
 
     def read(self, dbytes, *, probe_section=None, **kw):
+
+        """Read an object.
+
+        The class of the object is found using the `probe` method, which is
+        then read using its `read` method.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+        probe_section : Section
+            Passed to the `probe` method.
+
+        Additional keyword arguments are passed to the object's `read` method.
+
+        Returns
+        -------
+        obj : as returned by `probe`
+            The newly read object.
+
+        """
+
         dbytes = DstBytes.from_arg(dbytes)
         cls, con = self.probe(dbytes, probe_section=probe_section)
         obj = cls(plain=True)
@@ -259,6 +374,31 @@ class _BaseProber(object):
         return obj
 
     def maybe(self, dbytes, *, probe_section=None, **kw):
+
+        """Read a probed object even if an error occurs.
+
+        The class of the object is found using the `probe` method, which is
+        then read using its `maybe` method.
+
+        If an error occurs, return the partially read object. The exception is
+        stored in the object's `exception` attribute.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+        probe_section : Section
+            Passed to the `probe` method.
+
+        Additional keyword arguments are passed to the object's `maybe` method.
+
+        Returns
+        -------
+        obj : as returned by `probe`
+            The newly read object.
+
+        """
+
         dbytes = DstBytes.from_arg(dbytes)
         try:
             cls, con = self.probe(dbytes, probe_section=probe_section)
@@ -272,6 +412,35 @@ class _BaseProber(object):
         return cls.maybe(dbytes, container=con, **kw)
 
     def iter_n_maybe(self, dbytes, n, **kw):
+
+        """Create an iterator for reading a given number of probed objects.
+
+        One object is read from the current file position on each iteration
+        with `maybe`. The same exception handling applies.
+
+        The iterator exits after reading `n` objects or if the previous
+        object's `sane_end_pos` is False.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+        n : int
+            The number of objects the iterator should read.
+
+        Additional keyword arguments are passed to each new object's `read`
+        method.
+
+        Returns
+        -------
+        i : iterator
+            The created iterator.
+
+        """
+
+        if kw.get('probe_section') is not None:
+            raise ValueError(f"probe_section cannot be specified.")
+
         dbytes = DstBytes.from_arg(dbytes)
         if 'probe_section' in kw:
             raise TypeError("probe_section not supported")
@@ -282,6 +451,36 @@ class _BaseProber(object):
                 break
 
     def lazy_n_maybe(self, dbytes, n, *, start_pos=None, **kw):
+
+        """Create a lazy sequence of probed objects from given source.
+
+        Each object is read using the `maybe` method at the end position of the
+        previously read object.
+
+        The returned sequence reads objects only once and only on first access.
+        This means errors may occur when accessing elements as with `maybe`.
+        See also `distance.lazy.LazySequence`.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+        n : int
+            The length of the sequence.
+        start_pos : int
+            The start position of the first object inside the file. If None,
+            the file position of `dbytes` when calling this method is used.
+
+        Additional keyword arguments are passed to each new object's `read`
+        method.
+
+        Returns
+        -------
+        seq : lazy sequence
+            The new sequence of probed objects.
+
+        """
+
         if n <= 0:
             return ()
         # stable_iter seeks for us
@@ -292,6 +491,7 @@ class _BaseProber(object):
 
 
 class ClassCollection(_BaseProber, ClassCollector):
+
     "Collection and Prober of registered classes."
 
     def __init__(self, *, key=None, get_fallback_container=None, **kw):
@@ -304,10 +504,19 @@ class ClassCollection(_BaseProber, ClassCollector):
         self._funcs = self._funcs_by_tag.values()
 
     def add_func(self, func, tag):
+
+        """Add the given function as probe fallback.
+
+        The given function is called by passing it the probed section. The
+        function returns the class to use for the give section, or None, if the
+        next fallback shall be used.
+
+        """
+
         self._funcs_by_tag[tag] = func
 
     def func(self, tag):
-        "Decorator for conveniently adding a function."
+        "Decorator style method for `add_func`."
         def decorate(func):
             self.add_func(func, tag)
             return func
@@ -333,6 +542,16 @@ class ClassCollection(_BaseProber, ClassCollector):
         return None
 
     def get_base_key(self, tag):
+
+        """Get the base section key for the given tag.
+
+        Raises
+        ------
+        TagError
+            If the given tag is not registered.
+
+        """
+
         try:
             info = self._classes[tag]
         except KeyError:

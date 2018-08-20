@@ -104,17 +104,33 @@ class BytesModel(object):
     __slots__ = ('exception', 'start_pos', 'end_pos', 'sane_end_pos')
 
     @classmethod
-    def maybe(clazz, dbytes, **kw):
+    def maybe(cls, dbytes, **kw):
 
-        """Read an object as far as possible.
+        """Read a new instance of this class even if an error occurs.
+
+        The object is read from the current file position of `dbytes` using the
+        `read` method.
 
         If an error occurs, return the partially read object. The exception is
         stored in the object's `exception` attribute.
 
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+
+        Additional keyword arguments are passed to the new instance's `read`
+        method.
+
+        Returns
+        -------
+        obj : cls
+            The newly read object.
+
         """
 
         dbytes = DstBytes.from_arg(dbytes)
-        obj = clazz(plain=True)
+        obj = cls(plain=True)
         try:
             obj.read(dbytes, **kw)
         except CATCH_EXCEPTIONS as e:
@@ -122,31 +138,69 @@ class BytesModel(object):
         return obj
 
     @classmethod
-    def iter_n_maybe(clazz, dbytes, n, **kw):
+    def iter_n_maybe(cls, dbytes, n, **kw):
 
-        """Create an iterator for reading the given number of objects.
+        """Create an iterator for reading a given number of instances.
 
-        If an error occurs, yield the partially read object. The exception is
-        stored in the object's `exception` attribute. The iterator exits after
-        reading `n` objects or if a read object's `sane_end_pos` is False.
+        One instance is read from the current file position on each iteration
+        using the `maybe` method. The same exception handling applies.
+
+        The iterator exits after reading `n` objects or if the previous
+        instance's `sane_end_pos` is False.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+        n : int
+            The number of objects the iterator should read.
+
+        Additional keyword arguments are passed to each new instance's `read`
+        method.
+
+        Returns
+        -------
+        i : iterator
+            The created iterator.
 
         """
 
         dbytes = DstBytes.from_arg(dbytes)
         for _ in range(n):
-            obj = clazz.maybe(dbytes, **kw)
+            obj = cls.maybe(dbytes, **kw)
             yield obj
             if not obj.sane_end_pos:
                 break
 
     @classmethod
-    def lazy_n_maybe(clazz, dbytes, n, *, start_pos=None, **kw):
+    def lazy_n_maybe(cls, dbytes, n, *, start_pos=None, **kw):
 
-        """Like `read_n_maybe()`, but create a `LazySequence`.
+        """Create a lazy sequence of instances from given source.
 
-        The returned sequence reads objects only on first access. This means
-        errors may occur when accessing an element. See
-        `distance.lazy.LazySequence`.
+        Each object is read using the `maybe` method at the end position of the
+        previously read instance.
+
+        The returned sequence reads objects only once and only on first access.
+        This means errors may occur when accessing elements as with `maybe`.
+        See also `distance.lazy.LazySequence`.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+        n : int
+            The length of the sequence.
+        start_pos : int
+            The start position of the first object inside the file. If None,
+            the file position of `dbytes` when calling this method is used.
+
+        Additional keyword arguments are passed to each new instance's `read`
+        method.
+
+        Returns
+        -------
+        seq : lazy sequence
+            The new sequence of instances.
 
         """
 
@@ -155,18 +209,29 @@ class BytesModel(object):
         # stable_iter seeks for us
         kw['seek_end'] = False
         dbytes = DstBytes.from_arg(dbytes)
-        gen = clazz.iter_n_maybe(dbytes, n, **kw)
+        gen = cls.iter_n_maybe(dbytes, n, **kw)
         return LazySequence(dbytes.stable_iter(gen, start_pos=start_pos), n)
 
     def __init__(self, dbytes=None, **kw):
 
-        """Constructor.
+        """Initializer.
 
-        If `dbytes` is set, also call `self.read()` with the given `dbytes` and
-        all optional `**kw` parameters.
+        If `dbytes` is set, also call the `read` method with the given `dbytes`
+        and all additional keyword arguments.
 
-        If `dbytes` is unset or `None`, set the given `**kw` parameters as
-        attributes on the new object.
+        If `dbytes` is unset or `None`, set all additional keyword arguments as
+        attributes on the new object. Only attributes that exist on the class
+        can be set this way.
+
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            The source to read from.
+
+        Raises
+        ------
+        AttributeError
+            When trying to set an attribute not existing on the class.
 
         """
 
@@ -190,29 +255,35 @@ class BytesModel(object):
 
         """Read data of this object from `dbytes`.
 
-        Subclasses need to implement `_read()` for this to work. Subclasses
-        should never override `read()`.
+        Subclasses need to implement the `_read` method. Subclasses should
+        never override `read`.
 
-        Exceptions raised in `_read()` gain the following attributes:
+        After the `_read` method call, regardless of whether an exception was
+        raised, it is attempted to seek `dbytes` to the position reported  by
+        the `end_pos` attribute of this object, if it is non-None. If this is
+        successful, the `sane_end_pos` attribute of this object is set to True.
 
-        `start_pos`      - `start_pos` of `container`, if set. Otherwise,
-                           `dbytes` position when entering this method.
-        `exc_pos`        - `dbytes` position where the exception occurred.
+        Parameters
+        ----------
+        dbytes : see DstBytes.from_arg
+            Anything accepted by `DstBytes.from_arg()`.
+        seek_end : bool
+            Whether to seek to the end of the object after reading. Setting to
+            False is useful for reading `Section`, which positions it at the
+            start of its content. Default: True.
 
-        After `_read()`, regardless of whether an exception was raised,
-        it is attempted to `dbytes.seek()` to the position reported
-        (if it was) by setting the `end_pos` attribute. If this is
-        successful, the `sane_end_pos` attribute is set to True.
+        Additional keyword arguments are passed to the `_read` method.
 
-        Arguments:
-        `dbytes`   - Anything accepted by `DstBytes.from_arg()`.
-        `seek_end` - Whether to seek to the end of the object after
-                     reading. Setting to False is useful for reading
-                     `Section`, which positions it at the start of its
-                     content. Default: True.
+        Raises
+        ------
+        Any exception raised by `_read`. These exceptions gain the following
+        attributes:
 
-        Additional keyword arguments are passed to the `_read()`
-        implementation.
+        start_pos : int
+            `start_pos` of `container`, if set. Otherwise, the file position of
+            `dbytes` when entering this method.
+        exc_pos : int
+            File position of `dbytes` when the exception occurred.
 
         """
 
@@ -275,10 +346,13 @@ class BytesModel(object):
     def visit_write(self, dbytes):
         """Write this object (trampolined).
 
-        Arguments
-        ---------
-        dbytes - The DstBytes to write to.
+        Parameters
+        ----------
+        dbytes : DstBytes
+            The DstBytes to write to.
+
         """
+
         raise NotImplementedError(
             "Subclass needs to override write(self, dbytes)")
 
@@ -292,16 +366,24 @@ class BytesModel(object):
             return ""
 
     def print(self, file=None, flags=(), p=None):
+
         """Print this object.
 
-        Arguments
-        ---------
-        file - The file to write to. If None, sys.stdout is used.
-        flags - List of options to customize output.
-        p - PrintContext. Created from file and flags if omitted.
-            If non-None, file and flags need to be omitted.
+        Parameters
+        ----------
+        file : writable file
+            The file to write to. If None, sys.stdout is used.
+        flags : sequence of str
+            List of options to customize output.
+        p : PrintContext
+            The context used to print. Cannot be specified at the same time as
+            file or flags.
+
+        A new temporary PrintContext is created from `file` and `flags` if `p`
+        is None.
 
         """
+
         if p is None:
             if file is None:
                 file = sys.stdout
@@ -620,10 +702,14 @@ class DstBytes(object):
         wrapped with a new instance.
 
         Otherwise, `arg` is assumed to be a binary file, and is wrapped with a
-        new instance.
+        new instance of this class.
+
+        Returns
+        -------
+        dbytes : cls
+            The instance of this class.
 
         """
-
 
         if isinstance(arg, cls):
             return arg
@@ -678,8 +764,17 @@ class DstBytes(object):
 
         """Read the given number of bytes.
 
-        This is the single method for reading data of the wrapped file. All
-        `read_` methods use this method to access data.
+        Parameters
+        ----------
+        n : int
+            The number of bytes to read.
+
+        Raises
+        ------
+        EOFError
+            If less than the given number of bytes could be read.
+        ValueError
+            If `n` is negative.
 
         """
 
@@ -734,14 +829,7 @@ class DstBytes(object):
         return self.read_uint4()
 
     def write_bytes(self, data):
-
-        """Writes the given bytes.
-
-        This is the single method for writing data to the wrapped file. All
-        `write_` methods use this method to write data.
-
-        """
-
+        """Write the given bytes."""
         self.file.write(data)
 
     def write_int(self, length, value, signed=False):
@@ -775,14 +863,26 @@ class DstBytes(object):
 
         """Wrap the BytesModel-yielding `source` for safe iteration.
 
-        The returned iterator seeks to `end_pos` of the previous object before
-        every call to `__next__`. If the previous object's `sane_end_pos` is
-        False, the returned iterator exits.
+        The returned iterator seeks to `end_pos` of the previous object on
+        every iteration, before invoking the wrapped iterator.
 
-        `start_pos` specifies the position before the first iteration. If
-        `start_pos` is unset or `None`, the current position when calling this
-        method is used. If `start_pos` is callable, it is called without
-        arguments and the result is used as the starting position.
+        The returned iterator exits if `source` exits, or if the previous
+        object's `sane_end_pos` attribute is False.
+
+        Parameters
+        ----------
+        source : iterator
+            The iterator to wrap.
+        start_pos : int
+            The file position to read the first object from. If `None`, the
+            current position when calling this method is used. If it is
+            callable, it is called on the first iteration without arguments and
+            the result is used as the starting position.
+
+        Returns
+        -------
+        i : iterator
+            Iterator that yields the objects yielded by `source`.
 
         """
 
@@ -824,7 +924,7 @@ class DstBytes(object):
 
         """Write the number of sections written inside this context.
 
-        Only sections written with `write_section()` are counted.
+        Only sections written using the `write_section` method are counted.
 
         """
 
@@ -842,9 +942,12 @@ class DstBytes(object):
 
         """Write the given section.
 
-        Section data is written inside this context. Arguments are either a
-        single parameter containing a `Section` to be written or arguments to
-        be passed to `Section()`.
+        Section data is written inside this context.
+
+        Parameters
+        ----------
+        Either a single argument containing a `Section` to be written or any
+        arguments to be passed to `Section()` to specify the section to write.
 
         """
 
