@@ -88,7 +88,7 @@ class PrintContext(object):
                 lines.clear()
             if level > 0 and remain[level - 1] is not None:
                 # In unbuffered mode (with 'count' passed to tree_children)
-                # we iterate up to the root and print everyting immediately.
+                # we iterate up to the root and print everything immediately.
                 level -= 1
                 lines = upbuffer
                 last = remain[level] <= 1
