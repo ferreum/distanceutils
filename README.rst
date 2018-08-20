@@ -11,10 +11,11 @@ Installing
 All modules and utilities are provided by the package ``distanceutils``.
 For example, using pip::
 
+  $ pip install --user numpy
   $ pip install --user distanceutils
 
-This also installs the dependencies ``construct``, ``numpy`` and
-``numpy-quaternion``.
+Due to a problem with ``numpy-quaternion``, ``numpy`` needs to be installed
+first with a separate command.
 
 _`Module usage`
 ===============
