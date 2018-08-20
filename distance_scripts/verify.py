@@ -70,11 +70,11 @@ def listdiffs(orig, result):
         with p.tree_children(2):
             p("Original:")
             with p.tree_children(1):
-                p.print_data_of(org)
+                p.print_object(org)
             p.tree_next_child()
             p("Result:")
             with p.tree_children(1):
-                p.print_data_of(res)
+                p.print_object(res)
 
 
 def main():

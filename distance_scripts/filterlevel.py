@@ -178,7 +178,7 @@ def main():
         content = content.children[0]
 
     if args.list:
-        p.print_data_of(content)
+        p.print_object(content)
 
     print("writing...", file=sys.stderr)
     if args.OUT == '-':

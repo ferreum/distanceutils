@@ -38,22 +38,22 @@ class ProfileProgressTest(unittest.TestCase):
     def test_print(self):
         p = PrintContext.for_test()
         obj = ProfileProgress("tests/in/profileprogress/diamond acclivity.bytes")
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_levels_version2(self):
         p = PrintContext.for_test()
         obj = ProfileProgress("tests/in/profileprogress/levels_version_2.bytes")
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_print_new(self):
         p = PrintContext.for_test()
         obj = ProfileProgress("tests/in/profileprogress/new profile.bytes")
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_unlocked_adventure(self):
         p = PrintContext.for_test()
         obj = ProfileProgress("tests/in/profileprogress/unlocked adventure.bytes")
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_trackmogrify_mods(self):
         obj = ProfileProgress("tests/in/profileprogress/stats_version_1 trackmogrify.bytes")

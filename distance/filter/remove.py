@@ -24,7 +24,7 @@ def print_candidates(candidates):
         for i, obj in enumerate(candidates):
             p.tree_next_child()
             p(f"Candidate: {i}")
-            p.print_data_of(obj)
+            p.print_object(obj)
     p(f"Use -n to specify candidate.")
 
 

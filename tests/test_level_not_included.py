@@ -73,7 +73,7 @@ class Base(object):
                 with self.subTest(file=file):
                     p = PrintContext.for_test()
                     try:
-                        p.print_data_of(Level(f"tests/in/level-not-included/{file}.bytes"))
+                        p.print_object(Level(f"tests/in/level-not-included/{file}.bytes"))
                     except FileNotFoundError:
                         skipped.append(file)
             if skipped:
@@ -171,7 +171,7 @@ class Version3Test(BaseTest):
         f = self.open("tests/in/level-not-included/v3/hexagon 18.bytes")
         with need_counters(p) as counters:
             level = Level(f)
-            p.print_data_of(level)
+            p.print_object(level)
             self.assertEqual(counters.num_objects, 644)
 
 

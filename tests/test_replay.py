@@ -40,7 +40,7 @@ class Version1Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Replay("tests/in/replay/version_1.bytes"))
+        p.print_object(Replay("tests/in/replay/version_1.bytes"))
 
 
 class Version2Test(unittest.TestCase):
@@ -61,7 +61,7 @@ class Version2Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Replay("tests/in/replay/version_2.bytes"))
+        p.print_object(Replay("tests/in/replay/version_2.bytes"))
 
 
 class Version3Test(unittest.TestCase):
@@ -82,7 +82,7 @@ class Version3Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Replay("tests/in/replay/version_3.bytes"))
+        p.print_object(Replay("tests/in/replay/version_3.bytes"))
 
 
 class Version4Test(unittest.TestCase):
@@ -111,7 +111,7 @@ class Version4Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Replay("tests/in/replay/version_4.bytes"))
+        p.print_object(Replay("tests/in/replay/version_4.bytes"))
 
 
 class Version1WriteReadTest(common.WriteReadTest):

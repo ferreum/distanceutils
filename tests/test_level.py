@@ -19,7 +19,7 @@ class LevelTest(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Level("tests/in/level/test-straightroad.bytes"))
+        p.print_object(Level("tests/in/level/test-straightroad.bytes"))
 
     def test_truncated(self):
         level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
@@ -32,7 +32,7 @@ class LevelTest(unittest.TestCase):
     def test_truncated_print(self):
         p = PrintContext(file=None, flags=('offset', 'groups', 'subobjects', 'fragments', 'sections', 'allprops'))
         level = Level.maybe("tests/in/level/test-straightroad_truncated.bytes")
-        p.print_data_of(level.layers[0].objects[1].fragments[0])
+        p.print_object(level.layers[0].objects[1].fragments[0])
 
     def test_truncated_iter(self):
         level = Level.maybe("tests/in/level/test-straightroad_truncated_2.bytes")

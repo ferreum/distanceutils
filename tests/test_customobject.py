@@ -54,23 +54,23 @@ class InfoDisplayBoxTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/infodisplaybox ver_0 1.bytes")
         self.assertEqual(obj.texts[0], "Flight ability\ncorrupted")
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_ver_0_2(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/infodisplaybox ver_0 2.bytes")
         self.assertEqual(obj.texts[0], "Synchronizing with\r\nold <color=#00ff77>checkpoint</color>\r\nnetwork")
         self.assertAlmostEqual(obj.per_char_speed, 0.02)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(PROBER.read("tests/in/customobject/infodisplaybox 1.bytes"))
+        p.print_object(PROBER.read("tests/in/customobject/infodisplaybox 1.bytes"))
 
     def test_quarantinetrigger(self):
         obj = PROBER.read("tests/in/customobject/quarantinetrigger empty infodisplaylogic.bytes")
         check_exceptions(obj)
-        PrintContext.for_test().print_data_of(obj)
+        PrintContext.for_test().print_object(obj)
 
 
 class InfoDisplayBoxV2WriteReadTest(common.WriteReadTest):
@@ -98,7 +98,7 @@ class WorldTextTest(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(PROBER.read("tests/in/customobject/worldtext helloworld.bytes"))
+        p.print_object(PROBER.read("tests/in/customobject/worldtext helloworld.bytes"))
 
     def test_create(self):
         obj = WorldText(text="test")
@@ -128,7 +128,7 @@ class TeleExitTest(unittest.TestCase):
 
     def test_print_data(self):
         p = PrintContext.for_test()
-        p.print_data_of(PROBER.read("tests/in/customobject/tele exit nocheckpoint.bytes"))
+        p.print_object(PROBER.read("tests/in/customobject/tele exit nocheckpoint.bytes"))
 
     def test_virusspiritspawner(self):
         p = PrintContext.for_test()
@@ -136,7 +136,7 @@ class TeleExitTest(unittest.TestCase):
         tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(tele.destination, 6666)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class OldTeleporterTest(unittest.TestCase):
@@ -144,7 +144,7 @@ class OldTeleporterTest(unittest.TestCase):
     def test_read(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/tele v0.bytes")
-        p.print_data_of(obj)
+        p.print_object(obj)
         tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(0, tele.link_id)
@@ -157,7 +157,7 @@ class SoccerGoalTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/soccergoal.bytes")
         check_exceptions(obj)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class BatteryBuildingTest(unittest.TestCase):
@@ -168,7 +168,7 @@ class BatteryBuildingTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/batterybuilding.bytes")
         check_exceptions(obj)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class RotatingSpotLightTest(unittest.TestCase):
@@ -177,7 +177,7 @@ class RotatingSpotLightTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/rotatingspotlight.bytes")
         check_exceptions(obj)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class GravityTriggerTest(unittest.TestCase):
@@ -203,11 +203,11 @@ class GravityTriggerTest(unittest.TestCase):
 
     def test_print_default(self):
         p = PrintContext.for_test()
-        p.print_data_of(PROBER.read("tests/in/customobject/gravtrigger default.bytes"))
+        p.print_object(PROBER.read("tests/in/customobject/gravtrigger default.bytes"))
 
     def test_print_changed(self):
         p = PrintContext.for_test()
-        p.print_data_of(PROBER.read("tests/in/customobject/gravtrigger changed.bytes"))
+        p.print_object(PROBER.read("tests/in/customobject/gravtrigger changed.bytes"))
 
 
 class ForceZoneBoxTest(unittest.TestCase):
@@ -230,7 +230,7 @@ class ForceZoneBoxTest(unittest.TestCase):
             with self.subTest(fname=fname):
                 p = PrintContext.for_test()
                 filename = f"tests/in/customobject/forcezone {fname}.bytes"
-                p.print_data_of(PROBER.read(filename))
+                p.print_object(PROBER.read(filename))
 
 
 class EnableAbilitiesBoxTest(unittest.TestCase):
@@ -244,7 +244,7 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         self.assertEqual(obj.enable_jets, 0)
         self.assertEqual(obj.enable_flying, 0)
         self.assertEqual(obj.bloom_out, 1)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_flyboost(self):
         p = PrintContext.for_test()
@@ -256,7 +256,7 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         self.assertEqual(obj.enable_jets, 0)
         self.assertEqual(obj.enable_flying, 1)
         self.assertEqual(obj.bloom_out, 1)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_all_off(self):
         p = PrintContext.for_test()
@@ -268,7 +268,7 @@ class EnableAbilitiesBoxTest(unittest.TestCase):
         self.assertEqual(obj.enable_jets, 0)
         self.assertEqual(obj.enable_flying, 0)
         self.assertEqual(obj.bloom_out, 0)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class S5OffsetTest(unittest.TestCase):
@@ -277,13 +277,13 @@ class S5OffsetTest(unittest.TestCase):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/glasssplineroadstraight s5 offset.bytes")
         self.assertEqual(len(obj.children), 2)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_jumpbarrierlowhi(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/jumpbarrierlowhi s5 offset.bytes")
         self.assertEqual(len(obj.children), 3)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class EmpireEndZoneTest(unittest.TestCase):
@@ -295,7 +295,7 @@ class EmpireEndZoneTest(unittest.TestCase):
         win_logic = next(obj for obj in obj.children if obj.type == 'WinLogic')
         self.assertEqual(WinLogic, type(win_logic))
         self.assertIsNone(win_logic.delay_before_broadcast)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_delay_before_broadcast(self):
         p = PrintContext.for_test()
@@ -304,13 +304,13 @@ class EmpireEndZoneTest(unittest.TestCase):
         win_logic = next(obj for obj in obj.children if obj.type == 'WinLogic')
         self.assertEqual(WinLogic, type(win_logic))
         self.assertAlmostEqual(3.0, win_logic.delay_before_broadcast)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
     def test_weird_textmesh(self):
         p = PrintContext.for_test()
         obj = PROBER.read("tests/in/customobject/endzone weird textmesh.bytes")
         check_exceptions(obj)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class CarScreenTextDecodeTriggerTest(unittest.TestCase):
@@ -320,7 +320,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/decodetrigger.bytes")
         frag = obj['CarScreenTextDecodeTrigger']
         self.assertEqual(CarScreenTextDecodeTriggerFragment, type(frag))
-        p.print_data_of(obj)
+        p.print_object(obj)
         self.assertEqual(obj.text, "Please, help us.")
         self.assertEqual(obj.time_text, "")
 
@@ -329,7 +329,7 @@ class CarScreenTextDecodeTriggerTest(unittest.TestCase):
         obj = PROBER.read("tests/in/customobject/decodetrigger v0.bytes")
         frag = obj['CarScreenTextDecodeTrigger']
         self.assertEqual(OldCarScreenTextDecodeTriggerFragment, type(frag))
-        p.print_data_of(frag)
+        p.print_object(frag)
         self.assertEqual(obj.text, "INPUT(666\u2020):Extract();")
         self.assertAlmostEqual(obj.per_char_speed, 0.02)
         self.assertEqual(obj.clear_on_finish, True)
@@ -348,7 +348,7 @@ class SplineRoadTest(unittest.TestCase):
         self.assertEqual(59, node0.snap_id)
         self.assertEqual(79, node1.parent_id)
         self.assertEqual(100, node1.snap_id)
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class CubeGsTest(unittest.TestCase):

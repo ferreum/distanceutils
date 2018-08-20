@@ -36,7 +36,7 @@ class BaseObjectTest(unittest.TestCase):
     def test_new_print(self):
         obj = BaseObject()
         p = PrintContext.for_test()
-        p.print_data_of(obj)
+        p.print_object(obj)
         repr(obj)
 
     def test_print_deeply_nested(self):
@@ -50,7 +50,7 @@ class BaseObjectTest(unittest.TestCase):
         # reduce recursion limit so we don't need to
         # use so much time and memory
         with small_stack(50):
-            p.print_data_of(obj)
+            p.print_object(obj)
 
         lines = output.getvalue().splitlines()
         self.assertEqual(len(lines), 201)

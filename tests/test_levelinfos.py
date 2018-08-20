@@ -45,7 +45,7 @@ class Version0LevelsTest(unittest.TestCase):
 
     def test_printing_works(self):
         p = PrintContext.for_test()
-        p.print_data_of(self.infos)
+        p.print_object(self.infos)
 
 
 class Version0EntryVersion2Test(unittest.TestCase):

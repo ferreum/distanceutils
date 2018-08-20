@@ -56,7 +56,7 @@ def main():
             else:
                 srcarg = fname
             obj = prober.maybe(srcarg)
-            p.print_data_of(obj)
+            p.print_object(obj)
         except BrokenPipeError:
             raise
         except Exception as e:

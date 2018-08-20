@@ -137,7 +137,7 @@ class PrintContext(object):
             elif buf[-1]:
                 ended[-1] = True
 
-    def print_data_of(self, obj):
+    def print_object(self, obj):
         obj.print(p=self)
 
     def print_exception(self, exc):

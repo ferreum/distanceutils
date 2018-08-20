@@ -20,7 +20,7 @@ class Version0Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Leaderboard("tests/in/leaderboard/version_0.bytes"))
+        p.print_object(Leaderboard("tests/in/leaderboard/version_0.bytes"))
 
     def test_modify_write_read(self):
         lb = Leaderboard("tests/in/leaderboard/version_0.bytes")
@@ -56,7 +56,7 @@ class Version1Test(unittest.TestCase):
 
     def test_print(self):
         p = PrintContext.for_test()
-        p.print_data_of(Leaderboard("tests/in/leaderboard/version_1.bytes"))
+        p.print_object(Leaderboard("tests/in/leaderboard/version_1.bytes"))
 
     def test_modify_write_read(self):
         lb = Leaderboard("tests/in/leaderboard/version_1.bytes")

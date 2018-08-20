@@ -56,7 +56,7 @@ class Version0Test(unittest.TestCase):
     def test_print(self):
         p = PrintContext.for_test()
         obj = WorkshopLevelInfos("tests/in/workshoplevelinfos/version_0.bytes")
-        p.print_data_of(obj)
+        p.print_object(obj)
 
 
 class Version0WriteReadTest(common.WriteReadTest):
