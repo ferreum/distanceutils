@@ -26,10 +26,18 @@ class AutoloadError(Exception):
 
 
 class TagError(LookupError):
-    "Given tag not found"
+    "The given tag is not registered."
 
     def __init__(self, tag):
         LookupError.__init__(self, repr(tag))
+
+
+class ClassLookupError(LookupError):
+    "No class matches the given criteria."
+
+    def __init__(self, *args, **kw):
+        LookupError.__init__(self, ', '.join(
+            list(map(repr, args)) + list(f"{k}={v}" for k, v in kw.items())))
 
 
 def fragment_property(tag, name, default=None, doc=None):
@@ -65,17 +73,16 @@ class ClassCollector(object):
 
         """Register a fragment.
 
-        If additional parameters are specified, `cls` is registered for the
-        `Section` specified by these parameters and the `any_version`
-        parameters.
+        If additional arguments are specified, `cls` is registered for the
+        `Section` specified by these arguments and the `any_version` argument.
 
-        If there are no additional arguments and `versions` is specified,
-        `cls` is registered for the given versions of the section specified
-        by the `base_container` attribute of `cls`. If `versions` is not
-        specified, the versions are instead taken from the `container_versions`
-        attribute of `cls`. If the `base_container` attribute is None, the
-        fragment is registered for the section returned by the
-        `get_default_container()` method of `cls`.
+        If there are no additional arguments and `versions` is specified, `cls`
+        is registered for the given versions of the section specified by the
+        `base_container` attribute of `cls`. If `versions` is not specified,
+        the versions are instead taken from the `container_versions` attribute
+        of `cls`. If the `base_container` attribute is None, the fragment is
+        registered for the section returned by the `get_default_container`
+        method of `cls`.
 
         If the class's `class_tag` is non-None, the tag info is also updated.
 
@@ -505,11 +512,19 @@ class ClassCollection(_BaseProber, ClassCollector):
 
     def add_func(self, func, tag):
 
-        """Add the given function as probe fallback.
+        """Register a function as probe fallback.
 
-        The given function is called by passing it the probed section. The
-        function returns the class to use for the give section, or None, if the
-        next fallback shall be used.
+        The function is called by passing it the probed section. The function
+        returns the class to use for the section, or None to proceed to the
+        next fallback.
+
+        Parameters
+        ----------
+        func : function (Section) -> cls or None
+            The function to register.
+        tag : str
+            A tag for the function. If a function with given tag exists, it is
+            replaced with `func`.
 
         """
 
@@ -545,10 +560,22 @@ class ClassCollection(_BaseProber, ClassCollector):
 
         """Get the base section key for the given tag.
 
+        Parameters
+        ----------
+        tag : str
+            The tag of the section.
+
+        Returns
+        -------
+        base_key : see Section.to_key(noversion=True)
+            The base section key of the tag.
+
         Raises
         ------
         TagError
             If the given tag is not registered.
+        TypeError
+            If there is no container information for the given tag.
 
         """
 
@@ -563,6 +590,26 @@ class ClassCollection(_BaseProber, ClassCollector):
         return base
 
     def get_tag(self, section):
+
+        """Get the tag of the given section.
+
+        Parameters
+        ----------
+        section : Section
+            The section.
+
+        Returns
+        -------
+        tag : str
+            The tag of the section.
+
+        Raises
+        ------
+        KeyError
+            If there is no tag information for the given section.
+
+        """
+
         key = section.to_key(noversion=True)
         return self._tags_by_base_key[key]
 
@@ -582,6 +629,29 @@ class ClassCollection(_BaseProber, ClassCollector):
         return base, versions
 
     def fragment_attrs(self, *tags):
+
+        """Decorate object with fragment attribute properties.
+
+        Creates a `fragment_property` for each entry in the `_fields_` dict of
+        each specified fragment.
+
+        Each fragment is also added to the `default_fragments` of the given
+        object.
+
+        Parameters
+        ----------
+        tags : any number of str
+            The tags of fragment classes to add class attributes for.
+
+        Raises
+        ------
+        TagError
+            If a given tag is not registered.
+        TypeError
+            If there is no field information for a given tag.
+
+        """
+
         def decorate(cls):
             from .base import default_fragments
             containers = []
@@ -621,7 +691,10 @@ class ClassCollection(_BaseProber, ClassCollector):
                 raise TagError(tag)
             return self.baseclass, self.get_fallback_container(tag)
 
-        (modname, clsname), def_version = _get_klass_def(info, version)
+        try:
+            (modname, clsname), def_version = _get_klass_def(info, version)
+        except KeyError:
+            raise ClassLookupError(tag, version=version)
         container = info.get('base_container')
         if container is not None:
             container = Section.from_key(container)
@@ -631,19 +704,112 @@ class ClassCollection(_BaseProber, ClassCollector):
         return getattr(mod, clsname), container
 
     def klass(self, tag, *, version=None):
+
+        """Get a registered class by tag.
+
+        Note that the returned class does not necessarily only create objects
+        of the given tag. To safely create objects of a given tag, the
+        `factory` or `create` methods should be used.
+
+        Parameters
+        ----------
+        tag : str
+            The tag of the class.
+        version : int
+            Specify which version to get. If None, the highest version is used.
+            Useful for fragments, as objects are not versioned.
+
+        Returns
+        -------
+        cls : class
+            The registered class.
+
+        Raises
+        ------
+        TagError
+            If the given tag is not registered.
+        ClassLookupError
+            If the tag is registered, but no matching class is available.
+
+        """
+
         return self.__klass(tag, version, False)[0]
 
     def factory(self, tag, *, version=None, fallback=None):
+
+        """Get a factory that creates instances of the class of a given tag.
+
+        Parameters
+        ----------
+        tag : str
+            The tag of the class.
+        version : int
+            The version of the class to create. If None, the highest version is
+            used. Useful for fragments, as objects are not versioned.
+        fallback : bool
+            Whether a fallback should be used to create unknown classes. If
+            None, this defaults to True if a fallback is defined for this
+            collection.
+
+        Returns
+        -------
+        factory : callable (**) -> object
+            Factory that creates objects of the given tag. Keyword arguments
+            passed to the factory are passed to the class's constructor.
+
+        Raises
+        ------
+        TagError
+            If the given tag is not registered and no fallback is used.
+        ClassLookupError
+            If the tag is registered, but no matching class is available.
+
+        Notes
+        -----
+        Fallbacks are defined for `level_object` and `level_subobject`
+        categories. This allows creating unimplemented objects, for which only
+        the baseclass functionality is provided.
+
+        """
+
         cls, container = self.__klass(tag, version, fallback)
         return InstanceFactory(cls, container)
 
     def create(self, tag, *, fallback=None, **kw):
+
+        """Create an instance of the class of a given tag.
+
+        Behaves like `factory`, creating a new instance immediately.
+
+        Parameters
+        ----------
+        See `factory` method. `version` cannot be specified here.
+
+        Returns
+        -------
+        obj : cls
+            The created object.
+
+        Raises
+        ------
+        See `factory` method.
+
+        """
+
         cls, container = self.__klass(tag, None, fallback)
         if 'container' not in kw and 'dbytes' not in kw:
             kw['container'] = container
         return cls(**kw)
 
     def is_section_interesting(self, sec):
+
+        """Check for interestingness of a section.
+
+        Checks whether any class registered for the base key of the given
+        section has an `is_interesting` class attribute set to True.
+
+        """
+
         return sec.to_key(noversion=True) in self._interesting_sections
 
     def _load_autoload_content(self, content):
@@ -685,6 +851,8 @@ class ClassCollection(_BaseProber, ClassCollector):
 
 class CompositeProber(_BaseProber):
 
+    """A prober that retrieves classes from other probers."""
+
     def __init__(self, *, probers=None, **kw):
         super().__init__(**kw)
         self.probers = [] if probers is None else probers
@@ -706,6 +874,16 @@ class CompositeProber(_BaseProber):
 
 class CollectorGroup(object):
 
+    """A group of ClassCollector.
+
+    Used to register classes of modules for later collection by a
+    ClassesRegistry.
+
+    Categories are accessed via attribute access. New categories are created on
+    first access.
+
+    """
+
     def __init__(self):
         self._colls = {}
 
@@ -722,6 +900,20 @@ class CollectorGroup(object):
 
 
 class ClassesRegistry(object):
+
+    """A registry of ClassCollection and prober categories.
+
+    Categories are created with the `init_category` and `init_composite`
+    methods. They can then be accessed via attributes of the same name that was
+    passed to the init method.
+
+    Notes
+    -----
+    ``DefaultClasses`` is the most notable instance of this class. It collects
+    all classes implemented by the distance module and is used internally as
+    the default registory.
+
+    """
 
     def __init__(self):
         self._colls = {}

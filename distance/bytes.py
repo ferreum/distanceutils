@@ -219,14 +219,17 @@ class BytesModel(object):
         If `dbytes` is set, also call the `read` method with the given `dbytes`
         and all additional keyword arguments.
 
-        If `dbytes` is unset or `None`, set all additional keyword arguments as
-        attributes on the new object. Only attributes that exist on the class
-        can be set this way.
+        If `dbytes` is unset or None, the object is initialiized with default
+        values. This can be skipped by specifying `plain=True`. Additional
+        keyword arguments are set as attributes on the new object. Only
+        attributes that exist on the class can be set this way.
 
         Parameters
         ----------
         dbytes : see DstBytes.from_arg
             The source to read from.
+        plain : bool
+            Skips the initialization of the object if `dbytes` is None.
 
         Raises
         ------
@@ -266,7 +269,7 @@ class BytesModel(object):
         Parameters
         ----------
         dbytes : see DstBytes.from_arg
-            Anything accepted by `DstBytes.from_arg()`.
+            The source to read from.
         seek_end : bool
             Whether to seek to the end of the object after reading. Setting to
             False is useful for reading `Section`, which positions it at the
@@ -284,6 +287,10 @@ class BytesModel(object):
             `dbytes` when entering this method.
         exc_pos : int
             File position of `dbytes` when the exception occurred.
+
+        Additionally, an `ErrorPosition` object is added to the exception's
+        arguments providing the same information, which is properly displayed
+        in the exception message.
 
         """
 
@@ -874,7 +881,7 @@ class DstBytes(object):
         source : iterator
             The iterator to wrap.
         start_pos : int
-            The file position to read the first object from. If `None`, the
+            The file position to read the first object from. If None, the
             current position when calling this method is used. If it is
             callable, it is called on the first iteration without arguments and
             the result is used as the starting position.

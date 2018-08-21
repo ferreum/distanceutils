@@ -2,7 +2,7 @@ import unittest
 from contextlib import contextmanager
 
 from distance.bytes import DstBytes, Magic, Section
-from distance.classes import TagError, ClassCollector, ClassCollection, RegisterError
+from distance.classes import TagError, ClassLookupError, ClassCollector, ClassCollection, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultClasses, Level, Replay, Leaderboard, WorkshopLevelInfos
@@ -302,6 +302,11 @@ class VerifyClassInfoTest(unittest.TestCase):
         cls = DefaultClasses.fragments.klass('TeleporterExit', version=0)
         from distance._impl.fragments.npfragments import OldTeleporterExitFragment
         self.assertEqual(OldTeleporterExitFragment, cls)
+
+    def test_klass_invalid_version(self):
+        with self.assertRaises(ClassLookupError) as cm:
+            DefaultClasses.fragments.klass('GoldenSimples', version=999)
+        self.assertEqual(str(cm.exception), "'GoldenSimples', version=999")
 
     def test_create_teleporter_exit_version_new(self):
         frag = DefaultClasses.fragments.factory('TeleporterExit', version=1)()
