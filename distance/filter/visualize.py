@@ -566,7 +566,7 @@ class CooldownTriggerMapper(VisualizeMapper):
         axis_vec = [0, 0, 0]
         axis_vec[axis % 3] = 1
         anim.rotate_axis = axis_vec
-        grp.fragments = list(grp.fragments) + [anim]
+        grp.fragments += [anim]
         return grp,
 
     def _apply_match(self, main, objpath, frags):
