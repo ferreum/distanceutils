@@ -462,7 +462,7 @@ class Fragment(BytesModel):
             elif tag is None:
                 type_str = repr(con_tag)
             elif con_tag != tag:
-                actual_str = f" (actual {con_tag!r})"
+                actual_str = f" (container {con_tag!r})"
                 overridden = True
 
             if container.has_version():
