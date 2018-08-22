@@ -446,11 +446,9 @@ class _BaseProber(object):
         """
 
         if kw.get('probe_section') is not None:
-            raise ValueError(f"probe_section cannot be specified.")
+            raise TypeError("probe_section cannot be specified here")
 
         dbytes = DstBytes.from_arg(dbytes)
-        if 'probe_section' in kw:
-            raise TypeError("probe_section not supported")
         for _ in range(n):
             obj = self.maybe(dbytes, **kw)
             yield obj
