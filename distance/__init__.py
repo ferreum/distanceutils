@@ -53,11 +53,6 @@ This lazy-loading changes the seek position of the file.
 """
 
 
-from distance.constants import (
-    AbilityToggle, Completion, Difficulty,
-    ForceType, Mode, Rating
-)
-
 from distance._version import __version__
 
 from distance._core import DefaultClasses
@@ -75,9 +70,6 @@ __version__
 __all__ = [
     'Level', 'Replay', 'Leaderboard', 'LevelInfos',
     'ProfileProgress', 'WorkshopLevelInfos', 'PROBER',
-
-    'AbilityToggle', 'Completion', 'Difficulty',
-    'ForceType', 'Mode', 'Rating',
 
     'DefaultClasses',
 ]
