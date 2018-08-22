@@ -706,7 +706,7 @@ class BaseObject(Fragment):
             If fragment is not present or not implemented.
         """
 
-        base_key, versions = self.classes.fragments.get_tag_impl_info(tag)
+        base_key, versions = self.classes.fragments._get_tag_impl_info(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:
@@ -767,7 +767,7 @@ class BaseObject(Fragment):
 
     def __contains__(self, tag):
         "Check whether a fragment with given tag is present and implemented."
-        base_key, versions = self.classes.fragments.get_tag_impl_info(tag)
+        base_key, versions = self.classes.fragments._get_tag_impl_info(tag)
         i = 0
         for sec in self.sections:
             if sec.to_key(noversion=True) == base_key:

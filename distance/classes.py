@@ -613,7 +613,7 @@ class ClassCollection(_BaseProber, ClassCollector):
         key = section.to_key(noversion=True)
         return self._tags_by_base_key[key]
 
-    def get_tag_impl_info(self, tag):
+    def _get_tag_impl_info(self, tag):
         try:
             info = self._classes[tag]
         except KeyError:
