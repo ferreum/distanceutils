@@ -771,7 +771,7 @@ class ClassCollection(_BaseProber, ClassCollector):
         """
 
         cls, container = self.__klass(tag, version, fallback)
-        return InstanceFactory(cls, container)
+        return _InstanceFactory(cls, container)
 
     def create(self, tag, *, fallback=None, **kw):
 
@@ -986,7 +986,7 @@ class ClassesRegistry(object):
         return res
 
 
-class InstanceFactory(object):
+class _InstanceFactory(object):
 
     def __init__(self, cls, container):
         self.cls = cls
