@@ -831,7 +831,7 @@ class BaseObject(Fragment):
         return Section(Magic[6], self.type, id=cid)
 
     def _visit_write_section_data(self, dbytes, sec):
-        for frag in self._fragments:
+        for frag in self.fragments:
             yield frag.visit_write(dbytes)
 
     def _init_defaults(self):
@@ -865,11 +865,11 @@ class BaseObject(Fragment):
         yield super()._visit_print_data(p)
         if 'transform' in p.flags:
             p(f"Transform: {format_transform(self.real_transform)}")
-        if 'fragments' in p.flags and self._fragments:
+        if 'fragments' in p.flags and self.fragments:
             if 'allprops' in p.flags:
-                p(f"Fragments: {len(self._fragments)}")
-                with p.tree_children(len(self._fragments)):
-                    for frag in self._fragments:
+                p(f"Fragments: {len(self.fragments)}")
+                with p.tree_children(len(self.fragments)):
+                    for frag in self.fragments:
                         p.tree_next_child()
                         yield frag.visit_print(p)
             else:
@@ -880,7 +880,7 @@ class BaseObject(Fragment):
                 except StopIteration:
                     pass
                 else:
-                    p(f"Fragments: {len(self._fragments)} <filtered>")
+                    p(f"Fragments: {len(self.fragments)} <filtered>")
                     with p.tree_children():
                         p.tree_next_child()
                         yield frag.visit_print(p)
