@@ -457,15 +457,14 @@ class Fragment(BytesModel):
                 con_tag = self.classes.fragments.get_tag(container)
             except KeyError:
                 con_tag = None
-            if con_tag is None:
-                overridden = True
-            elif tag is None:
-                type_str = repr(con_tag)
-            elif con_tag != tag:
-                actual_str = f" (container {con_tag!r})"
-                overridden = True
+            if con_tag != tag:
+                overridden = tag is not None
+                if con_tag is None:
+                    actual_str = " (container Unknown)"
+                else:
+                    actual_str = f" (container {con_tag!r})"
 
-            if container.has_version():
+            if not overridden and tag is not None and container.has_version():
                 version = self.container.version
                 ver_str = f" version {version!r}"
 
