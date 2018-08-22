@@ -52,12 +52,11 @@ class LeaderboardFragment(BaseConstructFragment):
             entries = [e for e in entries if e.time is not None]
             entries.sort(key=attrgetter('time'))
             entries.extend(nones)
-        unk_str = ""
         for i, entry in enumerate(entries, 1):
             rep_str = ""
             if entry.replay is not None and entry.replay != NO_REPLAY:
                 rep_str = f" Replay: {entry.replay:X}"
-            p(f"{unk_str}{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
+            p(f"{i}. {entry.playername!r} - {format_duration(entry.time)}{rep_str}")
 
 
 # vim:set sw=4 et:
