@@ -325,7 +325,7 @@ class AnimatorFragment(BaseConstructFragment):
         'anim_physics' / Default(Byte, 1),
         'always_animate' / Default(Byte, 0),
         # 1: play
-        'trigger_default_action' / Default(UInt, 1),
+        'default_action' / Default(UInt, 1),
         # 1: play
         'trigger_on_action' / Default(UInt, 1),
         'trigger_wait_for_anim_finish' / Default(Byte, 0),
