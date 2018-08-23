@@ -891,10 +891,8 @@ class CollectorGroup(object):
         except KeyError:
             coll = ClassCollector()
             self._colls[name] = coll
+            setattr(self, name, coll)
             return coll
-
-    def __dir__(self):
-        return super().__dir__() + list(self._colls.keys())
 
 
 class ClassesRegistry(object):
@@ -924,6 +922,7 @@ class ClassesRegistry(object):
         coll = ClassCollection(key=key, **kw)
         self._colls[key] = coll
         self._autoload_colls[key] = coll
+        setattr(self, key, coll)
 
     def init_composite(self, key, keys, **kw):
         if key in self._colls:
@@ -932,15 +931,7 @@ class ClassesRegistry(object):
         colls = [self._colls[key] for key in keys]
         prober = CompositeProber(probers=colls, **kw)
         self._colls[key] = prober
-
-    def __getattr__(self, name):
-        try:
-            return self._colls[name]
-        except KeyError:
-            raise AttributeError(f"No such category: {name!r}")
-
-    def __dir__(self):
-        return super().__dir__() + list(self._colls.keys())
+        setattr(self, key, prober)
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
@@ -983,6 +974,8 @@ class ClassesRegistry(object):
         res = ClassesRegistry()
         res._autoload_modules = dict(self._autoload_modules)
         res._colls = colls
+        for key, coll in colls.items():
+            setattr(res, key, coll)
         return res
 
 
