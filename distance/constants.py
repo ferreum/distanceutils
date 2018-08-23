@@ -4,9 +4,9 @@
 class FancyEnum(object):
 
     @classmethod
-    def to_name(clazz, value, unk_fmt="Unknown(%s)"):
+    def to_name(cls, value, unk_fmt="Unknown(%s)"):
         try:
-            return clazz.Names[value]
+            return cls.Names[value]
         except KeyError:
             return unk_fmt % (value,)
 
@@ -98,10 +98,10 @@ class AbilityOption(FancyEnum):
     }
 
     @classmethod
-    def to_name_for_value(clazz, toggle, value):
+    def to_name_for_value(cls, toggle, value):
         try:
             if value == 0 or value == 1:
-                return clazz.Names[toggle]
+                return cls.Names[toggle]
         except KeyError:
             pass
         return f"Unknown({toggle}, {value})"
