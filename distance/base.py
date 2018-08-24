@@ -741,7 +741,7 @@ class default_fragments(object):
         return target
 
 
-class MappedSequenceView(collections.Sequence):
+class _MappedSequenceView(collections.Sequence):
 
     __slots__ = ('_source', '_func')
 
@@ -763,7 +763,7 @@ class MappedSequenceView(collections.Sequence):
 
 
 def _FragmentsContainerView(frags):
-    return MappedSequenceView(frags, attrgetter('container'))
+    return _MappedSequenceView(frags, attrgetter('container'))
 
 
 @default_fragments(ObjectFragment)
