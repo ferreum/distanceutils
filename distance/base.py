@@ -247,15 +247,15 @@ class Transform(tuple):
     def write_to(self, dbytes):
         """Write this transform to dbytes."""
         pos, rot, scale = self or ((), (), ())
-        if len(pos):
+        if pos:
             dbytes.write_bytes(S_FLOAT3.pack(*pos))
         else:
             dbytes.write_bytes(SKIP_BYTES)
-        if len(rot):
+        if rot:
             dbytes.write_bytes(S_FLOAT4.pack(*rot))
         else:
             dbytes.write_bytes(SKIP_BYTES)
-        if len(scale):
+        if scale:
             dbytes.write_bytes(S_FLOAT3.pack(*scale))
         else:
             dbytes.write_bytes(SKIP_BYTES)
