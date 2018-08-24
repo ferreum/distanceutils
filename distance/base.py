@@ -629,6 +629,10 @@ class ObjectFragment(Fragment):
                 for obj in children:
                     yield obj.visit_write(dbytes)
 
+    def clone(self):
+        """ObjectFragments cannot be cloned."""
+        raise NotImplementedError("Cannot clone object")
+
 
 def _object_property(name, default=None, doc=None):
     if doc is None:
