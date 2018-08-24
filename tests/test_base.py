@@ -4,7 +4,7 @@ import unittest
 from io import StringIO, BytesIO
 
 from distance import DefaultClasses
-from distance.bytes import Magic, Section
+from distance.bytes import Magic, Section, DstBytes
 from distance.printing import PrintContext
 from distance.base import (
     ObjectFragment,
@@ -209,6 +209,33 @@ class BaseObjectTest(unittest.TestCase):
 
         self.assertTrue('GoldenSimples' in obj)
         self.assertTrue(obj.has_any('GoldenSimples'))
+
+    def test_raw_data_from_file(self):
+        db = DstBytes.in_memory()
+        with db:
+            with db.write_section(Magic[2], 12, 12):
+                start = db.tell()
+                db.write_str("A String")
+        frag = Fragment(db)
+
+        data = frag.raw_data
+
+        db.seek(start)
+        expect = db.file.read()
+        self.assertEqual(data, expect)
+
+    def test_raw_data_not_read(self):
+        frag = Fragment()
+
+        with self.assertRaises(AttributeError):
+            frag.raw_data
+
+    def test_raw_data_assigned(self):
+        frag = Fragment(raw_data=b'Test_data')
+
+        data = frag.raw_data
+
+        self.assertEqual(data, b'Test_data')
 
 
 # vim:set sw=4 et:

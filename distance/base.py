@@ -372,15 +372,42 @@ class Fragment(BytesModel):
 
     @property
     def raw_data(self):
+
+        """The unmodified raw bytes of this fragment.
+
+        Only valid for fragments that have been read or if this property has
+        been assigned first.
+
+        This attribute is initialized lazily. File errors may occur on acces as
+        with fragment instantiation.
+
+        Returns
+        -------
+        data : bytes
+            The bytes of this fragment.
+
+        Raises
+        ------
+        AttributeError
+            If this fragment has no assigned raw data and has no source and
+            container information to initialize it.
+
+        """
+
         try:
             return self._raw_data
         except AttributeError:
             pass
-        dbytes = self.dbytes
-        sec = self.container
+        try:
+            dbytes = self.dbytes
+            sec = self.container
+            start = sec.content_start
+            size = sec.content_size
+        except AttributeError:
+            raise AttributeError(f"Missing source and/or container information")
         with dbytes:
-            dbytes.seek(sec.content_start)
-            data = dbytes.read_bytes(sec.content_size)
+            dbytes.seek(start)
+            data = dbytes.read_bytes(size)
             self._raw_data = data
         return data
 
