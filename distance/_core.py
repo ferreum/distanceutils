@@ -12,9 +12,9 @@ def _fallback_obj_container(tag):
 
 DefaultClasses.init_category('common', baseclass=Fragment)
 DefaultClasses.init_category('level_objects', baseclass=LevelObject,
-                               get_fallback_container=_fallback_obj_container)
+                             get_fallback_container=_fallback_obj_container)
 DefaultClasses.init_category('level_subobjects', baseclass=SubObject,
-                               get_fallback_container=_fallback_obj_container)
+                             get_fallback_container=_fallback_obj_container)
 DefaultClasses.init_category('level_fallback', baseclass=LevelObject)
 DefaultClasses.init_category('fragments', baseclass=Fragment)
 DefaultClasses.init_category('base_objects', baseclass=BaseObject)
