@@ -630,10 +630,6 @@ class Section(BytesModel):
         except AttributeError:
             raise KeyError(repr(key))
 
-    @property
-    def content_end(self):
-        return self.content_start + self.content_size
-
     def to_key(self, noversion=False):
 
         """Create a key containing the section's type information.
