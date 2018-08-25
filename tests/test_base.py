@@ -54,7 +54,7 @@ class BaseObjectTest(unittest.TestCase):
 
         lines = output.getvalue().splitlines()
         self.assertEqual(len(lines), 201)
-        self.assertEqual(lines[-1], ("   " * 99) + "└─ Object type: Unknown")
+        self.assertEqual(lines[-1], ("   " * 99) + "└─ Object type: None")
 
     def test_write_deeply_nested(self):
         # create deeply nested objects

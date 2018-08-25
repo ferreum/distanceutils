@@ -1198,12 +1198,7 @@ class BaseObject(Fragment):
         return f" type={self.type!r}{supstr}"
 
     def _print_type(self, p):
-        type = self.type
-        if type is None:
-            text = "Unknown"
-        else:
-            text = repr(type)
-        p(f"Object type: {text}")
+        p(f"Object type: {self.type!r}")
 
     def _visit_print_data(self, p):
         yield super()._visit_print_data(p)
