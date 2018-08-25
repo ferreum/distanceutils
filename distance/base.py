@@ -726,12 +726,12 @@ class default_fragments(object):
         Returns
         -------
         sections : list of Section
-            The sections of `target`.
+            The default fragment sections of `target`.
 
         Raises
         ------
         AttributeError
-            If `target` has no default fragments.
+            If default fragments for `target` were never specified.
 
         """
 
@@ -773,7 +773,23 @@ def _FragmentsContainerView(frags):
 @default_fragments(ObjectFragment)
 class BaseObject(Fragment):
 
-    """Represents data within a Magic[6] Section.
+    """Represents data within a ``Magic[6]`` Section.
+
+    Contains a list of fragments exposed by the `fragments` property.
+
+    Fragments can also be accessed by tag using the subscript notation::
+
+        frag = obj['Animator']
+        obj['Animator'] = anim_frag
+        del obj['Animator']
+        has_anim = 'Animator' in frag
+
+    These also verify that accessed fragments are implemented and support the
+    present version. The methods `get_any` and `has_any` don't perform this
+    check.
+
+    Practically all instances of this class contain an `ObjectFragment` that
+    provides the `children`, and `real_transform` properties.
 
     Attributes
     ----------

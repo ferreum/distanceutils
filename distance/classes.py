@@ -917,6 +917,7 @@ class ClassesRegistry(object):
         self._autoload_colls = {}
 
     def init_category(self, key, **kw):
+        """Initialize a `ClassCollection` category."""
         if key in self._colls:
             raise ValueError(f"Category {key!r} already exists")
         coll = ClassCollection(key=key, **kw)
@@ -925,6 +926,7 @@ class ClassesRegistry(object):
         setattr(self, key, coll)
 
     def init_composite(self, key, keys, **kw):
+        """Initialize a `CompositeProber` category."""
         if key in self._colls:
             raise ValueError(f"Category {key!r} already exists")
         keys = tuple(keys)

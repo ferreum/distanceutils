@@ -446,6 +446,103 @@ S_SEC_BASE = Struct("<IQ")
 
 class Section(BytesModel):
 
+    """A section of data denoted by a magic number and size.
+
+    Usages
+    ------
+    Section(dbytes, **kw)
+        Read a new instance from the given source `dbytes` using the `read`
+        method. Additional keyword arguments are passed to the `read` method.
+    Section(base, [any_version=False], **kw_fields)
+    Section(*args_fields, [any_version=False], [base=None], **kw_fields)
+        Create a new section with specified fields.
+    Section(plain=True)
+        Create a plain section without assigned fields. Intended for calling
+        `read` afterwards.
+
+    Parameters
+    ----------
+    dbytes : see DstBytes.from_arg
+        The source to read a new instance from.
+    base : Section
+        A section to use for default values of any fields that aren't specified
+        positionally or by keyword.
+    any_version : bool
+        If True, allow creating a base section, i.e. a versioned section with
+        unspecified version. See `has_version` method.
+    args_fields : *args
+        Values of fields for the new section by position.
+    kw_fields : **kwargs
+        Values of fields for the new section by keyword.
+
+    Structure
+    ---------
+    See DstBytes for the meaning of these types.
+    magic : uint
+        The magic number. The magic numbers are a subset of the values defined
+        by the `Magic` mapping. The keys of possible magic numbers in the
+        `Magic` mapping are 2, 3, 5, 6, 7, 8, 9, 32.
+    size : ulong
+        Size of the remainder in bytes. The remainder starts immediately after
+        this field.
+    This is followed by the `magic`-dependent type information.
+
+    Type Information
+    ----------------
+    ``Magic[2]`` and ``Magic[3]``
+        Contains a versioned component fragment.
+        type : uint
+            Identifier of the component type.
+        version : uint
+            Version of the component. Optional if ``any_version=True``.
+        id : uint or None
+            Optional. A Section ID unique within the file. Default: None.
+    ``Magic[5]``
+        Contains a list of ``Magic[6]`` objects.
+        count : uint
+            The number of objects in the list.
+    ``Magic[6]``
+        Contains an object composed of ``Magic[2]`` and ``Magic[3]`` sections.
+        type : str
+            Type of the contained object.
+        unknown : 1 byte
+            Always 0. Cannot be accessed.
+        id : uint or None
+            Optional. A Section ID unique within the file. Default: None.
+        count : uint
+            The number of contained components.
+    ``Magic[7]``
+        A layer of a level.
+        name : str
+            Name of the layer.
+        count : uint
+            Number of objects within the layer.
+    ``Magic[8]``
+        Level settings found in very old levels. Contains no type information.
+    ``Magic[9]``
+        A level file. Contains a level settings object followed by a list of
+        layers.
+        name : str
+            Name of the level. Note that this never seems to be read by the
+            game. The the game uses the name stored in the level's settings.
+        count : uint
+            Number of layers in the level.
+        version : uint
+            Optional. Version of the level file. This doesn't seem to make much
+            of a difference and is just persisted for consistency. Default: 3.
+    ``Magic[32]``
+        A component fragment found in some very old levels' objects.
+
+    This is followed by the content. Reading a Section with ``seek_end=False``
+    leaves the source file position at the start of the content.
+
+    Notes
+    -----
+    Using an `id` that is not unique within the file will prevent the file from
+    being loaded properly by the game.
+
+    """
+
     __slots__ = ('magic', 'type', 'version', 'id',
                  'content_start', 'content_size',
                  'count', 'name')
@@ -454,6 +551,14 @@ class Section(BytesModel):
 
     @classmethod
     def base(cls, *args, **kw):
+
+        """Create a new base section.
+
+        Like the regular constructor, but pass ``any_version=True`` to allow
+        creating a section without version.
+
+        """
+
         return cls(*args, any_version=True, **kw)
 
     def __init__(self, *args, **kw):
@@ -530,7 +635,22 @@ class Section(BytesModel):
         return self.content_start + self.content_size
 
     def to_key(self, noversion=False):
-        """Create a key of this section's type identity."""
+
+        """Create a key containing the section's type information.
+
+        Parameters
+        ----------
+        noversion : bool
+            If true, the version is omitted for sections with
+            ``self.has_version() == True``.
+
+        Returns
+        -------
+        key : tuple or number
+            A key suitable for equality checks and as a dict key.
+
+        """
+
         magic = self.magic
         if magic in (MAGIC_2, MAGIC_3):
             if noversion:
@@ -544,12 +664,45 @@ class Section(BytesModel):
 
     @classmethod
     def from_key(cls, key):
+
+        """Create a new instance from a section key.
+
+        Parameters
+        ----------
+        key : tuple or number
+            The key as returned by a section's `to_key` method.
+
+        Returns
+        -------
+        sec : Section
+            The created section.
+
+        """
+
         if isinstance(key, tuple):
             return cls(*key)
         else:
             return cls(key)
 
     def has_version(self):
+
+        """Check whether this section's type information has a version.
+
+        So far this is only True for ``Magic[2]`` and ``Magic[3]`` sections.
+
+        This does NOT check whether the version field is set, only whether the
+        type information structure contains a version.
+
+        Note: ``Magic[9]`` sections have a version field, but do not count as
+        versioned as their version is not part of the type information.
+
+        Returns
+        -------
+        has_version : bool
+            Whether this section's type information has a version.
+
+        """
+
         return self.magic in (MAGIC_2, MAGIC_3)
 
     def _read(self, dbytes):
@@ -662,8 +815,41 @@ class DstBytes(object):
 
     """File wrapper for reading and writing data of .bytes files.
 
+    Data Types
+    ----------
+    bytes : any number of bytes
+        Read with ``value = db.read_bytes(count)``.
+        Write with ``db.write_bytes(value)``.
+    uint : unsigned little-endian 32 bit / 4 byte integer
+        Read with ``value = db.read_uint4()``.
+        Write with ``db.write_int(4, value)``.
+    int : signed little-endian 32 bit / 4 byte integer
+        Read with ``value = db.read_int4()``.
+        Write with ``db.write_int(4, value, signed=True)``.
+    ulong : unsigned little-endian 64 bit / 8 byte integer
+        Read with ``value = db.read_uint8()``.
+        Write with ``db.write_int(8, value)``.
+    long : signed little-endian 64 bit / 8 byte integer
+        Read with ``value = db.read_int8()``.
+        Write with ``db.write_int(8, value, signed=True)``.
+    varint : variable-sized unsigned int
+        Read with ``value = db.read_var_int()``.
+        Write with ``db.write_var_int(value)``.
+        Note: So far only found as str length prefix.
+    str : varint-prefixed utf-16-le string
+        Read with ``value = db.read_str()``.
+        Write with ``db.write_str(value)``.
+        Note: The prefix specifies the length of the string in bytes.
+
     Using an instance as context manager saves the current position on enter
-    and restores it on exit.
+    and restores it on exit:
+
+    >>> from distance.bytes import DstBytes
+    >>> dbytes = DstBytes.from_data(b'abcd')
+    >>> with dbytes:
+    ...     peeked = dbytes.read_uint4()
+    >>> same_value = dbytes.read_uint4()
+    >>> assert peeked == same_value
 
     """
 
@@ -694,7 +880,7 @@ class DstBytes(object):
 
     @classmethod
     def from_data(cls, data):
-        """Create a new instance for reading the given bytes object."""
+        """Create a new instance for reading the given bytes."""
         return DstBytes(BytesIO(data))
 
     @classmethod
@@ -702,19 +888,27 @@ class DstBytes(object):
 
         """Get a readable instance according to the given argument.
 
-        If `arg` is an instance of this class, it is returned as-is.
+        Parameters
+        ----------
+        arg : DstBytes or str or bytes or file
+            If it is an instance of this class, it is returned as-is.
 
-        If `arg` is a `str` or `bytes`, it is used as a file name. The file at
-        this path is then read completely into a `io.BytesIO`, which is then
-        wrapped with a new instance.
+            If it is a `str` or `bytes`, it is used as a file name. The file at
+            this path is then read completely into a `io.BytesIO`, which is
+            then wrapped with a new instance of this class.
 
-        Otherwise, `arg` is assumed to be a binary file, and is wrapped with a
-        new instance of this class.
+            Otherwise, it is assumed to be a binary file, and is wrapped with a
+            new instance of this class.
 
         Returns
         -------
         dbytes : cls
             The instance of this class.
+
+        Raises
+        ------
+        IOError
+            If the given file seems not to be opened as a binary file.
 
         """
 
@@ -760,7 +954,7 @@ class DstBytes(object):
         return arg.write(tmpdb.file.getbuffer())
 
     def __enter__(self):
-        """Save the position on enter and restore it on exit."""
+        """Save file position on enter and restore it on exit."""
         self._pos_stack.append(self.tell())
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -769,7 +963,7 @@ class DstBytes(object):
 
     def read_bytes(self, n):
 
-        """Read the given number of bytes.
+        """Read a given number of bytes.
 
         Parameters
         ----------
@@ -793,9 +987,19 @@ class DstBytes(object):
         return result
 
     def read_byte(self):
+        "Read a single byte."
         return self.read_bytes(1)[0]
 
     def read_var_int(self):
+
+        """Read a variable-sized unsigned int.
+
+        The seven lower bits of each byte contribute to the resulting number as
+        the next-lowest bits. Each highest bit, if set, indicates that another
+        byte follows.
+
+        """
+
         n = 0
         bits = 0
         while True:
@@ -807,42 +1011,69 @@ class DstBytes(object):
                 return n | (b << bits)
 
     def read_int(self, length, signed=False):
+        "Read a given-size byte little-endian integer of given signedness."
         data = self.read_bytes(length)
         return int.from_bytes(data, 'little', signed=signed)
 
     # faster variants for common ints
     def read_int4(self):
+        "Read a signed little-endian 32 bit / 4 byte integer."
         return S_INT.unpack(self.read_bytes(4))[0]
 
     def read_int8(self):
+        "Read a signed little-endian 64 bit / 8 byte integer."
         return S_LONG.unpack(self.read_bytes(8))[0]
 
     def read_uint4(self):
+        "Read an unsigned little-endian 32 bit / 4 byte integer."
         return S_UINT.unpack(self.read_bytes(4))[0]
 
     def read_uint8(self):
+        "Read an unsigned little-endian 64 bit / 4 byte integer."
         return S_ULONG.unpack(self.read_bytes(8))[0]
 
     def read_struct(self, st):
+
+        """Read a given Struct.
+
+        See the `struct` module.
+
+        Parameters
+        ----------
+        st : Struct
+            The struct to read.
+
+        """
+
         data = self.read_bytes(st.size)
         return st.unpack(data)
 
     def read_str(self):
+        "Read a varint-prefixed utf-16-le string."
         length = self.read_var_int()
         data = self.read_bytes(length)
         return UTF_16_DECODE(data, 'surrogateescape')[0]
 
     def read_id(self):
+        "Read a ``uint`` ID."
         return self.read_uint4()
 
     def write_bytes(self, data):
-        """Write the given bytes."""
+        "Write the given bytes."
         self.file.write(data)
 
     def write_int(self, length, value, signed=False):
+        "Write a given-size byte little-endian integer of given signedness."
         self.write_bytes(value.to_bytes(length, 'little', signed=signed))
 
     def write_var_int(self, value):
+
+        """Write a variable-sized unsigned int.
+
+        See `read_var_int` method for format description.
+
+        """
+
         l = []
         while value >= 0x80:
             l.append((value & 0x7f) | 0x80)
@@ -851,16 +1082,26 @@ class DstBytes(object):
         self.write_bytes(bytes(l))
 
     def require_equal_uint4(self, expect):
+        "Read ``uint``, raising if it doesn't match the given value."
         value = self.read_uint4()
         if value != expect:
             raise ValueError(f"Unexpected data: {value!r}")
 
     def write_str(self, s):
+        "Write a varint-prefixed utf-16-le string."
         data = UTF_16_ENCODE(s, 'surrogateescape')[0]
         self.write_var_int(len(data))
         self.write_bytes(data)
 
     def write_id(self, id_):
+
+        """Write a ``uint`` Section ID.
+
+        Writes the given ID `id_`, or a hopefully unallocated one if `id_` is
+        None.
+
+        """
+
         if id_ is None:
             id_ = self.section_counter + 1
             self.section_counter = id_
@@ -886,10 +1127,10 @@ class DstBytes(object):
             callable, it is called on the first iteration without arguments and
             the result is used as the starting position.
 
-        Returns
-        -------
-        i : iterator
-            Iterator that yields the objects yielded by `source`.
+        Yields
+        ------
+        obj : BytesModel
+            The objects yielded by `source`.
 
         """
 
@@ -915,7 +1156,7 @@ class DstBytes(object):
 
     @contextmanager
     def write_size(self):
-        """Write the size of the data written inside this context."""
+        "Write the number of bytes written inside this context."
         start = self.tell()
         self.write_bytes(b'\x00' * 8)
         try:
@@ -954,7 +1195,8 @@ class DstBytes(object):
         Parameters
         ----------
         Either a single argument containing a `Section` to be written or any
-        arguments to be passed to `Section()` to specify the section to write.
+        arguments to be passed to ``Section()`` to specify the section to
+        write.
 
         """
 
