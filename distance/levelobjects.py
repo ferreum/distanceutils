@@ -6,8 +6,6 @@ from .base import BaseObject
 
 class LevelObject(BaseObject):
 
-    __slots__ = ()
-
     child_classes_name = 'level_subobjects'
 
     has_children = True
@@ -23,8 +21,6 @@ class LevelObject(BaseObject):
 
 
 class SubObject(LevelObject):
-
-    __slots__ = ()
 
     def _print_type(self, p):
         p(f"Subobject type: {self.type!r}")

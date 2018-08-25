@@ -796,8 +796,7 @@ class BaseObject(Fragment):
 
     """
 
-    __slots__ = ('type', '_sections', '_fragments')
-
+    type = None
     child_classes_name = 'base_objects'
     is_object_group = False
     has_children = False
@@ -814,12 +813,7 @@ class BaseObject(Fragment):
 
         """
 
-        tag = cls.type
-        # BaseObject.type is a property created by __slots__. If we see this
-        # property, the class has not specified the type attribute.
-        if tag is BaseObject.type:
-            tag = None
-        return tag
+        return cls.type
 
     def __init__(self, *args, **kw):
         container = kw.get('container')
@@ -1208,10 +1202,11 @@ class BaseObject(Fragment):
             return supstr
 
     def _print_type(self, p):
-        try:
-            text = repr(self.type)
-        except AttributeError:
+        type = self.type
+        if type is None:
             text = "Unknown"
+        else:
+            text = repr(type)
         p(f"Object type: {text}")
 
     def _visit_print_data(self, p):
