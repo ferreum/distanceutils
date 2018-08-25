@@ -808,8 +808,7 @@ class BaseObject(Fragment):
 
         """The tag of this class.
 
-        Defaults to the `type` attribute specified by the class, or None if the
-        `type` attribute is not specified.
+        Defaults to the `type` attribute specified by the class.
 
         """
 
@@ -1196,10 +1195,7 @@ class BaseObject(Fragment):
 
     def _repr_detail(self):
         supstr = super()._repr_detail()
-        try:
-            return f" type={self.type!r}{supstr}"
-        except AttributeError:
-            return supstr
+        return f" type={self.type!r}{supstr}"
 
     def _print_type(self, p):
         type = self.type
