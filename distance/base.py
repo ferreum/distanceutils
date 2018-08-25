@@ -806,8 +806,20 @@ class BaseObject(Fragment):
 
     @classproperty
     def class_tag(cls):
-        """Defaults to the `type` attribute specified by the class."""
-        return cls.type
+
+        """The tag of this class.
+
+        Defaults to the `type` attribute specified by the class, or None if the
+        `type` attribute is not specified.
+
+        """
+
+        tag = cls.type
+        # BaseObject.type is a property created by __slots__. If we see this
+        # property, the class has not specified the type attribute.
+        if tag is BaseObject.type:
+            tag = None
+        return tag
 
     def __init__(self, *args, **kw):
         container = kw.get('container')
