@@ -1003,7 +1003,20 @@ class ClassesRegistry(object):
         self._colls[key] = prober
         setattr(self, key, prober)
 
-    def print_listing(self, file=None, *, p=None):
+    def get_category(self, key):
+
+        """Get an existing category with given key.
+
+        Raises
+        ------
+        KeyError
+            If the given category doesn't exist.
+
+        """
+
+        return self._colls[key]
+
+    def print_listing(self, file=None, *, p=None, print_classes=True):
 
         """Print a listing of registered classes of all categories.
 
@@ -1013,6 +1026,8 @@ class ClassesRegistry(object):
             The file to print to.
         p : PrintContext
             The print context to use.
+        print_classes : bool
+            Whether to list classes of categories.
 
         """
 
@@ -1028,7 +1043,8 @@ class ClassesRegistry(object):
                 if key not in self._autoload_colls:
                     extra_str = " (composite prober)"
                 p(f"Category: {key!r}{extra_str}")
-                coll.print_listing(p=p)
+                if print_classes:
+                    coll.print_listing(p=p)
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
