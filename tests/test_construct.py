@@ -70,7 +70,7 @@ class TestFragmentTest(unittest.TestCase):
         self.dbytes = db = DstBytes.in_memory()
         with db.write_section(test_section):
             db.write_str("a string")
-            db.write_int(4, 64)
+            db.write_uint(64)
         db.seek(0)
 
         self.dbytes_empty = db = DstBytes.in_memory()
@@ -265,7 +265,7 @@ class TestFragment2Test(unittest.TestCase):
             ).compile()
         db = DstBytes.in_memory()
         with db.write_section(test_section):
-            db.write_int(4, 135)
+            db.write_uint(135)
         db.seek(0)
 
         frag = TestFragment(db)

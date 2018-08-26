@@ -62,16 +62,12 @@ class Layer(Fragment):
             raise ValueError(f"Invalid layer section: {sec.magic}")
         if self.has_layer_flags:
             flags = self.layer_flags
-            dbytes.write_int(4, self.flags_version)
+            dbytes.write_uint(self.flags_version)
             if self.flags_version == 0:
-                dbytes.write_int(1, 0 if flags[1] else 1)
-                dbytes.write_int(1, flags[0])
-                dbytes.write_int(1, flags[2])
+                flags_bytes = [0 if flags[1] else 1, flags[0], flags[2]]
             else:
-                dbytes.write_int(1, flags[0])
-                dbytes.write_int(1, flags[1])
-                dbytes.write_int(1, flags[2])
-                dbytes.write_int(1, self.unknown_flag)
+                flags_bytes = [flags[0], flags[1], flags[2], self.unknown_flag]
+            dbytes.write_bytes(bytes(flags_bytes))
         for obj in self.objects:
             obj.write(dbytes)
 

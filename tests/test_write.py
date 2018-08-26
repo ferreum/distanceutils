@@ -1,5 +1,6 @@
 import unittest
 from io import BytesIO
+import struct
 
 from distance.bytes import DstBytes
 
@@ -11,76 +12,62 @@ def new_bytes():
 
 class WriteNumTest(unittest.TestCase):
 
-    def _test_num(self, length, value, expect):
+    def _test_num(self, method, value, expect):
         buf, dbytes = new_bytes()
 
-        dbytes.write_int(length, value)
+        method(dbytes, value)
 
         result = buf.getvalue()
         self.assertEqual(result, expect)
 
     def test_u4_small(self):
-        self._test_num(4, 0x12, b'\x12\x00\x00\x00')
+        self._test_num(DstBytes.write_uint, 0x12, b'\x12\x00\x00\x00')
 
     def test_u4_large(self):
-        self._test_num(4, 0x1234_5678, b'\x78\x56\x34\x12')
+        self._test_num(DstBytes.write_uint, 0x1234_5678, b'\x78\x56\x34\x12')
 
     def test_u4_max(self):
-        self._test_num(4, 0xFFFF_FFFF, b'\xFF\xFF\xFF\xFF')
+        self._test_num(DstBytes.write_uint, 0xFFFF_FFFF, b'\xFF\xFF\xFF\xFF')
 
     def test_u4_too_large(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_int, 4, 0x1_0000_0000)
+        self.assertRaises(struct.error, dbytes.write_uint, 0x1_0000_0000)
         self.assertEqual(buf.getvalue(), b'')
 
     def test_u4_negative_raises(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_int, 4, -32)
+        self.assertRaises(struct.error, dbytes.write_uint, -32)
         self.assertEqual(buf.getvalue(), b'')
 
-
-class WriteNumSignedTest(unittest.TestCase):
-
-    def _test_signed(self, length, value, expect):
-        buf, dbytes = new_bytes()
-
-        dbytes.write_int(length, value, signed=True)
-
-        result = buf.getvalue()
-        self.assertEqual(result, expect)
-
     def test_i4_small(self):
-        self._test_signed(4, 0x12, b'\x12\x00\x00\x00')
+        self._test_num(DstBytes.write_int, 0x12, b'\x12\x00\x00\x00')
 
     def test_i4_large(self):
-        self._test_signed(4, 0x1234_5678, b'\x78\x56\x34\x12')
+        self._test_num(DstBytes.write_int, 0x1234_5678, b'\x78\x56\x34\x12')
 
     def test_i4_max(self):
-        self._test_signed(4, 0x7FFF_FFFF, b'\xFF\xFF\xFF\x7F')
+        self._test_num(DstBytes.write_int, 0x7FFF_FFFF, b'\xFF\xFF\xFF\x7F')
 
     def test_i4_too_negative(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_int,
-                          1, -129, signed=True)
+        with self.assertRaises(struct.error):
+            dbytes.write_int(-0x8000_0001)
         self.assertEqual(buf.getvalue(), b'')
 
     def test_i4_too_large(self):
         buf, dbytes = new_bytes()
-        self.assertRaises(OverflowError, dbytes.write_int,
-                          4, 0x8000_0000, signed=True)
+        with self.assertRaises(struct.error):
+            dbytes.write_int(0x8000_0000)
         self.assertEqual(buf.getvalue(), b'')
 
     def test_i4_negative(self):
-        self._test_signed(4, -1, b'\xFF\xFF\xFF\xFF')
-
-    def test_i1_byte(self):
-        self._test_signed(1, 12, b'\x0c')
+        self._test_num(DstBytes.write_int, -1, b'\xFF\xFF\xFF\xFF')
 
     def test_i8_small(self):
-        self._test_signed(8, 12, b'\x0c\x00\x00\x00\x00\x00\x00\x00')
+        self._test_num(DstBytes.write_long, 12, b'\x0c\x00\x00\x00\x00\x00\x00\x00')
 
     def test_i8_large(self):
-        self._test_signed(8, -128, b'\x80\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
+        self._test_num(DstBytes.write_long, -128, b'\x80\xFF\xFF\xFF\xFF\xFF\xFF\xFF')
 
 
 class WriteStringTest(unittest.TestCase):

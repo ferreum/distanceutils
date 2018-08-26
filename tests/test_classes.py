@@ -50,7 +50,7 @@ class ProberTest(unittest.TestCase):
         coll = ClassCollection()
         coll.add_func(self.fallback_func, 'fallback')
         dbytes = DstBytes.in_memory()
-        dbytes.write_int(4, Magic[6])
+        dbytes.write_uint(Magic[6])
         dbytes.seek(0)
         obj = coll.maybe(dbytes)
         self.assertEqual(EOFError, type(obj.exception))
@@ -59,7 +59,7 @@ class ProberTest(unittest.TestCase):
         coll = ClassCollection()
         coll.add_func(self.fallback_func, 'fallback')
         dbytes = DstBytes.in_memory()
-        dbytes.write_int(4, Magic[6])
+        dbytes.write_uint(Magic[6])
         dbytes.seek(0)
         def raise_error(*_):
             raise IOError

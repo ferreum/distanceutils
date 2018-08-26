@@ -38,9 +38,9 @@ class GroupFragment(Fragment):
     def _write_section_data(self, dbytes, sec):
         if not self._has_more_data:
             if self.inspect_children is not None:
-                dbytes.write_int(4, Magic[1])
-                dbytes.write_int(4, 0) # num values
-                dbytes.write_int(4, self.inspect_children)
+                dbytes.write_uint(Magic[1])
+                dbytes.write_uint(0) # num values
+                dbytes.write_uint(self.inspect_children)
         else:
             dbytes.write_bytes(self.raw_data)
 

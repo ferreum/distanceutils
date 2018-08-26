@@ -738,11 +738,11 @@ class Section(BytesModel):
     @contextmanager
     def _write_header(self, dbytes):
         magic = self.magic
-        dbytes.write_int(4, magic)
+        dbytes.write_uint(magic)
         if magic in (MAGIC_2, MAGIC_3):
             with dbytes.write_size():
-                dbytes.write_int(4, self.type)
-                dbytes.write_int(4, self.version)
+                dbytes.write_uint(self.type)
+                dbytes.write_uint(self.version)
                 dbytes.write_id(getattr(self, 'id', None))
                 yield
         elif magic == MAGIC_5:
@@ -767,8 +767,8 @@ class Section(BytesModel):
         elif magic == MAGIC_9:
             with dbytes.write_size():
                 dbytes.write_str(self.name)
-                dbytes.write_int(4, self.count)
-                dbytes.write_int(4, self.version)
+                dbytes.write_uint(self.count)
+                dbytes.write_uint(self.version)
                 yield
         elif magic == MAGIC_32:
             with dbytes.write_size():
@@ -818,16 +818,16 @@ class DstBytes(object):
         Write with ``db.write_bytes(value)``.
     uint : unsigned little-endian 32 bit / 4 byte integer
         Read with ``value = db.read_uint()``.
-        Write with ``db.write_int(4, value)``.
+        Write with ``db.write_uint(value)``.
     int : signed little-endian 32 bit / 4 byte integer
         Read with ``value = db.read_int()``.
-        Write with ``db.write_int(4, value, signed=True)``.
+        Write with ``db.write_uint(value)``.
     ulong : unsigned little-endian 64 bit / 8 byte integer
         Read with ``value = db.read_ulong()``.
-        Write with ``db.write_int(8, value)``.
+        Write with ``db.write_ulong(value)``.
     long : signed little-endian 64 bit / 8 byte integer
         Read with ``value = db.read_long()``.
-        Write with ``db.write_int(8, value, signed=True)``.
+        Write with ``db.write_long(value)``.
     varint : variable-sized unsigned int
         Read with ``value = db.read_var_int()``.
         Write with ``db.write_var_int(value)``.
@@ -1015,7 +1015,7 @@ class DstBytes(object):
         return S_INT.unpack(self.read_bytes(4))[0]
 
     def read_ulong(self):
-        "Read an unsigned little-endian 64 bit / 4 byte integer."
+        "Read an unsigned little-endian 64 bit / 8 byte integer."
         return S_ULONG.unpack(self.read_bytes(8))[0]
 
     def read_long(self):
@@ -1052,9 +1052,21 @@ class DstBytes(object):
         "Write the given bytes."
         self.file.write(data)
 
-    def write_int(self, length, value, signed=False):
-        "Write a given-size byte little-endian integer of given signedness."
-        self.write_bytes(value.to_bytes(length, 'little', signed=signed))
+    def write_uint(self, value):
+        "Write an unsigned little-endian 32 bit / 4 byte integer."
+        self.write_bytes(S_UINT.pack(value))
+
+    def write_int(self, value):
+        "Write a signed little-endian 32 bit / 4 byte integer."
+        self.write_bytes(S_INT.pack(value))
+
+    def write_ulong(self, value):
+        "Write an unsigned little-endian 64 bit / 8 byte integer."
+        self.write_bytes(S_ULONG.pack(value))
+
+    def write_long(self, value):
+        "Write a signed little-endian 64 bit / 8 byte integer."
+        self.write_bytes(S_LONG.pack(value))
 
     def write_var_int(self, value):
 
@@ -1095,7 +1107,7 @@ class DstBytes(object):
         if id_ is None:
             id_ = self.section_counter + 1
             self.section_counter = id_
-        self.write_int(4, id_)
+        self.write_uint(id_)
 
     def stable_iter(self, source, *, start_pos=None):
 
@@ -1155,7 +1167,7 @@ class DstBytes(object):
             end = self.tell()
             with self:
                 self.seek(start)
-                self.write_int(8, end - start - 8)
+                self.write_ulong(end - start - 8)
 
     @contextmanager
     def write_num_subsections(self):
@@ -1173,7 +1185,7 @@ class DstBytes(object):
         finally:
             with self:
                 self.seek(start)
-                self.write_int(4, self.num_subsections)
+                self.write_uint(self.num_subsections)
 
     @contextmanager
     def write_section(self, *args, **kw):

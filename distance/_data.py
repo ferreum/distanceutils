@@ -53,14 +53,14 @@ class NamedPropertyList(OrderedDict):
         return propend, False
 
     def write(self, dbytes):
-        dbytes.write_int(4, len(self))
+        dbytes.write_uint(len(self))
         for propname, value in self.items():
             self._write_property(dbytes, propname, value)
 
     def _write_property(self, dbytes, propname, value):
         dbytes.write_str(propname)
         if not self.old_format:
-            dbytes.write_int(8, dbytes.tell() + len(value) + 8)
+            dbytes.write_ulong(dbytes.tell() + len(value) + 8)
             dbytes.write_bytes(value)
         else:
             # Assume value is of correct length. Usually
@@ -91,8 +91,8 @@ class ColorSet(OrderedDict):
         return colname, colors
 
     def write(self, dbytes):
-        dbytes.write_int(4, Magic[1])
-        dbytes.write_int(4, len(self))
+        dbytes.write_uint(Magic[1])
+        dbytes.write_uint(len(self))
         for colname, color in self.items():
             self.write_color(dbytes, colname, color)
 
@@ -134,8 +134,8 @@ class MaterialSet(OrderedDict):
         return matname, colors
 
     def write(self, dbytes):
-        dbytes.write_int(4, Magic[1])
-        dbytes.write_int(4, len(self))
+        dbytes.write_uint(Magic[1])
+        dbytes.write_uint(len(self))
         for matname, colors in self.items():
             self.write_material(dbytes, matname, colors)
 
