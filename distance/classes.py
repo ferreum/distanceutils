@@ -812,7 +812,7 @@ class ClassCollection(_BaseProber, ClassCollector):
 
         return sec.to_key(noversion=True) in self._interesting_sections
 
-    def print_listing(self, file=None, *, p=None):
+    def print_listing(self, file=None, *, tag=None, p=None):
 
         """Print a listing of registered classes.
 
@@ -829,35 +829,46 @@ class ClassCollection(_BaseProber, ClassCollector):
             file = sys.stdout
         if p is None:
             p = PrintContext(file=file)
-        p(f"Base class: {self.baseclass.__module__}.{self.baseclass.__qualname__}")
-        if self._funcs_by_tag:
-            p(f"Functions: {len(self._funcs_by_tag)}")
-            with p.tree_children(len(self._funcs_by_tag)):
-                for tag in self._funcs_by_tag:
-                    p(f"Function: {tag!r}")
-        p(f"Tags: {len(self._classes)}")
-        with p.tree_children(len(self._classes)):
-            for tag, info in sorted(self._classes.items()):
-                p.tree_next_child()
-                p(f"Tag: {tag!r}")
-                base_key = info.get('base_container')
-                if base_key is not None:
-                    p(f"Base container: {Section.from_key(base_key)!r}")
-                vers = [repr(ver) for ver in sorted(info.get('versions', {}))]
-                if info.get('noversion_cls') is not None:
-                    vers.append('any')
-                if vers:
-                    vers_str = ', '.join(vers)
-                    p(f"Versions: {vers_str}")
-                else:
-                    p(f"Versions: none")
-                fields = info.get('fields')
-                if fields:
-                    p(f"Fields: {len(fields)}")
-                    with p.tree_children(len(fields)):
-                        for name, def_value in fields.items():
-                            p.tree_next_child()
-                            p(f"Field: {name} = {def_value!r}")
+
+        def print_info(tag, info):
+            p(f"Tag: {tag!r}")
+            base_key = info.get('base_container')
+            if base_key is not None:
+                p(f"Base container: {Section.from_key(base_key)!r}")
+            vers = [repr(ver) for ver in sorted(info.get('versions', {}))]
+            if info.get('noversion_cls') is not None:
+                vers.append('any')
+            if vers:
+                vers_str = ', '.join(vers)
+                p(f"Versions: {vers_str}")
+            else:
+                p(f"Versions: none")
+            fields = info.get('fields')
+            if fields:
+                p(f"Fields: {len(fields)}")
+                with p.tree_children(len(fields)):
+                    for name, def_value in fields.items():
+                        p.tree_next_child()
+                        p(f"Field: {name} = {def_value!r}")
+
+        if tag is not None:
+            try:
+                info = self._classes[tag]
+            except KeyError:
+                raise TagError(tag)
+            print_info(tag, info)
+        else:
+            p(f"Base class: {self.baseclass.__module__}.{self.baseclass.__qualname__}")
+            if self._funcs_by_tag:
+                p(f"Functions: {len(self._funcs_by_tag)}")
+                with p.tree_children(len(self._funcs_by_tag)):
+                    for tag in self._funcs_by_tag:
+                        p(f"Function: {tag!r}")
+            p(f"Tags: {len(self._classes)}")
+            with p.tree_children(len(self._classes)):
+                for tag, info in sorted(self._classes.items()):
+                    p.tree_next_child()
+                    print_info(tag, info)
 
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
