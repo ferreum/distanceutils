@@ -838,8 +838,7 @@ class ClassCollection(_BaseProber, ClassCollector):
                 base_key = info.get('base_container')
                 if base_key is not None:
                     p(f"Base container: {Section.from_key(base_key)!r}")
-                vers = [repr(ver) for ver in info.get('versions', {})]
-                vers.sort()
+                vers = [repr(ver) for ver in sorted(info.get('versions', {}))]
                 if info.get('noversion_cls') is not None:
                     vers.append('any')
                 if vers:
