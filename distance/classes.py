@@ -2,11 +2,13 @@
 
 
 import os
+import sys
 import numbers
 import importlib
 from collections import OrderedDict
 
 from .bytes import DstBytes, BytesModel, Section, Magic, CATCH_EXCEPTIONS
+from .printing import PrintContext
 from .lazy import LazySequence
 
 
@@ -810,6 +812,49 @@ class ClassCollection(_BaseProber, ClassCollector):
 
         return sec.to_key(noversion=True) in self._interesting_sections
 
+    def print_listing(self, file=None, *, p=None):
+
+        """Print a listing of registered classes.
+
+        Parameters
+        ----------
+        file : file
+            The file to print to.
+        p : PrintContext
+            The print context to use.
+
+        """
+
+        if file is None:
+            file = sys.stdout
+        if p is None:
+            p = PrintContext(file=file)
+        p(f"Base class: {self.baseclass.__module__}.{self.baseclass.__qualname__}")
+        p(f"Tags: {len(self._classes)}")
+        with p.tree_children(len(self._classes)):
+            for tag, info in sorted(self._classes.items()):
+                p.tree_next_child()
+                p(f"Tag: {tag!r}")
+                base_key = info.get('base_container')
+                if base_key is not None:
+                    p(f"Base container: {Section.from_key(base_key)!r}")
+                vers = [repr(ver) for ver in info.get('versions', {})]
+                vers.sort()
+                if info.get('noversion_cls') is not None:
+                    vers.append('any')
+                if vers:
+                    vers_str = ', '.join(vers)
+                    p(f"Versions: {vers_str}")
+                else:
+                    p(f"Versions: none")
+                fields = info.get('fields')
+                if fields:
+                    p(f"Fields: {len(fields)}")
+                    with p.tree_children(len(fields)):
+                        for name, def_value in fields.items():
+                            p.tree_next_child()
+                            p(f"Field: {name} = {def_value!r}")
+
     def _load_autoload_content(self, content):
         self._autoload_sections.update(content['sections'])
         self._interesting_sections.update(content['interesting'])
@@ -868,6 +913,29 @@ class CompositeProber(_BaseProber):
             if cls is not None:
                 return cls
         return None
+
+    def print_listing(self, file=None, *, p=None):
+
+        """Print a listing of composed probers.
+
+        Parameters
+        ----------
+        file : file
+            The file to print to.
+        p : PrintContext
+            The print context to use.
+
+        """
+
+        if file is None:
+            file = sys.stdout
+        if p is None:
+            p = PrintContext(file=file)
+        p(f"Probers: {len(self.probers)}")
+        with p.tree_children(len(self.probers)):
+            for prober in self.probers:
+                p.tree_next_child()
+                p(f"Prober: {prober.key or 'Unknown'}")
 
 
 class CollectorGroup(object):
@@ -934,6 +1002,33 @@ class ClassesRegistry(object):
         prober = CompositeProber(probers=colls, **kw)
         self._colls[key] = prober
         setattr(self, key, prober)
+
+    def print_listing(self, file=None, *, p=None):
+
+        """Print a listing of registered classes of all categories.
+
+        Parameters
+        ----------
+        file : file
+            The file to print to.
+        p : PrintContext
+            The print context to use.
+
+        """
+
+        if file is None:
+            file = sys.stdout
+        if p is None:
+            p = PrintContext(file=file)
+        p(f"Categories: {len(self._colls)}")
+        with p.tree_children(len(self._colls)):
+            for key, coll in self._colls.items():
+                p.tree_next_child()
+                extra_str = ""
+                if key not in self._autoload_colls:
+                    extra_str = " (composite prober)"
+                p(f"Category: {key!r}{extra_str}")
+                coll.print_listing(p=p)
 
     def autoload_modules(self, module_name, impl_modules):
         if module_name in self._autoload_modules:
