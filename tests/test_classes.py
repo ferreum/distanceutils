@@ -2,7 +2,7 @@ import unittest
 from contextlib import contextmanager
 
 from distance.bytes import DstBytes, Magic, Section
-from distance.classes import TagError, ClassLookupError, ClassCollector, ClassCollection, RegisterError
+from distance.classes import TagError, ProbeError, ClassLookupError, ClassCollector, ClassCollection, RegisterError
 from distance.base import Fragment, BaseObject, ObjectFragment
 from distance.levelobjects import LevelObject
 from distance import DefaultClasses, Level, Replay, Leaderboard, WorkshopLevelInfos
@@ -108,6 +108,13 @@ class RegisteredTest(unittest.TestCase):
         result = DefaultClasses.level_like.read(f"tests/in/customobject/oldsimple cube.bytes")
         self.assertIsInstance(result, OldSimple)
 
+    def test_level_like_blacklist(self):
+        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/replay/version_1.bytes")
+        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/leaderboard/version_0.bytes")
+        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/profileprogress/new profile.bytes")
+        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/levelinfos/LevelInfos.bytes")
+        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/workshoplevelinfos/version_0.bytes")
+
 
 class UnknownObjectFileTest(unittest.TestCase):
 
@@ -141,7 +148,7 @@ class VerifyTest(unittest.TestCase):
     def test_autoload_is_uptodate(self):
         actual, loaded = DefaultClasses._verify_autoload()
         assertLargeEqual(self, actual, loaded,
-                             msg="autoload module is outdated")
+                         msg="autoload module is outdated")
 
 
 class VerifyClassInfoTest(unittest.TestCase):

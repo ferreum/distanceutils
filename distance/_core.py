@@ -3,7 +3,7 @@
 from distance.bytes import Magic, Section
 from distance.base import BaseObject, Fragment
 from distance.levelobjects import LevelObject, SubObject
-from distance.classes import DefaultClasses
+from distance.classes import ProbeError, DefaultClasses
 
 
 def _fallback_obj_container(tag):
@@ -22,8 +22,9 @@ DefaultClasses.init_category('base_fragments', baseclass=Fragment)
 DefaultClasses.init_category('level', baseclass=Fragment)
 DefaultClasses.init_category('level_content', baseclass=Fragment)
 DefaultClasses.init_category('non_level_objects', baseclass=BaseObject)
+DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment)
 DefaultClasses.init_composite(
-    'level_like', ['level', 'level_objects'],
+    'level_like', ['level', 'level_objects', 'blacklist_non_level_objects'],
     baseclass=LevelObject)
 DefaultClasses.init_composite(
     'file', ['level_objects', 'level', 'non_level_objects', 'level_fallback'],
@@ -74,6 +75,14 @@ def _detect_non_level_objects_other(section):
 def _level_fallback(section):
     if section.magic == Magic[6]:
         return LevelObject
+    return None
+
+
+@DefaultClasses.blacklist_non_level_objects.func('dst._core.blacklist_nonlevel')
+def _blacklist_nonlevel(section):
+    if section.magic == Magic[6]:
+        if DefaultClasses.non_level_objects.probe_section(section) is not BaseObject:
+            raise ProbeError
     return None
 
 
