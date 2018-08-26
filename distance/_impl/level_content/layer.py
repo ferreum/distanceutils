@@ -40,7 +40,7 @@ class Layer(Fragment):
             # with empty layer at end of file.
             self.has_layer_flags = False
             return
-        version = dbytes.read_uint4()
+        version = dbytes.read_uint()
         if version in (0, 1):
             self.flags_version = version
             flags = dbytes.read_bytes(3)

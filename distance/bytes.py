@@ -712,7 +712,7 @@ class Section(BytesModel):
             self.type, self.version, self.id = dbytes.read_struct(S_UINT3)
             cstart = data_start + 12
         elif magic == MAGIC_5:
-            self.count = dbytes.read_uint4()
+            self.count = dbytes.read_uint()
             cstart = data_start + 4
         elif magic == MAGIC_6:
             self.type = dbytes.read_str()
@@ -721,7 +721,7 @@ class Section(BytesModel):
             cstart = dbytes.tell()
         elif magic == MAGIC_7:
             self.name = dbytes.read_str()
-            self.count = dbytes.read_uint4()
+            self.count = dbytes.read_uint()
             cstart = dbytes.tell()
         elif magic == MAGIC_9:
             self.name = dbytes.read_str()
@@ -817,16 +817,16 @@ class DstBytes(object):
         Read with ``value = db.read_bytes(count)``.
         Write with ``db.write_bytes(value)``.
     uint : unsigned little-endian 32 bit / 4 byte integer
-        Read with ``value = db.read_uint4()``.
+        Read with ``value = db.read_uint()``.
         Write with ``db.write_int(4, value)``.
     int : signed little-endian 32 bit / 4 byte integer
-        Read with ``value = db.read_int4()``.
+        Read with ``value = db.read_int()``.
         Write with ``db.write_int(4, value, signed=True)``.
     ulong : unsigned little-endian 64 bit / 8 byte integer
-        Read with ``value = db.read_uint8()``.
+        Read with ``value = db.read_ulong()``.
         Write with ``db.write_int(8, value)``.
     long : signed little-endian 64 bit / 8 byte integer
-        Read with ``value = db.read_int8()``.
+        Read with ``value = db.read_long()``.
         Write with ``db.write_int(8, value, signed=True)``.
     varint : variable-sized unsigned int
         Read with ``value = db.read_var_int()``.
@@ -843,8 +843,8 @@ class DstBytes(object):
     >>> from distance.bytes import DstBytes
     >>> dbytes = DstBytes.from_data(b'abcd')
     >>> with dbytes:
-    ...     peeked = dbytes.read_uint4()
-    >>> same_value = dbytes.read_uint4()
+    ...     peeked = dbytes.read_uint()
+    >>> same_value = dbytes.read_uint()
     >>> assert peeked == same_value
 
     """
@@ -1006,27 +1006,21 @@ class DstBytes(object):
             else:
                 return n | (b << bits)
 
-    def read_int(self, length, signed=False):
-        "Read a given-size byte little-endian integer of given signedness."
-        data = self.read_bytes(length)
-        return int.from_bytes(data, 'little', signed=signed)
-
-    # faster variants for common ints
-    def read_int4(self):
-        "Read a signed little-endian 32 bit / 4 byte integer."
-        return S_INT.unpack(self.read_bytes(4))[0]
-
-    def read_int8(self):
-        "Read a signed little-endian 64 bit / 8 byte integer."
-        return S_LONG.unpack(self.read_bytes(8))[0]
-
-    def read_uint4(self):
+    def read_uint(self):
         "Read an unsigned little-endian 32 bit / 4 byte integer."
         return S_UINT.unpack(self.read_bytes(4))[0]
 
-    def read_uint8(self):
+    def read_int(self):
+        "Read a signed little-endian 32 bit / 4 byte integer."
+        return S_INT.unpack(self.read_bytes(4))[0]
+
+    def read_ulong(self):
         "Read an unsigned little-endian 64 bit / 4 byte integer."
         return S_ULONG.unpack(self.read_bytes(8))[0]
+
+    def read_long(self):
+        "Read a signed little-endian 64 bit / 8 byte integer."
+        return S_LONG.unpack(self.read_bytes(8))[0]
 
     def read_struct(self, st):
 
@@ -1052,7 +1046,7 @@ class DstBytes(object):
 
     def read_id(self):
         "Read a ``uint`` ID."
-        return self.read_uint4()
+        return self.read_uint()
 
     def write_bytes(self, data):
         "Write the given bytes."
@@ -1079,7 +1073,7 @@ class DstBytes(object):
 
     def require_equal_uint4(self, expect):
         "Read ``uint``, raising if it doesn't match the given value."
-        value = self.read_uint4()
+        value = self.read_uint()
         if value != expect:
             raise ValueError(f"Unexpected data: {value!r}")
 

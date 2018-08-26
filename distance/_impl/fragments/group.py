@@ -30,8 +30,8 @@ class GroupFragment(Fragment):
             self.inspect_children = None
         else:
             dbytes.require_equal_uint4(Magic[1])
-            num_values = dbytes.read_uint4()
-            self.inspect_children = dbytes.read_uint4()
+            num_values = dbytes.read_uint()
+            self.inspect_children = dbytes.read_uint()
             # do save raw_data if there are unexpected values following
             self._has_more_data = num_values > 0
 
