@@ -830,6 +830,11 @@ class ClassCollection(_BaseProber, ClassCollector):
         if p is None:
             p = PrintContext(file=file)
         p(f"Base class: {self.baseclass.__module__}.{self.baseclass.__qualname__}")
+        if self._funcs_by_tag:
+            p(f"Functions: {len(self._funcs_by_tag)}")
+            with p.tree_children(len(self._funcs_by_tag)):
+                for tag in self._funcs_by_tag:
+                    p(f"Function: {tag!r}")
         p(f"Tags: {len(self._classes)}")
         with p.tree_children(len(self._classes)):
             for tag, info in sorted(self._classes.items()):
