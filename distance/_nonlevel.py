@@ -7,9 +7,6 @@ from .classes import CollectorGroup, DefaultClasses
 Classes = CollectorGroup()
 
 
-NO_REPLAY = 0xffffffff_ffffffff
-
-
 @Classes.non_level_objects.object
 @DefaultClasses.fragments.fragment_attrs('Leaderboard')
 @require_type
