@@ -30,6 +30,13 @@ class AutoloadError(Exception):
 class TagError(LookupError):
     "The given tag is not registered."
 
+    @classmethod
+    def check(cls, tag):
+        "Create exception instance, but check type of tag first."
+        if not isinstance(tag, str):
+            return TypeError(f"tag must be str, not {type(tag).__name__}")
+        return cls(tag)
+
     def __init__(self, tag):
         LookupError.__init__(self, repr(tag))
 
@@ -582,7 +589,7 @@ class ClassCollection(_BaseProber, ClassCollector):
         try:
             info = self._classes[tag]
         except KeyError:
-            raise TagError(tag)
+            raise TagError.check(tag)
         try:
             base = info['base_container']
         except KeyError:
@@ -617,7 +624,7 @@ class ClassCollection(_BaseProber, ClassCollector):
         try:
             info = self._classes[tag]
         except KeyError:
-            raise TagError(tag)
+            raise TagError.check(tag)
         try:
             base = info['base_container']
         except KeyError:
@@ -659,7 +666,7 @@ class ClassCollection(_BaseProber, ClassCollector):
                 try:
                     info = self._classes[tag]
                 except KeyError:
-                    raise TagError(tag)
+                    raise TagError.check(tag)
                 try:
                     fields = info['fields']
                 except KeyError:
@@ -688,7 +695,7 @@ class ClassCollection(_BaseProber, ClassCollector):
             info = self._classes[tag]
         except KeyError:
             if not fallback:
-                raise TagError(tag)
+                raise TagError.check(tag)
             return self.baseclass, self.get_fallback_container(tag)
 
         try:
@@ -855,7 +862,7 @@ class ClassCollection(_BaseProber, ClassCollector):
             try:
                 info = self._classes[tag]
             except KeyError:
-                raise TagError(tag)
+                raise TagError.check(tag)
             print_info(tag, info)
         else:
             p(f"Base class: {self.baseclass.__module__}.{self.baseclass.__qualname__}")

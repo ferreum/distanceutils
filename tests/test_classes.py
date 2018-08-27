@@ -300,6 +300,27 @@ class VerifyClassInfoTest(unittest.TestCase):
 
         self.assertEqual(res, 'GoldenSimples')
 
+    def test_get_base_key(self):
+        coll = ClassCollection()
+        coll.fragment(TagFragment('Frag1', 'Test', default_container=Section.base(Magic[2], 34, 3)))
+
+        res = coll.get_base_key('Test')
+
+        self.assertEqual(res, Section.base(Magic[2], 34).to_key())
+
+    def test_get_base_key_missing(self):
+        coll = ClassCollection()
+
+        with self.assertRaises(TagError) as cm:
+            coll.get_base_key('Test')
+        self.assertRegex(str(cm.exception), r"'Test'")
+
+    def test_get_base_key_typeerror(self):
+        coll = ClassCollection()
+
+        with self.assertRaises(TypeError):
+            coll.get_base_key(object())
+
     def test_klass_teleporter_exit_version_new(self):
         cls = DefaultClasses.fragments.klass('TeleporterExit', version=1)
         from distance._impl.fragments.levelfragments import TeleporterExitFragment
