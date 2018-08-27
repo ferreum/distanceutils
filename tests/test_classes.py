@@ -47,7 +47,7 @@ class ProberTest(unittest.TestCase):
         self.assertEqual(True, obj.init_args['plain'])
 
     def test_maybe_catches_exception(self):
-        coll = ClassCollection()
+        coll = ClassCollection(baseclass=BaseObject)
         coll.add_func(self.fallback_func, 'fallback')
         dbytes = DstBytes.in_memory()
         dbytes.write_uint(Magic[6])
@@ -144,14 +144,12 @@ class UnknownObjectFileTest(unittest.TestCase):
         self.assertEqual(type(obj), LevelObject)
 
     def test_unknown_level_like(self):
-        obj = DefaultClasses.level_like.read(self.db)
-
-        self.assertEqual(type(obj), LevelObject)
+        with self.assertRaises(ProbeError):
+            DefaultClasses.level_like.read(self.db)
 
     def test_unknown_non_level_objects(self):
-        obj = DefaultClasses.non_level_objects.read(self.db)
-
-        self.assertEqual(type(obj), BaseObject)
+        with self.assertRaises(ProbeError):
+            DefaultClasses.non_level_objects.read(self.db)
 
 
 class VerifyTest(unittest.TestCase):

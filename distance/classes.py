@@ -7,7 +7,7 @@ import numbers
 import importlib
 from collections import OrderedDict
 
-from .bytes import DstBytes, BytesModel, Section, Magic, CATCH_EXCEPTIONS
+from .bytes import DstBytes, Section, Magic, CATCH_EXCEPTIONS
 from .printing import PrintContext
 from .lazy import LazySequence
 
@@ -292,11 +292,23 @@ class _BaseProber(object):
     Subclasses need to implement `_probe_section_key` and
     optionally `_probe_fallback`.
 
+    Parameters
+    ----------
+    baseclass : class
+        The class to fall back to when probing doesn't match any class and to
+        use in `maybe` when probing fails.
+    probe_baseclass : bool
+        Whether to fall back to the `baseclass` when probing doesn't match any
+        class. Default is True if `baseclass` is not None.
+
     """
 
-    def __init__(self, *, baseclass=BytesModel, **kw):
+    def __init__(self, *, baseclass=None, probe_baseclass=None, **kw):
         super().__init__(**kw)
+        if probe_baseclass is None:
+            probe_baseclass = baseclass is not None
         self.baseclass = baseclass
+        self.probe_baseclass = probe_baseclass
 
     def _probe_section_key(self, key):
         "Return the class for the given section."
@@ -333,6 +345,8 @@ class _BaseProber(object):
         cls = self._probe_fallback(sec)
         if cls is not None:
             return cls
+        if not self.probe_baseclass:
+            raise ProbeError
         return self.baseclass
 
     def probe(self, dbytes, *, probe_section=None):

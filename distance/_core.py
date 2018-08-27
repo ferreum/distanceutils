@@ -21,7 +21,7 @@ DefaultClasses.init_category('base_objects', baseclass=BaseObject)
 DefaultClasses.init_category('base_fragments', baseclass=Fragment)
 DefaultClasses.init_category('level', baseclass=Fragment)
 DefaultClasses.init_category('level_content', baseclass=Fragment)
-DefaultClasses.init_category('non_level_objects', baseclass=BaseObject)
+DefaultClasses.init_category('non_level_objects', baseclass=BaseObject, probe_baseclass=False)
 DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment)
 DefaultClasses.init_category('blacklist_non_customobject', baseclass=Fragment)
 DefaultClasses.init_composite(
