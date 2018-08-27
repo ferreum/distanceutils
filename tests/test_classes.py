@@ -113,7 +113,8 @@ class RegisteredTest(unittest.TestCase):
                  "tests/in/leaderboard/version_0.bytes",
                  "tests/in/profileprogress/new profile.bytes",
                  "tests/in/levelinfos/LevelInfos.bytes",
-                 "tests/in/workshoplevelinfos/version_0.bytes"]
+                 "tests/in/workshoplevelinfos/version_0.bytes",
+                 "tests/in/fragment/animator v7.frag"]
         for file in files:
             with self.subTest(file=file):
                 self.assertRaises(ProbeError, DefaultClasses.level_like.read, file)
@@ -124,7 +125,8 @@ class RegisteredTest(unittest.TestCase):
                  "tests/in/leaderboard/version_0.bytes",
                  "tests/in/profileprogress/new profile.bytes",
                  "tests/in/levelinfos/LevelInfos.bytes",
-                 "tests/in/workshoplevelinfos/version_0.bytes"]
+                 "tests/in/workshoplevelinfos/version_0.bytes",
+                 "tests/in/fragment/animator v7.frag"]
         for file in files:
             with self.subTest(file=file):
                 self.assertRaises(ProbeError, DefaultClasses.customobject.read, file)

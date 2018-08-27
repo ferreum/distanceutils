@@ -85,19 +85,17 @@ def _level_fallback(section):
 @DefaultClasses.blacklist_non_level_objects.func('dst._core.blacklist_nonlevel')
 def _blacklist_nonlevel(section):
     if section.magic == Magic[6]:
-        if DefaultClasses.non_level_objects.probe_section(section) is not BaseObject:
-            raise ProbeError
-    return None
+        if DefaultClasses.non_level_objects.probe_section(section) is BaseObject:
+            return None
+    raise ProbeError
 
 
 @DefaultClasses.blacklist_non_customobject.func('dst._core.blacklist_non_customobject')
 def _blacklist_non_customobject(section):
     if section.magic == Magic[6]:
-        if DefaultClasses.non_level_objects.probe_section(section) is not BaseObject:
-            raise ProbeError
-    elif section.magic == Magic[9]:
-        raise ProbeError
-    return None
+        if DefaultClasses.non_level_objects.probe_section(section) is BaseObject:
+            return None
+    raise ProbeError
 
 
 def write_autoload_modules():
