@@ -109,11 +109,25 @@ class RegisteredTest(unittest.TestCase):
         self.assertIsInstance(result, OldSimple)
 
     def test_level_like_blacklist(self):
-        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/replay/version_1.bytes")
-        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/leaderboard/version_0.bytes")
-        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/profileprogress/new profile.bytes")
-        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/levelinfos/LevelInfos.bytes")
-        self.assertRaises(ProbeError, DefaultClasses.level_like.read, "tests/in/workshoplevelinfos/version_0.bytes")
+        files = ["tests/in/replay/version_1.bytes",
+                 "tests/in/leaderboard/version_0.bytes",
+                 "tests/in/profileprogress/new profile.bytes",
+                 "tests/in/levelinfos/LevelInfos.bytes",
+                 "tests/in/workshoplevelinfos/version_0.bytes"]
+        for file in files:
+            with self.subTest(file=file):
+                self.assertRaises(ProbeError, DefaultClasses.level_like.read, file)
+
+    def test_customobject_blacklist(self):
+        files = ["tests/in/level/test-straightroad.bytes",
+                 "tests/in/replay/version_1.bytes",
+                 "tests/in/leaderboard/version_0.bytes",
+                 "tests/in/profileprogress/new profile.bytes",
+                 "tests/in/levelinfos/LevelInfos.bytes",
+                 "tests/in/workshoplevelinfos/version_0.bytes"]
+        for file in files:
+            with self.subTest(file=file):
+                self.assertRaises(ProbeError, DefaultClasses.customobject.read, file)
 
 
 class UnknownObjectFileTest(unittest.TestCase):

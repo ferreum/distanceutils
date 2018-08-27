@@ -23,6 +23,10 @@ DefaultClasses.init_category('level', baseclass=Fragment)
 DefaultClasses.init_category('level_content', baseclass=Fragment)
 DefaultClasses.init_category('non_level_objects', baseclass=BaseObject)
 DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment)
+DefaultClasses.init_category('blacklist_non_customobject', baseclass=Fragment)
+DefaultClasses.init_composite(
+    'customobject', ['level_objects', 'blacklist_non_customobject'],
+    baseclass=LevelObject)
 DefaultClasses.init_composite(
     'level_like', ['level', 'level_objects', 'blacklist_non_level_objects'],
     baseclass=LevelObject)
@@ -83,6 +87,16 @@ def _blacklist_nonlevel(section):
     if section.magic == Magic[6]:
         if DefaultClasses.non_level_objects.probe_section(section) is not BaseObject:
             raise ProbeError
+    return None
+
+
+@DefaultClasses.blacklist_non_customobject.func('dst._core.blacklist_non_customobject')
+def _blacklist_non_customobject(section):
+    if section.magic == Magic[6]:
+        if DefaultClasses.non_level_objects.probe_section(section) is not BaseObject:
+            raise ProbeError
+    elif section.magic == Magic[9]:
+        raise ProbeError
     return None
 
 
