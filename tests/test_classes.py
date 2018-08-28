@@ -119,6 +119,11 @@ class RegisteredTest(unittest.TestCase):
             with self.subTest(file=file):
                 self.assertRaises(ProbeError, DefaultClasses.level_like.read, file)
 
+    def test_customobject_object(self):
+        result = DefaultClasses.customobject.read("tests/in/customobject/2cubes.bytes")
+
+        self.assertIsInstance(result, Group)
+
     def test_customobject_blacklist(self):
         files = ["tests/in/level/test-straightroad.bytes",
                  "tests/in/replay/version_1.bytes",
@@ -146,8 +151,9 @@ class UnknownObjectFileTest(unittest.TestCase):
         self.assertEqual(type(obj), LevelObject)
 
     def test_unknown_level_like(self):
-        with self.assertRaises(ProbeError):
-            DefaultClasses.level_like.read(self.db)
+        obj = DefaultClasses.level_like.read(self.db)
+
+        self.assertEquals(obj.type, '__distanceutils__test__object__')
 
     def test_unknown_non_level_objects(self):
         with self.assertRaises(ProbeError):

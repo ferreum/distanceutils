@@ -15,7 +15,6 @@ DefaultClasses.init_category('level_objects', baseclass=LevelObject,
                              get_fallback_container=_fallback_obj_container)
 DefaultClasses.init_category('level_subobjects', baseclass=SubObject,
                              get_fallback_container=_fallback_obj_container)
-DefaultClasses.init_category('level_fallback', baseclass=LevelObject)
 DefaultClasses.init_category('fragments', baseclass=Fragment)
 DefaultClasses.init_category('base_objects', baseclass=BaseObject)
 DefaultClasses.init_category('base_fragments', baseclass=Fragment)
@@ -23,15 +22,29 @@ DefaultClasses.init_category('level', baseclass=Fragment)
 DefaultClasses.init_category('level_content', baseclass=Fragment)
 DefaultClasses.init_category('non_level_objects', baseclass=BaseObject, probe_baseclass=False)
 DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment)
-DefaultClasses.init_category('blacklist_non_customobject', baseclass=Fragment)
+DefaultClasses.init_category('fallback_levelobject', baseclass=LevelObject)
+
 DefaultClasses.init_composite(
-    'customobject', ['level_objects', 'blacklist_non_customobject'],
-    baseclass=LevelObject)
+    'customobject',
+    ['level_objects',
+     'blacklist_non_level_objects',
+     'fallback_levelobject'],
+    baseclass=LevelObject, probe_baseclass=False)
+
 DefaultClasses.init_composite(
-    'level_like', ['level', 'level_objects', 'blacklist_non_level_objects'],
-    baseclass=LevelObject)
+    'level_like',
+    ['level',
+     'level_objects',
+     'blacklist_non_level_objects',
+     'fallback_levelobject'],
+    baseclass=LevelObject, probe_baseclass=False)
+
 DefaultClasses.init_composite(
-    'file', ['level_objects', 'level', 'non_level_objects', 'level_fallback'],
+    'file',
+    ['level',
+     'level_objects',
+     'non_level_objects',
+     'fallback_levelobject'],
     baseclass=Fragment)
 
 
@@ -75,8 +88,8 @@ def _detect_non_level_objects_other(section):
     return None
 
 
-@DefaultClasses.level_fallback.func('dst._core.level_fallback')
-def _level_fallback(section):
+@DefaultClasses.fallback_levelobject.func('dst._core.fallback_levelobject')
+def _fallback_levelobject(section):
     if section.magic == Magic[6]:
         return LevelObject
     return None
@@ -84,17 +97,10 @@ def _level_fallback(section):
 
 @DefaultClasses.blacklist_non_level_objects.func('dst._core.blacklist_nonlevel')
 def _blacklist_nonlevel(section):
-    if section.magic == Magic[6]:
-        if DefaultClasses.non_level_objects.probe_section(section) is BaseObject:
-            return None
-    raise ProbeError
-
-
-@DefaultClasses.blacklist_non_customobject.func('dst._core.blacklist_non_customobject')
-def _blacklist_non_customobject(section):
-    if section.magic == Magic[6]:
-        if DefaultClasses.non_level_objects.probe_section(section) is BaseObject:
-            return None
+    try:
+        DefaultClasses.non_level_objects.probe_section(section)
+    except ProbeError:
+        return None
     raise ProbeError
 
 
