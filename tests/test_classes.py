@@ -120,7 +120,7 @@ class RegisteredTest(unittest.TestCase):
                 self.assertRaises(ProbeError, DefaultClasses.level_like.read, file)
 
     def test_customobject_object(self):
-        result = DefaultClasses.customobject.read("tests/in/customobject/2cubes.bytes")
+        result = DefaultClasses.customobjects.read("tests/in/customobject/2cubes.bytes")
 
         self.assertIsInstance(result, Group)
 
@@ -134,7 +134,7 @@ class RegisteredTest(unittest.TestCase):
                  "tests/in/fragment/animator v7.frag"]
         for file in files:
             with self.subTest(file=file):
-                self.assertRaises(ProbeError, DefaultClasses.customobject.read, file)
+                self.assertRaises(ProbeError, DefaultClasses.customobjects.read, file)
 
 
 class UnknownObjectFileTest(unittest.TestCase):

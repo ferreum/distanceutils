@@ -25,7 +25,7 @@ DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment)
 DefaultClasses.init_category('fallback_levelobject', baseclass=LevelObject)
 
 DefaultClasses.init_composite(
-    'customobject',
+    'customobjects',
     ['level_objects',
      'blacklist_non_level_objects',
      'fallback_levelobject'],
