@@ -78,7 +78,7 @@ _autoload_module = 'distance._autoload._classes'
 DefaultClasses.autoload_modules(_autoload_module, _impl_modules)
 
 
-@DefaultClasses.non_level_objects.func('dst._core.nonlevel_fallback')
+@DefaultClasses.non_level_objects.func('distance._core.nonlevel_fallback')
 def _detect_non_level_objects_other(section):
     if section.magic == Magic[6]:
         # Replay requires dynamic check.
@@ -88,14 +88,14 @@ def _detect_non_level_objects_other(section):
     return None
 
 
-@DefaultClasses.fallback_levelobject.func('dst._core.fallback_levelobject')
+@DefaultClasses.fallback_levelobject.func('distance._core.fallback_levelobject')
 def _fallback_levelobject(section):
     if section.magic == Magic[6]:
         return LevelObject
     return None
 
 
-@DefaultClasses.blacklist_non_level_objects.func('dst._core.blacklist_nonlevel')
+@DefaultClasses.blacklist_non_level_objects.func('distance._core.blacklist_nonlevel')
 def _blacklist_nonlevel(section):
     try:
         DefaultClasses.non_level_objects.probe_section(section)
