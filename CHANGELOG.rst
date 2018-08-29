@@ -1,6 +1,97 @@
 Changelog
 ---------
 
+* version 0.5.0 (unreleased)
+
+  * All objects can now be written back to a file including their
+    modifications.
+
+  * Added ``file`` filter for applying filter chains from files.
+
+  * Added ``downgrade`` filter for downgrading objects to support older game
+    versions. Only applies to Animators and EventListeners for now such that
+    they work with build 5824, the latest drmfree version as of writing. Some
+    effects may be lost in the process.
+
+  * Passing single dash ``-`` file name to ``dst-bytes``, ``dst-filterlvel`` or
+    ``dst-mkcustomobject`` now means stdin or stdout as appropriate. This
+    allows chaining these commands in shell pipelines.
+
+  * Fragments are now identified by tags.
+
+    * Object's fragments can be accessed with the indexing syntax on objects
+      (``obj['Animator']``, ``'Animator' in obj``), which ensures an
+      implementation of the fragment.
+
+    * Object's ``get_any()`` and ``has_any()`` methods are counterparts that
+      don't care about the implementation.
+
+    * ``dst-bytes`` shows these tags when listing fragments.
+
+  * Enum constants are not directly exposed in the ``distance`` module any
+    more. They must now be imported via the ``distance.constants`` module.
+
+  * Many methods have been cleaned up or removed as there are now better ways
+    to do the same thing.
+
+    * ``filter_fragments`` is now called ``filtered_fragments``. The
+      predicate now only gets the section as argument.
+
+    * ``BaseObject.iter_children`` and ``Level.iter_objects`` have been
+      removed. Use ``BaseObject.children`` or ``Level.layers[...].objects``
+      instead.
+
+    * Probably a lot more.
+
+  * ``DefaultClasses`` provides a centralized way to access available classes.
+    See `General Usage`_ for an overview.
+
+  * Internal changes
+
+    * The ``construct`` module is now used to implement most fragments.
+
+    * The ``trampoline`` module is now used to lift nesting limits when writing
+      or printing objects. (Reading did not have this limitation as objects are
+      read lazily.)
+
+    * Object implementations are now loaded on-demand ("autoloading") to
+      prevent worsening import time of the ``distance`` module.
+
+      * Autoloading and class registries and probers are implemented in the
+        ``distance.classes`` module. This replaces the previous "probers".
+
+    * Provided object and fragment classes have been moved to an internal
+      module. They can be accessed via the ``DefaultClasses`` registry in the
+      ``distance`` module. The file format classes ``Level``, ``Replay``,
+      ``Leaderboard``, ``LevelInfos``, ``ProfileProgress`` and
+      ``WorkshopLevelInfos`` are still available in the ``distance`` module.
+      See `General Usage`_ for an overview.
+
+    * Made declaring creatable objects easier.
+
+      * Fragment classes now specify supported containers with the
+        ``base_container``, ``container_versions`` and ``default_container``
+        attributes.
+
+      * Object's fragment attributes are now specified using the
+        ``DefaultClasses.fragments.fragment_attrs`` decorator.
+
+      * Renamed material attribute decorator to ``material_attrs``.
+
+      * Fragments belonging to objects are now specified with the
+        ``default_fragments`` decorator. The ``fragment_attrs`` and
+        ``material_attrs`` decorators also add the target fragments.
+
+    * It is now an error to pass additional keyword arguments to constructors
+      that don't also exist as class attributes. Previously these would be
+      blindly set on the created object. In the future, this may be improved to
+      only allow assignment of declared fields.
+
+    * It is now an error to pass unhandled keyword arguments to ``read`` and
+      related functions. Previously these would be silently ignored.
+
+    * Exception messages now have nicer formatted position info.
+
 * version 0.4.7
 
   * Linked to the correct repository in the package info.
@@ -9,7 +100,7 @@ Changelog
 
   * Added setters and deleters for most named property attributes.
 
-  * Added ability propertes to ability triggers.
+  * Added ability properties to ability triggers.
 
   * Calculate medal points of ProfileProgress files.
 
@@ -171,4 +262,7 @@ Changelog
 
   * Added ``mkcustomobject`` script to try to extract CustomObjects from
     levels. Exported as ``dst-mkcustomobject``.
+
+
+.. _`General Usage`: ./doc/GENERAL_USAGE.rst
 
