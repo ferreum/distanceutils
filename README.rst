@@ -17,59 +17,43 @@ For example, using pip::
 Due to a problem with another dependency (``numpy-quaternion``), ``numpy``
 needs to be installed first with a separate command.
 
-_`Module usage`
-===============
+_`Basic Usage`
+==============
 
-The functionality of this project can be imported with the ``distance`` module.
+The core of this project can be imported with the ``distance`` module. With
+this module, .bytes files written by the game can be read, modified and written
+back to a file.
 
 Reading a file is as easy as importing the module and passing a file name to
-the right class or to the ``PROBER``:
+the right class or a prober. Files can be written back to a file with
+modifications:
 
-.. code:: pycon
-
-  >>> from distance import Level
-  >>> level = Level("my_level.bytes")
-  >>> level.settings.name
-  'My Level'
-  >>> level.layers[0].objects[-1].type
-  'EmpireEndZone'
+>>> from distance import Level
+>>> level = Level("my_level.bytes")
+>>> level.settings.name
+'My Level'
+>>> level.layers[0].objects[-1].type
+'EmpireEndZone'
+>>> level.settings.name = 'My changed level'
+>>> level.write("my_changed_level.bytes")
 
 The module's `doc string`_ provides further introduction for reading files.
+
+For an advanced introduction, see `General Usage`_.
 
 For more example usages, see the scripts provided with the distance_scripts_
 module.
 
-For a complete list of supported level objects, see the
-distance.levelobjects_ and distance.levelfragments_ modules.
+For a complete list of provided classes, run the following shell command::
 
+   python -m distance --list-classes
 
-Writing
--------
-
-Any object can be written as-is back into a new file. There is limited support
-for modifications of object's attributes. This includes removing children,
-moving (translating) level objects, removing level objects, changing object's
-types, and adding newly generated objects.
-
-For example, a level's name can be changed:
-
-.. code:: pycon
-
-  >>> from distance import Level
-  >>> level = Level("my_level.bytes")
-  >>> level.settings.name = 'My Changed Level'
-  >>> level.write("my_changed_level.bytes")
-
-For a complete list, see the objects defined in the modules
-distance.levelobjects_ and distance.levelfragments_.
-
-For a (now incomplete) list of supported objects, see `Object support`_.
+For objects that are missing here, base classes are used, so these objects can
+be written back to a file without changes.
 
 
 .. _`doc string`: ./distance/__init__.py
-.. _`Object support`: ./doc/OBJECT_SUPPORT.rst
-.. _distance.levelobjects: ./distance/levelobjects.py
-.. _distance.levelfragments: ./distance/levelfragments.py
+.. _`General Usage`: ./doc/GENERAL_USAGE.rst
 .. _distance_scripts: ./distance_scripts/
 
 
@@ -78,13 +62,13 @@ Scripts
 
 The following executable scripts are included with this package:
 
-`dst-bytes`_ - Dump various data from .bytes files.
+`dst-bytes`_ - Print various data of given .bytes files.
 
 `dst-mkcustomobject`_ - Extract a CustomObject from a level or from another CustomObject.
 
-`dst-objtobytes`_ - Generate a CustomObject from a wavefront .obj 3D model file.
-
 `dst-filterlevel`_ - Apply filters to a level or CustomObject. For a list of filters, see filters_.
+
+`dst-objtobytes`_ - Generate a CustomObject from a wavefront .obj 3D model file.
 
 `dst-teletodot`_ - Take a level .bytes file and generate a Graphviz dot document of teleporter connections.
 
