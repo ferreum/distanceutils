@@ -2,7 +2,7 @@ import unittest
 
 from distance import DefaultClasses
 from distance.base import Fragment
-from distance.levelfragments import MaterialFragment
+from distance.levelobjects import MaterialFragment
 from distance._impl.fragments.levelfragments import (
     TrackNodeFragment,
     AnimatorFragment,

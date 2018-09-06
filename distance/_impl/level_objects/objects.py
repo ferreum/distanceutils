@@ -4,7 +4,7 @@ from distance.levelobjects import LevelObject, SubObject
 from distance.bytes import Section, Magic
 from distance.base import Transform, Fragment
 from distance.classes import CollectorGroup, DefaultClasses
-from distance.levelfragments import material_attrs
+from distance.levelobjects import material_attrs
 
 
 Classes = CollectorGroup()

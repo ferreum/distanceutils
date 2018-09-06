@@ -51,7 +51,7 @@ DefaultClasses.init_composite(
 def _impl_modules():
     return [
         'distance.base',
-        'distance.levelfragments',
+        'distance.levelobjects',
         'distance._impl.fragments.group',
         'distance._impl.fragments.levelfragments',
         'distance._impl.fragments.npfragments',

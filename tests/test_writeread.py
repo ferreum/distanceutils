@@ -5,7 +5,7 @@ from distance._impl.level_objects.objects import (
     LevelObject, GoldenSimple, InfoDisplayBox,
     OldSimple, WorldText,
 )
-from distance.levelfragments import (
+from distance.levelobjects import (
     MaterialFragment,
 )
 from distance import Level
