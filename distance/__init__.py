@@ -22,9 +22,9 @@ __doc__ = __doc__.format(version_tag=f"v{__version__}")
 
 __all__ = [
     'Level', 'Replay', 'Leaderboard', 'LevelInfos',
-    'ProfileProgress', 'WorkshopLevelInfos', 'PROBER',
+    'ProfileProgress', 'WorkshopLevelInfos',
 
-    'DefaultClasses',
+    'DefaultClasses', 'PROBER',
 ]
 
 
