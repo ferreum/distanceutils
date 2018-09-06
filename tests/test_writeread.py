@@ -2,7 +2,7 @@ import unittest
 
 from distance import DefaultClasses
 from distance._impl.level_objects.objects import (
-    LevelObject, GoldenSimple, InfoDisplayBox, WinLogic,
+    LevelObject, GoldenSimple, InfoDisplayBox,
     OldSimple, WorldText,
 )
 from distance.levelfragments import (
