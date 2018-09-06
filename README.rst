@@ -37,8 +37,6 @@ modifications:
 >>> level.settings.name = 'My changed level'
 >>> level.write("my_changed_level.bytes")
 
-The module's `doc string`_ provides further introduction for reading files.
-
 For an advanced introduction, see `General Usage`_.
 
 For more example usages, see the scripts provided with the distance_scripts_
