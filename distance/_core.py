@@ -10,25 +10,26 @@ def _fallback_obj_container(tag):
     return Section(Magic[6], tag)
 
 
-DefaultClasses.init_category('common', baseclass=Fragment)
+DefaultClasses.init_category('common', baseclass=Fragment, probe_baseclass=False)
 DefaultClasses.init_category('level_objects', baseclass=LevelObject,
                              get_fallback_container=_fallback_obj_container)
 DefaultClasses.init_category('level_subobjects', baseclass=SubObject,
                              get_fallback_container=_fallback_obj_container)
 DefaultClasses.init_category('fragments', baseclass=Fragment)
 DefaultClasses.init_category('base_objects', baseclass=BaseObject)
-DefaultClasses.init_category('level', baseclass=Fragment)
-DefaultClasses.init_category('level_content', baseclass=Fragment)
+DefaultClasses.init_category('level', baseclass=Fragment, probe_baseclass=False)
+DefaultClasses.init_category('level_content', baseclass=Fragment, probe_baseclass=False)
 DefaultClasses.init_category('non_level_objects', baseclass=BaseObject, probe_baseclass=False)
-DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment)
-DefaultClasses.init_category('fallback_levelobject', baseclass=LevelObject)
+DefaultClasses.init_category('blacklist_non_level_objects', baseclass=Fragment, probe_baseclass=False)
+DefaultClasses.init_category('fallback_levelobject', baseclass=LevelObject, probe_baseclass=False)
 
 DefaultClasses.init_composite(
     'customobjects',
     ['level_objects',
      'blacklist_non_level_objects',
      'fallback_levelobject'],
-    baseclass=LevelObject, probe_baseclass=False)
+    baseclass=LevelObject,
+    probe_baseclass=False)
 
 DefaultClasses.init_composite(
     'level_like',
@@ -36,7 +37,8 @@ DefaultClasses.init_composite(
      'level_objects',
      'blacklist_non_level_objects',
      'fallback_levelobject'],
-    baseclass=LevelObject, probe_baseclass=False)
+    baseclass=LevelObject,
+    probe_baseclass=False)
 
 DefaultClasses.init_composite(
     'file',
@@ -44,7 +46,8 @@ DefaultClasses.init_composite(
      'level_objects',
      'non_level_objects',
      'fallback_levelobject'],
-    baseclass=Fragment)
+    baseclass=Fragment,
+    probe_baseclass=False)
 
 
 def _impl_modules():
