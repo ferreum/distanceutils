@@ -1,5 +1,8 @@
 """Read and modify .bytes files of the Refract Studios game Distance.
 
+Project overview can be found at
+https://gitlab.com/ferreum/distanceutils/tree/{doc_branch}/README.rst
+
 A detailed introduction to the usage of this module can be found at
 https://gitlab.com/ferreum/distanceutils/tree/{doc_branch}/doc/GENERAL_USAGE.rst
 
