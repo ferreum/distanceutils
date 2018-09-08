@@ -153,7 +153,7 @@ class UnknownObjectFileTest(unittest.TestCase):
     def test_unknown_level_like(self):
         obj = DefaultClasses.level_like.read(self.db)
 
-        self.assertEquals(obj.type, '__distanceutils__test__object__')
+        self.assertEqual(obj.type, '__distanceutils__test__object__')
 
     def test_unknown_non_level_objects(self):
         with self.assertRaises(ProbeError):
