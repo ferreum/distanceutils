@@ -17,7 +17,7 @@ from distance._nonlevel import (
 from distance._level import Level
 
 
-__doc__ = __doc__.format(doc_branch=f"doc-{__version__}")
+__doc__ = __doc__.format(doc_branch=f"doc-v{__version__}")
 
 
 __all__ = [
