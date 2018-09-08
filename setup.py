@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import runpy
 
@@ -32,7 +32,7 @@ setup(
         'trampoline',
     ],
     keywords='distance game bytes file level map read edit modify',
-    packages=['distance', 'distance.filter', 'distance_scripts'],
+    packages=find_packages('.', exclude=['tests', 'tests.*']),
     entry_points={
         'console_scripts': [
             'dst-bytes = distance_scripts.bytes:main',
