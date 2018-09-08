@@ -1,7 +1,7 @@
 """Read and modify .bytes files of the Refract Studios game Distance.
 
 A detailed introduction to the usage of this module can be found at
-https://gitlab.com/ferreum/distanceutils/blob/{version_tag}/GENERAL_USAGE.rst
+https://gitlab.com/ferreum/distanceutils/tree/{doc_branch}/doc/GENERAL_USAGE.rst
 
 """
 
@@ -17,7 +17,7 @@ from distance._nonlevel import (
 from distance._level import Level
 
 
-__doc__ = __doc__.format(version_tag=f"v{__version__}")
+__doc__ = __doc__.format(doc_branch=f"doc-{__version__}")
 
 
 __all__ = [
