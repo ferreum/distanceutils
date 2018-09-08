@@ -17,7 +17,6 @@ DefaultClasses.init_category('level_subobjects', baseclass=SubObject,
                              get_fallback_container=_fallback_obj_container)
 DefaultClasses.init_category('fragments', baseclass=Fragment)
 DefaultClasses.init_category('base_objects', baseclass=BaseObject)
-DefaultClasses.init_category('base_fragments', baseclass=Fragment)
 DefaultClasses.init_category('level', baseclass=Fragment)
 DefaultClasses.init_category('level_content', baseclass=Fragment)
 DefaultClasses.init_category('non_level_objects', baseclass=BaseObject, probe_baseclass=False)

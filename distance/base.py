@@ -568,7 +568,6 @@ class Fragment(BytesModel):
                     yield container.visit_print(p)
 
 
-@Classes.base_fragments.fragment
 @Classes.fragments.fragment
 class ObjectFragment(Fragment):
 
