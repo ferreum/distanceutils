@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-* version 0.5.0 (unreleased)
+* version 0.5.0
 
   * All objects can now be written back to a file including their
     modifications.
