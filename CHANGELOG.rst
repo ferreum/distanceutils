@@ -19,12 +19,12 @@ Changelog
 
   * Fragments are now identified by tags.
 
-    * Object's fragments can be accessed with the indexing syntax on objects
+    * Object's fragments can be accessed with the subscript syntax
       (``obj['Animator']``, ``'Animator' in obj``), which ensures an
       implementation of the fragment.
 
-    * Object's ``get_any()`` and ``has_any()`` methods are counterparts that
-      don't care about the implementation.
+    * Object's ``get_any('Animator')`` and ``has_any('Animator')`` methods are
+      counterparts that don't care about the implementation.
 
     * ``dst-bytes`` shows these tags when listing fragments.
 
@@ -34,7 +34,7 @@ Changelog
   * Many methods have been cleaned up or removed as there are now better ways
     to do the same thing.
 
-    * ``filter_fragments`` is now called ``filtered_fragments``. The
+    * ``filtered_fragments`` is now called ``filter_fragments``. The
       predicate now only gets the section as argument.
 
     * ``BaseObject.iter_children`` and ``Level.iter_objects`` have been
