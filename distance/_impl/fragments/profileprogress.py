@@ -11,7 +11,7 @@ from construct import (
 from distance.bytes import Magic, Section
 from distance.construct import (
     BaseConstructFragment,
-    UInt, Int, Double, Long, DstString, Remainder, MagicConst,
+    UInt, Int, Double, Long, DstString, Remainder, MagicConst, DstOptional,
 )
 from distance.printing import format_duration, format_duration_dhms, format_distance
 from distance.constants import Completion, Mode, TIMED_MODES
@@ -73,7 +73,7 @@ class ProfileProgressFragment(BaseConstructFragment):
             'unk_2' / If(this._.version > 2, Bytes(8)),
         )[this.num_levels], ()),
         MagicConst(1),
-        'officials' / Default(PrefixedArray(UInt, DstString), ()),
+        'officials' / Default(PrefixedArray(UInt, DstOptional(DstString)), ()),
         'unk_1' / If(this.version < 6, Remainder),
         StopIf(this.version < 6),
         'unk_2' / Bytes(36),
@@ -83,7 +83,7 @@ class ProfileProgressFragment(BaseConstructFragment):
         'unlocked_adventures' / Default(PrefixedArray(UInt, DstString), ()),
         'unk_3' / Bytes(10),
         MagicConst(1),
-        'somelevels' / Default(PrefixedArray(UInt, DstString), ()),
+        'somelevels' / Default(PrefixedArray(UInt, DstOptional(DstString)), ()),
         'unk_4' / Remainder,
     )
 

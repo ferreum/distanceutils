@@ -94,4 +94,17 @@ class WriteReadVersion6Test(common.WriteReadTest):
         self.assertAlmostEqual(obj.stats.boost_seconds, 81.32745432853699)
 
 
+class WriteReadVersion11Test(common.WriteReadTest):
+
+    filename = "tests/in/profileprogress/progress version 11.bytes"
+    read_obj = ProfileProgress
+
+    def verify_obj(self, obj):
+        self.assertEqual(obj.tricks[-1], 'Nachos')
+        self.assertEqual(obj.officials[-2], 'Hard Light Transfer')
+        self.assertEqual(obj.officials[-1], None)
+        self.assertEqual(obj.somelevels[-2], None)
+        self.assertEqual(obj.somelevels[-1], 'WorkshopLevels/76561198047921574/glitch.bytes')
+
+
 # vim:set sw=4 ts=8 sts=4 et:
