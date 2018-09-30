@@ -265,15 +265,18 @@ class TeleporterMapper(VisualizeMapper):
     def _prepare_match(self, main, objpath, frags):
         dest, link_id = None, None
         obj = objpath[-1]
-        for frag in frags:
-            if frag.class_tag == 'TeleporterEntrance':
-                if frag.destination is not None:
-                    dest = frag.destination
-                    self._entrances[dest].append(obj)
-            elif frag.class_tag == 'TeleporterExit':
-                if frag.link_id is not None:
-                    link_id = frag.link_id
-                    self._exits[link_id].append(obj)
+        try:
+            dest = obj['TeleporterEntrance'].destination
+        except KeyError:
+            pass
+        try:
+            link_id = obj['TeleporterExit'].link_id
+        except KeyError:
+            pass
+        if link_id is not None:
+            self._exits[link_id].append(obj)
+        if dest is not None:
+            self._entrances[dest].append(obj)
         obj.__dest_id = dest
         obj.__link_id = link_id
 
