@@ -65,7 +65,7 @@ class GoldenSimplesFragment(BaseConstructFragment):
 @Classes.fragments.fragment
 class TeleporterEntranceFragment(bases.BaseTeleporterEntrance, BaseConstructFragment):
 
-    container_versions = 1, 2, 3
+    container_versions = 1, 2, 3, 4
 
     _construct_ = Struct(
         'destination' / Default(UInt, 0),

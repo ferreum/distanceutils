@@ -106,7 +106,7 @@ class WorldTextTest(unittest.TestCase):
         self.assertEqual(res.text, "test")
 
 
-class TeleExitTest(unittest.TestCase):
+class TeleporterTest(unittest.TestCase):
 
     def test_link_id(self):
         obj = PROBER.read("tests/in/customobject/tele exit checkpoint.bytes")
@@ -136,6 +136,13 @@ class TeleExitTest(unittest.TestCase):
         tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
         self.assertIsInstance(tele, SubTeleporter)
         self.assertEqual(tele.destination, 6666)
+        p.print_object(obj)
+
+    def test_build_6641(self):
+        p = PrintContext.for_test()
+        obj = PROBER.read("tests/in/customobject/tele build 6641.bytes")
+        tele = next(obj for obj in obj.children if obj.type == 'Teleporter')
+        self.assertEqual(tele.destination, 3)
         p.print_object(obj)
 
 
