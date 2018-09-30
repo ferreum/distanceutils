@@ -268,6 +268,10 @@ class ProfileStatsFragment(BaseConstructFragment):
             avg_speed = "None"
         p(f"Average speed: {avg_speed}")
 
+        ps('tricks', "Trick count")
+        ps('ev', "Total points")
+        p(f"Points per trick: {round(self.ev / (self.tricks or 1)):,d} eV")
+
         mods = self.trackmogrify_mods
         if mods:
             p(f"Found trackmogrify mods: {len(mods)}")
