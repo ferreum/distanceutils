@@ -119,6 +119,11 @@ class Visualizer(object):
 
         return Transform(tpos, orot, tscale)
 
+    def visualize(self, objpath, **kw):
+        transform = self.transform(objpath)
+        gs = self.creator.create(transform, **kw)
+        return gs,
+
 
 class BoxVisualizer(Visualizer):
 
@@ -147,11 +152,6 @@ class BoxVisualizer(Visualizer):
             coll_center=coll_center,
             size=size)
 
-    def visualize(self, objpath, **kw):
-        transform = self.transform(objpath)
-        gs = self.creator.create(transform, **kw)
-        return gs,
-
 
 class SphereVisualizer(Visualizer):
 
@@ -179,11 +179,6 @@ class SphereVisualizer(Visualizer):
             main,
             coll_center=coll_center,
             size=(radius, radius, radius))
-
-    def visualize(self, objpath, **kw):
-        transform = self.transform(objpath)
-        gs = self.creator.create(transform, **kw)
-        return gs,
 
 
 class VisualizeMapper(object):
