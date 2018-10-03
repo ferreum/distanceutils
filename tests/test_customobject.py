@@ -437,4 +437,59 @@ class PropertyTest(unittest.TestCase):
         self.assertEqual(frag.test, 34)
 
 
+class SetAbilitiesTriggerDefaultsTest(common.WriteReadTest):
+
+    filename = "tests/in/customobject/SetAbilitiesTrigger 6641 default with cube.bytes"
+    read_obj = PROBER.read
+
+    def verify_obj(self, obj):
+        frag = obj.children[1]['SetAbilitiesTrigger']
+        self.assertEqual(frag.enable_flying, 1)
+        self.assertEqual(frag.enable_jumping, 1)
+        self.assertEqual(frag.enable_boosting, 1)
+        self.assertEqual(frag.enable_jet_rotating, 1)
+        self.assertEqual(frag.infinite_cooldown, 0)
+        self.assertAlmostEqual(frag.delay, 0.0)
+        self.assertEqual(frag.show_ability_alert, 1)
+        self.assertEqual(frag.bloom_out, 0)
+        self.assertEqual(frag.play_sound, 1)
+        self.assertEqual(frag.show_car_screen_image, 1)
+        self.assertEqual(frag.timer_text, "downloading")
+        self.assertEqual(frag.ignore_in_arcade, 0)
+        self.assertEqual(frag.use_slow_mo, 0)
+        self.assertAlmostEqual(frag.delay_before_slow_mo, 0.0)
+        self.assertAlmostEqual(frag.slow_mo_time_scale, 0.25)
+        self.assertAlmostEqual(frag.slow_mo_duration, 2.0)
+        self.assertAlmostEqual(frag.glitch_duration_after, 0.66)
+        self.assertEqual(frag.visuals_only, 0)
+
+
+class SetAbilitiesTriggerChangedTest(common.WriteReadTest):
+
+    filename = "tests/in/customobject/SetAbilitiesTrigger 6641 changed with cube.bytes"
+    read_obj = PROBER.read
+
+    def verify_obj(self, obj):
+        frag = obj.children[0]['SetAbilitiesTrigger']
+        self.assertEqual(frag.enable_flying, 0)
+        self.assertEqual(frag.enable_jumping, 1)
+        self.assertEqual(frag.enable_boosting, 1)
+        self.assertEqual(frag.enable_jet_rotating, 0)
+        self.assertEqual(frag.infinite_cooldown, 0)
+        self.assertAlmostEqual(frag.delay, 0.0)
+        self.assertEqual(frag.show_ability_alert, 1)
+        self.assertEqual(frag.bloom_out, 0)
+        self.assertEqual(frag.play_sound, 1)
+        self.assertEqual(frag.show_car_screen_image, 1)
+        self.assertEqual(frag.timer_text, "testing")
+        self.assertEqual(frag.ignore_in_arcade, 0)
+        self.assertEqual(frag.use_slow_mo, 1)
+        self.assertAlmostEqual(frag.delay_before_slow_mo, 0.5)
+        self.assertAlmostEqual(frag.slow_mo_time_scale, 0.8)
+        self.assertAlmostEqual(frag.slow_mo_duration, 10.0)
+        self.assertAlmostEqual(frag.glitch_duration_after, 0.66)
+        self.assertEqual(frag.play_slow_mo_audio, 1)
+        self.assertEqual(frag.visuals_only, 0)
+
+
 # vim:set sw=4 ts=8 sts=4 et:

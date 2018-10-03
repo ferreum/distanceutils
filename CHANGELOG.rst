@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+* version 0.5.1 (unreleased)
+
+  * Fixed issues with new teleporter objects.
+
+  * Added ``SetAbilitiesTrigger`` fragment.
+
 * version 0.5.0
 
   * All objects can now be written back to a file including their
