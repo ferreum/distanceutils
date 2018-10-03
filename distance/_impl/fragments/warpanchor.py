@@ -19,6 +19,8 @@ class WarpAnchorFragment(BaseConstructFragment):
     base_container = Section.base(Magic[2], 0x6e)
     container_versions = 18
 
+    is_interesting = True
+
     _construct_ = Struct(
         # Basics
         # renamed from 'type' to prevent conflict with BaseObject's type attr
@@ -95,7 +97,37 @@ class WarpAnchorFragment(BaseConstructFragment):
 
     def _visit_print_data(self, p):
         yield super()._visit_print_data(p)
-        p(f"Type: {self.type}")
+        with p.tree_children():
+            p.tree_next_child()
+            p("Basics:")
+            p(f"Trigger type: {self.trigger_type}")
+            p(f"My ID: {self.my_id}")
+            p(f"Other ID: {self.other_id}")
+            p(f"Is primary: {self.is_primary and 'yes' or 'no'}")
+            if self.is_primary:
+                p(f"Snap to exit: {self.snap_to_exit and 'yes' or 'no'}")
+                p(f"One time use: {self.one_time_use and 'yes' or 'no'}")
+                p(f"Ignore in arcade: {self.ignore_in_arcade and 'yes' or 'no'}")
+                p(f"Ignore in arcade: {self.ignore_in_adventure and 'yes' or 'no'}")
+                p.tree_next_child()
+                p(f"Warp style:")
+                p(f"Type of warp: {self.type_of_warp}")
+                p(f"Time before returning: {self.time_before_returning}")
+                p(f"Time scale: {self.time_scale}")
+                p(f"New anchor after warp: {self.new_anchor_after_warp}")
+                p.tree_next_child()
+                p(f"Enable delay: {self.enable_delay and 'yes' or 'no'}")
+                if self.enable_delay:
+                    p(f"Delay time: {self.delay_time}")
+                    p(f"Delay time scale: {self.delay_time_scale}")
+                p.tree_next_child()
+                p(f"Connect to archaic: {self.connect_to_archaic and 'yes' or 'no'}")
+                if self.connect_to_archaic:
+                    p(f"Archaic ID: {self.archaic_id}")
+                    p(f"Archaic tractor beam: {self.archaic_tractor_beam and 'yes' or 'no'}")
+                    p(f"Archaic tractor beam time: {self.archaic_tractor_beam_time}")
+                p.tree_next_child()
+                p(f"Transition effect: {self.transition_effect}")
 
 
 # vim:set sw=4 et:
