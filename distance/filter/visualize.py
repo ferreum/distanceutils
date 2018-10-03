@@ -383,7 +383,7 @@ class SetAbilitiesTriggerMapper(VisualizeMapper):
     match_tags = 'SetAbilitiesTrigger',
 
     vis = BoxVisualizer(
-        color = (.686, 686, 686),
+        color = (.686, .686, .686),
         scale_factor = 1/64,
     )
 
