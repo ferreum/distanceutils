@@ -86,6 +86,14 @@ class EnableAbilitiesBox(LevelObject):
     default_transform = Transform.fill(scale=(100, 100, 100))
 
 
+@Classes.level_objects.object
+@fragment_attrs('SetAbilitiesTrigger')
+class SetAbilitiesTrigger(LevelObject):
+
+    type = 'SetAbilitiesTrigger'
+    default_transform = Transform.fill(scale=(100, 100, 100))
+
+
 @Classes.level_objects.object('EventTriggerBox', 'EventTriggerSphere')
 @fragment_attrs('EventTrigger')
 class EventTrigger(LevelObject):

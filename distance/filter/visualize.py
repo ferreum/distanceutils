@@ -378,6 +378,19 @@ class EnableAbilitiesTriggerMapper(VisualizeMapper):
         return self.vis.visualize(objpath)
 
 
+class SetAbilitiesTriggerMapper(VisualizeMapper):
+
+    match_tags = 'SetAbilitiesTrigger',
+
+    vis = BoxVisualizer(
+        color = (.686, 686, 686),
+        scale_factor = 1/64,
+    )
+
+    def _apply_match(self, main, objpath, frags):
+        return self.vis.visualize(objpath)
+
+
 class ForceZoneMapper(VisualizeMapper):
 
     match_tags = 'ForceZone',
