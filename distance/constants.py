@@ -23,6 +23,7 @@ class Mode(FancyEnum):
     SPEED_AND_STYLE = 10
     TRACKMOGRIFY = 11
     MAIN_MENU = 13
+    LOST_TO_ECHOES = 14
 
     Names = {
         SPRINT: "Sprint",
@@ -35,6 +36,7 @@ class Mode(FancyEnum):
         SPEED_AND_STYLE: "Speed and Style",
         TRACKMOGRIFY: "Trackmogrify",
         MAIN_MENU: "Main Menu",
+        LOST_TO_ECHOES: "Lost to Echoes",
     }
 
 
