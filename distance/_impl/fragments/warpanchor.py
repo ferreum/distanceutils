@@ -21,7 +21,8 @@ class WarpAnchorFragment(BaseConstructFragment):
 
     _construct_ = Struct(
         # Basics
-        'type' / Default(Enum(UInt, sphere=0, box=1), 0),
+        # renamed from 'type' to prevent conflict with BaseObject's type attr
+        'trigger_type' / Default(Enum(UInt, sphere=0, box=1), 0),
         'my_id' / Default(Int, 0),
         'other_id' / Default(Int, 0),
         'is_primary' / Default(Byte, 1),

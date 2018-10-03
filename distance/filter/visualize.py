@@ -391,6 +391,33 @@ class SetAbilitiesTriggerMapper(VisualizeMapper):
         return self.vis.visualize(objpath)
 
 
+class WarpAnchorMapper(VisualizeMapper):
+
+    match_tags = 'WarpAnchor',
+
+    vis_types = {
+        'sphere': SphereVisualizer(
+            color = (0, .482, 1),
+            scale_factor = 1/64,
+        ),
+        'box': BoxVisualizer(
+            color = (0, .482, 1),
+            scale_factor = 1/64,
+        ),
+    }
+
+    def _apply_match(self, main, objpath, frags):
+        try:
+            frag = objpath[-1]['WarpAnchor']
+        except KeyError:
+            raise DoNotApply('unknown_version', 'WarpAnchor')
+        try:
+            vis = self.vis_types[frag.trigger_type]
+        except KeyError:
+            raise DoNotApply('no_collider')
+        return vis.visualize(objpath)
+
+
 class ForceZoneMapper(VisualizeMapper):
 
     match_tags = 'ForceZone',

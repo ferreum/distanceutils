@@ -500,8 +500,8 @@ class WarpAnchorDefaultTest(common.WriteReadTest):
     def verify_obj(self, obj):
         frag = obj.children[0]['WarpAnchor']
         # many omitted
-        self.assertEqual(frag.type, 'sphere')
-        self.assertEqual(int(frag.type), 0)
+        self.assertEqual(frag.trigger_type, 'sphere')
+        self.assertEqual(int(frag.trigger_type), 0)
         self.assertEqual(frag.my_id, 0)
         self.assertEqual(frag.other_id, 0)
         self.assertEqual(frag.type_of_warp, 'there_and_back')
@@ -521,8 +521,8 @@ class WarpAnchorChangedTest(common.WriteReadTest):
     def verify_obj(self, obj):
         frag = obj.children[1]['WarpAnchor']
         # many omitted
-        self.assertEqual(frag.type, 'box')
-        self.assertEqual(int(frag.type), 1)
+        self.assertEqual(frag.trigger_type, 'box')
+        self.assertEqual(int(frag.trigger_type), 1)
         self.assertEqual(frag.my_id, 15)
         self.assertEqual(frag.other_id, 20)
         self.assertEqual(frag.type_of_warp, 'there_and_back')
