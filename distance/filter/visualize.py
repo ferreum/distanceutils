@@ -147,9 +147,9 @@ class BoxVisualizer(Visualizer):
             coll_center=coll_center,
             size=size)
 
-    def visualize(self, objpath):
+    def visualize(self, objpath, **kw):
         transform = self.transform(objpath)
-        gs = self.creator.create(transform)
+        gs = self.creator.create(transform, **kw)
         return gs,
 
 
@@ -180,9 +180,9 @@ class SphereVisualizer(Visualizer):
             coll_center=coll_center,
             size=(radius, radius, radius))
 
-    def visualize(self, objpath):
+    def visualize(self, objpath, **kw):
         transform = self.transform(objpath)
-        gs = self.creator.create(transform)
+        gs = self.creator.create(transform, **kw)
         return gs,
 
 
@@ -415,7 +415,8 @@ class WarpAnchorMapper(VisualizeMapper):
             vis = self.vis_types[frag.trigger_type]
         except KeyError:
             raise DoNotApply('no_collider')
-        return vis.visualize(objpath)
+        alpha = .03 if frag.is_primary else .007
+        return vis.visualize(objpath, mat_emit=(0, .482, 1, alpha))
 
 
 class ForceZoneMapper(VisualizeMapper):
