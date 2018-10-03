@@ -5,6 +5,8 @@ Changelog
 
   * Fixed issues with new teleporter objects.
 
+  * Fixed level corruption with ``CarVoiceTrigger``.
+
   * New objects: ``SetAbilitiesTrigger``, ``WarpAnchor``.
 
 * version 0.5.0

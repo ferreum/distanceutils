@@ -28,11 +28,13 @@ KNOWN_GOOD_SECTIONS = [
     Section(22222222, type=0x61, version=1), # from v3 CreditsNameOrb (text)
     Section(22222222, type=0x4a, version=2), # InfoDisplayLogic from v9 InfoDisplayBox (text)
     Section(22222222, type=0x77, version=4), # v9 Biodome (background name)
+    Section(22222222, type=0x77, version=23), # build 6641 Biodome
     Section(33333333, type=0x7, version=1), # WorldText v1 (text)
     Section(33333333, type=0x7, version=2), # WorldText v2 (text)
     Section(33333333, type=0x2, version=0), # from s8 (map The Virus Begins) VirusBuilding004 (its object name)
     Section(22222222, type=0x63, version=0), # custom name (the name)
     Section(22222222, type=0x8a, version=1), # v9 EventListener (custom name)
+    Section(22222222, type=0x8a, version=2), # build 6641 EventListener
     Section(22222222, type=0x89, version=2), # v9 EventTriggerBox (custom name)
     Section(22222222, type=0x57, version=1), # v9 CarScreenTextDecodeTrigger (text)
 ]

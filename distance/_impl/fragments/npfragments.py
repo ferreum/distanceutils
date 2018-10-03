@@ -381,6 +381,7 @@ PROPERTY_FRAGS = (
     (Section(Magic[2], 0x57, 0), "OldCarScreenTextDecodeTrigger"),
     (Section(Magic[2], 0x4a, 0), "OldInfoDisplayLogic"),
     (Section(Magic[2], 0x43, 0), "OldInterpolateToPositionOnTrigger"),
+    (Section(Magic[2], 0x93, 0), "CarVoiceTrigger"),
 )
 
 
