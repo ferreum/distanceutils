@@ -492,4 +492,46 @@ class SetAbilitiesTriggerChangedTest(common.WriteReadTest):
         self.assertEqual(frag.visuals_only, 0)
 
 
+class WarpAnchorDefaultTest(common.WriteReadTest):
+
+    filename = "tests/in/customobject/WarpAnchor 6641 default with sphere.bytes"
+    read_obj = PROBER.read
+
+    def verify_obj(self, obj):
+        frag = obj.children[0]['WarpAnchor']
+        # many omitted
+        self.assertEqual(frag.type, 'sphere')
+        self.assertEqual(int(frag.type), 0)
+        self.assertEqual(frag.my_id, 0)
+        self.assertEqual(frag.other_id, 0)
+        self.assertEqual(frag.type_of_warp, 'there_and_back')
+        self.assertEqual(int(frag.type_of_warp), 0)
+        self.assertEqual(frag.transition_effect, 'none')
+        self.assertEqual(int(frag.transition_effect), 0)
+        self.assertAlmostEqual(frag.glitch_intensity, 1.1)
+        self.assertEqual(frag.countdown_time_scale, 1.0)
+        self.assertEqual(frag.disable_countdown, 0)
+
+
+class WarpAnchorChangedTest(common.WriteReadTest):
+
+    filename = "tests/in/customobject/WarpAnchor 6641 changed with cube.bytes"
+    read_obj = PROBER.read
+
+    def verify_obj(self, obj):
+        frag = obj.children[1]['WarpAnchor']
+        # many omitted
+        self.assertEqual(frag.type, 'box')
+        self.assertEqual(int(frag.type), 1)
+        self.assertEqual(frag.my_id, 15)
+        self.assertEqual(frag.other_id, 20)
+        self.assertEqual(frag.type_of_warp, 'there_and_back')
+        self.assertEqual(int(frag.type_of_warp), 0)
+        self.assertEqual(frag.transition_effect, 'teleport_virus')
+        self.assertEqual(int(frag.transition_effect), 4)
+        self.assertAlmostEqual(frag.glitch_intensity, 4.0)
+        self.assertEqual(frag.countdown_time_scale, 2.0)
+        self.assertEqual(frag.disable_countdown, 0)
+
+
 # vim:set sw=4 ts=8 sts=4 et:

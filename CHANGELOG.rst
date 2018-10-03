@@ -5,7 +5,7 @@ Changelog
 
   * Fixed issues with new teleporter objects.
 
-  * Added ``SetAbilitiesTrigger`` fragment.
+  * New objects: ``SetAbilitiesTrigger``, ``WarpAnchor``.
 
 * version 0.5.0
 
