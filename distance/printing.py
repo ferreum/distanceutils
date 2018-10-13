@@ -279,6 +279,10 @@ def format_distance(meters):
     return f"{km} km"
 
 
+def format_speed(kph):
+    return f"{kph:.02f} km/h"
+
+
 def format_color(color):
     if color is None:
         return "None"

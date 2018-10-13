@@ -13,7 +13,10 @@ from distance.construct import (
     BaseConstructFragment,
     UInt, Int, Double, Long, DstString, Remainder, MagicConst, DstOptional,
 )
-from distance.printing import format_duration, format_duration_dhms, format_distance
+from distance.printing import (
+    format_duration, format_duration_dhms,
+    format_distance, format_speed,
+)
 from distance.constants import Completion, Mode, TIMED_MODES
 from distance.classes import CollectorGroup
 
@@ -263,7 +266,7 @@ class ProfileStatsFragment(BaseConstructFragment):
         ps('wings', "Wings count")
         ps('horns', "Horn count")
         if total_in_modes:
-            avg_speed = total_distance / total_in_modes * 3.6
+            avg_speed = format_speed(total_distance / total_in_modes * 3.6)
         else:
             avg_speed = "None"
         p(f"Average speed: {avg_speed}")
