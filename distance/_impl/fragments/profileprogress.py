@@ -154,7 +154,7 @@ class ProfileStatsFragment(BaseConstructFragment):
         'checkpoints' / Long,
         'jumps' / Long,
         'wings' / Long,
-        'unk_2' / Long,
+        'wings_closes' / Long,
         'horns' / Long,
         'tricks' / Long,
         'ev' / Long,
@@ -264,6 +264,7 @@ class ProfileStatsFragment(BaseConstructFragment):
         ps('grip_seconds', "Grip held down time")
         ps('jumps', "Jump count")
         ps('wings', "Wings count")
+        ps('wings_closes', "Wings close count")
         ps('horns', "Horn count")
         if total_in_modes:
             avg_speed = format_speed(total_distance / total_in_modes * 3.6)
