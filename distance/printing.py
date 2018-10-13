@@ -206,16 +206,28 @@ def format_bytes(data, fmt='02x'):
         return ' '.join(format(b, fmt) for b in data)
 
 
-def format_bytes_multiline(data, width=16, fmt="02x", maxlines=128):
+def format_bytes_multiline(data, *, width=16, col_width=3, fmt="02x", maxlines=128):
     if not data:
         return ["<empty>"]
     maxlen = maxlines * width
-    lines = [' '.join(format(b, fmt)
-                     for b in islice(data, row, row + width))
-            for row in range(0, min(len(data), maxlen), width)]
+    lines = [format_bytes_line(data[row:(row + width)], col_width=col_width, fmt=fmt)
+             for row in range(0, min(len(data), maxlen), width)]
     if len(data) > maxlen:
         lines.append(f"<{len(data) - maxlen} of {len(data)} bytes omitted>")
     return lines
+
+
+def format_bytes_line(data, *, width=16, col_width=3, fmt="02x"):
+    space = ' ' * ((width - len(data)) * col_width + 1)
+    return (' '.join(format(b, fmt) for b in data) + space
+            + ''.join(_hexdump_chr(b) for b in data))
+
+
+def _hexdump_chr(c):
+    if 0x20 <= c <= 0x7e:
+        return chr(c)
+    else:
+        return "."
 
 
 def format_duration(msec):
