@@ -139,7 +139,7 @@ class ProfileStatsFragment(BaseConstructFragment):
         'overheat_deaths' / Long,
         'killgrid_deaths' / Long,
         'gibs_seconds' / Double,
-        'unk_1' / Double,
+        'driven_meters' / Double,
         'forward_meters' / Double,
         'reverse_meters' / Double,
         'air_fly_meters' / Double,
@@ -223,8 +223,6 @@ class ProfileStatsFragment(BaseConstructFragment):
             p.tree_next_child()
             ps('editor_playing_seconds', "Time playing in editor")
 
-        total_distance = sum([self.forward_meters or 0, self.reverse_meters or 0,
-                              self.air_fly_meters or 0, self.air_nofly_meters or 0])
         ps('deaths', "Total deaths")
         with p.tree_children():
             ps('impact_deaths', "Impact deaths")
@@ -242,12 +240,16 @@ class ProfileStatsFragment(BaseConstructFragment):
         ps('splits', "Split count")
         ps('checkpoints', "Checkpoints hit")
         ps('cooldowns', "Cooldowns hit")
+        total_distance = sum([self.forward_meters or 0, self.reverse_meters or 0,
+                              self.air_fly_meters or 0, self.air_nofly_meters or 0])
         p(f"Distance traveled: {format_distance(total_distance)}")
         with p.tree_children():
-            ps('forward_meters', "Distance driven forward")
-            p.tree_next_child()
-            ps('reverse_meters', "Distance driven reverse")
-            p.tree_next_child()
+            ps('driven_meters', "Distance driven")
+            with p.tree_children():
+                ps('forward_meters', "Distance driven forward")
+                p.tree_next_child()
+                ps('reverse_meters', "Distance driven reverse")
+                p.tree_next_child()
             ps('air_fly_meters', "Distance airborn flying")
             p.tree_next_child()
             ps('air_nofly_meters', "Distance airborn not flying")
