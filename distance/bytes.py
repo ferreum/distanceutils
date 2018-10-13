@@ -1076,12 +1076,12 @@ class DstBytes(object):
 
         """
 
-        l = []
+        data = bytearray()
         while value >= 0x80:
-            l.append((value & 0x7f) | 0x80)
+            data.append((value & 0x7f) | 0x80)
             value >>= 7
-        l.append(value)
-        self.write_bytes(bytes(l))
+        data.append(value)
+        self.write_bytes(data)
 
     def require_equal_uint4(self, expect):
         "Read ``uint``, raising if it doesn't match the given value."
