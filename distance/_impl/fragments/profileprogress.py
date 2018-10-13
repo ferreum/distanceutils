@@ -161,9 +161,9 @@ class ProfileStatsFragment(BaseConstructFragment):
         'lamps' / Long,
         'pumpkins' / Long,
         'eggs' / Long,
-        'unk_3' / Long,
-        'unk_4' / Long,
-        'unk_5' / Long,
+        'top_speed_total' / Double,
+        'top_speed_forward' / Double,
+        'top_speed_back' / Double,
         'cooldowns' / Long,
         'total_seconds' / Double,
         'editor_working_seconds' / Double,
@@ -271,6 +271,9 @@ class ProfileStatsFragment(BaseConstructFragment):
         else:
             avg_speed = "None"
         p(f"Average speed: {avg_speed}")
+        p(f"Top speed total: {format_speed(self.top_speed_total * 3.6)}")
+        p(f"Top speed forward: {format_speed(self.top_speed_forward * 3.6)}")
+        p(f"Top speed back: {format_speed(self.top_speed_back * 3.6)}")
 
         ps('tricks', "Trick count")
         ps('ev', "Total points")
