@@ -1,13 +1,15 @@
 Changelog
 ---------
 
-* version 0.5.1 (unreleased)
+* version 0.5.1
 
   * Fixed issues with new teleporter objects.
 
   * Fixed level corruption with ``CarVoiceTrigger``.
 
   * New objects: ``SetAbilitiesTrigger``, ``WarpAnchor``.
+
+  * Added some fields to ``ProfileProgress``.
 
 * version 0.5.0
 
